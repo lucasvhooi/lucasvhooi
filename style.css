@@ -416,7 +416,49 @@ h1 {
   padding: 40px;
 }
 
-
+@media only screen and (max-width: 1500px) {
+  #card8{
+    background-size: 280% 80%;
+  }
+  #card7{
+    background-size: 280% 80%;
+  }
+  #card6{
+    background-size: 210% 80%;
+    background-image: url("https://cdna.artstation.com/p/assets/images/images/029/265/242/large/lucas-van-hooidonk-rsfsg.jpg?1596992882");
+  }
+  #card5{
+    background-size: 280% 80%;
+  }
+  #card4{
+    background-size: 350% 80%;
+  }
+  #card3{
+    background-size: 280% 80%;
+  }
+  #card2{
+    background-size: 280% 80%;
+  }
+  #card1{
+    background-size: 280% 80%;
+  }
+  .project-card h2 {
+    color: rgb(0, 0, 0);
+    font-family: 'Heebo', sans-serif;
+    font-weight: 00;
+    font-size: 17px;
+    margin-top: 420px;
+    margin-right: 20px;
+  }
+  
+  .project-card p {
+    color: rgb(0, 0, 0);
+    font-family: 'Heebo', sans-serif;
+    font-weight: 300;
+    font-size: 15px;
+    margin-right: 20px;
+  }
+}
 
 @media only screen and (max-width: 1100px) {
   .card h1 {
