@@ -11,6 +11,12 @@
   overflow: hidden;
 }
 
+.mobile-disc h1{
+  font-size: 20px;
+  background-color: rgb(5, 5, 5);
+  visibility: hidden;
+  position: absolute;
+}
 
 header {
   padding: 0px;
@@ -541,5 +547,16 @@ h1 {
 
   .popup {
     width: 70%;
+  }
+
+/* MOBILE VERSION */
+  @media screen and (max-width: 450px) {
+    .container{
+      visibility: hidden;
+    }
+    .mobile-disc h1{
+      visibility: visible;
+    
+    }
   }
 }
