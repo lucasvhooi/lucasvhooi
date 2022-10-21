@@ -11,7 +11,7 @@
   overflow: hidden;
 }
 
-.mobile-disc h1{
+.mobile-disc h1 {
   font-size: 20px;
   background-color: rgb(5, 5, 5);
   visibility: hidden;
@@ -280,6 +280,10 @@ h1 {
   border-radius: 100px;
   border-bottom-left-radius: 10px;
   align-items: center;
+  background-size: auto 80%;
+  background-repeat: no-repeat;
+  background-position: center top;
+  transition: all 0.2s ease-out;
 }
 
 .project-card h2 {
@@ -295,119 +299,63 @@ h1 {
   font-family: 'Heebo', sans-serif;
   font-weight: 300;
   font-size: 15px;
+
 }
 
-#card1 {
-  background-image: url("image/foto3.JPG");
-  background-size: 100% 80%;
-  background-repeat: no-repeat;
-  background-position: center top;
-  transition: all 0.2s ease-out;
-}
-
-#card1:hover {
+.project-card:hover {
   width: 300px;
   height: 500px;
   box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0.2), 0 6px 20px 0 rgba(255, 255, 255, 0.19);
+}
+
+
+#card1 {
+  background-image: url("https://cdnb.artstation.com/p/assets/images/images/027/974/109/large/lucas-van-hooidonk-4.jpg?1593111365");
 }
 
 #card2 {
-  background-image: url("image/foto2.JPG");
-  background-size: 100% 80%;
-  background-repeat: no-repeat;
-  background-position: center top;
-  transition: all 0.2s ease-out;
+  background-image: url("https://cdnb.artstation.com/p/assets/images/images/032/788/631/large/lucas-van-hooidonk-render2.jpg?1607468311");
+
 }
 
-#card2:hover {
-  width: 300px;
-  height: 500px;
-  box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0.2), 0 6px 20px 0 rgba(255, 255, 255, 0.19);
-}
 
 #card3 {
-  background-image: url("image/unnamed.png");
-  background-size: 100% 80%;
-  background-repeat: no-repeat;
-  background-position: center top;
-  transition: all 0.2s ease-out;
+  background-image: url("https://cdna.artstation.com/p/assets/images/images/029/265/240/large/lucas-van-hooidonk-rendergh.jpg?1596992878");
+
 }
 
-#card3:hover {
-  width: 300px;
-  height: 500px;
-  box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0.2), 0 6px 20px 0 rgba(255, 255, 255, 0.19);
-}
+
 
 #card4 {
-  background-image: url("https://cdnb.artstation.com/p/assets/images/images/027/974/109/large/lucas-van-hooidonk-4.jpg?1593111365");
-  background-size: 230% 80%;
-  background-repeat: no-repeat;
-  background-position: center top;
-  transition: all 0.2s ease-out;
+  background-image: url("https://cdnb.artstation.com/p/assets/images/images/028/373/709/large/lucas-van-hooidonk-1.jpg?1594286762");
+
 }
 
-#card4:hover {
-  width: 300px;
-  height: 500px;
-  box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0.2), 0 6px 20px 0 rgba(255, 255, 255, 0.19);
-}
+
 
 #card5 {
-  background-image: url("https://cdnb.artstation.com/p/assets/images/images/032/788/631/large/lucas-van-hooidonk-render2.jpg?1607468311");
-  background-size: 230% 80%;
-  background-repeat: no-repeat;
-  background-position: center top;
-  transition: all 0.2s ease-out;
+  background-image: url("https://cdna.artstation.com/p/assets/images/images/054/888/936/large/lucas-van-hooidonk-the-orb.jpg?1665599713");
 }
 
-#card5:hover {
-  width: 300px;
-  height: 500px;
-  box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0.2), 0 6px 20px 0 rgba(255, 255, 255, 0.19);
-}
+
 
 #card6 {
-  background-image: url("https://cdna.artstation.com/p/assets/images/images/029/265/240/large/lucas-van-hooidonk-rendergh.jpg?1596992878");
-  background-size: 140% 80%;
-  background-repeat: no-repeat;
-  background-position: center top;
-  transition: all 0.2s ease-out;
+
 }
 
-#card6:hover {
-  width: 300px;
-  height: 500px;
-  box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0.2), 0 6px 20px 0 rgba(255, 255, 255, 0.19);
-}
+
 
 #card7 {
-  background-image: url("https://cdnb.artstation.com/p/assets/images/images/028/373/709/large/lucas-van-hooidonk-1.jpg?1594286762");
-  background-size: 220% 80%;
-  background-repeat: no-repeat;
-  background-position: center top;
-  transition: all 0.2s ease-out;
+
 }
 
-#card7:hover {
-  width: 300px;
-  height: 500px;
-  box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0.2), 0 6px 20px 0 rgba(255, 255, 255, 0.19);
-}
+
 
 #card8 {
-  background-image: url("https://cdna.artstation.com/p/assets/images/images/054/888/936/large/lucas-van-hooidonk-the-orb.jpg?1665599713");
-  background-size: 220% 80%;
-  background-repeat: no-repeat;
-  background-position: center top;
-  transition: all 0.2s ease-out;
+
 }
 
-#card8:hover {
-  width: 300px;
-  height: 500px;
-  box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0.2), 0 6px 20px 0 rgba(255, 255, 255, 0.19);
-}
+
 
 
 .container-gd {
@@ -416,32 +364,10 @@ h1 {
   padding: 40px;
 }
 
+
+
+
 @media only screen and (max-width: 1500px) {
-  #card8{
-    background-size: 280% 80%;
-  }
-  #card7{
-    background-size: 280% 80%;
-  }
-  #card6{
-    background-size: 210% 80%;
-    background-image: url("https://cdna.artstation.com/p/assets/images/images/029/265/242/large/lucas-van-hooidonk-rsfsg.jpg?1596992882");
-  }
-  #card5{
-    background-size: 280% 80%;
-  }
-  #card4{
-    background-size: 350% 80%;
-  }
-  #card3{
-    background-size: 280% 80%;
-  }
-  #card2{
-    background-size: 280% 80%;
-  }
-  #card1{
-    background-size: 280% 80%;
-  }
   .project-card h2 {
     color: rgb(0, 0, 0);
     font-family: 'Heebo', sans-serif;
@@ -450,7 +376,7 @@ h1 {
     margin-top: 420px;
     margin-right: 20px;
   }
-  
+
   .project-card p {
     color: rgb(0, 0, 0);
     font-family: 'Heebo', sans-serif;
@@ -458,7 +384,8 @@ h1 {
     font-size: 15px;
     margin-right: 20px;
   }
-  .profile-photo{
+
+  .profile-photo {
     width: 400%;
     justify-self: center;
   }
@@ -578,7 +505,7 @@ h1 {
   font-size: 15px;
 }
 
-.popup .content ul{
+.popup .content ul {
   padding: 10px;
   color: rgb(255, 255, 255);
   font-family: 'Heebo', sans-serif;
@@ -595,14 +522,15 @@ h1 {
     width: 70%;
   }
 
-/* MOBILE VERSION */
+  /* MOBILE VERSION */
   @media screen and (max-width: 450px) {
-    .container{
+    .container {
       visibility: hidden;
     }
-    .mobile-disc h1{
+
+    .mobile-disc h1 {
       visibility: visible;
-    
+
     }
   }
 }
