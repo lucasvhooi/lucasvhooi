@@ -308,55 +308,36 @@ h1 {
   box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0.2), 0 6px 20px 0 rgba(255, 255, 255, 0.19);
 }
 
+.container-gd{
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
 
 #card1 {
   background-image: url("https://cdnb.artstation.com/p/assets/images/images/027/974/109/large/lucas-van-hooidonk-4.jpg?1593111365");
 }
-
 #card2 {
   background-image: url("https://cdnb.artstation.com/p/assets/images/images/032/788/631/large/lucas-van-hooidonk-render2.jpg?1607468311");
-
 }
-
-
 #card3 {
   background-image: url("https://cdna.artstation.com/p/assets/images/images/029/265/240/large/lucas-van-hooidonk-rendergh.jpg?1596992878");
-
 }
-
-
-
 #card4 {
   background-image: url("https://cdnb.artstation.com/p/assets/images/images/028/373/709/large/lucas-van-hooidonk-1.jpg?1594286762");
-
 }
-
-
-
 #card5 {
   background-image: url("https://cdna.artstation.com/p/assets/images/images/054/888/936/large/lucas-van-hooidonk-the-orb.jpg?1665599713");
 }
-
-
-
 #card6 {
-
+  background-image: url("https://cdna.artstation.com/p/assets/images/images/054/888/936/large/lucas-van-hooidonk-the-orb.jpg?1665599713");
 }
-
-
-
 #card7 {
-
+  background-image: url("https://cdna.artstation.com/p/assets/images/images/054/888/936/large/lucas-van-hooidonk-the-orb.jpg?1665599713");
 }
-
-
-
 #card8 {
-
+  background-image: url("https://cdna.artstation.com/p/assets/images/images/054/888/936/large/lucas-van-hooidonk-the-orb.jpg?1665599713");
 }
-
-
-
 
 .container-gd {
   display: flex;
@@ -522,6 +503,9 @@ h1 {
     width: 70%;
   }
 
+
+
+  
   /* MOBILE VERSION */
   @media screen and (max-width: 450px) {
     .container {
