@@ -272,7 +272,7 @@ h1 {
 
 
 .project-card {
-  padding: 30px;
+  padding: 20px;
   display: flex;
   transition: all 0.2s ease-out;
 }
@@ -425,6 +425,9 @@ h1 {
     width: 400%;
     justify-self: center;
   }
+  .project-card {
+    padding: 50px;
+  }
 }
 
 
@@ -435,11 +438,6 @@ h1 {
 }
 
 @media only screen and (max-width: 780px) {
-  .card h1 {
-    font-weight: 400;
-    font-size: 12px;
-  }
-
   .center-box h1 {
     font-size: 30px;
   }
