@@ -459,6 +459,15 @@ h1 {
   }
 }
 
+@media only screen and (min-width: 2000px) {
+  .columns{
+    width: 1500px;
+    margin-right: auto;
+    margin-left: auto;
+  }
+}
+
+
 
 .overlay {
   position: fixed;
