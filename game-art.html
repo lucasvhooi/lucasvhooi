@@ -10,287 +10,321 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@100;200;300;400;500;600;700;800;900&display=swap"
     rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-<body class="container-gallery">
-  <header class="gallery">
+
+<body class="container">
+  <header>
     <nav>
       <ul class="nav-list">
         <div class="navigation">
           <h1 class="nav-title">GAME ART</h1>
-          <li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</li>
-          <li><a class="gallery" href="index.html">HOME</a></li>
-          <li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</li>
-          <li><a class="gallery" href="about.html">ABOUT</a></li>
+          <div class="gallery-tab">
+            <li><a href="index.html">HOME</a></li>
+            <!-- <li><a href="graphic-design.html">GRAPHIC DESIGN</a></li> -->
+            <li><a href="photography.html">PHOTOGRAPHY</a></li>
+            <li><a href="tmc.html">TMC</a></li>
+            </li>
+          </div>
         </div>
       </ul>
     </nav>
-    <h1>PROJECTS</h1>
+  </header>
 
-    <div class="container-gd">
+  <div class="container-gd">
+    <div class="quotes"> 
+      <h3><i>"Hope is what makes us strong. It is why we are here. It is what we fight with when all else is lost." – Pandora, God of War 3</i></h3>
+    </div>
 
-      <div class="project-card" id="master-card">
-        <a href="#popup1" style="text-decoration: none;">
-          <div class="project-card-banner" id="card1"></div>
-          <div class="project-card-title" id="txt-card">
-            <h2>LEGENDS OF ESSOLIS</h2>
-            <h3>Personal game project</h3>
-            <p class="hidden-text" id="hidden-text">Legends Of Essolis is a small game project I was working on after my
-              internship. I wanted to get some C# experience by creating a small playable demo scene. I also wanted to try and
-              expand my knowledge of shader building in... </p>
-          </div>
-        </a>
-      </div>
-
-      <div class="project-card" id="master-card">
-        <a href="#popup2" style="text-decoration: none;">
-          <div class="project-card-banner" id="card2"></div>
-          <div class="project-card-title" id="txt-card">
-            <h2>PIANO MODEL</h2>
-            <h3>1:1 Hard surface piano model</h3>
-            <p class="hidden-text" id="hidden-text">This is a 1:1 model of my own keyboard. It's a low poly game ready asset. I started with measuring my
-              keyboard and noting everything down. After that I blocked out the model using basic shapes in Maya. When I
-              finished the block out I started adding all the details.</p>
-          </div>
-        </a>
-      </div>
-
-      <div class="project-card" id="master-card">
-        <a href="#popup3" style="text-decoration: none;">
-          <div class="project-card-banner" id="card3"></div>
-          <div class="project-card-title" id="txt-card">
-            <h2>SUBSTANCE DESIGNER</h2>
-            <h3>Three substance materials</h3>
-            <p class="hidden-text" id="hidden-text">Here are three models that I made using Substance Designer. I used small variations of the textures to
-              blend them together in Unity to avoid repetition and create a more natural look. I really like the way you
-              build</p>
-          </div>
-        </a>
-      </div>
-
-      <div class="project-card" id="master-card">
-        <a href="#popup4" style="text-decoration: none;">
-          <div class="project-card-banner" id="card4"></div>
-          <div class="project-card-title" id="txt-card">
-            <h2>LAMBORGHINI MODEL</h2>
-            <h3>Hardsurface model of lamborghini</h3>
-            <p class="hidden-text" id="hidden-text">To challenge myself I did what every 3D artist does and model a car :). For my project I used a
-              Lamborghini. I used a blueprint from the internet and used Maya to make the model itself. I modelled the
-              car using the front, </p>
-          </div>
-        </a>
-      </div>
-
-      <div class="project-card" id="master-card">
-        <a href="#popup5" style="text-decoration: none;">
-          <div class="project-card-banner" id="card5"></div>
-          <div class="project-card-title" id="txt-card">
-            <h2>CONCEPT ART</h2>
-            <h3>Environment concept art</h3>
-            <p class="hidden-text" id="hidden-text">Recently I started sketching environment. I don't draw often but I wanted to try and improve my drawing
-              skills. Here are three of my recent drawings I made using Photoshop. At the moment I try and focus on
-              building</p>
-          </div>
-        </a>
-      </div>
-
-      <div id="popup5" class="overlay">
-        <div class="popup">
-          <h2>CONCEPT ART</h2>
-          <a class="close" href="#">&times;</a>
-          <div class="content">
-            <p>Recently I started sketching environment. I don't draw often but I wanted to try and improve my drawing
-              skills. Here are three of my recent drawings I made using Photoshop. At the moment I try and focus on
-              building the composition using simple shapes and using colors to create depth. At the moment I love
-              drawing in a rough kind of way with bold strokes and focusing more on the full image then the small
-              details. I use a small Wacom drawing tablet for drawing. Environments is something that really interests
-              me in game
-              design so that's why I really wanted to practice this with drawing. And creating simple but storytelling
-              artwork. </p>
-            <div>
-              <img
-                src="https://cdna.artstation.com/p/assets/images/images/054/888/936/large/lucas-van-hooidonk-the-orb.jpg?1665599713">
-              <img
-                src="https://cdnb.artstation.com/p/assets/images/images/054/889/381/large/lucas-van-hooidonk-city-of-fire-and-sand.jpg?1665600543">
-              <img
-                src="https://cdna.artstation.com/p/assets/images/images/054/889/388/large/lucas-van-hooidonk-desert-travel.jpg?1665600548">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div id="popup4" class="overlay">
-        <div class="popup">
-          <h2>LAMBORGHINI MODEL</h2>
-          <a class="close" href="#">&times;</a>
-          <div class="content">
-            <p>To challenge myself I did what every 3D artist does and model a car :). For my project I used a
-              Lamborghini. I used a blueprint from the internet and used Maya to make the model itself. I modelled the
-              car using the front, side and back cameras. Here are some renders from the hard surface model.
-            </p>
-            <div>
-              <img
-                src="https://cdna.artstation.com/p/assets/images/images/028/373/710/large/lucas-van-hooidonk-2.jpg?1594286765">
-              <img
-                src="https://cdna.artstation.com/p/assets/images/images/028/373/712/large/lucas-van-hooidonk-3.jpg?1594286768">
-              <img
-                src="https://cdnb.artstation.com/p/assets/images/images/028/373/715/large/lucas-van-hooidonk-4.jpg?1594286770">
-              <p>The wireframe:</p>
-              <img
-                src="https://cdnb.artstation.com/p/assets/images/images/028/373/725/large/lucas-van-hooidonk-6.jpg?1594286775">
-              <img
-                src="https://cdna.artstation.com/p/assets/images/images/028/373/728/large/lucas-van-hooidonk-7.jpg?1594286778">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div id="popup3" class="overlay">
-        <div class="popup">
-          <h2>SUBSTANCE DESIGNER</h2>
-          <a class="close" href="#">&times;</a>
-          <div class="content">
-            <p>Here are three models that I made using Substance Designer. I used small variations of the textures to
-              blend them together in Unity to avoid repetition and create a more natural look. I really like the way you
-              build
-              up materials in substance designer and I wanted to improve my skills with creating own textures from the
-              ground up. I
-              wanted to create three different kinds of materials so I could use them in a unity project where I was
-              experimenting with
-              tessellation. I love using bright colors in my materials and I went for a more stylized look to create a
-              kind of cartoony effect.
-            </p>
-            <div>
-              <div class="row">
-                <div class="column">
-                  <h2>The material</h2>
-                  <p>Finished material rendered in Substance Designer.</p>
-                  <img
-                    src="https://cdnb.artstation.com/p/assets/images/images/029/265/239/large/lucas-van-hooidonk-render.jpg?1596992876"
-                    style="width:100%" alt="photo1">
-                  <img
-                    src="https://cdnb.artstation.com/p/assets/images/images/029/047/565/large/lucas-van-hooidonk-sand.jpg?1596295945"
-                    style="width:100%">
-                  <img
-                    src="https://cdnb.artstation.com/p/assets/images/images/029/041/901/large/lucas-van-hooidonk-portfolio-stylized-material1.jpg?1596277701"
-                    style="width:100%">
-                </div>
-                <div class="column">
-                  <h2>Different maps</h2>
-                  <p>A look at the three maps: AO, albedo and the normal map.</p>
-                  <img
-                    src="https://cdna.artstation.com/p/assets/images/images/029/265/240/large/lucas-van-hooidonk-rendergh.jpg?1596992878"
-                    style="width:100%">
-                  <img
-                    src="https://cdna.artstation.com/p/assets/images/images/029/047/566/large/lucas-van-hooidonk-sandmaps.jpg?1596295948"
-                    style="width:100%">
-                  <img
-                    src="https://cdnb.artstation.com/p/assets/images/images/029/041/899/large/lucas-van-hooidonk-portfolio-stylized-material.jpg?1596277698"
-                    style="width:100%">
-                </div>
-                <div class="column">
-                  <h2>2D texture</h2>
-                  <p>Finished texture as it would look like on a plane.</p>
-                  <img
-                    src="https://cdna.artstation.com/p/assets/images/images/029/265/242/large/lucas-van-hooidonk-rsfsg.jpg?1596992882"
-                    style="width:100%">
-                  <img
-                    src="https://cdnb.artstation.com/p/assets/images/images/029/047/567/large/lucas-van-hooidonk-sandtop.jpg?1596295951"
-                    style="width:100%">
-                  <img
-                    src="https://cdna.artstation.com/p/assets/images/images/029/041/936/large/lucas-van-hooidonk-wallrender.jpg?1596277834"
-                    style="width:100%">
-                </div>
-
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div id="popup2" class="overlay">
-        <div class="popup">
-          <h2>PIANO MODEL</h2>
-          <a class="close" href="#">&times;</a>
-          <div class="content">
-            <p>This is a 1:1 model of my own keyboard. It's a low poly game ready asset. I started with measuring my
-              keyboard and noting everything down. After that I blocked out the model using basic shapes in Maya. When I
-              finished the block out I started adding all the details. </p>
-            <p>For texturing I needed to unwrap the model. for texturing I used Substance Painter. I created a few
-              different materials that I used to texture the model. I made the final renders using the renderer in
-              Substance Painter. </p>
-            <div>
-              <img
-                src="https://cdna.artstation.com/p/assets/images/images/032/788/634/large/lucas-van-hooidonk-render1.jpg?1607468314">
-              <img
-                src="https://cdnb.artstation.com/p/assets/images/images/032/788/629/large/lucas-van-hooidonk-render3.jpg?1607468308">
-              <img
-                src="https://cdnb.artstation.com/p/assets/images/images/032/788/625/large/lucas-van-hooidonk-render-5.jpg?1607468305">
-              <img
-                src="https://cdnb.artstation.com/p/assets/images/images/032/788/631/large/lucas-van-hooidonk-render2.jpg?1607468311">
-              <img
-                src="https://cdna.artstation.com/p/assets/images/images/032/788/624/large/lucas-van-hooidonk-render4.jpg?1607468297">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div id="popup1" class="overlay">
-        <div class="popup">
+    <div class="project-card" id="master-card">
+      <a href="#popup1" style="text-decoration: none;">
+        <div class="project-card-banner" id="card1"></div>
+        <div class="project-card-title" id="txt-card">
           <h2>LEGENDS OF ESSOLIS</h2>
-          <a class="close" href="#">&times;</a>
-          <div class="content">
-            <p>Legends Of Essolis is a small game project I was working on after my internship. I wanted to get some C#
-              experience by creating a small playable demo scene. I also wanted to try and expand my knowledge of shader
-              building in Unity. My idea was to create a low poly stylized puzzle adventure game. With the focus on
-              using
-              the environment with the puzzles.
-            </p>
-            <p>
-              All models and shaders are made by me with exception of the rocks. Using Unity ShaderGraph I created a
-              water, vegetation and toon shader. With the toon shader I wanted to create a more stylized look to the
-              game. Using C# I created a 3rd person character controller, a simple pickup system a waypoint system and a
-              inventory system and a say night cycle. For the firefly's and fire I used particle systems. All models are
-              made using Maya and textures are made using a color grid system in photoshop. I also used some
-              optimization
-              tools like LOD meshes and occlusion culling.
-            </p>
-            <p>
-              I personally think that the level turned out great. A lot of people really liked the style of the level
-              and
-              really wanted to see more about the game. I learned a lot about optimization and making shader in Unity.
-              Overall it was a really positive experience!
-            </p>
-            <p>
-              Down here are some of the in-game views of the small playable level:
-            </p>
-            <div>
-              <img
-                src="https://cdnb.artstation.com/p/assets/images/images/027/974/109/large/lucas-van-hooidonk-4.jpg?1593111365">
-              <p>Quick look at the watershader I build using ShaderGraph:</p>
-              <video width="100%" height="100%" controls autoplay loop>
-                <source
-                  src="https://cdn-animation.artstation.com/p/video_sources/000/092/768/rpg-introscene-pc-mac-linux-standalone-unity-2019-3-6f1-personal-preview-packages-in-use-dx11-09-07-2020-12-30-40-trim.mp4"
-                  type="video/mp4">
-                Your browser does not support the video tag.
-              </video>
-              <p>Screenshot from the scene at night:</p>
-              <img
-                src="https://cdna.artstation.com/p/assets/images/images/027/974/110/large/lucas-van-hooidonk-5.jpg?1593111370">
-              <p>Short concept trailer of the level I made using music that someone made for the game and who was
-                interested in working on the project: </p>
-              <iframe width="100%" height="500px" src="https://www.youtube.com/embed/nX0hJBcYjks"
-                title="Short trailer for a project i worked on." frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen></iframe>
-              <p>More screenshots of the level:</p>
-              <img
-                src="https://cdna.artstation.com/p/assets/images/images/027/974/112/large/lucas-van-hooidonk-6.jpg?1593111374">
-              <img
-                src="https://cdna.artstation.com/p/assets/images/images/027/974/108/large/lucas-van-hooidonk-3.jpg?1593111361">
+          <h3>Personal game project</h3>
+          <p class="hidden-text" id="hidden-text">Legends Of Essolis is a small game project I was working on after my
+            internship. I wanted to get some C# experience by creating a small playable demo scene. I also wanted to try
+            and
+            expand my knowledge of shader building in... </p>
+        </div>
+      </a>
+    </div>
+
+    <div class="project-card" id="master-card">
+      <a href="#popup2" style="text-decoration: none;">
+        <div class="project-card-banner" id="card2"></div>
+        <div class="project-card-title" id="txt-card">
+          <h2>PIANO MODEL</h2>
+          <h3>1:1 Hard surface piano model</h3>
+          <p class="hidden-text" id="hidden-text">This is a 1:1 model of my own keyboard. It's a low poly game ready
+            asset. I started with measuring my
+            keyboard and noting everything down. After that I blocked out the model using basic shapes in Maya. When I
+            finished the block out I started adding all the details.</p>
+        </div>
+      </a>
+    </div>
+
+    <div class="project-card" id="master-card">
+      <a href="#popup3" style="text-decoration: none;">
+        <div class="project-card-banner" id="card3"></div>
+        <div class="project-card-title" id="txt-card">
+          <h2>SUBSTANCE DESIGNER</h2>
+          <h3>Three substance materials</h3>
+          <p class="hidden-text" id="hidden-text">Here are three models that I made using Substance Designer. I used
+            small variations of the textures to
+            blend them together in Unity to avoid repetition and create a more natural look. I really like the way you
+            build</p>
+        </div>
+      </a>
+    </div>
+
+
+    <div class="project-card" id="master-card">
+      <a href="#popup4" style="text-decoration: none;">
+        <div class="project-card-banner" id="card4"></div>
+        <div class="project-card-title" id="txt-card">
+          <h2>LAMBORGHINI MODEL</h2>
+          <h3>Hardsurface model of lamborghini</h3>
+          <p class="hidden-text" id="hidden-text">To challenge myself I did what every 3D artist does and model a car
+            :). For my project I used a
+            Lamborghini. I used a blueprint from the internet and used Maya to make the model itself. I modelled the
+            car using the front, </p>
+        </div>
+      </a>
+    </div>
+
+    <div class="project-card" id="master-card">
+      <a href="#popup5" style="text-decoration: none;">
+        <div class="project-card-banner" id="card5"></div>
+        <div class="project-card-title" id="txt-card">
+          <h2>CONCEPT ART</h2>
+          <h3>Environment concept art</h3>
+          <p class="hidden-text" id="hidden-text">Recently I started sketching environment. I don't draw often but I
+            wanted to try and improve my drawing
+            skills. Here are three of my recent drawings I made using Photoshop. At the moment I try and focus on
+            building</p>
+        </div>
+      </a>
+    </div>
+
+    <div id="popup5" class="overlay">
+      <div class="popup">
+        <h2>CONCEPT ART</h2>
+        <a class="close" href="#">&times;</a>
+        <div class="content">
+          <p>Recently I started sketching environment. I don't draw often but I wanted to try and improve my drawing
+            skills. Here are three of my recent drawings I made using Photoshop. At the moment I try and focus on
+            building the composition using simple shapes and using colors to create depth. At the moment I love
+            drawing in a rough kind of way with bold strokes and focusing more on the full image then the small
+            details. I use a small Wacom drawing tablet for drawing. Environments is something that really interests
+            me in game
+            design so that's why I really wanted to practice this with drawing. And creating simple but storytelling
+            artwork. </p>
+          <div>
+            <img
+              src="https://cdna.artstation.com/p/assets/images/images/054/888/936/large/lucas-van-hooidonk-the-orb.jpg?1665599713">
+            <img
+              src="https://cdnb.artstation.com/p/assets/images/images/054/889/381/large/lucas-van-hooidonk-city-of-fire-and-sand.jpg?1665600543">
+            <img
+              src="https://cdna.artstation.com/p/assets/images/images/054/889/388/large/lucas-van-hooidonk-desert-travel.jpg?1665600548">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="popup4" class="overlay">
+      <div class="popup">
+        <h2>LAMBORGHINI MODEL</h2>
+        <a class="close" href="#">&times;</a>
+        <div class="content">
+          <p>To challenge myself I did what every 3D artist does and model a car :). For my project I used a
+            Lamborghini. I used a blueprint from the internet and used Maya to make the model itself. I modelled the
+            car using the front, side and back cameras. Here are some renders from the hard surface model.
+          </p>
+          <div>
+            <img
+              src="https://cdna.artstation.com/p/assets/images/images/028/373/710/large/lucas-van-hooidonk-2.jpg?1594286765">
+            <img
+              src="https://cdna.artstation.com/p/assets/images/images/028/373/712/large/lucas-van-hooidonk-3.jpg?1594286768">
+            <img
+              src="https://cdnb.artstation.com/p/assets/images/images/028/373/715/large/lucas-van-hooidonk-4.jpg?1594286770">
+            <p>The wireframe:</p>
+            <img
+              src="https://cdnb.artstation.com/p/assets/images/images/028/373/725/large/lucas-van-hooidonk-6.jpg?1594286775">
+            <img
+              src="https://cdna.artstation.com/p/assets/images/images/028/373/728/large/lucas-van-hooidonk-7.jpg?1594286778">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="popup3" class="overlay">
+      <div class="popup">
+        <h2>SUBSTANCE DESIGNER</h2>
+        <a class="close" href="#">&times;</a>
+        <div class="content">
+          <p>Here are three models that I made using Substance Designer. I used small variations of the textures to
+            blend them together in Unity to avoid repetition and create a more natural look. I really like the way you
+            build
+            up materials in substance designer and I wanted to improve my skills with creating own textures from the
+            ground up. I
+            wanted to create three different kinds of materials so I could use them in a unity project where I was
+            experimenting with
+            tessellation. I love using bright colors in my materials and I went for a more stylized look to create a
+            kind of cartoony effect.
+          </p>
+          <div>
+            <div class="row">
+              <div class="column">
+                <h2>The material</h2>
+                <p>Finished material rendered in Substance Designer.</p>
+                <img
+                  src="https://cdnb.artstation.com/p/assets/images/images/029/265/239/large/lucas-van-hooidonk-render.jpg?1596992876"
+                  style="width:100%" alt="photo1">
+                <img
+                  src="https://cdnb.artstation.com/p/assets/images/images/029/047/565/large/lucas-van-hooidonk-sand.jpg?1596295945"
+                  style="width:100%">
+                <img
+                  src="https://cdnb.artstation.com/p/assets/images/images/029/041/901/large/lucas-van-hooidonk-portfolio-stylized-material1.jpg?1596277701"
+                  style="width:100%">
+              </div>
+              <div class="column">
+                <h2>Different maps</h2>
+                <p>A look at the three maps: AO, albedo and the normal map.</p>
+                <img
+                  src="https://cdna.artstation.com/p/assets/images/images/029/265/240/large/lucas-van-hooidonk-rendergh.jpg?1596992878"
+                  style="width:100%">
+                <img
+                  src="https://cdna.artstation.com/p/assets/images/images/029/047/566/large/lucas-van-hooidonk-sandmaps.jpg?1596295948"
+                  style="width:100%">
+                <img
+                  src="https://cdnb.artstation.com/p/assets/images/images/029/041/899/large/lucas-van-hooidonk-portfolio-stylized-material.jpg?1596277698"
+                  style="width:100%">
+              </div>
+              <div class="column">
+                <h2>2D texture</h2>
+                <p>Finished texture as it would look like on a plane.</p>
+                <img
+                  src="https://cdna.artstation.com/p/assets/images/images/029/265/242/large/lucas-van-hooidonk-rsfsg.jpg?1596992882"
+                  style="width:100%">
+                <img
+                  src="https://cdnb.artstation.com/p/assets/images/images/029/047/567/large/lucas-van-hooidonk-sandtop.jpg?1596295951"
+                  style="width:100%">
+                <img
+                  src="https://cdna.artstation.com/p/assets/images/images/029/041/936/large/lucas-van-hooidonk-wallrender.jpg?1596277834"
+                  style="width:100%">
+              </div>
+
             </div>
           </div>
         </div>
       </div>
+    </div>
+
+    <div id="popup2" class="overlay">
+      <div class="popup">
+        <h2>PIANO MODEL</h2>
+        <a class="close" href="#">&times;</a>
+        <div class="content">
+          <p>This is a 1:1 model of my own keyboard. It's a low poly game ready asset. I started with measuring my
+            keyboard and noting everything down. After that I blocked out the model using basic shapes in Maya. When I
+            finished the block out I started adding all the details. </p>
+          <p>For texturing I needed to unwrap the model. for texturing I used Substance Painter. I created a few
+            different materials that I used to texture the model. I made the final renders using the renderer in
+            Substance Painter. </p>
+          <div>
+            <img
+              src="https://cdna.artstation.com/p/assets/images/images/032/788/634/large/lucas-van-hooidonk-render1.jpg?1607468314">
+            <img
+              src="https://cdnb.artstation.com/p/assets/images/images/032/788/629/large/lucas-van-hooidonk-render3.jpg?1607468308">
+            <img
+              src="https://cdnb.artstation.com/p/assets/images/images/032/788/625/large/lucas-van-hooidonk-render-5.jpg?1607468305">
+            <img
+              src="https://cdnb.artstation.com/p/assets/images/images/032/788/631/large/lucas-van-hooidonk-render2.jpg?1607468311">
+            <img
+              src="https://cdna.artstation.com/p/assets/images/images/032/788/624/large/lucas-van-hooidonk-render4.jpg?1607468297">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="popup1" class="overlay">
+      <div class="popup">
+        <h2>LEGENDS OF ESSOLIS</h2>
+        <a class="close" href="#">&times;</a>
+        <div class="content">
+          <p>Legends Of Essolis is a small game project I was working on after my internship. I wanted to get some C#
+            experience by creating a small playable demo scene. I also wanted to try and expand my knowledge of shader
+            building in Unity. My idea was to create a low poly stylized puzzle adventure game. With the focus on
+            using
+            the environment with the puzzles.
+          </p>
+          <p>
+            All models and shaders are made by me with exception of the rocks. Using Unity ShaderGraph I created a
+            water, vegetation and toon shader. With the toon shader I wanted to create a more stylized look to the
+            game. Using C# I created a 3rd person character controller, a simple pickup system a waypoint system and a
+            inventory system and a say night cycle. For the firefly's and fire I used particle systems. All models are
+            made using Maya and textures are made using a color grid system in photoshop. I also used some
+            optimization
+            tools like LOD meshes and occlusion culling.
+          </p>
+          <p>
+            I personally think that the level turned out great. A lot of people really liked the style of the level
+            and
+            really wanted to see more about the game. I learned a lot about optimization and making shader in Unity.
+            Overall it was a really positive experience!
+          </p>
+          <p>
+            Down here are some of the in-game views of the small playable level:
+          </p>
+          <div>
+            <img
+              src="https://cdnb.artstation.com/p/assets/images/images/027/974/109/large/lucas-van-hooidonk-4.jpg?1593111365">
+            <p>Quick look at the watershader I build using ShaderGraph:</p>
+            <video width="100%" height="100%" controls autoplay loop>
+              <source
+                src="https://cdn-animation.artstation.com/p/video_sources/000/092/768/rpg-introscene-pc-mac-linux-standalone-unity-2019-3-6f1-personal-preview-packages-in-use-dx11-09-07-2020-12-30-40-trim.mp4"
+                type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+            <p>Screenshot from the scene at night:</p>
+            <img
+              src="https://cdna.artstation.com/p/assets/images/images/027/974/110/large/lucas-van-hooidonk-5.jpg?1593111370">
+            <p>Short concept trailer of the level I made using music that someone made for the game and who was
+              interested in working on the project: </p>
+            <iframe width="100%" height="500px" src="https://www.youtube.com/embed/nX0hJBcYjks"
+              title="Short trailer for a project i worked on." frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen></iframe>
+            <p>More screenshots of the level:</p>
+            <img
+              src="https://cdna.artstation.com/p/assets/images/images/027/974/112/large/lucas-van-hooidonk-6.jpg?1593111374">
+            <img
+              src="https://cdna.artstation.com/p/assets/images/images/027/974/108/large/lucas-van-hooidonk-3.jpg?1593111361">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer id="footer">
+    <nav>
+      <ul class="nav-list">
+        <div class="navigation">
+          <h1 class="nav-title">CONTACT</h1>
+          <li><p>PHONE: +31 614455181<p></li>
+          <li><p>EMAIL: LHOOIDONK@GMAIL.COM</p></li>
+          <div class="gallery-tab">
+          <li><a href="https://www.instagram.com/lucasvhooi/" target="_blank">INSTAGRAM</a></li>
+          <li><a href="https://www.linkedin.com/in/lucas-van-hooidonk-1b5964143/" target="_blank">LINKEDIN</a></li>
+          <li><a href="https://drive.google.com/file/d/1i73yTHNJfRvcE2jiBfb-LugTQno4SvlA/view" target="_blank">CV</a>
+          </div>
+        </div>
+      </ul>
+    </nav>
+  </footer>
 </body>
 
 </html>
