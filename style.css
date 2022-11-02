@@ -664,6 +664,25 @@
   width: 100%;
   opacity: 100%;
 }
+#go-to-top {
+  display: none;
+  position: fixed;
+  width: 100%;
+  bottom: 0px;
+  z-index: 99;
+  font-size: 18px;
+  border: none;
+  outline: none;
+  background-color: rgba(0, 0, 0, 0.281);
+  color: white;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 4px;
+  color: rgb(255, 255, 255);
+  font-family: 'Heebo', sans-serif;
+  font-weight: 200;
+  font-size: 15px;
+}
 /* -------------------------------------------------------------------------------------------------------------------------------------------- */
 
 
