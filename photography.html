@@ -13,6 +13,19 @@
 
 
 <body>
+  <div class="nav-mobile">
+    <a href="photography.html" class="active">PHOTOGRAPHY</a>
+    <div id="myLinks">
+      <a href="index.html">HOME</a>
+      <a href="game-art.html">GAME ART</a>
+      <a href="graphic-design.html">GRAPHIC DESIGN</a>
+      <a href="tmc.html">THE MONKEY CO</a>
+    </div>
+    <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+      <i class="fa fa-bars"></i>
+    </a>
+  </div>
+
   <header>
     <nav>
       <ul class="nav-list">
@@ -103,6 +116,16 @@
       </ul>
     </nav>
   </footer>
+  <script>
+    function myFunction() {
+      var x = document.getElementById("myLinks");
+      if (x.style.display === "block") {
+        x.style.display = "none";
+      } else {
+        x.style.display = "block";
+      }
+    }
+    </script>
 </body>
 
 </html>
