@@ -105,7 +105,7 @@
 /*  ----------------------HEADER AND FOOTER---------------------- */
 .navigation {
   display: flex;
-  background-color: rgb(237, 247, 246);
+  background-color: white;
   align-items: center;
   justify-content: space-between;
   padding: 40px;
@@ -132,7 +132,7 @@
   font-size: 18px;
   list-style: none;
   transition: transform 250ms;
-  background-color: rgb(237, 247, 246);
+  background-color: white;
 }
 .nav-list p {
   color: rgb(241, 153, 83);
@@ -140,7 +140,7 @@
   font-weight: 400;
   font-size: 18px;
   transition: transform 250ms;
-  background-color: rgb(237, 247, 246);
+  background-color: white;
 }
 
 .nav-title {
@@ -148,7 +148,7 @@
   font-family: 'Heebo', sans-serif;
   font-weight: 900;
   font-size: 50px;
-  background-color: rgb(237, 247, 246);
+  background-color: white;
 }
 
 /* MOBILE NAV */
@@ -171,7 +171,7 @@
 }
 
 .nav-mobile a {
-  color: rgb(237, 247, 246);
+  color: white;
   font-family: 'Heebo', sans-serif;
   padding: 14px 16px;
   text-decoration: none;
@@ -197,7 +197,7 @@
   top: 20px;
   background-image: url(image/icons/menu-icon.svg);
   background-size: cover;
-  background-color: rgb(237, 247, 246);
+  background-color: white;
 }
 
 .nav-mobile a:hover {
@@ -206,7 +206,7 @@
 }
 
 .active {
-  background-color: rgb(237, 247, 246);
+  background-color: white;
   color: white;
 }
 
