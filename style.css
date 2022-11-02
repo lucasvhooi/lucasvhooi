@@ -713,6 +713,77 @@
 .project-card-title{
   width: 100%;
 }
+
+.overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(14, 14, 14, 0.212);
+  transition: opacity 200ms;
+  visibility: hidden;
+  opacity: 0;
+  overflow: auto;
+}
+.overlay:target {
+  visibility: visible;
+  opacity: 1;
+}
+.popup {
+  margin: 70px auto;
+  padding: 0px;
+  background: rgb(14, 14, 14);
+  border-radius: 0px;
+  width: 100%;
+}
+.popup h2 {
+  margin-top: 50px;
+  color: rgb(255, 255, 255);
+  font-family: 'Heebo', sans-serif;
+  font-weight: 900;
+  font-size: 30px;
+}
+.popup .close {
+  position: absolute;
+  top: 5px;
+  right: 20px;
+  transition: all 200ms;
+  font-family: 'Heebo', sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  text-decoration: none;
+  color: rgb(255, 255, 255);
+}
+.popup .close:hover {
+  color: #ff0000;
+}
+.popup .content {
+  padding: 0px;
+  position: flex;
+  flex-direction: column;
+  max-height: 20%;
+  overflow: auto;
+}
+.popup .content img {
+  width: 100%;
+}
+.popup .content p {
+  padding: 5px;
+  font-size: 10px;
+}
+.popup .content ul {
+  padding: 10px;
+  font-size: 10px;
+}
+::-moz-selection {
+  color: rgb(3, 3, 3);
+  background: rgb(241, 153, 83);
+}
+::selection {
+  color: rgb(3, 3, 3);
+  background: rgb(241, 153, 83);
+}
 }
 /* -------------------------------------------------------------------------------------------------------------------------------------------- */
 
