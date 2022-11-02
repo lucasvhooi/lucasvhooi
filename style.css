@@ -656,7 +656,7 @@
 }
 .column {
   -ms-flex: 50%;
-  flex: 50%;
+  flex: 100%;
   max-width: fit-content;
 }
 .column img {
