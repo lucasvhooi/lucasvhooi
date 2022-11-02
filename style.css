@@ -584,6 +584,7 @@
 @media screen and (max-width: 420px) {
   .container{
     height: 500px;
+    height: 100vh !important;
   }
   /* ----------------------HOME PAGE MOBILE---------------------- */
   .profile-photo{
