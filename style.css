@@ -653,6 +653,7 @@
   margin-bottom: 0px;
   background-color: rgb(14, 14, 14);
   min-height: calc(100vh - 211px - 58px);
+
 }
 .row {
   display: flex;
@@ -695,7 +696,22 @@
 /*  ----------------------GAME ART MOBILE---------------------- */
 .project-card{
   padding: 0px;
-  width: 50%;
+
+}
+.project-card-banner{
+  background-position: 100%;
+}
+#card6{
+  background-position: left;
+}
+#card7{
+  background-position: left;
+}
+#card8{
+  background-position: left;
+}
+.project-card-title{
+  width: 100%;
 }
 }
 /* -------------------------------------------------------------------------------------------------------------------------------------------- */
