@@ -1,6 +1,7 @@
 * {
   padding: 0%;
   margin: 0%;
+  overflow-x: hidden
 }
 
 
@@ -18,7 +19,7 @@
 }
 
 
-/* ----------------------HOME PAGE ---------------------- */
+/* ----------------------HOME PAGE---------------------- */
 .menu-container-text{
   width: 50%;
   padding: 20px;
@@ -42,7 +43,7 @@
 /* -------------------------------------------------------------------------------------------------------------------------------------------- */
 
 
-/*  ----------------------HEADER AND FOOTER ---------------------- */
+/*  ----------------------HEADER AND FOOTER---------------------- */
 .navigation {
   display: flex;
   background-color: rgb(237, 247, 246);
@@ -86,9 +87,59 @@
   font-weight: 900;
   font-size: 50px;
 }
+
+/* MOBILE NAV */
+.nav-mobile {
+  overflow: hidden;
+  background-color: rgb(0, 132, 255);
+  position: relative;
+  visibility: hidden;
+  height: 0px;
+}
+
+.nav-mobile #myLinks {
+  display: none;
+}
+
+.nav-mobile #nav-mobile-tab{
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 20px;
+  
+}
+
+.nav-mobile a {
+  color: rgb(241, 153, 83);
+  font-family: 'Heebo', sans-serif;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-weight: 900;
+  font-size: 27px;
+  display: block;
+}
+
+.nav-mobile a.icon {
+  display: block;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  background-image: url(image/icons/menu-icon.svg);
+  background-size: cover;
+}
+
+.nav-mobile a:hover {
+  background-color: rgb(255, 255, 255);
+  color: black;
+}
+
+.active {
+  background-color: #ffffff;
+  color: white;
+}
+
 /* -------------------------------------------------------------------------------------------------------------------------------------------- */
 
-/*  ----------------------OTHER TEXT ITEMS ---------------------- */
+/*  ----------------------OTHER TEXT ITEMS---------------------- */
 .quotes {
   width: 75%;
   margin: 5%;
@@ -101,7 +152,7 @@
   font-weight: 600;
   font-family: 'Playfair Display', serif;
 }
-/* PROJECT CARDS */
+/* ----------------------PROJECT CARDS---------------------- */
 #card1 {
   background-image: url("https://cdnb.artstation.com/p/assets/images/images/027/974/109/large/lucas-van-hooidonk-4.jpg?1593111365");
 }
@@ -269,7 +320,7 @@
 /* -------------------------------------------------------------------------------------------------------------------------------------------- */
 
 
-/*  ----------------------PHOTOGRAPHY LIBRARY ---------------------- */
+/*  ----------------------PHOTOGRAPHY LIBRARY---------------------- */
 .container-gallery {
   padding: 0%;
   margin: 0%;
@@ -351,7 +402,7 @@
 /* -------------------------------------------------------------------------------------------------------------------------------------------- */
 
 
-/*  ----------------------POPUP PC ---------------------- */
+/*  ----------------------POPUP PC---------------------- */
 .overlay {
   position: fixed;
   top: 0;
@@ -434,13 +485,55 @@
 /* -------------------------------------------------------------------------------------------------------------------------------------------- */
 
 
-/*  ----------------------MOBILE VERSION ---------------------- */
-@media screen and (max-width: 700px) {
-  .box {
-    width: 70%;
-  }
 
-  .popup {
-    width: 70%;
+/*  ----------------------DESKTOP SCALES---------------------- */
+@media screen and (max-width: 1235px) {
+  .nav-list p {
+    font-size: 12px;
   }
 }
+@media screen and (max-width: 1010px) {
+  .nav-list a {
+    font-size: 12px;
+  }
+  .nav-list p {
+    font-size: 12px;
+  }
+}
+/* -------------------------------------------------------------------------------------------------------------------------------------------- */
+
+
+
+/*  ----------------------MOBILE VERSION---------------------- */
+@media screen and (max-width: 420px) {
+  .container{
+    height: 800px;
+  }
+  .profile-photo{
+    width: 200px;
+    height: 200px;
+    border-radius:50%;
+    padding-top: 0px;
+  }
+  .navigation {
+    visibility: hidden;
+    height: 0px;
+  }
+  .menu-container-text p{
+    font-size: 10px;
+    text-align: center;
+  }
+  .menu-container-text{
+    width: 100%;
+  }
+  .nav-list{
+    height: 0px;
+    visibility: hidden;
+  }
+
+  .nav-mobile{
+    visibility: visible;
+    height: 100%;
+  }
+}
+/* -------------------------------------------------------------------------------------------------------------------------------------------- */
