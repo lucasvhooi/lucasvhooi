@@ -22,10 +22,10 @@
 
 /* ----------------------HOME PAGE---------------------- */
 .menu-container-text{
-
   padding-left: 20%;
   padding-right: 20%;
-  padding-bottom: 30%;
+  padding-bottom: 10%;
+  align-items: center;
 }
 
 .profile-photo{
@@ -36,6 +36,16 @@
   margin: 30px;
 
 }
+
+.home-content{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-left: 20%;
+  padding-right: 20%;
+  padding-bottom: 10%;
+}
 .menu-container-text p{
   color: rgb(255, 255, 255);
   font-family: 'Heebo', sans-serif;
@@ -45,13 +55,13 @@
 
 .contact-info-mobile{
   display: flex;
-  flex-direction: column;
   width: 100%;
+  flex-direction: column;
   align-items: center;
   background-color: rgb(0, 132, 255);
   visibility: hidden;
   height: 0px;
-  padding-bottom: 20%;
+  padding-bottom: 0%;
 }
 .contact-info-mobile p{
   color: rgb(255, 255, 255);
@@ -66,6 +76,7 @@
   font-size: 14px;
   text-decoration: none;
   list-style-type: none;
+  
 }
 .contact-info-mobile li{
   text-decoration: none;
@@ -86,7 +97,6 @@
   font-size: 13px;
   padding-top: 15px;
 }
-
 
 
 /* -------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -152,14 +162,12 @@
 
 .nav-mobile #myLinks {
   display: none;
-
 }
 
 .nav-mobile #nav-mobile-tab{
   background-color: rgb(0, 132, 255);
   font-weight: 500;
   font-size: 20px;
-  
 }
 
 .nav-mobile a {
@@ -477,6 +485,20 @@
 .text-field-img img{
   width: 120%;
 }
+.text-field button{
+  background-color: rgb(241, 153, 83);
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  font-family: 'Heebo', sans-serif;
+  font-weight: 900;
+  font-weight: 700;
+}
+.text-field button a{
+  color: #ffffff;
+  font-family: 'Heebo', sans-serif;
+  font-weight: 700;
+}
 /* -------------------------------------------------------------------------------------------------------------------------------------------- */
 
 
@@ -643,6 +665,56 @@
   .page-top-banner img {
     width: 50%;
   }
+  .text-field {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    background-color: #ffffff;
+    justify-self: center;
+    align-items: center;
+    padding: 0%;
+  }
+  .text-field #tf-about{
+    width: 100%;
+    padding-left: 00px;
+  }
+  .text-field #tf-designs{
+    width: 100%;
+    padding-right: 0px;
+  }
+  .text-field img{
+    width: 100%;
+    height: auto;
+  }
+  .text-field p {
+    font-family: 'Heebo', sans-serif;
+    font-weight: 400;
+    font-size: 10px;
+    color: rgb(0, 0, 0);
+    padding: 10px;
+  }
+  .text-field a {
+    font-family: 'Heebo', sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    color: rgb(0, 0, 0);
+    padding: 0px;
+    text-decoration: none;
+  }
+  .text-field h2 {
+    font-family: 'Heebo', sans-serif;
+    font-weight: 900;
+    font-size: 30px;
+    color: rgb(0, 0, 0);
+    padding: 10px;
+  }
+  .text-field-img{
+    width: 100%;
+    height: 100%;
+  }
+  .text-field-img img{
+    width: 120%;
+  }
 /* -------------------------------------------------------------------------------------------------------------------------------------------- */
 
 
@@ -716,6 +788,8 @@
 
 .overlay {
   position: fixed;
+  width: 100%;
+  height: 100%;
   top: 0;
   bottom: 0;
   left: 0;
