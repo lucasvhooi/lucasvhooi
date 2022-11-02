@@ -25,7 +25,7 @@
 
   padding-left: 20%;
   padding-right: 20%;
-  padding-bottom: 10%;
+  padding-bottom: 30%;
 }
 
 .profile-photo{
@@ -51,6 +51,7 @@
   background-color: rgb(0, 132, 255);
   visibility: hidden;
   height: 0px;
+  padding-bottom: 20%;
 }
 .contact-info-mobile p{
   color: rgb(255, 255, 255);
@@ -151,6 +152,7 @@
 
 .nav-mobile #myLinks {
   display: none;
+
 }
 
 .nav-mobile #nav-mobile-tab{
@@ -585,6 +587,8 @@
   .container{
     height: 500px;
     height: 100vh !important;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: scroll;
   }
   /* ----------------------HOME PAGE MOBILE---------------------- */
   .profile-photo{
@@ -619,6 +623,8 @@
   .nav-mobile{
     visibility: visible;
     height: 100%;
+    z-index: 999;
+    
   }
   #footer{
     visibility: hidden;
