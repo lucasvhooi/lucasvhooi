@@ -197,7 +197,7 @@
   top: 20px;
   background-image: url(image/icons/menu-icon.svg);
   background-size: cover;
-  background-color: black;
+  background-color: rgb(230, 230, 230);
 }
 
 .nav-mobile a:hover {
