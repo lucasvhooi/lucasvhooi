@@ -1,0 +1,103 @@
+{
+    "weapons": [
+      {
+        "src": "Images/Weapons/weapon1.jpg",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Weapons/weapon2.jpg",
+        "backImage": null,
+        "description": "",
+        "tags": ["sword", "fire", "legendary"]
+      }
+    ],
+    "items": [
+      {
+        "src": "Images/Items/AzmossChessPiece.png",
+        "backImage": "Images/Items/AzmossChessPieceBack.png",
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Azmos", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Items/BookOfBetterHealth.png",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Book of better health", "book", "health"]
+      },
+      {
+        "src": "Images/Items/BookOfEverExpansion.png",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Book of better health", "book", "health"]
+      },
+      {
+        "src": "Images/Items/BookOfGamblersKnowledge.png",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Book of better health", "book", "health"]
+      },
+      {
+        "src": "Images/Items/BootsOfStridingAndSprinting.png",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Book of better health", "book", "health"]
+      }
+    ],
+    "characters": [
+      {
+        "src": "Images/Characters/AkronSildor.png",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/AylinBrightenloof.png",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/Imp.png",
+        "backImage": "Images/Characters/ImpBack.png",
+        "description": "",
+        "tags": ["sword", "fire", "legendary"]
+      }
+    ],
+    "armor": [
+      {
+        "src": "Images/Armor/HoofdpietsMask.png",
+        "backImage": "Images/Armor/HoofdpietsMaskBack.png",
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["piest", "zwart", "zwartepiet", "Hoofdpiet", "mask", "Hoofdpiet mask"]
+      },
+      {
+        "src": "Images/Armor/Miter of Sinterklaas.png",
+        "backImage": "Images/Armor/Miter of SinterklaasBack.png",
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sinterklaas", "Miter", "legendary"]
+      }
+    ],
+    "locations": [
+      {
+        "src": "Images/Locations/ArcaneBoreMKVI.png",
+        "backImage": null,
+        "description": "ArcaneBoreMKVI: In the spectral gloom of the Spirit Realm, amidst forests where the mist clings to the trunks of towering, gnarled trees, lies the ArcaneBore MKVI, its glowing drill-head a beacon of purpose and danger.",
+        "tags": ["ArcaneBoreMKVI", "Bore", "Arcane", "Hei Bai", "Spirit"]
+      },
+      {
+        "src": "Images/Locations/AzmosRoots.png",
+        "backImage": null,
+        "description": "AzmosRoots: A mechanical marvel used to delve into the unknown.",
+        "tags": ["AzmosRoots", "Azmos", "roots", "Shrine", "Gelonus", "Fountain"]
+      },
+      {
+        "src": "Images/Locations/TheDrunkBard.png",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["the", "drunk", "bard", "Tavern", "the drunken bard", "gelonus"]
+      }
+    ]
+  }
+  
