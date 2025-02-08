@@ -1,0 +1,38 @@
+{
+    "locations": {
+        "gelonus": {
+            "name": "Gelonus",
+            "missions": [
+                {
+                    "id": "gelonus_1",
+                    "title": "Retrieve the Lost Relic",
+                    "description": "Find and return the ancient relic lost deep within the ruins.",
+                    "images": ["images/relic1.jpg", "images/relic2.jpg"]
+                },
+                {
+                    "id": "gelonus_2",
+                    "title": "Defend the Temple",
+                    "description": "Protect the sacred temple from an incoming attack.",
+                    "images": []
+                }
+            ]
+        },
+        "arcadia": {
+            "name": "Arcadia",
+            "missions": [
+                {
+                    "id": "arcadia_1",
+                    "title": "Defend the Village",
+                    "description": "Help the villagers defend against the raiders.",
+                    "images": ["images/village1.jpg"]
+                },
+                {
+                    "id": "arcadia_2",
+                    "title": "Hunt the Shadow Beast",
+                    "description": "Track down and eliminate the shadow beast haunting the woods.",
+                    "images": []
+                }
+            ]
+        }
+    }
+}

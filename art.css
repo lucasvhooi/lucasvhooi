@@ -242,7 +242,7 @@ body.popup-open {
     }
 
     .card-pair img {
-        width: 100px; /* Slightly smaller for mobile */
+        width: 150px; /* Slightly smaller for mobile */
     }
 }
 

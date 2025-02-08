@@ -19,62 +19,8 @@
         <h1>Missions</h1>
         <p>Select a location to view its missions:</p>
 
-        <div class="location-list">
-            <div class="location" onclick="toggleMissions('gelonus')">Gelonus</div>
-            <ul id="gelonus" class="mission-list">
-                <li onclick="showMission('gelonus_1', 'gelonus')">Retrieve the Lost Relic</li>
-                <li onclick="showMission('gelonus_2', 'gelonus')">Defend the Temple</li>
-            </ul>
-            <div id="gelonus_mission_details" class="mission-details"></div>
-
-            <div class="location" onclick="toggleMissions('arcadia')">Arcadia</div>
-            <ul id="arcadia" class="mission-list">
-                <li onclick="showMission('arcadia_1', 'arcadia')">Defend the Village</li>
-                <li onclick="showMission('arcadia_2', 'arcadia')">Hunt the Shadow Beast</li>
-            </ul>
-            <div id="arcadia_mission_details" class="mission-details"></div>
-
-            <div class="location" onclick="toggleMissions('elysium_colony')">Elysium (Colony)</div>
-            <ul id="elysium_colony" class="mission-list">
-                <li onclick="showMission('elysium_colony_1', 'elysium_colony')">Explore the Ruins</li>
-                <li onclick="showMission('elysium_colony_2', 'elysium_colony')">Find the Lost Explorer</li>
-            </ul>
-            <div id="elysium_colony_mission_details" class="mission-details"></div>
-
-            <div class="location" onclick="toggleMissions('thule')">Thule</div>
-            <ul id="thule" class="mission-list">
-                <li onclick="showMission('thule_1', 'thule')">Stop the Frostborn Raiders</li>
-                <li onclick="showMission('thule_2', 'thule')">Deliver the King's Message</li>
-            </ul>
-            <div id="thule_mission_details" class="mission-details"></div>
-
-            <div class="location" onclick="toggleMissions('elysium')">Elysium</div>
-            <ul id="elysium" class="mission-list">
-                <li onclick="showMission('elysium_1', 'elysium')">Seal the Ancient Portal</li>
-                <li onclick="showMission('elysium_2', 'elysium')">Rescue the Healer</li>
-            </ul>
-            <div id="elysium_mission_details" class="mission-details"></div>
-
-            <div class="location" onclick="toggleMissions('hermesia')">Hermesia</div>
-            <ul id="hermesia" class="mission-list">
-                <li onclick="showMission('hermesia_1', 'hermesia')">Recover the Stolen Artifact</li>
-                <li onclick="showMission('hermesia_2', 'hermesia')">Track the Hidden Smugglers</li>
-            </ul>
-            <div id="hermesia_mission_details" class="mission-details"></div>
-
-            <div class="location" onclick="toggleMissions('noxus')">Noxus</div>
-            <ul id="noxus" class="mission-list">
-                <li onclick="showMission('noxus_1', 'noxus')">Infiltrate the Dark Guild</li>
-                <li onclick="showMission('noxus_2', 'noxus')">Escape the Cursed Dungeon</li>
-            </ul>
-            <div id="noxus_mission_details" class="mission-details"></div>
-
-            <div class="location" onclick="toggleMissions('pythos')">Pythos</div>
-            <ul id="pythos" class="mission-list">
-                <li onclick="showMission('pythos_1', 'pythos')">Decipher the Ancient Script</li>
-                <li onclick="showMission('pythos_2', 'pythos')">Defeat the Basilisk</li>
-            </ul>
-            <div id="pythos_mission_details" class="mission-details"></div>
+        <div class="location-list" id="location-list">
+            <!-- Locations and missions will be dynamically loaded here -->
         </div>
     </section>
 
