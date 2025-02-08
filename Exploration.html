@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Art Gallery</title>
+  <link href="https://fonts.googleapis.com/css2?family=Garamond&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="art.css"> <!-- Link to your external CSS file -->
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="missions.html">Missions</a></li>
+      <li><a href="Exploration.html">Exploration</a></li>
+    </ul>
+  </nav>
+
+  <section>
+    <h1>Exploration</h1>
+    <p>Select a category to view what has been explored:</p>
+
+    <input type="text" id="searchBar" placeholder="Search by tags..." oninput="searchAllImages()">
+
+
+
+    <div class="category-buttons">
+      <!-- Category buttons dynamically added from JavaScript -->
+    </div>
+
+    <div class="image-gallery">
+      <!-- Dynamically generated gallery -->
+    </div>
+  </section>
+
+  <!-- Popup Container -->
+  <div class="popup" id="popup">
+    <div class="popup-content">
+      <span class="close-button" id="closePopup">✖</span>
+      <p id="popupDescription"></p>
+    </div>
+  </div>
+
+  <script>
+    // Example image data with descriptions and front/back handling
+    
+
+// Object to store loaded data
+// Object to store loaded image data
+let imageData = {};
+
+// Function to load data from the JSON file
+function loadData() {
+    fetch('data.json') // Fetch JSON file
+        .then(response => response.json()) // Convert response to JSON
+        .then(data => {
+            imageData = data; // Store loaded data
+            generateCategoryButtons(); // Create category buttons
+        })
+        .catch(error => console.error("Error loading data:", error));
+}
+
+// Generate category buttons dynamically
+function generateCategoryButtons() {
+    const categoryButtons = document.querySelector('.category-buttons');
+    categoryButtons.innerHTML = ""; // Clear existing buttons
+
+    Object.keys(imageData).forEach(category => {
+        const button = document.createElement('button');
+        button.classList.add('category-button');
+        button.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+        button.onclick = () => showCategory(category);
+        categoryButtons.appendChild(button);
+    });
+}
+
+// Function to display images for a selected category
+function showCategory(category) {
+    const galleryDiv = document.querySelector('.image-gallery');
+    galleryDiv.innerHTML = ""; // Clear previous content
+
+    const images = imageData[category] || [];
+
+    images.forEach(item => {
+        const card = document.createElement("div");
+        card.classList.add("card-pair");
+
+        // Front image
+        const frontImg = document.createElement("img");
+        frontImg.src = item.src;
+        frontImg.alt = "Gallery Image";
+        frontImg.classList.add("gallery-image");
+        frontImg.loading = "lazy"; // Lazy loading for better performance
+        frontImg.style.cursor = "pointer";
+
+        // Click event to open the popup
+        frontImg.onclick = () => openPopup(item.src, item.backImage, item.description);
+
+        card.appendChild(frontImg);
+        galleryDiv.appendChild(card);
+    });
+}
+
+// Function to open the popup
+function openPopup(frontSrc, backSrc, description) {
+    if (!frontSrc) return; // Prevents accidental opening with empty data
+
+    const popup = document.getElementById('popup');
+    const popupContent = document.querySelector('.popup-content');
+
+    // Prevent background scrolling
+    document.body.classList.add("popup-open");
+
+    // Clear previous content
+    popupContent.innerHTML = '<span class="close-button" id="closePopup">✖</span>';
+
+    // Create a div for images
+    const imageContainer = document.createElement("div");
+    imageContainer.classList.add("popup-images");
+
+    // Add front image
+    const frontImg = document.createElement("img");
+    frontImg.src = frontSrc;
+    frontImg.alt = "Front Image";
+    frontImg.loading = "lazy"; // Lazy load popup images
+    imageContainer.appendChild(frontImg);
+
+    // Add back image if available
+    if (backSrc && backSrc !== "null" && backSrc !== "") { 
+        const backImg = document.createElement("img");
+        backImg.src = backSrc;
+        backImg.alt = "Back Image";
+        backImg.loading = "lazy"; // Lazy load popup images
+        imageContainer.appendChild(backImg);
+    }
+
+    popupContent.appendChild(imageContainer);
+
+    // Add description
+    if (description && description.trim() !== "") {
+        const descParagraph = document.createElement("p");
+        descParagraph.textContent = description;
+        popupContent.appendChild(descParagraph);
+    }
+
+    // Show the popup
+    popup.style.display = "flex";
+
+    // Add close event
+    document.getElementById('closePopup').onclick = () => {
+        closePopup();
+    };
+}
+
+// Function to close popup properly
+function closePopup() {
+    const popup = document.getElementById('popup');
+    popup.style.display = "none";
+    document.body.classList.remove("popup-open"); // Re-enable scrolling
+}
+
+// Close popup when clicking outside the content
+const popup = document.getElementById('popup');
+popup.onclick = (event) => {
+    if (event.target === popup) {
+        closePopup();
+    }
+};
+
+// Function to search images by tags
+function searchAllImages() {
+    const query = document.getElementById("searchBar").value.toLowerCase().trim();
+    const galleryDiv = document.querySelector('.image-gallery');
+    galleryDiv.innerHTML = ""; // Clear previous content
+
+    if (query === "") return; // If search is empty, do nothing
+
+    const queryTags = query.split(" "); // Allow multiple keywords
+    let matchedImages = [];
+
+    // Loop through all categories and search by tags
+    Object.keys(imageData).forEach(category => {
+        const images = imageData[category];
+
+        images.forEach(item => {
+            if (!item.tags) return; // Skip if no tags
+
+            const matchesAnyTag = queryTags.some(tag =>
+                item.tags.some(itemTag => itemTag.toLowerCase().includes(tag))
+            );
+
+            if (matchesAnyTag) {
+                matchedImages.push(item);
+            }
+        });
+    });
+
+    // Display results
+    matchedImages.forEach(item => {
+        const card = document.createElement("div");
+        card.classList.add("card-pair");
+
+        // Front image
+        const frontImg = document.createElement("img");
+        frontImg.src = item.src;
+        frontImg.alt = "Gallery Image";
+        frontImg.classList.add("gallery-image");
+        frontImg.loading = "lazy";
+        frontImg.style.cursor = "pointer";
+
+        // Click event to open the popup
+        frontImg.onclick = () => openPopup(item.src, item.backImage, item.description);
+
+        card.appendChild(frontImg);
+        galleryDiv.appendChild(card);
+    });
+
+    // Show a message if no matches are found
+    if (matchedImages.length === 0) {
+        galleryDiv.innerHTML = "<p>No matches found.</p>";
+    }
+}
+
+// Load data on page load
+document.addEventListener("DOMContentLoaded", loadData);
+  </script>
+</body>
+</html>
