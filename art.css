@@ -226,5 +226,37 @@ body.popup-open {
 
     .popup-content img {
         max-width: 75%;
+    }  
+}
+
+@media screen and (max-width: 480px) {
+    .image-gallery {
+        grid-template-columns: repeat(2, 1fr); /* Two cards next to each other */
+    }
+
+    .card-pair {
+        flex-direction: row; /* Keep them side by side */
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .card-pair img {
+        width: 100px; /* Slightly smaller for mobile */
     }
 }
+
+@media screen and (max-width: 480px) {
+    .category-buttons {
+        flex-wrap: wrap; /* Allow buttons to wrap instead of overflowing */
+        justify-content: center;
+        gap: 5px; /* Reduce gap for better spacing */
+        padding: 10px; /* Add some padding to prevent cutoff */
+    }
+
+    .category-button {
+        font-size: 14px; /* Reduce font size slightly */
+        padding: 8px 12px; /* Adjust button padding */
+    }
+}
+
