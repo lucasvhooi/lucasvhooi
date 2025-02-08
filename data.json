@@ -1,99 +1,200 @@
 {
     "weapons": [
       {
-        "src": "Images/Weapons/weapon1.jpg",
+        "src": "Images/Weapons/weapon1.WebP",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["sword", "fire", "legendary"]
       },
       {
-        "src": "Images/Weapons/weapon2.jpg",
+        "src": "Images/Weapons/weapon2.WebP",
         "backImage": null,
         "description": "",
         "tags": ["sword", "fire", "legendary"]
       }
     ],
+
+
     "items": [
       {
-        "src": "Images/Items/AzmossChessPiece.png",
-        "backImage": "Images/Items/AzmossChessPieceBack.png",
+        "src": "Images/Items/AzmossChessPiece.WebP",
+        "backImage": "Images/Items/AzmossChessPieceBack.WebP",
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Azmos", "fire", "legendary"]
       },
       {
-        "src": "Images/Items/BookOfBetterHealth.png",
+        "src": "Images/Items/BookOfBetterHealth.WebP",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Book of better health", "book", "health"]
       },
       {
-        "src": "Images/Items/BookOfEverExpansion.png",
+        "src": "Images/Items/BookOfEverExpansion.WebP",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Book of better health", "book", "health"]
       },
       {
-        "src": "Images/Items/BookOfGamblersKnowledge.png",
+        "src": "Images/Items/BookOfGamblersKnowledge.WebP",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Book of Gamblers Knowledge", "book", "Gamblers", "Knowledge"]
+      },
+      {
+        "src": "Images/Items/UpShroom.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Shroom", "Up", "Mario", "Up Shroom"]
+      },
+
+      {
+        "src": "Images/Items/BookOfGuardiansAngel.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Book", "Guardians Angel", "Guardians", "Angel", "Book Of Guardians Angel"]
+      },
+      {
+        "src": "Images/Items/BookOfHardendHands.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Book Of Hardend Hands", "book", "Hardend", "Hands"]
+      },
+      {
+        "src": "Images/Items/BookOfInitiation.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Book Of Initiation", "book", "Initiation", "Initiative"]
+      },
+      {
+        "src": "Images/Items/BootsOfStridingAndSprinting.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Boots Of Striding And Sprinting", "Sprinting", "Boots", "Striding"]
+      },
+      {
+        "src": "Images/Items/FlameTongue.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Flame Tongue", "Flame", "Tongue"]
+      },
+
+      {
+        "src": "Images/Items/FrontCardBasic.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Celestial Cristal", "Hei Bai", "key item", "Celestial", "Cristal"]
+      },
+      {
+        "src": "Images/Items/ImmovableRodFront.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Immovable Rod", "Immovable", "Rod"]
+      },
+      {
+        "src": "Images/Items/LeafTongue.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Leaf Tongue", "Leaf", "Tongue"]
+      },
+      {
+        "src": "Images/Items/MetallonFlowerLeafFront.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Metallon Flower Leaf", "Metallon", "blood", "Flower", "Leaf", "Metal" ]
+      },
+      {
+        "src": "Images/Items/MoonstoneChain.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Moonstone Chain", "Moonstone", "Chain"]
+      },
+
+      {
+        "src": "Images/Items/NecklaceoftheGlimmeringSea.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Necklace of the Glimmering Sea", "Sea", "Necklace"]
+      },
+      {
+        "src": "Images/Items/PendantoftheTimeless Oak.webp",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Book of better health", "book", "health"]
       },
       {
-        "src": "Images/Items/BootsOfStridingAndSprinting.png",
+        "src": "Images/Items/PipBoy3000.webp",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Book of better health", "book", "health"]
+        "tags": ["PipBoy3000", "Pipboy", "fallout"]
+      },
+      {
+        "src": "Images/Items/Pokeball.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Pokeball", "pokemon", "ball"]
+      },
+      {
+        "src": "Images/Items/ShockTongue.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Shock Tongue", "Shock", "Tongue"]
       }
     ],
+
+
     "characters": [
       {
-        "src": "Images/Characters/AkronSildor.png",
+        "src": "Images/Characters/AkronSildor.WebP",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["sword", "fire", "legendary"]
       },
       {
-        "src": "Images/Characters/AylinBrightenloof.png",
+        "src": "Images/Characters/AylinBrightenloof.WebP",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["sword", "fire", "legendary"]
       },
       {
-        "src": "Images/Characters/Imp.png",
-        "backImage": "Images/Characters/ImpBack.png",
+        "src": "Images/Characters/Imp.WebP",
+        "backImage": "Images/Characters/ImpBack.WebP",
         "description": "",
         "tags": ["sword", "fire", "legendary"]
       }
     ],
+
+
     "armor": [
       {
-        "src": "Images/Armor/HoofdpietsMask.png",
-        "backImage": "Images/Armor/HoofdpietsMaskBack.png",
+        "src": "Images/Armor/HoofdpietsMask.WebP",
+        "backImage": "Images/Armor/HoofdpietsMaskBack.WebP",
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["piest", "zwart", "zwartepiet", "Hoofdpiet", "mask", "Hoofdpiet mask"]
       },
       {
-        "src": "Images/Armor/Miter of Sinterklaas.png",
-        "backImage": "Images/Armor/Miter of SinterklaasBack.png",
+        "src": "Images/Armor/Miter of Sinterklaas.WebP",
+        "backImage": "Images/Armor/Miter of SinterklaasBack.WebP",
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["sinterklaas", "Miter", "legendary"]
       }
     ],
+
+
     "locations": [
       {
-        "src": "Images/Locations/ArcaneBoreMKVI.png",
+        "src": "Images/Locations/ArcaneBoreMKVI.WebP",
         "backImage": null,
         "description": "ArcaneBoreMKVI: In the spectral gloom of the Spirit Realm, amidst forests where the mist clings to the trunks of towering, gnarled trees, lies the ArcaneBore MKVI, its glowing drill-head a beacon of purpose and danger.",
         "tags": ["ArcaneBoreMKVI", "Bore", "Arcane", "Hei Bai", "Spirit"]
       },
       {
-        "src": "Images/Locations/AzmosRoots.png",
+        "src": "Images/Locations/AzmosRoots.WebP",
         "backImage": null,
         "description": "AzmosRoots: A mechanical marvel used to delve into the unknown.",
         "tags": ["AzmosRoots", "Azmos", "roots", "Shrine", "Gelonus", "Fountain"]
       },
       {
-        "src": "Images/Locations/TheDrunkBard.png",
+        "src": "Images/Locations/TheDrunkBard.WebP",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["the", "drunk", "bard", "Tavern", "the drunken bard", "gelonus"]
