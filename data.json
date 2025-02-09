@@ -66,12 +66,6 @@
         "tags": ["Book Of Initiation", "book", "Initiation", "Initiative"]
       },
       {
-        "src": "Images/Items/BootsOfStridingAndSprinting.webp",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Boots Of Striding And Sprinting", "Sprinting", "Boots", "Striding"]
-      },
-      {
         "src": "Images/Items/FlameTongue.webp",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
@@ -138,6 +132,44 @@
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Shock Tongue", "Shock", "Tongue"]
+      },
+
+
+      {
+        "src": "Images/Items/SpellCardEldritchBlast.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Spellcard Eldritch Blast", "Eldritch", "Blast", "Scroll", "Spellcard"]
+      },
+      {
+        "src": "Images/Items/SpellCardFireball.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Spellcard Fireball", "Fireball", "Fire", "Scroll", "Spellcard"]
+      },
+      {
+        "src": "Images/Items/SpellCardMagicMissle.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Spellcard Magic Missle", "Missle", "Magic", "Scroll", "Spellcard"]
+      },
+      {
+        "src": "Images/Items/SpellCardMistyStep.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Spellcard Misty Step", "Misty", "Step", "Scroll", "Spellcard"]
+      },
+      {
+        "src": "Images/Items/SpellCardShield.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Spellcard Shield", "Shield", "Scroll", "Spellcard"]
+      },
+      {
+        "src": "Images/Items/SpellCrdCureWounds.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Spellcard Cure Wounds", "Cure", "Wounds", "Scroll", "Spellcard"]
       }
     ],
 
@@ -176,6 +208,12 @@
         "backImage": "Images/Armor/Miter of SinterklaasBack.WebP",
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["sinterklaas", "Miter", "legendary"]
+      },
+      {
+        "src": "Images/Items/BootsOfStridingAndSprinting.webp",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Boots Of Striding And Sprinting", "Sprinting", "Boots", "Striding"]
       }
     ],
 
@@ -198,7 +236,132 @@
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["the", "drunk", "bard", "Tavern", "the drunken bard", "gelonus"]
+      },
+      {
+        "src": "Images/Locations/Atlantis.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Atlantis", "city", "water", "sea"]
+      },
+      {
+        "src": "Images/Locations/Beckinsdale.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Beckinsdale", "town", "gelonus"]
+      },
+
+      {
+        "src": "Images/Locations/BoundrySanctuary.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Boundry Sanctuary", "Temple", "chess", "azmos", "gelonus"]
+      },
+      {
+        "src": "Images/Locations/Chronara.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Chronara", "city", "Arcadia", "clocks", "time"]
+      },
+      {
+        "src": "Images/Locations/DarkstoneCoalworks.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Darkstone Coalworks", "factory", "sinterklaas", "coal", "gelonus"]
+      },
+      {
+        "src": "Images/Locations/DeadlyDelves.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Deadly Delves", "Tumb", "death", "gelonus"]
+      },
+
+      {
+        "src": "Images/Locations/Eldoria.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["eldoria", "captial", "Arcadia"]
+      },
+      {
+        "src": "Images/Locations/Etherwhite.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Etherwhite", "white", "layer", "dimention", "infinate"]
+      },
+      {
+        "src": "Images/Locations/Frostholm.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Frostholm", "capital", "city", "gelonus"]
+      },
+      {
+        "src": "Images/Locations/HocusLookout.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Hocus Lookout", "warden", "prison", "escape", "gelonus"]
+      },
+      {
+        "src": "Images/Locations/Mirestone.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Mirestone", "Village", "sea", "harbor", "gelonus"]
+      },
+
+      {
+        "src": "Images/Locations/OnyxHollow.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Onyx Hollow", "cave", "gelonus"]
+      },
+      {
+        "src": "Images/Locations/PirnFarms.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Pirn Farms", "Farm", "gelonus"]
+      },
+      {
+        "src": "Images/Locations/Ruthorham.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Ruthorham", "town", "tree", "gelonus"]
+      },
+      {
+        "src": "Images/Locations/SpiritRealm.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Spirit Realm", "dimention", "layer"]
+      },
+      {
+        "src": "Images/Locations/ThaunburgMine.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Thaunburg Mine", "Mine", "gelonus"]
+      },
+
+      {
+        "src": "Images/Locations/TheCrestefallen.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["The Creste fallen", "ship", "boat", "pirate"]
+      },
+      {
+        "src": "Images/Locations/TheErodedCaverns.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["The Eroded Caverns", "Cave", "gelonus"]
+      },
+      {
+        "src": "Images/Locations/TheHollowVeil.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["The Hollow Veil", "layer", "dimention"]
+      },
+      {
+        "src": "Images/Locations/Yarn.webp",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Yarn", "gelonus", "Village"]
       }
+      
     ]
   }
   

@@ -1,0 +1,127 @@
+/* General Styles */
+body {
+    font-family: 'Garamond', serif;
+    margin: 0;
+    padding: 0;
+    background-color: #1a1a1a;
+    color: #f4e6d7;
+    text-align: center;
+}
+
+/* Navigation Bar */
+nav {
+    background: linear-gradient(to right, #5e3b20, #2c1a0a);
+    padding: 15px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+nav ul li {
+    margin: 0 20px;
+}
+
+nav ul li a {
+    color: #f4e6d7;
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+nav ul li a:hover {
+    color: #ffcc66;
+    text-shadow: 0px 0px 10px rgba(255, 204, 102, 0.8);
+}
+
+/* Section Styling */
+section {
+    padding: 40px;
+    max-width: 800px;
+    margin: auto;
+}
+
+/* Continent Styling */
+.continent {
+    background: #3e2b1b;
+    color: #ffcc66;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 10px auto;
+    width: 80%;
+    font-size: 22px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.4);
+}
+
+.continent:hover {
+    background: #57381f;
+    color: #f4e6d7;
+}
+
+/* Hide location lists initially */
+.location-list {
+    display: none;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Location Styling */
+.location-list li {
+    background: #2c1a0a;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 5px auto;
+    width: 75%;
+    font-size: 18px;
+    color: #ffcc66;
+    text-align: center;
+    transition: 0.3s;
+    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+}
+
+.location-list li:hover {
+    background: #4e2c14;
+    color: #f4e6d7;
+}
+
+/* Location Details */
+.location-details {
+    display: none;
+    background: #2c1a0a;
+    color: #f4e6d7;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.location-details img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 2px solid #333;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    margin-top: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .location-list li {
+        width: 100%;
+    }
+    .location-details {
+        width: 100%;
+    }
+}

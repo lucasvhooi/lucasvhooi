@@ -13,6 +13,7 @@
       <li><a href="index.html">Home</a></li>
       <li><a href="missions.html">Missions</a></li>
       <li><a href="Exploration.html">Exploration</a></li>
+      <li><a href="locations.html">Locations</a></li>
     </ul>
   </nav>
 
@@ -59,6 +60,14 @@ function loadData() {
         })
         .catch(error => console.error("Error loading data:", error));
 }
+document.addEventListener("DOMContentLoaded", () => {
+    loadData(); // Load data from JSON
+
+    // Force-hide the popup on page load
+    const popup = document.getElementById('popup');
+    popup.style.display = "none";  
+});
+
 
 // Generate category buttons dynamically
 function generateCategoryButtons() {
@@ -103,13 +112,13 @@ function showCategory(category) {
 
 // Function to open the popup
 function openPopup(frontSrc, backSrc, description) {
-    if (!frontSrc) return; // Prevents accidental opening with empty data
+    if (!frontSrc) return; // Prevent accidental openings
 
     const popup = document.getElementById('popup');
     const popupContent = document.querySelector('.popup-content');
 
-    // Prevent background scrolling
-    document.body.classList.add("popup-open");
+    // Ensure popup is initially hidden
+    popup.style.display = "none";
 
     // Clear previous content
     popupContent.innerHTML = '<span class="close-button" id="closePopup">✖</span>';
@@ -122,7 +131,7 @@ function openPopup(frontSrc, backSrc, description) {
     const frontImg = document.createElement("img");
     frontImg.src = frontSrc;
     frontImg.alt = "Front Image";
-    frontImg.loading = "lazy"; // Lazy load popup images
+    frontImg.loading = "lazy";
     imageContainer.appendChild(frontImg);
 
     // Add back image if available
@@ -130,7 +139,7 @@ function openPopup(frontSrc, backSrc, description) {
         const backImg = document.createElement("img");
         backImg.src = backSrc;
         backImg.alt = "Back Image";
-        backImg.loading = "lazy"; // Lazy load popup images
+        backImg.loading = "lazy";
         imageContainer.appendChild(backImg);
     }
 
@@ -143,14 +152,16 @@ function openPopup(frontSrc, backSrc, description) {
         popupContent.appendChild(descParagraph);
     }
 
-    // Show the popup
-    popup.style.display = "flex";
+    // Only open the popup when an image is clicked
+    setTimeout(() => {
+        popup.style.display = "flex";
+    }, 10);
 
-    // Add close event
-    document.getElementById('closePopup').onclick = () => {
-        closePopup();
-    };
+    // Close event
+    document.getElementById('closePopup').onclick = closePopup;
 }
+
+
 
 // Function to close popup properly
 function closePopup() {

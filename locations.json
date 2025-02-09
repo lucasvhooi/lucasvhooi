@@ -1,0 +1,130 @@
+{
+    "continents": {
+        "Gelonus": {
+            "name": "Gelonus",
+            "description": "A continent rich in history and culture.",
+            "map": "images/europe.jpg",
+            "locations": {
+                "Frostholm": {
+                    "name": "Capital) Frostholm",
+                    "population": "2.1M",
+                    "wealth": "High",
+                    "map": "images/paris.jpg",
+                    "description": "The capital of France, known for its art and culture."
+                },
+                "Beckinsdale": {
+                    "name": "1) Beckinsdale",
+                    "population": "2.1M",
+                    "wealth": "High",
+                    "map": "images/paris.jpg",
+                    "description": "The capital of France, known for its art and culture."
+                },
+                "Yarn": {
+                    "name": "2) Yarn",
+                    "population": "3.6M",
+                    "wealth": "High",
+                    "map": "images/berlin.jpg",
+                    "description": "The capital of Germany, famous for its history and innovation."
+                },
+                "The Eroded Caverns": {
+                    "name": "3) The Eroded Caverns",
+                    "population": "2.1M",
+                    "wealth": "High",
+                    "map": "images/paris.jpg",
+                    "description": "The capital of France, known for its art and culture."
+                },
+                "Azmos Roots": {
+                    "name": "4) Azmos Roots",
+                    "population": "3.6M",
+                    "wealth": "High",
+                    "map": "images/berlin.jpg",
+                    "description": "The capital of Germany, famous for its history and innovation."
+                },
+                "Hocus Lookout": {
+                    "name": "5) Hocus Lookout",
+                    "population": "2.1M",
+                    "wealth": "High",
+                    "map": "images/paris.jpg",
+                    "description": "The capital of France, known for its art and culture."
+                },
+                "Mirstone": {
+                    "name": "6) Mirstone",
+                    "population": "3.6M",
+                    "wealth": "High",
+                    "map": "images/berlin.jpg",
+                    "description": "The capital of Germany, famous for its history and innovation."
+                },
+                "Onyx Hollow": {
+                    "name": "7) Onyx Hollow",
+                    "population": "2.1M",
+                    "wealth": "High",
+                    "map": "images/paris.jpg",
+                    "description": "The capital of France, known for its art and culture."
+                },
+                "Deadly Delves": {
+                    "name": "8) Deadly Delves",
+                    "population": "3.6M",
+                    "wealth": "High",
+                    "map": "images/berlin.jpg",
+                    "description": "The capital of Germany, famous for its history and innovation."
+                },
+                "The Drunk Bard": {
+                    "name": "9) The Drunk Bard",
+                    "population": "2.1M",
+                    "wealth": "High",
+                    "map": "images/paris.jpg",
+                    "description": "The capital of France, known for its art and culture."
+                },
+                "Pirn Farms": {
+                    "name": "10) Pirn Farms",
+                    "population": "3.6M",
+                    "wealth": "High",
+                    "map": "images/berlin.jpg",
+                    "description": "The capital of Germany, famous for its history and innovation."
+                },
+                "Thaunburg Mine": {
+                    "name": "11) Thaunburg Mine",
+                    "population": "2.1M",
+                    "wealth": "High",
+                    "map": "images/paris.jpg",
+                    "description": "The capital of France, known for its art and culture."
+                },
+                "Ruthorham": {
+                    "name": "12) Ruthorham",
+                    "population": "3.6M",
+                    "wealth": "High",
+                    "map": "images/berlin.jpg",
+                    "description": "The capital of Germany, famous for its history and innovation."
+                },
+                "Boundary Sanctuary": {
+                    "name": "13) Boundary Sanctuary",
+                    "population": "3.6M",
+                    "wealth": "High",
+                    "map": "images/berlin.jpg",
+                    "description": "The capital of Germany, famous for its history and innovation."
+                }
+            }
+        },
+        "Asia": {
+            "name": "Asia",
+            "description": "The largest and most populous continent.",
+            "map": "images/asia.jpg",
+            "locations": {
+                "tokyo": {
+                    "name": "Tokyo",
+                    "population": "14M",
+                    "wealth": "Very High",
+                    "map": "images/tokyo.jpg",
+                    "description": "A vibrant metropolis blending tradition and technology."
+                },
+                "bangkok": {
+                    "name": "Bangkok",
+                    "population": "8.3M",
+                    "wealth": "Medium",
+                    "map": "images/bangkok.jpg",
+                    "description": "Thailand's capital, known for its temples and nightlife."
+                }
+            }
+        }
+    }
+}
