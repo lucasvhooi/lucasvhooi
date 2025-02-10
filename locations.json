@@ -8,24 +8,24 @@
                 "Frostholm": {
                     "Encountered": "yes",
                     "name": "Capital) Frostholm",
-                    "population": "2.1M",
+                    "population": "5.7K",
                     "wealth": "High",
-                    "map": "images/paris.jpg",
-                    "description": "The capital of France, known for its art and culture."
+                    "map": "Images/Maps/FrostholmMap.webp",
+                    "description": "The capital of Gelonus."
                 },
                 "Beckinsdale": {
                     "name": "1) Beckinsdale",
                     "Encountered": "yes",
-                    "population": null,
-                    "wealth": null,
+                    "population": "52",
+                    "wealth": "Medium",
                     "map": "Images/Maps/BeckinsdaleMap.webp",
                     "description": null
                 },
                 "Yarn": {
                     "name": "2) Yarn",
                     "Encountered": "yes",
-                    "population": null,
-                    "wealth": null,
+                    "population": "15",
+                    "wealth": "Poor",
                     "map": "Images/Maps/YarnMap.webp",
                     "description": null
                 },
@@ -34,7 +34,7 @@
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
-                    "map": null,
+                    "map": "Images/Maps/ErodedCaverns.webp",
                     "description": null
                 },
                 "Azmos Roots": {
@@ -42,7 +42,7 @@
                     "Encountered": "yes",
                     "population": null,
                     "wealth": null,
-                    "map": null,
+                    "map": "Images/Maps/AzmosRootsMap.webp",
                     "description": null
                 },
                 "Hocus Lookout": {
@@ -56,8 +56,8 @@
                 "Mirstone": {
                     "name": "6) Mirstone",
                     "Encountered": "yes",
-                    "population": null,
-                    "wealth": null,
+                    "population": "84",
+                    "wealth": "Rich",
                     "map": "Images/Maps/MirstoneMap.webp",
                     "description": null
                 },
@@ -80,8 +80,8 @@
                 "The Drunk Bard": {
                     "name": "9) The Drunk Bard",
                     "Encountered": "yes",
-                    "population": null,
-                    "wealth": null,
+                    "population": "Mixed",
+                    "wealth": "Mixed",
                     "map": "Images/Maps/DrunkenBard.webp",
                     "description": null
                 },
@@ -90,7 +90,7 @@
                     "Encountered": "yes",
                     "population": null,
                     "wealth": null,
-                    "map": null,
+                    "map": "Images/Maps/PirnFarmsMap.webp",
                     "description": null
                 },
                 "Thaunburg Mine": {

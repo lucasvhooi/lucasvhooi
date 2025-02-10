@@ -195,7 +195,7 @@
         "tags": ["sword", "fire", "legendary"]
       },
       {
-        "src": "Images/Characters/Imp.webP",
+        "src": "Images/Characters/Imp.webp",
         "Encountered": "yes",
         "backImage": "Images/Characters/ImpBack.webp",
         "description": "",
