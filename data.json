@@ -19,19 +19,19 @@
       {
         "src": "Images/Items/AzmossChessPiece.webP",
         "backImage": "Images/Items/AzmossChessPieceBack.webP",
-        "description": "This is a legendary chess piece given by the god of games Azmos.",
+        "description": "DOES NOT WORK",
         "tags": ["Azmos", "fire", "legendary"]
       },
       {
         "src": "Images/Items/BookOfBetterHealth.webP",
         "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
+        "description": "DOES NOT WORK",
         "tags": ["Book of better health", "book", "health"]
       },
       {
         "src": "Images/Items/BookOfEverExpansion.webP",
         "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
+        "description": "DOES NOT WORK",
         "tags": ["Book of better health", "book", "health"]
       },
       {
