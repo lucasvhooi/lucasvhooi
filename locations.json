@@ -105,8 +105,176 @@
                 }
             }
         },
-        "Asia": {
-            "name": "Asia",
+        "Arcadia": {
+            "name": "Arcadia",
+            "description": "The largest and most populous continent.",
+            "map": "images/asia.jpg",
+            "locations": {
+                "tokyo": {
+                    "name": "Tokyo",
+                    "population": "14M",
+                    "wealth": "Very High",
+                    "map": "images/tokyo.jpg",
+                    "description": "A vibrant metropolis blending tradition and technology."
+                },
+                "bangkok": {
+                    "name": "Bangkok",
+                    "population": "8.3M",
+                    "wealth": "Medium",
+                    "map": "images/bangkok.jpg",
+                    "description": "Thailand's capital, known for its temples and nightlife."
+                }
+            }
+        },
+        "Elysium Colony": {
+            "name": "Elysium Colony",
+            "description": "The largest and most populous continent.",
+            "map": "images/asia.jpg",
+            "locations": {
+                "tokyo": {
+                    "name": "Tokyo",
+                    "population": "14M",
+                    "wealth": "Very High",
+                    "map": "images/tokyo.jpg",
+                    "description": "A vibrant metropolis blending tradition and technology."
+                },
+                "bangkok": {
+                    "name": "Bangkok",
+                    "population": "8.3M",
+                    "wealth": "Medium",
+                    "map": "images/bangkok.jpg",
+                    "description": "Thailand's capital, known for its temples and nightlife."
+                }
+            }
+        },
+        "Thule": {
+            "name": "Thule",
+            "description": "The largest and most populous continent.",
+            "map": "images/asia.jpg",
+            "locations": {
+                "tokyo": {
+                    "name": "Tokyo",
+                    "population": "14M",
+                    "wealth": "Very High",
+                    "map": "images/tokyo.jpg",
+                    "description": "A vibrant metropolis blending tradition and technology."
+                },
+                "bangkok": {
+                    "name": "Bangkok",
+                    "population": "8.3M",
+                    "wealth": "Medium",
+                    "map": "images/bangkok.jpg",
+                    "description": "Thailand's capital, known for its temples and nightlife."
+                }
+            }
+        },
+        "Hermesia": {
+            "name": "Hermesia",
+            "description": "The largest and most populous continent.",
+            "map": "images/asia.jpg",
+            "locations": {
+                "tokyo": {
+                    "name": "Tokyo",
+                    "population": "14M",
+                    "wealth": "Very High",
+                    "map": "images/tokyo.jpg",
+                    "description": "A vibrant metropolis blending tradition and technology."
+                },
+                "bangkok": {
+                    "name": "Bangkok",
+                    "population": "8.3M",
+                    "wealth": "Medium",
+                    "map": "images/bangkok.jpg",
+                    "description": "Thailand's capital, known for its temples and nightlife."
+                }
+            }
+        },
+        "Pythos": {
+            "name": "Pythos",
+            "description": "The largest and most populous continent.",
+            "map": "images/asia.jpg",
+            "locations": {
+                "tokyo": {
+                    "name": "Tokyo",
+                    "population": "14M",
+                    "wealth": "Very High",
+                    "map": "images/tokyo.jpg",
+                    "description": "A vibrant metropolis blending tradition and technology."
+                },
+                "bangkok": {
+                    "name": "Bangkok",
+                    "population": "8.3M",
+                    "wealth": "Medium",
+                    "map": "images/bangkok.jpg",
+                    "description": "Thailand's capital, known for its temples and nightlife."
+                }
+            }
+        },
+        "Elysium": {
+            "name": "Elysium",
+            "description": "The largest and most populous continent.",
+            "map": "images/asia.jpg",
+            "locations": {
+                "tokyo": {
+                    "name": "Tokyo",
+                    "population": "14M",
+                    "wealth": "Very High",
+                    "map": "images/tokyo.jpg",
+                    "description": "A vibrant metropolis blending tradition and technology."
+                },
+                "bangkok": {
+                    "name": "Bangkok",
+                    "population": "8.3M",
+                    "wealth": "Medium",
+                    "map": "images/bangkok.jpg",
+                    "description": "Thailand's capital, known for its temples and nightlife."
+                }
+            }
+        },
+        "Noxus": {
+            "name": "Noxus",
+            "description": "The largest and most populous continent.",
+            "map": "images/asia.jpg",
+            "locations": {
+                "tokyo": {
+                    "name": "Tokyo",
+                    "population": "14M",
+                    "wealth": "Very High",
+                    "map": "images/tokyo.jpg",
+                    "description": "A vibrant metropolis blending tradition and technology."
+                },
+                "bangkok": {
+                    "name": "Bangkok",
+                    "population": "8.3M",
+                    "wealth": "Medium",
+                    "map": "images/bangkok.jpg",
+                    "description": "Thailand's capital, known for its temples and nightlife."
+                }
+            }
+        },
+        "Atlantis": {
+            "name": "Atlantis",
+            "description": "The largest and most populous continent.",
+            "map": "images/asia.jpg",
+            "locations": {
+                "tokyo": {
+                    "name": "Tokyo",
+                    "population": "14M",
+                    "wealth": "Very High",
+                    "map": "images/tokyo.jpg",
+                    "description": "A vibrant metropolis blending tradition and technology."
+                },
+                "bangkok": {
+                    "name": "Bangkok",
+                    "population": "8.3M",
+                    "wealth": "Medium",
+                    "map": "images/bangkok.jpg",
+                    "description": "Thailand's capital, known for its temples and nightlife."
+                }
+            }
+        },
+        "Dimentions": {
+            "name": "Dimentions",
             "description": "The largest and most populous continent.",
             "map": "images/asia.jpg",
             "locations": {

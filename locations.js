@@ -29,40 +29,40 @@ function loadContinents(continents) {
 
             const locationItem = document.createElement("li");
             locationItem.textContent = locationData.name;
-            locationItem.onclick = () => showLocationDetails(locationData, continentKey);
+            locationItem.onclick = (event) => {
+                event.stopPropagation(); // Prevent event bubbling
+                showLocationDetails(locationData, locationItem, continentKey);
+            };
             locationSubList.appendChild(locationItem);
         });
-
-        // Create location details div
-        const locationDetails = document.createElement("div");
-        locationDetails.id = `${continentKey}_location_details`;
-        locationDetails.classList.add("location-details");
-        locationDetails.style.display = "none";
 
         // Append elements
         locationList.appendChild(continentDiv);
         locationList.appendChild(locationSubList);
-        locationList.appendChild(locationDetails);
     });
 }
 
 function toggleLocations(continentId) {
     let locationSubList = document.getElementById(continentId);
-    let locationDetails = document.getElementById(continentId + "_location_details");
-
+    
     if (locationSubList.style.display === "none" || locationSubList.style.display === "") {
         locationSubList.style.display = "block";
-        locationDetails.style.display = "none"; // Hide location details when opening the list
     } else {
         locationSubList.style.display = "none";
-        locationDetails.style.display = "none"; // Hide location details when closing the list
     }
 }
 
-function showLocationDetails(location, continentId) {
-    let detailsDiv = document.getElementById(`${continentId}_location_details`);
+function showLocationDetails(location, locationItem, continentId) {
+    console.log("Displaying details for:", location.name); // Debugging
 
-    // Populate location details
+    // Remove any previous details
+    document.querySelectorAll(".location-details").forEach(el => el.remove());
+
+    // Create new details div
+    const detailsDiv = document.createElement("div");
+    detailsDiv.classList.add("location-details");
+    detailsDiv.style.display = "block"; // Force it to be visible
+
     detailsDiv.innerHTML = `
         <h2>${location.name}</h2>
         <p>${location.description}</p>
@@ -70,15 +70,15 @@ function showLocationDetails(location, continentId) {
         <p><strong>Wealth Level:</strong> ${location.wealth}</p>
     `;
 
-    // Add location image if available
     if (location.map) {
         const img = document.createElement("img");
         img.src = location.map;
         img.alt = location.name;
-        img.loading = "lazy"; // Lazy load for performance
+        img.loading = "lazy";
         detailsDiv.appendChild(img);
     }
 
-    // Make sure the details div is visible
-    detailsDiv.style.display = "block";
+    // Insert it directly below the clicked location
+    locationItem.insertAdjacentElement("afterend", detailsDiv);
 }
+
