@@ -72,18 +72,26 @@ function toggleLocationDetails(location, locationItem) {
     }
 
     // Otherwise, close other location details and show the new one
+    // Otherwise, close other location details and show the new one
     closeAllLocationDetails();
 
     const detailsDiv = document.createElement("div");
     detailsDiv.classList.add("location-details");
     detailsDiv.style.display = "block";
 
-    detailsDiv.innerHTML = `
-        <h2>${location.name}</h2>
-        <p>${location.description}</p>
-        <p><strong>Population:</strong> ${location.population}</p>
-        <p><strong>Wealth Level:</strong> ${location.wealth}</p>
-    `;
+    let detailsHTML = `<h2>${location.name}</h2>`;
+
+    if (location.description) {
+        detailsHTML += `<p>${location.description}</p>`;
+    }
+    if (location.population !== null && location.population !== undefined) {
+        detailsHTML += `<p><strong>Population:</strong> ${location.population}</p>`;
+    }
+    if (location.wealth) {
+        detailsHTML += `<p><strong>Wealth Level:</strong> ${location.wealth}</p>`;
+    }
+
+    detailsDiv.innerHTML = detailsHTML;
 
     if (location.map) {
         const img = document.createElement("img");

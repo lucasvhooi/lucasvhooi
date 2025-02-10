@@ -278,16 +278,23 @@
             "description": "The largest and most populous continent.",
             "map": "images/asia.jpg",
             "locations": {
-                "tokyo": {
-                    "name": "Tokyo",
+                "spiritrealm": {
+                    "name": "Spirit realm",
                     "population": "14M",
                     "wealth": "Very High",
                     "map": "images/tokyo.jpg",
                     "description": "A vibrant metropolis blending tradition and technology."
                 },
-                "bangkok": {
-                    "name": "Bangkok",
+                "thehollowveil": {
+                    "name": "The Hollow Veil",
                     "population": "8.3M",
+                    "wealth": "Medium",
+                    "map": "images/bangkok.jpg",
+                    "description": "Thailand's capital, known for its temples and nightlife."
+                },
+                "etherwhite": {
+                    "name": "Etherwhite",
+                    "population": null,
                     "wealth": "Medium",
                     "map": "images/bangkok.jpg",
                     "description": "Thailand's capital, known for its temples and nightlife."

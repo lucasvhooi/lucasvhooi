@@ -19,7 +19,7 @@
       {
         "src": "Images/Items/AzmossChessPiece.WebP",
         "backImage": "Images/Items/AzmossChessPieceBack.WebP",
-        "description": "This is a legendary sword forged in dragon fire.",
+        "description": "This is a legendary chess piece given by the god of games Azmos.",
         "tags": ["Azmos", "fire", "legendary"]
       },
       {
@@ -176,20 +176,20 @@
 
     "characters": [
       {
-        "src": "Images/Characters/AkronSildor.WebP",
+        "src": "Images/Characters/AkronSildor.webP",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["sword", "fire", "legendary"]
       },
       {
-        "src": "Images/Characters/AylinBrightenloof.WebP",
+        "src": "Images/Characters/AylinBrightenloof.webP",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["sword", "fire", "legendary"]
       },
       {
-        "src": "Images/Characters/Imp.WebP",
-        "backImage": "Images/Characters/ImpBack.WebP",
+        "src": "Images/Characters/Imp.webP",
+        "backImage": "Images/Characters/ImpBack.webP",
         "description": "",
         "tags": ["sword", "fire", "legendary"]
       }
@@ -198,14 +198,14 @@
 
     "armor": [
       {
-        "src": "Images/Armor/HoofdpietsMask.WebP",
-        "backImage": "Images/Armor/HoofdpietsMaskBack.WebP",
+        "src": "Images/Armor/HoofdpietsMask.webP",
+        "backImage": "Images/Armor/HoofdpietsMaskBack.webP",
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["piest", "zwart", "zwartepiet", "Hoofdpiet", "mask", "Hoofdpiet mask"]
       },
       {
-        "src": "Images/Armor/Miter of Sinterklaas.WebP",
-        "backImage": "Images/Armor/Miter of SinterklaasBack.WebP",
+        "src": "Images/Armor/Miter of Sinterklaas.webP",
+        "backImage": "Images/Armor/Miter of SinterklaasBack.webP",
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["sinterklaas", "Miter", "legendary"]
       },
@@ -220,19 +220,19 @@
 
     "locations": [
       {
-        "src": "Images/Locations/ArcaneBoreMKVI.WebP",
+        "src": "Images/Locations/ArcaneBoreMKVI.webP",
         "backImage": null,
         "description": "ArcaneBoreMKVI: In the spectral gloom of the Spirit Realm, amidst forests where the mist clings to the trunks of towering, gnarled trees, lies the ArcaneBore MKVI, its glowing drill-head a beacon of purpose and danger.",
         "tags": ["ArcaneBoreMKVI", "Bore", "Arcane", "Hei Bai", "Spirit"]
       },
       {
-        "src": "Images/Locations/AzmosRoots.WebP",
+        "src": "Images/Locations/AzmosRoots.webP",
         "backImage": null,
         "description": "AzmosRoots: A mechanical marvel used to delve into the unknown.",
         "tags": ["AzmosRoots", "Azmos", "roots", "Shrine", "Gelonus", "Fountain"]
       },
       {
-        "src": "Images/Locations/TheDrunkBard.WebP",
+        "src": "Images/Locations/TheDrunkBard.webP",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["the", "drunk", "bard", "Tavern", "the drunken bard", "gelonus"]
