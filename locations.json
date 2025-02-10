@@ -16,7 +16,7 @@
                 "Beckinsdale": {
                     "name": "1) Beckinsdale",
                     "Encountered": "yes",
-                    "population": "52",
+                    "population": "76",
                     "wealth": "Medium",
                     "map": "Images/Maps/BeckinsdaleMap.webp",
                     "description": null
@@ -98,15 +98,15 @@
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
-                    "map": null,
+                    "map": "Images/Maps/PirnFarmsMap.webp",
                     "description": null
                 },
                 "Ruthorham": {
                     "name": "12) Ruthorham",
                     "Encountered": "yes",
-                    "population": null,
-                    "wealth": null,
-                    "map": null,
+                    "population": "103",
+                    "wealth": "Medium",
+                    "map": "Images/Maps/RuthorhamMap.webp",
                     "description": null
                 },
                 "Boundary Sanctuary": {
@@ -114,7 +114,7 @@
                     "Encountered": "yes",
                     "population": null,
                     "wealth": null,
-                    "map": null,
+                    "map": "Images/Maps/BoundarySanctuaryMap.webp",
                     "description": null
                 }
             }
@@ -634,20 +634,23 @@
             "locations": {
                 "spiritrealm": {
                     "name": "Spirit realm",
-                    "population": "14M",
-                    "wealth": "Very High",
+                    "Encountered": "yes",
+                    "population": "Unkown",
+                    "wealth": "Unkown",
                     "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "description": "Unkown"
                 },
                 "thehollowveil": {
-                    "name": "Unkown",
+                    "name": "The Hollow Veil",
+                    "Encountered": "no",
                     "population": "8.3M",
                     "wealth": "Medium",
                     "map": "images/bangkok.jpg",
                     "description": "Thailand's capital, known for its temples and nightlife."
                 },
                 "etherwhite": {
-                    "name": "Unkown",
+                    "name": "Etherwhite",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": "Medium",
                     "map": "images/bangkok.jpg",

@@ -1,19 +1,83 @@
 {
     "weapons": [
       {
-        "src": "Images/Weapons/weapon1.webp",
+        "src": "Images/Weapons/BloodthirsterUpgradeFront.webp",
+        "Encountered": "yes",
+        "backImage": "Images/Weapons/BloodthirsterUpgradeBack.webp",
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Bloodthirster", "sword", "upgrade"]
+      },
+      {
+        "src": "Images/Weapons/BoomerangOfDestinyFront.webp",
+        "Encountered": "no",
+        "backImage": "Images/Weapons/BoomerangOfDestinyBack.webp",
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Boomerang Of Destiny", "upgraded"]
+      },
+      {
+        "src": "Images/Weapons/Boomerang.webp",
         "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Boomerang"]
       },
       {
-        "src": "Images/Weapons/weapon2.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "",
-        "tags": ["sword", "fire", "legendary"]
+        "src": "Images/Weapons/EnergySwordFront.webp",
+        "Encountered": "yes",
+        "backImage": "Images/Weapons/EnergySwordBack.webp",
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Energy Sword", "Halo", "game"]
+      },
+      {
+        "src": "Images/Weapons/GalesCleaverFront.webp",
+        "Encountered": "yes",
+        "backImage": "Images/Weapons/GalesCleaverBack.webp",
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Gales Cleaver", "Hocus Lookout", "The cook"]
+      },
+      {
+        "src": "Images/Weapons/MejijKatanaFront.webp",
+        "Encountered": "yes",
+        "backImage": "Images/Weapons/MejijKatanaBack.webp",
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Mejij Katana", "sword"]
+      },
+      {
+        "src": "Images/Weapons/RayGunFront.webp",
+        "Encountered": "yes",
+        "backImage": "Images/Weapons/RayGunBack.webp",
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Ray Gun", "Call of duty", "game"]
+      },
+      {
+        "src": "Images/Weapons/ShardbreakerFront.webp",
+        "Encountered": "yes",
+        "backImage": "Images/Weapons/ShardbreakerBack.webp",
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Shardbreaker", "Pickaxe", "operator"]
+      },
+      {
+        "src": "Images/Weapons/ShockTongueQuarterStaffFront.webp",
+        "Encountered": "yes",
+        "backImage": "Images/Weapons/ShockTongueQuarterStaffBack.webp",
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Shock Tongue Quarter Staff", "upgraded", "electric"]
+      },
+      {
+        "src": "Images/Weapons/StaffOfTheWoodlandsFront.webp",
+        "Encountered": "yes",
+        "backImage": "Images/Weapons/StaffOfTheWoodlandsBack.webp",
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Staff Of The Woodlands", "plant"]
+      },
+      {
+        "src": "Images/Weapons/WhisperingDartFront.webp",
+        "Encountered": "yes",
+        "backImage": "Images/Weapons/WhisperingDartBack.webp",
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Whispering Dart"]
       }
+
     ],
 
 
@@ -23,13 +87,13 @@
         "Encountered": "yes",
         "backImage": "Images/Items/AzmossChessPieceBack.webp",
         "description": "DOES NOT WORK",
-        "tags": ["Azmos", "fire", "legendary"]
+        "tags": ["Azmos", "Chess Piece", "Key Item"]
       },
       {
         "src": "Images/Items/BookOfBetterHealth.webp",
         "Encountered": "no",
         "backImage": null,
-        "description": "DOES NOT WORK",
+        "description": "Book",
         "tags": ["Book of better health", "book", "health"]
       },
       {
@@ -37,7 +101,7 @@
         "Encountered": "yes",
         "backImage": null,
         "description": "DOES NOT WORK",
-        "tags": ["Book of better health", "book", "health"]
+        "tags": ["Book Of Ever Expansion", "book", "spellslot"]
       },
       {
         "src": "Images/Items/BookOfGamblersKnowledge.webp",
@@ -51,7 +115,7 @@
         "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Shroom", "Up", "Mario", "Up Shroom"]
+        "tags": ["Shroom", "Up", "Mario", "Up Shroom", "Game"]
       },
 
       {
@@ -116,14 +180,14 @@
         "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["PipBoy3000", "Pipboy", "fallout"]
+        "tags": ["PipBoy3000", "Pipboy", "fallout", "game"]
       },
       {
         "src": "Images/Items/Pokeball.webp",
         "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Pokeball", "pokemon", "ball"]
+        "tags": ["Pokeball", "pokemon", "ball", "game"]
       },
       {
         "src": "Images/Items/ShockTongue.webp",
@@ -406,7 +470,7 @@
       {
         "src": "Images/Armor/BootsOfStridingAndSprinting.webp",
         "Encountered": "yes",
-        "backImage": null,
+        "backImage": "Images/Armor/BootsOfStridingAndSprintingBack.webp",
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Boots Of Striding And Sprinting", "Sprinting", "Boots", "Striding"]
       },
