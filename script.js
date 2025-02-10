@@ -29,7 +29,7 @@ function loadMissions(locations) {
             missionItem.textContent = mission.title;
             missionItem.onclick = (event) => {
                 event.stopPropagation(); // Prevent bubbling
-                showMissionDetails(mission, missionItem);
+                toggleMissionDetails(mission, missionItem);
             };
             missionList.appendChild(missionItem);
         });
@@ -40,34 +40,47 @@ function loadMissions(locations) {
     });
 }
 
-// Toggle mission list visibility
+// 🔹 Toggle mission list visibility & close mission details when closing a category
 function toggleMissions(locationId) {
     const missionList = document.getElementById(locationId);
-
+    
     if (missionList.style.display === "none" || missionList.style.display === "") {
+        // Open the list and close all mission details
+        closeAllMissionDetails();
         missionList.style.display = "block";
     } else {
+        // Close the list and any open mission details
         missionList.style.display = "none";
+        closeAllMissionDetails();
     }
 }
 
-function showMissionDetails(mission, missionItem) {
-    console.log("Displaying mission details for:", mission.title); // Debugging
-
-    // Remove any previous mission details
+// 🔹 Close all mission details
+function closeAllMissionDetails() {
     document.querySelectorAll(".mission-details").forEach(el => el.remove());
+}
 
-    // Create new mission details div
+// 🔹 Toggle individual mission details (press again to close)
+function toggleMissionDetails(mission, missionItem) {
+    // Check if this mission already has details open
+    let existingDetails = missionItem.nextElementSibling;
+    if (existingDetails && existingDetails.classList.contains("mission-details")) {
+        existingDetails.remove(); // Close the details if already open
+        return;
+    }
+
+    // Otherwise, close other mission details and show the new one
+    closeAllMissionDetails();
+
     const detailsDiv = document.createElement("div");
     detailsDiv.classList.add("mission-details");
-    detailsDiv.style.display = "block"; // Ensure it's visible
+    detailsDiv.style.display = "block";
 
     detailsDiv.innerHTML = `
         <h2>${mission.title}</h2>
         <p>${mission.description}</p>
     `;
 
-    // Check if there are images and add them
     if (mission.images && mission.images.length > 0) {
         const imagesDiv = document.createElement("div");
         imagesDiv.classList.add("mission-images");
@@ -76,13 +89,13 @@ function showMissionDetails(mission, missionItem) {
             const img = document.createElement("img");
             img.src = imageUrl;
             img.alt = mission.title;
-            img.loading = "lazy"; // Lazy load for performance
+            img.loading = "lazy";
             imagesDiv.appendChild(img);
         });
 
         detailsDiv.appendChild(imagesDiv);
     }
 
-    // Insert details directly below the clicked mission item
+    // Insert details directly below the clicked mission
     missionItem.insertAdjacentElement("afterend", detailsDiv);
 }

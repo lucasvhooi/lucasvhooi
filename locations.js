@@ -11,7 +11,7 @@ function loadContinents(continents) {
 
     Object.keys(continents).forEach(continentKey => {
         const continentData = continents[continentKey];
-        
+
         // Create continent div
         const continentDiv = document.createElement("div");
         continentDiv.classList.add("continent");
@@ -30,8 +30,8 @@ function loadContinents(continents) {
             const locationItem = document.createElement("li");
             locationItem.textContent = locationData.name;
             locationItem.onclick = (event) => {
-                event.stopPropagation(); // Prevent event bubbling
-                showLocationDetails(locationData, locationItem, continentKey);
+                event.stopPropagation(); // Prevent bubbling
+                toggleLocationDetails(locationData, locationItem);
             };
             locationSubList.appendChild(locationItem);
         });
@@ -42,26 +42,41 @@ function loadContinents(continents) {
     });
 }
 
+// 🔹 Toggle location lists & close location details when closing a continent
 function toggleLocations(continentId) {
-    let locationSubList = document.getElementById(continentId);
-    
+    const locationSubList = document.getElementById(continentId);
+
     if (locationSubList.style.display === "none" || locationSubList.style.display === "") {
+        // Open the list and close all location details
+        closeAllLocationDetails();
         locationSubList.style.display = "block";
     } else {
+        // Close the list and any open location details
         locationSubList.style.display = "none";
+        closeAllLocationDetails();
     }
 }
 
-function showLocationDetails(location, locationItem, continentId) {
-    console.log("Displaying details for:", location.name); // Debugging
-
-    // Remove any previous details
+// 🔹 Close all location details
+function closeAllLocationDetails() {
     document.querySelectorAll(".location-details").forEach(el => el.remove());
+}
 
-    // Create new details div
+// 🔹 Toggle individual location details (press again to close)
+function toggleLocationDetails(location, locationItem) {
+    // Check if this location already has details open
+    let existingDetails = locationItem.nextElementSibling;
+    if (existingDetails && existingDetails.classList.contains("location-details")) {
+        existingDetails.remove(); // Close the details if already open
+        return;
+    }
+
+    // Otherwise, close other location details and show the new one
+    closeAllLocationDetails();
+
     const detailsDiv = document.createElement("div");
     detailsDiv.classList.add("location-details");
-    detailsDiv.style.display = "block"; // Force it to be visible
+    detailsDiv.style.display = "block";
 
     detailsDiv.innerHTML = `
         <h2>${location.name}</h2>
@@ -78,7 +93,6 @@ function showLocationDetails(location, locationItem, continentId) {
         detailsDiv.appendChild(img);
     }
 
-    // Insert it directly below the clicked location
+    // Insert details directly below the clicked location
     locationItem.insertAdjacentElement("afterend", detailsDiv);
 }
-
