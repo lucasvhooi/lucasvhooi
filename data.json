@@ -1,13 +1,13 @@
 {
     "weapons": [
       {
-        "src": "Images/Weapons/weapon1.WebP",
+        "src": "Images/Weapons/weapon1.webP",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["sword", "fire", "legendary"]
       },
       {
-        "src": "Images/Weapons/weapon2.WebP",
+        "src": "Images/Weapons/weapon2.webP",
         "backImage": null,
         "description": "",
         "tags": ["sword", "fire", "legendary"]
@@ -17,25 +17,25 @@
 
     "items": [
       {
-        "src": "Images/Items/AzmossChessPiece.WebP",
-        "backImage": "Images/Items/AzmossChessPieceBack.WebP",
+        "src": "Images/Items/AzmossChessPiece.webP",
+        "backImage": "Images/Items/AzmossChessPieceBack.webP",
         "description": "This is a legendary chess piece given by the god of games Azmos.",
         "tags": ["Azmos", "fire", "legendary"]
       },
       {
-        "src": "Images/Items/BookOfBetterHealth.WebP",
+        "src": "Images/Items/BookOfBetterHealth.webP",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Book of better health", "book", "health"]
       },
       {
-        "src": "Images/Items/BookOfEverExpansion.WebP",
+        "src": "Images/Items/BookOfEverExpansion.webP",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Book of better health", "book", "health"]
       },
       {
-        "src": "Images/Items/BookOfGamblersKnowledge.WebP",
+        "src": "Images/Items/BookOfGamblersKnowledge.webP",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Book of Gamblers Knowledge", "book", "Gamblers", "Knowledge"]

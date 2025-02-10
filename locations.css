@@ -116,13 +116,19 @@ section {
     margin-top: 10px;
 }
 
-/* Responsive Design */
+/* Mobile-specific adjustments */
 @media (max-width: 600px) {
     .location-list li {
-        width: 100%;
+        width: 90%;
+        max-width: 350px;
     }
     .location-details {
-        width: 100%;
+        width: 90%;
+        max-width: 350px;
+    }
+    .continent {
+        width: 90%;
+        max-width: 400px;
     }
 }
 
