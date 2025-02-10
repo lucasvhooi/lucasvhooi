@@ -6,6 +6,7 @@
             "map": "images/europe.jpg",
             "locations": {
                 "Frostholm": {
+                    "Encountered": "yes",
                     "name": "Capital) Frostholm",
                     "population": "2.1M",
                     "wealth": "High",
@@ -14,94 +15,107 @@
                 },
                 "Beckinsdale": {
                     "name": "1) Beckinsdale",
-                    "population": "2.1M",
-                    "wealth": "High",
-                    "map": "images/paris.jpg",
-                    "description": "The capital of France, known for its art and culture."
+                    "Encountered": "yes",
+                    "population": null,
+                    "wealth": null,
+                    "map": "Images/Maps/BeckinsdaleMap.webp",
+                    "description": null
                 },
                 "Yarn": {
                     "name": "2) Yarn",
-                    "population": "3.6M",
-                    "wealth": "High",
-                    "map": "images/berlin.jpg",
-                    "description": "The capital of Germany, famous for its history and innovation."
+                    "Encountered": "yes",
+                    "population": null,
+                    "wealth": null,
+                    "map": "Images/Maps/YarnMap.webp",
+                    "description": null
                 },
                 "The Eroded Caverns": {
-                    "name": "3)",
-                    "population": "2.1M",
-                    "wealth": "High",
-                    "map": "images/paris.jpg",
-                    "description": "The capital of France, known for its art and culture."
+                    "name": "3) The Eroded Caverns",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Azmos Roots": {
                     "name": "4) Azmos Roots",
-                    "population": "3.6M",
-                    "wealth": "High",
-                    "map": "images/berlin.jpg",
-                    "description": "The capital of Germany, famous for its history and innovation."
+                    "Encountered": "yes",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Hocus Lookout": {
                     "name": "5) Hocus Lookout",
-                    "population": "2.1M",
-                    "wealth": "High",
-                    "map": "images/paris.jpg",
-                    "description": "The capital of France, known for its art and culture."
+                    "Encountered": "yes",
+                    "population": null,
+                    "wealth": null,
+                    "map": "Images/Maps/HocusLookoutMap.webp",
+                    "description": null
                 },
                 "Mirstone": {
                     "name": "6) Mirstone",
-                    "population": "3.6M",
-                    "wealth": "High",
-                    "map": "images/berlin.jpg",
-                    "description": "The capital of Germany, famous for its history and innovation."
+                    "Encountered": "yes",
+                    "population": null,
+                    "wealth": null,
+                    "map": "Images/Maps/MirstoneMap.webp",
+                    "description": null
                 },
                 "Onyx Hollow": {
-                    "name": "7)",
-                    "population": "2.1M",
-                    "wealth": "High",
-                    "map": "images/paris.jpg",
-                    "description": "The capital of France, known for its art and culture."
+                    "name": "7) Onyx Hollow",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Deadly Delves": {
-                    "name": "8)",
-                    "population": "3.6M",
-                    "wealth": "High",
-                    "map": "images/berlin.jpg",
-                    "description": "The capital of Germany, famous for its history and innovation."
+                    "name": "8) Deadly Delves",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "The Drunk Bard": {
                     "name": "9) The Drunk Bard",
-                    "population": "2.1M",
-                    "wealth": "High",
-                    "map": "images/paris.jpg",
-                    "description": "The capital of France, known for its art and culture."
+                    "Encountered": "yes",
+                    "population": null,
+                    "wealth": null,
+                    "map": "Images/Maps/DrunkenBard.webp",
+                    "description": null
                 },
                 "Pirn Farms": {
                     "name": "10) Pirn Farms",
-                    "population": "3.6M",
-                    "wealth": "High",
-                    "map": "images/berlin.jpg",
-                    "description": "The capital of Germany, famous for its history and innovation."
+                    "Encountered": "yes",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Thaunburg Mine": {
-                    "name": "11)",
-                    "population": "2.1M",
-                    "wealth": "High",
-                    "map": "images/paris.jpg",
-                    "description": "The capital of France, known for its art and culture."
+                    "name": "11) Thaunburg Mine",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Ruthorham": {
                     "name": "12) Ruthorham",
-                    "population": "3.6M",
-                    "wealth": "High",
-                    "map": "images/berlin.jpg",
-                    "description": "The capital of Germany, famous for its history and innovation."
+                    "Encountered": "yes",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Boundary Sanctuary": {
                     "name": "13) Boundary Sanctuary",
-                    "population": "3.6M",
-                    "wealth": "High",
-                    "map": "images/berlin.jpg",
-                    "description": "The capital of Germany, famous for its history and innovation."
+                    "Encountered": "yes",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 }
             }
         },
@@ -112,234 +126,237 @@
             "locations": {
                 "eldoria": {
                     "name": "Capital) Eldoria",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "silverwyn": {
                     "name": "Second City) Silverwyn",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia1": {
                     "name": "1)",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia2": {
                     "name": "2)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia3": {
                     "name": "3)",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia4": {
                     "name": "4)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia5": {
                     "name": "5)",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia6": {
                     "name": "6)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia7": {
                     "name": "7)",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia8": {
                     "name": "8)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia9": {
                     "name": "9)",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia10": {
                     "name": "10)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia11": {
                     "name": "11)",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia12": {
                     "name": "12)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia13": {
                     "name": "13)",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia14": {
                     "name": "14)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia15": {
                     "name": "15)",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia16": {
                     "name": "16)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia17": {
                     "name": "17)",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia18": {
                     "name": "18)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia19": {
                     "name": "19)",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia20": {
                     "name": "20)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia21": {
                     "name": "21)",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia22": {
                     "name": "22)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia23": {
                     "name": "23)",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia24": {
                     "name": "24)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia25": {
                     "name": "25)",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia26": {
                     "name": "26)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia27": {
                     "name": "27)",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia28": {
                     "name": "28)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia29": {
                     "name": "29)",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia30": {
                     "name": "30)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "Arcadia31": {
                     "name": "31)",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 }
             }
         },
@@ -350,17 +367,17 @@
             "locations": {
                 "apollo": {
                     "name": "Capital) Apollo",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "delphoria": {
                     "name": "Second City) Delphoria",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 }
             }
         },
@@ -371,24 +388,24 @@
             "locations": {
                 "demeteron": {
                     "name": "Capital) Demeteron",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "ironhold": {
                     "name": "Second City) Ironhold",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "emberstone": {
                     "name": "Third City) Emberstone",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 }
             }
         },
@@ -399,24 +416,24 @@
             "locations": {
                 "thalassia": {
                     "name": "Capital) Thalassia",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "valerium": {
                     "name": "Second City) Valerium",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "mythoisa": {
                     "name": "Third City) Mythoisa",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 }
             }
         },
@@ -427,24 +444,24 @@
             "locations": {
                 "stromwatch": {
                     "name": "Capital) Stormwatch",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "hestia": {
                     "name": "Second City) Hestia",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "solstoria": {
                     "name": "Third City) Solstoria",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 }
             }
         },
@@ -455,38 +472,38 @@
             "locations": {
                 "thundertop": {
                     "name": "Capital) Thundertop",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "lumindale": {
                     "name": "Second City) Lumindale",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "pyronia": {
                     "name": "Third City) Pyronia",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "celestria": {
                     "name": "Fourth City) Celestria",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 },
                 "astralon": {
                     "name": "Fifth City) Astralon",
-                    "population": "8.3M",
-                    "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
-                    "description": "Thailand's capital, known for its temples and nightlife."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 }
             }
         },
@@ -497,10 +514,108 @@
             "locations": {
                 "panthos": {
                     "name": "Capital) Panthos",
-                    "population": "14M",
-                    "wealth": "Very High",
-                    "map": "images/tokyo.jpg",
-                    "description": "A vibrant metropolis blending tradition and technology."
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus1": {
+                    "name": "1)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus2": {
+                    "name": "2)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus3": {
+                    "name": "3)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus4": {
+                    "name": "4)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus5": {
+                    "name": "5)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus6": {
+                    "name": "6)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus7": {
+                    "name": "7)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus8": {
+                    "name": "8)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus9": {
+                    "name": "9)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus10": {
+                    "name": "10)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus11": {
+                    "name": "11)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus12": {
+                    "name": "12)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus13": {
+                    "name": "13)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus14": {
+                    "name": "14)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
                 }
             }
         },
@@ -525,14 +640,14 @@
                     "description": "A vibrant metropolis blending tradition and technology."
                 },
                 "thehollowveil": {
-                    "name": "The Hollow Veil",
+                    "name": "Unkown",
                     "population": "8.3M",
                     "wealth": "Medium",
                     "map": "images/bangkok.jpg",
                     "description": "Thailand's capital, known for its temples and nightlife."
                 },
                 "etherwhite": {
-                    "name": "Etherwhite",
+                    "name": "Unkown",
                     "population": null,
                     "wealth": "Medium",
                     "map": "images/bangkok.jpg",

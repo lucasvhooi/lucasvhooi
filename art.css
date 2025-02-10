@@ -206,6 +206,29 @@ body.popup-open {
     }
 }
 
+@media screen and (max-width: 768px) {
+    .image-gallery {
+        grid-template-columns: 1fr;
+    }
+
+    .card-pair {
+        flex-direction: column; /* Stack front and back vertically */
+        gap: 15px;
+    }
+
+    .card-pair img {
+        width: 130px; /* Smaller size for phones */
+    }
+
+    .popup-content {
+        max-width: 300px; /* Reduce popup width for phones */
+    }
+
+    .popup-content img {
+        max-width: 75%;
+    }  
+}
+
 @media screen and (max-width: 480px) {
     .image-gallery {
         grid-template-columns: 1fr;

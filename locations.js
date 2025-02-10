@@ -27,18 +27,23 @@ function loadContinents(continents) {
         Object.keys(continentData.locations).forEach(locationKey => {
             const locationData = continentData.locations[locationKey];
 
-            const locationItem = document.createElement("li");
-            locationItem.textContent = locationData.name;
-            locationItem.onclick = (event) => {
-                event.stopPropagation(); // Prevent bubbling
-                toggleLocationDetails(locationData, locationItem);
-            };
-            locationSubList.appendChild(locationItem);
+            // 🔹 **Check if Encountered is "yes" before displaying**
+            if (locationData.Encountered && locationData.Encountered.toLowerCase() === "yes") {
+                const locationItem = document.createElement("li");
+                locationItem.textContent = locationData.name;
+                locationItem.onclick = (event) => {
+                    event.stopPropagation(); // Prevent bubbling
+                    toggleLocationDetails(locationData, locationItem);
+                };
+                locationSubList.appendChild(locationItem);
+            }
         });
 
-        // Append elements
-        locationList.appendChild(continentDiv);
-        locationList.appendChild(locationSubList);
+        // Only add continent if it has at least one encountered location
+        if (locationSubList.children.length >= 0) {
+            locationList.appendChild(continentDiv);
+            locationList.appendChild(locationSubList);
+        }
     });
 }
 
@@ -47,11 +52,9 @@ function toggleLocations(continentId) {
     const locationSubList = document.getElementById(continentId);
 
     if (locationSubList.style.display === "none" || locationSubList.style.display === "") {
-        // Open the list and close all location details
         closeAllLocationDetails();
         locationSubList.style.display = "block";
     } else {
-        // Close the list and any open location details
         locationSubList.style.display = "none";
         closeAllLocationDetails();
     }
@@ -64,15 +67,12 @@ function closeAllLocationDetails() {
 
 // 🔹 Toggle individual location details (press again to close)
 function toggleLocationDetails(location, locationItem) {
-    // Check if this location already has details open
     let existingDetails = locationItem.nextElementSibling;
     if (existingDetails && existingDetails.classList.contains("location-details")) {
-        existingDetails.remove(); // Close the details if already open
+        existingDetails.remove(); 
         return;
     }
 
-    // Otherwise, close other location details and show the new one
-    // Otherwise, close other location details and show the new one
     closeAllLocationDetails();
 
     const detailsDiv = document.createElement("div");
@@ -101,6 +101,5 @@ function toggleLocationDetails(location, locationItem) {
         detailsDiv.appendChild(img);
     }
 
-    // Insert details directly below the clicked location
     locationItem.insertAdjacentElement("afterend", detailsDiv);
 }

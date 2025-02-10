@@ -25,13 +25,8 @@
 
 
 
-    <div class="category-buttons">
-      <!-- Category buttons dynamically added from JavaScript -->
-    </div>
-
-    <div class="image-gallery">
-      <!-- Dynamically generated gallery -->
-    </div>
+    <div class="category-buttons"></div>
+    <div class="image-gallery"></div>
   </section>
 
   <!-- Popup Container -->
@@ -43,10 +38,6 @@
   </div>
 
   <script>
-    // Example image data with descriptions and front/back handling
-    
-
-// Object to store loaded data
 // Object to store loaded image data
 let imageData = {};
 
@@ -60,6 +51,7 @@ function loadData() {
         })
         .catch(error => console.error("Error loading data:", error));
 }
+
 document.addEventListener("DOMContentLoaded", () => {
     loadData(); // Load data from JSON
 
@@ -67,7 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const popup = document.getElementById('popup');
     popup.style.display = "none";  
 });
-
 
 // Generate category buttons dynamically
 function generateCategoryButtons() {
@@ -91,6 +82,11 @@ function showCategory(category) {
     const images = imageData[category] || [];
 
     images.forEach(item => {
+        // 🔹 **Check if Encountered is "yes" before displaying**
+        if (!item.Encountered || item.Encountered.toLowerCase() !== "yes") {
+            return; // Skip this item if it's not encountered
+        }
+
         const card = document.createElement("div");
         card.classList.add("card-pair");
 
@@ -161,13 +157,10 @@ function openPopup(frontSrc, backSrc, description) {
     document.getElementById('closePopup').onclick = closePopup;
 }
 
-
-
 // Function to close popup properly
 function closePopup() {
     const popup = document.getElementById('popup');
     popup.style.display = "none";
-    document.body.classList.remove("popup-open"); // Re-enable scrolling
 }
 
 // Close popup when clicking outside the content
@@ -194,7 +187,7 @@ function searchAllImages() {
         const images = imageData[category];
 
         images.forEach(item => {
-            if (!item.tags) return; // Skip if no tags
+            if (!item.tags || !item.Encountered || item.Encountered.toLowerCase() !== "yes") return; // Skip if not encountered
 
             const matchesAnyTag = queryTags.some(tag =>
                 item.tags.some(itemTag => itemTag.toLowerCase().includes(tag))
@@ -234,6 +227,7 @@ function searchAllImages() {
 
 // Load data on page load
 document.addEventListener("DOMContentLoaded", loadData);
+
   </script>
 </body>
 </html>

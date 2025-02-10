@@ -2,12 +2,14 @@
     "weapons": [
       {
         "src": "Images/Weapons/weapon1.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["sword", "fire", "legendary"]
       },
       {
         "src": "Images/Weapons/weapon2.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "",
         "tags": ["sword", "fire", "legendary"]
@@ -17,31 +19,36 @@
 
     "items": [
       {
-        "src": "Images/Items/AzmossChessPiece.webP",
+        "src": "Images/Items/AzmossChessPiece.webp",
+        "Encountered": "yes",
         "backImage": "Images/Items/AzmossChessPieceBack.webp",
         "description": "DOES NOT WORK",
         "tags": ["Azmos", "fire", "legendary"]
       },
       {
-        "src": "Images/Items/BookOfBetterHealth.webP",
+        "src": "Images/Items/BookOfBetterHealth.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "DOES NOT WORK",
         "tags": ["Book of better health", "book", "health"]
       },
       {
         "src": "Images/Items/BookOfEverExpansion.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "DOES NOT WORK",
         "tags": ["Book of better health", "book", "health"]
       },
       {
         "src": "Images/Items/BookOfGamblersKnowledge.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Book of Gamblers Knowledge", "book", "Gamblers", "Knowledge"]
       },
       {
         "src": "Images/Items/UpShroom.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Shroom", "Up", "Mario", "Up Shroom"]
@@ -49,24 +56,28 @@
 
       {
         "src": "Images/Items/BookOfGuardiansAngel.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Book", "Guardians Angel", "Guardians", "Angel", "Book Of Guardians Angel"]
       },
       {
         "src": "Images/Items/BookOfHardendHands.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Book Of Hardend Hands", "book", "Hardend", "Hands"]
       },
       {
         "src": "Images/Items/BookOfInitiation.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Book Of Initiation", "book", "Initiation", "Initiative"]
       },
       {
         "src": "Images/Items/FlameTongue.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Flame Tongue", "Flame", "Tongue"]
@@ -74,61 +85,49 @@
 
       {
         "src": "Images/Items/FrontCardBasic.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Celestial Cristal", "Hei Bai", "key item", "Celestial", "Cristal"]
       },
       {
         "src": "Images/Items/ImmovableRodFront.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Immovable Rod", "Immovable", "Rod"]
       },
       {
         "src": "Images/Items/LeafTongue.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Leaf Tongue", "Leaf", "Tongue"]
       },
       {
         "src": "Images/Items/MetallonFlowerLeafFront.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Metallon Flower Leaf", "Metallon", "blood", "Flower", "Leaf", "Metal" ]
       },
       {
-        "src": "Images/Items/MoonstoneChain.webp",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Moonstone Chain", "Moonstone", "Chain"]
-      },
-
-      {
-        "src": "Images/Items/NecklaceoftheGlimmeringSea.webp",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Necklace of the Glimmering Sea", "Sea", "Necklace"]
-      },
-      {
-        "src": "Images/Items/PendantoftheTimeless Oak.webp",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Book of better health", "book", "health"]
-      },
-      {
         "src": "Images/Items/PipBoy3000.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["PipBoy3000", "Pipboy", "fallout"]
       },
       {
         "src": "Images/Items/Pokeball.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Pokeball", "pokemon", "ball"]
       },
       {
         "src": "Images/Items/ShockTongue.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Shock Tongue", "Shock", "Tongue"]
@@ -137,36 +136,42 @@
 
       {
         "src": "Images/Items/SpellCardEldritchBlast.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Spellcard Eldritch Blast", "Eldritch", "Blast", "Scroll", "Spellcard"]
       },
       {
         "src": "Images/Items/SpellCardFireball.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Spellcard Fireball", "Fireball", "Fire", "Scroll", "Spellcard"]
       },
       {
         "src": "Images/Items/SpellCardMagicMissle.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Spellcard Magic Missle", "Missle", "Magic", "Scroll", "Spellcard"]
       },
       {
         "src": "Images/Items/SpellCardMistyStep.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Spellcard Misty Step", "Misty", "Step", "Scroll", "Spellcard"]
       },
       {
         "src": "Images/Items/SpellCardShield.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Spellcard Shield", "Shield", "Scroll", "Spellcard"]
       },
       {
         "src": "Images/Items/SpellCrdCureWounds.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Spellcard Cure Wounds", "Cure", "Wounds", "Scroll", "Spellcard"]
@@ -177,19 +182,185 @@
     "characters": [
       {
         "src": "Images/Characters/AkronSildor.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["sword", "fire", "legendary"]
       },
       {
-        "src": "Images/Characters/AylinBrightenloof.webp",
+        "src": "Images/Characters/AphroditeFront.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["sword", "fire", "legendary"]
       },
       {
         "src": "Images/Characters/Imp.webP",
+        "Encountered": "yes",
         "backImage": "Images/Characters/ImpBack.webp",
+        "description": "",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/AylinBrightenloof.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/BorisTheGreat.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/DonatWard.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/FeyRedwoodFront.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/GidionSolergaFront.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/GodOfLiminality.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/HeiBaiFront.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/Hoofdpiet.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/IrvingAlric.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "",
+        "tags": ["sword", "fire", "legendary"]
+      },
+
+
+      {
+        "src": "Images/Characters/IwanWarrick.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/JahvisJundruk.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/JoeRitsFront.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/Karlis Amel.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "",
+        "tags": ["sword", "fire", "legendary"]
+      },
+
+
+      {
+        "src": "Images/Characters/PriskoColby.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/SecondWardenOfTheKing.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/Sinterklaas.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/TheOperator.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "",
+        "tags": ["sword", "fire", "legendary"]
+      },
+
+
+      {
+        "src": "Images/Characters/TyrellBeno.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/Valdemar Brightenloof.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/VitalesSorol.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+
+
+
+      {
+        "src": "Images/Characters/ZharOth.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/ZwartePiet.webp",
+        "Encountered": "yes",
+        "backImage": null,
         "description": "",
         "tags": ["sword", "fire", "legendary"]
       }
@@ -199,21 +370,67 @@
     "armor": [
       {
         "src": "Images/Armor/HoofdpietsMask.webp",
+        "Encountered": "yes",
         "backImage": "Images/Armor/HoofdpietsMaskBack.webP",
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["piest", "zwart", "zwartepiet", "Hoofdpiet", "mask", "Hoofdpiet mask"]
       },
       {
         "src": "Images/Armor/Miter of Sinterklaas.webp",
+        "Encountered": "yes",
         "backImage": "Images/Armor/Miter of SinterklaasBack.webp",
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["sinterklaas", "Miter", "legendary"]
       },
       {
-        "src": "Images/Items/BootsOfStridingAndSprinting.webp",
+        "src": "Images/Armor/MiningHelmetUpgradeFront.webp",
+        "Encountered": "yes",
+        "backImage": "Images/Armor/MiningHelmetUpgradeBack.webp",
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sinterklaas", "Miter", "legendary"]
+      },
+      {
+        "src": "Images/Armor/BootsofElvenkind.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sinterklaas", "Miter", "legendary"]
+      },
+      {
+        "src": "Images/Armor/NutcrackerChain.webp",
+        "Encountered": "yes",
+        "backImage": "Images/Armor/NutcrackerChainBack.webp",
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sinterklaas", "Miter", "legendary"]
+      },
+      {
+        "src": "Images/Armor/BootsOfStridingAndSprinting.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Boots Of Striding And Sprinting", "Sprinting", "Boots", "Striding"]
+      },
+      {
+        "src": "Images/Armor/MoonstoneChain.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Moonstone Chain", "Moonstone", "Chain"]
+      },
+
+      {
+        "src": "Images/Armor/NecklaceoftheGlimmeringSea.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Necklace of the Glimmering Sea", "Sea", "Necklace"]
+      },
+      {
+        "src": "Images/Armor/PendantoftheTimeless Oak.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Book of better health", "book", "health"]
       }
     ],
 
@@ -221,30 +438,35 @@
     "locations": [
       {
         "src": "Images/Locations/ArcaneBoreMKVI.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "ArcaneBoreMKVI: In the spectral gloom of the Spirit Realm, amidst forests where the mist clings to the trunks of towering, gnarled trees, lies the ArcaneBore MKVI, its glowing drill-head a beacon of purpose and danger.",
         "tags": ["ArcaneBoreMKVI", "Bore", "Arcane", "Hei Bai", "Spirit"]
       },
       {
         "src": "Images/Locations/AzmosRoots.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "AzmosRoots: A mechanical marvel used to delve into the unknown.",
         "tags": ["AzmosRoots", "Azmos", "roots", "Shrine", "Gelonus", "Fountain"]
       },
       {
         "src": "Images/Locations/TheDrunkBard.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["the", "drunk", "bard", "Tavern", "the drunken bard", "gelonus"]
       },
       {
         "src": "Images/Locations/Atlantis.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Atlantis", "city", "water", "sea"]
       },
       {
         "src": "Images/Locations/Beckinsdale.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Beckinsdale", "town", "gelonus"]
@@ -252,24 +474,28 @@
 
       {
         "src": "Images/Locations/BoundrySanctuary.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Boundry Sanctuary", "Temple", "chess", "azmos", "gelonus"]
       },
       {
         "src": "Images/Locations/Chronara.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Chronara", "city", "Arcadia", "clocks", "time"]
       },
       {
         "src": "Images/Locations/DarkstoneCoalworks.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Darkstone Coalworks", "factory", "sinterklaas", "coal", "gelonus"]
       },
       {
         "src": "Images/Locations/DeadlyDelves.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Deadly Delves", "Tumb", "death", "gelonus"]
@@ -277,30 +503,35 @@
 
       {
         "src": "Images/Locations/Eldoria.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["eldoria", "captial", "Arcadia"]
       },
       {
         "src": "Images/Locations/Etherwhite.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Etherwhite", "white", "layer", "dimention", "infinate"]
       },
       {
         "src": "Images/Locations/Frostholm.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Frostholm", "capital", "city", "gelonus"]
       },
       {
         "src": "Images/Locations/HocusLookout.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Hocus Lookout", "warden", "prison", "escape", "gelonus"]
       },
       {
         "src": "Images/Locations/Mirestone.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Mirestone", "Village", "sea", "harbor", "gelonus"]
@@ -308,30 +539,35 @@
 
       {
         "src": "Images/Locations/OnyxHollow.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Onyx Hollow", "cave", "gelonus"]
       },
       {
         "src": "Images/Locations/PirnFarms.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Pirn Farms", "Farm", "gelonus"]
       },
       {
         "src": "Images/Locations/Ruthorham.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Ruthorham", "town", "tree", "gelonus"]
       },
       {
         "src": "Images/Locations/SpiritRealm.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Spirit Realm", "dimention", "layer"]
       },
       {
         "src": "Images/Locations/ThaunburgMine.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Thaunburg Mine", "Mine", "gelonus"]
@@ -339,24 +575,28 @@
 
       {
         "src": "Images/Locations/TheCrestefallen.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["The Creste fallen", "ship", "boat", "pirate"]
       },
       {
         "src": "Images/Locations/TheErodedCaverns.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["The Eroded Caverns", "Cave", "gelonus"]
       },
       {
         "src": "Images/Locations/TheHollowVeil.webp",
+        "Encountered": "no",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["The Hollow Veil", "layer", "dimention"]
       },
       {
         "src": "Images/Locations/Yarn.webp",
+        "Encountered": "yes",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Yarn", "gelonus", "Village"]
