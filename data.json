@@ -1,13 +1,13 @@
 {
     "weapons": [
       {
-        "src": "Images/Weapons/weapon1.webP",
+        "src": "Images/Weapons/weapon1.webp",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["sword", "fire", "legendary"]
       },
       {
-        "src": "Images/Weapons/weapon2.webP",
+        "src": "Images/Weapons/weapon2.webp",
         "backImage": null,
         "description": "",
         "tags": ["sword", "fire", "legendary"]
@@ -18,7 +18,7 @@
     "items": [
       {
         "src": "Images/Items/AzmossChessPiece.webP",
-        "backImage": "Images/Items/AzmossChessPieceBack.webP",
+        "backImage": "Images/Items/AzmossChessPieceBack.webp",
         "description": "DOES NOT WORK",
         "tags": ["Azmos", "fire", "legendary"]
       },
@@ -29,13 +29,13 @@
         "tags": ["Book of better health", "book", "health"]
       },
       {
-        "src": "Images/Items/BookOfEverExpansion.webP",
+        "src": "Images/Items/BookOfEverExpansion.webp",
         "backImage": null,
         "description": "DOES NOT WORK",
         "tags": ["Book of better health", "book", "health"]
       },
       {
-        "src": "Images/Items/BookOfGamblersKnowledge.webP",
+        "src": "Images/Items/BookOfGamblersKnowledge.webp",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Book of Gamblers Knowledge", "book", "Gamblers", "Knowledge"]
@@ -176,20 +176,20 @@
 
     "characters": [
       {
-        "src": "Images/Characters/AkronSildor.webP",
+        "src": "Images/Characters/AkronSildor.webp",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["sword", "fire", "legendary"]
       },
       {
-        "src": "Images/Characters/AylinBrightenloof.webP",
+        "src": "Images/Characters/AylinBrightenloof.webp",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["sword", "fire", "legendary"]
       },
       {
         "src": "Images/Characters/Imp.webP",
-        "backImage": "Images/Characters/ImpBack.webP",
+        "backImage": "Images/Characters/ImpBack.webp",
         "description": "",
         "tags": ["sword", "fire", "legendary"]
       }
@@ -198,14 +198,14 @@
 
     "armor": [
       {
-        "src": "Images/Armor/HoofdpietsMask.webP",
+        "src": "Images/Armor/HoofdpietsMask.webp",
         "backImage": "Images/Armor/HoofdpietsMaskBack.webP",
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["piest", "zwart", "zwartepiet", "Hoofdpiet", "mask", "Hoofdpiet mask"]
       },
       {
-        "src": "Images/Armor/Miter of Sinterklaas.webP",
-        "backImage": "Images/Armor/Miter of SinterklaasBack.webP",
+        "src": "Images/Armor/Miter of Sinterklaas.webp",
+        "backImage": "Images/Armor/Miter of SinterklaasBack.webp",
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["sinterklaas", "Miter", "legendary"]
       },
@@ -220,19 +220,19 @@
 
     "locations": [
       {
-        "src": "Images/Locations/ArcaneBoreMKVI.webP",
+        "src": "Images/Locations/ArcaneBoreMKVI.webp",
         "backImage": null,
         "description": "ArcaneBoreMKVI: In the spectral gloom of the Spirit Realm, amidst forests where the mist clings to the trunks of towering, gnarled trees, lies the ArcaneBore MKVI, its glowing drill-head a beacon of purpose and danger.",
         "tags": ["ArcaneBoreMKVI", "Bore", "Arcane", "Hei Bai", "Spirit"]
       },
       {
-        "src": "Images/Locations/AzmosRoots.webP",
+        "src": "Images/Locations/AzmosRoots.webp",
         "backImage": null,
         "description": "AzmosRoots: A mechanical marvel used to delve into the unknown.",
         "tags": ["AzmosRoots", "Azmos", "roots", "Shrine", "Gelonus", "Fountain"]
       },
       {
-        "src": "Images/Locations/TheDrunkBard.webP",
+        "src": "Images/Locations/TheDrunkBard.webp",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["the", "drunk", "bard", "Tavern", "the drunken bard", "gelonus"]
