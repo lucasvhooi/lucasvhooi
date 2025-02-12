@@ -90,6 +90,13 @@
         "tags": ["Azmos", "Chess Piece", "Key Item"]
       },
       {
+        "src": "Images/Items/Frostbeardsbrewfront.webp",
+        "Encountered": "yes",
+        "backImage": "Images/Items/FrostbeardsbrewBack.webp",
+        "description": "Encased in a small, frost-kissed flask that seems carved from enchanted ice, Frostbeard’s Brew is a relic of ancient Norse magic and forgotten frost giants. The flask itself is a work of art—etched with archaic runes and intricate patterns that mimic the swirling forms of winter storms. Its surface is perpetually encrusted with delicate, crystalline frost that glitters under even the faintest light, hinting at the brew’s potent, icy nature. Inside, the mysterious ale glows with a spectral blue light, swirling in mesmerizing patterns that evoke the aurora borealis. Wisps of ethereal mist occasionally escape from the opening, carrying with them the faint sound of a distant, echoing wind. The liquid’s deep, rich hue suggests a complexity of flavors and magical properties—one sip promises both invigorating battle fervor and the chill of ancient winters. Surrounded by a backdrop of a rugged Norse landscape—towering, snow-dusted mountains and swirling blizzards—the flask seems to capture the very essence of winters power and beauty. This brew, said to be distilled in the forgotten halls of frost giants, offers the drinker a temporary resistance to cold and a surge of melee might. However, the lingering effects of the ale impose a subtle, almost haunting chill, as if a fragment of the frost giant’s ancient essence remains forever within the drinker’s veins. Rendered in a detailed, atmospheric style, Frostbeard’s Brew embodies the duality of warmth and frost—a magical libation that is as much a blessing as it is a warning from the icy realms of old.",
+        "tags": ["Frostbeards brew", "potion", "consumable"]
+      },
+      {
         "src": "Images/Items/BookOfBetterHealth.webp",
         "Encountered": "no",
         "backImage": null,
