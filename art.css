@@ -332,6 +332,41 @@ body.popup-open {
             width: 100%;
             padding: 20px;
         }
+    }@media screen and (max-width: 480px) {
+    nav ul {
+        flex-direction: row; /* Keep items in a row */
+        flex-wrap: wrap; /* Allow items to wrap instead of stacking */
+        justify-content: center; /* Keep items centered */
     }
+
+    nav ul li {
+        margin: 5px; /* Adjust margin for better spacing */
+        flex: 1 1 auto; /* Ensure items adjust to fit */
+    }
+
+    nav ul li a {
+        font-size: 14px; /* Reduce font size slightly for better fit */
+        padding: 4px 6px; /* Adjust padding to save space */
+        white-space: nowrap; /* Prevent text from wrapping to the next line */
+    }
+}
+@media screen and (max-width: 480px) {
+    nav ul {
+        flex-direction: row; /* Keep items in a row */
+        flex-wrap: wrap; /* Allow items to wrap instead of stacking */
+        justify-content: center; /* Keep items centered */
+    }
+
+    nav ul li {
+        margin: 5px; /* Adjust margin for better spacing */
+        flex: 1 1 auto; /* Ensure items adjust to fit */
+    }
+
+    nav ul li a {
+        font-size: 14px; /* Reduce font size slightly for better fit */
+        padding: 4px 6px; /* Adjust padding to save space */
+        white-space: nowrap; /* Prevent text from wrapping to the next line */
+    }
+}
 }
 
