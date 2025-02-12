@@ -237,6 +237,7 @@ body.popup-open {
     .card-pair {
         flex-direction: column; /* Stack front and back vertically */
         gap: 15px;
+        justify-content: center;
     }
 
     .card-pair img {
