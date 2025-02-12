@@ -6,55 +6,64 @@
                 {
                     "id": "gelonusMQ_1",
                     "title": "The Royale Trails (MQ)",
-                    "description": "",
+                    "Encountered": "yes",
+                    "description": "Stinyk monkey",
                     "images": []
                 },
                 {
                     "id": "gelonusMQ_2",
                     "title": "Traveler Found (MQ)",
+                    "Encountered": "yes",
                     "description": "Protect the sacred temple from an incoming attack.",
                     "images": []
                 },
                 {
                     "id": "gelonusMQ_3",
                     "title": "Potion Of Arcane Insight (MQ)",
+                    "Encountered": "yes",
                     "description": "Protect the sacred temple from an incoming attack.",
                     "images": []
                 },
                 {
                     "id": "gelonusMQ_4",
                     "title": "Gashan's Tower (MQ)",
+                    "Encountered": "yes",
                     "description": "Protect the sacred temple from an incoming attack.",
                     "images": []
                 },
                 {
                     "id": "gelonusMQ_5",
                     "title": "Am Kai's Garden (MQ)",
+                    "Encountered": "yes",
                     "description": "Protect the sacred temple from an incoming attack.",
                     "images": []
                 },
                 {
                     "id": "gelonusMQ_6",
                     "title": "Gashan's Curse (MQ)",
+                    "Encountered": "yes",
                     "description": "Find and return the ancient relic lost deep within the ruins.",
                     "images": ["images/relic1.jpg", "images/relic2.jpg"]
                 },
                 {
                     "id": "gelonusMQ_7",
                     "title": "Hei Bai's Rage (MQ)",
+                    "Encountered": "yes",
                     "description": "Protect the sacred temple from an incoming attack.",
                     "images": []
                 },
                 {
                     "id": "gelonusMQ_8",
                     "title": "The God Of Games (MQ)",
+                    "Encountered": "yes",
                     "description": "Protect the sacred temple from an incoming attack.",
                     "images": []
                 },
                 {
                     "id": "gelonusMQ_9",
                     "title": "The Truth Sanctum (MQ)",
-                    "description": "Protect the sacred temple from an incoming attack.",
+                    "Encountered": "no",
+                    "description": null,
                     "images": []
                 }
             ]

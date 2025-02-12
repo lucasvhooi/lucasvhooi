@@ -1,71 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DnD Campaign</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DnD Campaign Login</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Login Page CSS */
+    body {
+      font-family: 'Garamond', serif;
+      background-color: #1a1a1a;
+      color: #f4e6d7;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .login-container {
+      max-width: 400px;
+      margin: 100px auto;
+      padding: 20px;
+      background-color: #333;
+      border-radius: 8px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
+    }
+    .login-container h1 {
+      margin-bottom: 20px;
+    }
+    .login-container input[type="password"] {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    .login-container button {
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #5e3b20;
+      color: #f4e6d7;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .login-container button:hover {
+      background-color: #2c1a0a;
+    }
+    .error-message {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="missions.html">Missions</a></li>
-            <li><a href="Exploration.html">Exploration</a></li>
-            <li><a href="locations.html">Locations</a></li>
-        </ul>
-    </nav>
-    <section>
-        <h1>The Legends Of Essolis DnD 5TH Campaign</h1>
-        <p>Explore the world of Enora and the characters within.</p>
-        <p>Disclaimer:</p>
-        <p>Almost all card art is generated using AI. If this isn't the case the artist or source will be credited.</p>
-        <p>Some items, enemys, bosses etc might be very OP, broken or dont play fully by the DnD 5th rules.
-            I enjoy bending DnD to by own liking and this sometimes means changing things up.
-            I also play DnD just for fun on the side so i am not aware of all rules or limits. A lot changes when sessions are done so just use this as inspiration.</p>
-        <p>Locations, missions, characters etc are being updated every time a session is done. This is so the party can use this site as tool for the campaign
-            without any spoilers.
-        </p>
-        <p>Finally feel free to use all maps, missions and cards to your own liking!</p>
-    </section>
-    <section>
-        <img src="Images/Maps/map.webp" alt="Legends of Essolis World Map" class="hero-image">
-        <p>Map of Enora</p>
-    </section>
+  <div class="login-container">
+    <h1>Login</h1>
+    <input type="password" id="admin-password" placeholder="Admin Password" />
+    <div>
+      <button id="admin-login">Login as DM</button>
+      <button id="player-login">Login as Player</button>
+    </div>
+    <div class="error-message" id="error-message"></div>
+  </div>
+  <script src="login.js"></script>
+  
 </body>
-
-
-<style>
-    /* Hero Section Styling */
-    .hero-section {
-        text-align: center;
-        padding: 40px 20px;
-        background: #2c1a0a; /* Matching your theme */
-        color: #f4e6d7;
-    }
-    
-    /* Centered & Smaller Image */
-    .hero-image {
-        display: block;
-        margin: 20px auto; /* Centers the image */
-        width: 100%; /* Makes the image smaller */
-        max-width: 1500px; /* Prevents it from getting too large */
-        height: auto;
-        border-radius: 10px;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
-    }
-    
-    /* Responsive Design */
-    @media screen and (max-width: 768px) {
-        .hero-image {
-            width: 70%; /* Slightly larger for smaller screens */
-        }
-    }
-    
-    @media screen and (max-width: 480px) {
-        .hero-image {
-            width: 80%; /* Even larger for very small screens */
-        }
-    }
-    </style>
 </html>

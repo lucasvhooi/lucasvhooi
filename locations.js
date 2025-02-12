@@ -1,105 +1,107 @@
+// location.js
 document.addEventListener("DOMContentLoaded", () => {
-    fetch("locations.json")
-        .then(response => response.json())
-        .then(data => loadContinents(data.continents))
-        .catch(error => console.error("Error loading locations:", error));
+  fetch("locations.json")
+    .then(response => response.json())
+    .then(data => loadContinents(data.continents))
+    .catch(error => console.error("Error loading locations:", error));
 });
 
 function loadContinents(continents) {
-    const locationList = document.getElementById("location-list");
-    locationList.innerHTML = ""; // Clear existing content
+  const locationList = document.getElementById("location-list");
+  locationList.innerHTML = ""; // Clear any existing content
 
-    Object.keys(continents).forEach(continentKey => {
-        const continentData = continents[continentKey];
+  // Read the login mode from localStorage:
+  const isAdmin = localStorage.getItem("isAdmin") === "true";
 
-        // Create continent div
-        const continentDiv = document.createElement("div");
-        continentDiv.classList.add("continent");
-        continentDiv.textContent = continentData.name;
-        continentDiv.onclick = () => toggleLocations(continentKey);
+  Object.keys(continents).forEach(continentKey => {
+    const continentData = continents[continentKey];
 
-        // Create locations list
-        const locationSubList = document.createElement("ul");
-        locationSubList.classList.add("location-list");
-        locationSubList.id = continentKey;
-        locationSubList.style.display = "none"; // Hide initially
+    // Create a clickable continent div.
+    const continentDiv = document.createElement("div");
+    continentDiv.classList.add("continent");
+    continentDiv.textContent = continentData.name;
+    continentDiv.onclick = () => toggleLocations(continentKey);
 
-        Object.keys(continentData.locations).forEach(locationKey => {
-            const locationData = continentData.locations[locationKey];
+    // Create an unordered list for the locations within the continent.
+    const locationSubList = document.createElement("ul");
+    locationSubList.classList.add("location-list");
+    locationSubList.id = continentKey;
+    locationSubList.style.display = "none"; // Hide initially
 
-            // 🔹 **Check if Encountered is "yes" before displaying**
-            if (locationData.Encountered && locationData.Encountered.toLowerCase() === "yes") {
-                const locationItem = document.createElement("li");
-                locationItem.textContent = locationData.name;
-                locationItem.onclick = (event) => {
-                    event.stopPropagation(); // Prevent bubbling
-                    toggleLocationDetails(locationData, locationItem);
-                };
-                locationSubList.appendChild(locationItem);
-            }
-        });
+    Object.keys(continentData.locations).forEach(locationKey => {
+      const locationData = continentData.locations[locationKey];
 
-        // Only add continent if it has at least one encountered location
-        if (locationSubList.children.length >= 0) {
-            locationList.appendChild(continentDiv);
-            locationList.appendChild(locationSubList);
-        }
+      // In admin mode show every location.
+      // In player mode, only show if Encountered is "yes" (case‑insensitive).
+      if (isAdmin || (locationData.Encountered && locationData.Encountered.toLowerCase() === "yes")) {
+        const locationItem = document.createElement("li");
+        locationItem.textContent = locationData.name;
+        locationItem.onclick = (event) => {
+          event.stopPropagation(); // Prevent the continent click from toggling the list again.
+          toggleLocationDetails(locationData, locationItem);
+        };
+        locationSubList.appendChild(locationItem);
+      }
     });
+
+    // Only add the continent section if there is at least one location to show (or if admin mode is active).
+    if (isAdmin || locationSubList.children.length > 0) {
+      locationList.appendChild(continentDiv);
+      locationList.appendChild(locationSubList);
+    }
+  });
 }
 
-// 🔹 Toggle location lists & close location details when closing a continent
 function toggleLocations(continentId) {
-    const locationSubList = document.getElementById(continentId);
-
-    if (locationSubList.style.display === "none" || locationSubList.style.display === "") {
-        closeAllLocationDetails();
-        locationSubList.style.display = "block";
-    } else {
-        locationSubList.style.display = "none";
-        closeAllLocationDetails();
-    }
-}
-
-// 🔹 Close all location details
-function closeAllLocationDetails() {
-    document.querySelectorAll(".location-details").forEach(el => el.remove());
-}
-
-// 🔹 Toggle individual location details (press again to close)
-function toggleLocationDetails(location, locationItem) {
-    let existingDetails = locationItem.nextElementSibling;
-    if (existingDetails && existingDetails.classList.contains("location-details")) {
-        existingDetails.remove(); 
-        return;
-    }
-
+  const locationSubList = document.getElementById(continentId);
+  if (locationSubList.style.display === "none" || locationSubList.style.display === "") {
     closeAllLocationDetails();
+    locationSubList.style.display = "block";
+  } else {
+    locationSubList.style.display = "none";
+    closeAllLocationDetails();
+  }
+}
 
-    const detailsDiv = document.createElement("div");
-    detailsDiv.classList.add("location-details");
-    detailsDiv.style.display = "block";
+function closeAllLocationDetails() {
+  document.querySelectorAll(".location-details").forEach(el => el.remove());
+}
 
-    let detailsHTML = `<h2>${location.name}</h2>`;
+function toggleLocationDetails(location, locationItem) {
+  // If details are already shown, remove them.
+  let existingDetails = locationItem.nextElementSibling;
+  if (existingDetails && existingDetails.classList.contains("location-details")) {
+    existingDetails.remove();
+    return;
+  }
 
-    if (location.description) {
-        detailsHTML += `<p>${location.description}</p>`;
-    }
-    if (location.population !== null && location.population !== undefined) {
-        detailsHTML += `<p><strong>Population:</strong> ${location.population}</p>`;
-    }
-    if (location.wealth) {
-        detailsHTML += `<p><strong>Wealth Level:</strong> ${location.wealth}</p>`;
-    }
+  closeAllLocationDetails();
 
-    detailsDiv.innerHTML = detailsHTML;
+  // Create a container for the location details.
+  const detailsDiv = document.createElement("div");
+  detailsDiv.classList.add("location-details");
+  detailsDiv.style.display = "block";
 
-    if (location.map) {
-        const img = document.createElement("img");
-        img.src = location.map;
-        img.alt = location.name;
-        img.loading = "lazy";
-        detailsDiv.appendChild(img);
-    }
+  let detailsHTML = `<h2>${location.name}</h2>`;
+  if (location.description) {
+    detailsHTML += `<p>${location.description}</p>`;
+  }
+  if (location.population !== null && location.population !== undefined) {
+    detailsHTML += `<p><strong>Population:</strong> ${location.population}</p>`;
+  }
+  if (location.wealth) {
+    detailsHTML += `<p><strong>Wealth Level:</strong> ${location.wealth}</p>`;
+  }
+  detailsDiv.innerHTML = detailsHTML;
 
-    locationItem.insertAdjacentElement("afterend", detailsDiv);
+  if (location.map) {
+    const img = document.createElement("img");
+    img.src = location.map;
+    img.alt = location.name;
+    img.loading = "lazy";
+    detailsDiv.appendChild(img);
+  }
+
+  // Insert the details right after the clicked location item.
+  locationItem.insertAdjacentElement("afterend", detailsDiv);
 }

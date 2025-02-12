@@ -249,63 +249,63 @@
         "Encountered": "yes",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Akron Sildor", "Gelonus", "master of magic"]
       },
       {
         "src": "Images/Characters/AphroditeFront.webp",
         "Encountered": "no",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Aphrodite", "god of beauty"]
       },
       {
         "src": "Images/Characters/Imp.webp",
         "Encountered": "yes",
         "backImage": "Images/Characters/ImpBack.webp",
         "description": "",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["imp"]
       },
       {
         "src": "Images/Characters/AylinBrightenloof.webp",
         "Encountered": "yes",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Aylin Brightenloof", "queen", "king", "gelonus"]
       },
       {
         "src": "Images/Characters/BorisTheGreat.webp",
         "Encountered": "yes",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Boris The Great", "upgrade"]
       },
       {
         "src": "Images/Characters/DonatWard.webp",
         "Encountered": "yes",
         "backImage": null,
         "description": "",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Donat Ward", "hand of the king", "knight", "gelonus"]
       },
       {
         "src": "Images/Characters/FeyRedwoodFront.webp",
         "Encountered": "yes",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Fey Redwood", "half-elf", "red hair"]
       },
       {
         "src": "Images/Characters/GidionSolergaFront.webp",
         "Encountered": "yes",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Gidion Solerga", "Blue masks", "financial backer"]
       },
       {
         "src": "Images/Characters/GodOfLiminality.webp",
         "Encountered": "no",
         "backImage": null,
         "description": "",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["God Of Liminality", "Arcadia"]
       },
       {
         "src": "Images/Characters/HeiBaiFront.webp",
