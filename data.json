@@ -291,14 +291,14 @@
         "Encountered": "yes",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["Fey Redwood", "half-elf", "red hair"]
+        "tags": ["Fey Redwood", "half-elf", "red hair", "gelonus"]
       },
       {
         "src": "Images/Characters/GidionSolergaFront.webp",
         "Encountered": "yes",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["Gidion Solerga", "Blue masks", "financial backer"]
+        "tags": ["Gidion Solerga", "Blue masks", "financial backer", "gelonus"]
       },
       {
         "src": "Images/Characters/GodOfLiminality.webp",
@@ -312,21 +312,21 @@
         "Encountered": "yes",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Hei Bai", "Spirit Realm"]
       },
       {
         "src": "Images/Characters/Hoofdpiet.webp",
         "Encountered": "yes",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Hoofdpiet", "sinterklaas", "coal", "gelonus"]
       },
       {
         "src": "Images/Characters/IrvingAlric.webp",
         "Encountered": "yes",
         "backImage": null,
         "description": "",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Irving Alric", "fire", "master of science", "gelonus"]
       },
 
 
@@ -335,28 +335,28 @@
         "Encountered": "yes",
         "backImage": null,
         "description": "",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Iwan Warrick", "Head City Watch", "warrior", "gelonus"]
       },
       {
         "src": "Images/Characters/JahvisJundruk.webp",
         "Encountered": "no",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Jahvis Jundruk", "Master of the sea", "captain", "gelonus"]
       },
       {
         "src": "Images/Characters/JoeRitsFront.webp",
         "Encountered": "yes",
         "backImage": null,
         "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Joe Rits", "party", "traveler", "bard", "gelonus"]
       },
       {
         "src": "Images/Characters/Karlis Amel.webp",
         "Encountered": "no",
         "backImage": null,
         "description": "",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Karlis Amel", "Master of relations", "gelonus"]
       },
 
 
@@ -365,7 +365,7 @@
         "Encountered": "no",
         "backImage": null,
         "description": "",
-        "tags": ["sword", "fire", "legendary"]
+        "tags": ["Prisko Colby", "Master of Religion", "gelonus"]
       },
       {
         "src": "Images/Characters/SecondWardenOfTheKing.webp",
