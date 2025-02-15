@@ -5,6 +5,7 @@
         "Encountered": "yes",
         "backImage": "Images/Weapons/BloodthirsterUpgradeBack.webp",
         "description": "This is a legendary sword forged in dragon fire.",
+        "video": "images/Characters/hadesVideo.mp4",
         "tags": ["Bloodthirster", "sword", "upgrade"]
       },
       {
@@ -434,6 +435,37 @@
         "backImage": null,
         "description": "",
         "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/Hades.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "",
+        "tags": ["hell", "hades", "god of death"]
+      },
+
+
+
+      {
+        "src": "Images/Characters/Mimir.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/Melinoe.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "",
+        "tags": ["sword", "fire", "legendary"]
+      },
+      {
+        "src": "Images/Characters/ate.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "",
+        "tags": ["hell", "hades", "god of death"]
       }
     ],
 
@@ -671,6 +703,36 @@
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Yarn", "gelonus", "Village"]
+      },
+
+
+      {
+        "src": "Images/Locations/BifrostsEdge.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["The Eroded Caverns", "Cave", "gelonus"]
+      },
+      {
+        "src": "Images/Locations/BurisTemple.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["The Hollow Veil", "layer", "dimention"]
+      },
+      {
+        "src": "Images/Locations/HeimdallsVigil.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["Yarn", "gelonus", "Village"]
+      },
+      {
+        "src": "Images/Locations/OldOlympus.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "A mechanical marvel used to delve into the unknown.",
+        "tags": ["The Hollow Veil", "layer", "dimention"]
       }
       
     ]

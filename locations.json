@@ -141,7 +141,7 @@
                     "description": null
                 },
                 "Arcadia1": {
-                    "name": "1)",
+                    "name": "1) Silverleaf",
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
@@ -149,84 +149,96 @@
                     "description": null
                 },
                 "Arcadia2": {
-                    "name": "2)",
+                    "name": "2) Elarion Ruins",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
                     "description": null
                 },
                 "Arcadia3": {
-                    "name": "3)",
+                    "name": "3) Faenwyn",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
                     "description": null
                 },
                 "Arcadia4": {
-                    "name": "4)",
+                    "name": "4) Aelwyn's Depths",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
                     "description": null
                 },
                 "Arcadia5": {
-                    "name": "5)",
+                    "name": "5) Nimriel",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
                     "description": null
                 },
                 "Arcadia6": {
-                    "name": "6)",
+                    "name": "6) Winter’s Rest",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
                     "description": null
                 },
                 "Arcadia7": {
-                    "name": "7)",
+                    "name": "7) Aelwen",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
                     "description": null
                 },
                 "Arcadia8": {
-                    "name": "8)",
+                    "name": "8) HeimdallsVigil",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
                     "description": null
                 },
                 "Arcadia9": {
-                    "name": "9)",
+                    "name": "9) The Celestial Bastion",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
                     "description": null
                 },
                 "Arcadia10": {
-                    "name": "10)",
+                    "name": "10) Aurora Watch",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
                     "description": null
                 },
                 "Arcadia11": {
-                    "name": "11)",
+                    "name": "11) Myrinel",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
                     "description": null
                 },
                 "Arcadia12": {
-                    "name": "12)",
+                    "name": "12) Sylvanroot Mines",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
                     "description": null
                 },
                 "Arcadia13": {
-                    "name": "13)",
+                    "name": "13) Zhar'oth's Layer",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
@@ -234,13 +246,15 @@
                 },
                 "Arcadia14": {
                     "name": "14)",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
                     "description": null
                 },
                 "Arcadia15": {
-                    "name": "15)",
+                    "name": "15) Lothiel",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
@@ -248,6 +262,7 @@
                 },
                 "Arcadia16": {
                     "name": "16)",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
@@ -255,6 +270,7 @@
                 },
                 "Arcadia17": {
                     "name": "17)",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
@@ -262,6 +278,7 @@
                 },
                 "Arcadia18": {
                     "name": "18)",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
@@ -269,6 +286,7 @@
                 },
                 "Arcadia19": {
                     "name": "19)",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
@@ -276,6 +294,7 @@
                 },
                 "Arcadia20": {
                     "name": "20)",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
@@ -283,6 +302,7 @@
                 },
                 "Arcadia21": {
                     "name": "21)",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
@@ -290,6 +310,7 @@
                 },
                 "Arcadia22": {
                     "name": "22)",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
@@ -297,6 +318,7 @@
                 },
                 "Arcadia23": {
                     "name": "23)",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
@@ -304,6 +326,7 @@
                 },
                 "Arcadia24": {
                     "name": "24)",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
@@ -311,20 +334,23 @@
                 },
                 "Arcadia25": {
                     "name": "25)",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
                     "description": null
                 },
                 "Arcadia26": {
-                    "name": "26)",
+                    "name": "26) Old Olympus",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
                     "description": null
                 },
                 "Arcadia27": {
-                    "name": "27)",
+                    "name": "27) Olympus’ Edge",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
@@ -332,13 +358,15 @@
                 },
                 "Arcadia28": {
                     "name": "28)",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
                     "description": null
                 },
                 "Arcadia29": {
-                    "name": "29)",
+                    "name": "29) Ares' Crucible",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
@@ -346,6 +374,7 @@
                 },
                 "Arcadia30": {
                     "name": "30)",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
@@ -353,6 +382,7 @@
                 },
                 "Arcadia31": {
                     "name": "31)",
+                    "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,

@@ -30,14 +30,22 @@
     <div class="category-buttons"></div>
     <div class="image-gallery"></div>
   </section>
-
-  <!-- Popup Container -->
-  <div class="popup" id="popup">
-    <div class="popup-content">
-      <span class="close-button" id="closePopup">✖</span>
-      <p id="popupDescription"></p>
+<!-- Popup Container -->
+<div class="popup" id="popup">
+  <div class="popup-content">
+    <span class="close-button" id="closePopup">✖</span>
+    <!-- Banner with Video -->
+    <div class="popup-banner">
+      <video autoplay muted loop class="banner-video">
+        <source src="your-video.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
     </div>
+    <!-- Container for dynamic content (images, description) -->
+    <div class="popup-body"></div>
   </div>
+</div>
+
 
   <script src="exploration.js"></script>
 </body>
