@@ -244,8 +244,8 @@
                     "map": null,
                     "description": null
                 },
-                "Arcadia14": {
-                    "name": "14)",
+                "Arcadia14": { 
+                    "name": "14) Silverspire Vein",
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
@@ -261,7 +261,7 @@
                     "description": null
                 },
                 "Arcadia16": {
-                    "name": "16)",
+                    "name": "16) Runestone Remnants of Urd",
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
@@ -269,23 +269,23 @@
                     "description": null
                 },
                 "Arcadia17": {
-                    "name": "17)",
+                    "name": "17) Lúminasyl",
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
-                    "description": null
+                    "description": "A luminous settlement where bioluminescent flora light up twilight streets."
                 },
                 "Arcadia18": {
-                    "name": "18)",
+                    "name": "18) Echoes of Ymir",
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
-                    "description": null
+                    "description": "Ruins that seem to hum with the memory of the primordial giant, a reminder of the world’s chaotic birth."
                 },
                 "Arcadia19": {
-                    "name": "19)",
+                    "name": "19) Labyrinth’s Remnant",
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
@@ -293,47 +293,47 @@
                     "description": null
                 },
                 "Arcadia20": {
-                    "name": "20)",
+                    "name": "20) Lorithien Vale",
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
-                    "description": null
+                    "description": "A mystical settlement named for its ethereal beauty and the softly glowing flora that light its nights."
                 },
                 "Arcadia21": {
-                    "name": "21)",
+                    "name": "21) Windrider Vale",
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
-                    "description": null
+                    "description": "Perched in a breezy valley, this village is famed for its soaring bridges and airy, open spaces."
                 },
                 "Arcadia22": {
-                    "name": "22)",
+                    "name": "22) Aurora’s Veil ",
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
-                    "description": null
+                    "description": "A secret passage where gentle, shifting lights evoke a sense of ancient wonder."
                 },
                 "Arcadia23": {
-                    "name": "23)",
+                    "name": "23) Eldertree Glen",
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
-                    "description": null
+                    "description": "A serene village dominated by a massive, ancient tree believed to be the guardian of its people."
                 },
                 "Arcadia24": {
-                    "name": "24)",
+                    "name": "24) Lorithien Hollow",
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
-                    "description": null
+                    "description": "A secret village nestled in a hidden glen, alive with glowing flora and ethereal beauty."
                 },
                 "Arcadia25": {
-                    "name": "25)",
+                    "name": "25) The Everflame Talisman",
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
@@ -357,7 +357,7 @@
                     "description": null
                 },
                 "Arcadia28": {
-                    "name": "28)",
+                    "name": "28) Bifröst’s Remnants",
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
@@ -373,20 +373,20 @@
                     "description": null
                 },
                 "Arcadia30": {
-                    "name": "30)",
+                    "name": "30) Aelorian Beacon",
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
-                    "description": null
+                    "description": "Radiating soft luminescence, this majestic tower’s delicate arches and runic inscriptions inspire both awe and steadfast courage."
                 },
                 "Arcadia31": {
-                    "name": "31)",
+                    "name": "31) Sylvan Watch",
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
                     "map": null,
-                    "description": null
+                    "description": "An elegant watchtower rising from the heart of an ancient forest, its intricate carvings echoing timeless elven lore."
                 }
             }
         },
