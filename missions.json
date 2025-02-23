@@ -8,63 +8,219 @@
                     "title": "The Royale Trails (MQ)",
                     "Encountered": "yes",
                     "description": "Stinyk monkey",
-                    "images": []
+                    "images": [],
+                    "phases": [
+                        {
+                          "phase": 1,
+                          "title": "Initial Encounter",
+                          "description": "The player starts the journey with a brief introduction.",
+                          "images": []
+                        },
+                        {
+                          "phase": 2,
+                          "title": "Battle Commences",
+                          "description": "A challenging enemy appears, forcing the player to fight.",
+                          "images": ["images/phase2.jpg"]
+                        }
+                    ]
                 },
                 {
                     "id": "gelonusMQ_2",
                     "title": "Traveler Found (MQ)",
                     "Encountered": "yes",
                     "description": "Protect the sacred temple from an incoming attack.",
-                    "images": []
+                    "images": [],
+                    "phases": [
+                        {
+                          "phase": 1,
+                          "title": "Initial Encounter",
+                          "description": "The player starts the journey with a brief introduction.",
+                          "images": []
+                        },
+                        {
+                          "phase": 2,
+                          "title": "Battle Commences",
+                          "description": "A challenging enemy appears, forcing the player to fight.",
+                          "images": ["images/phase2.jpg"]
+                        }
+                    ]
                 },
                 {
                     "id": "gelonusMQ_3",
                     "title": "Potion Of Arcane Insight (MQ)",
                     "Encountered": "yes",
                     "description": "Protect the sacred temple from an incoming attack.",
-                    "images": []
+                    "images": [],
+                    "phases": [
+                        {
+                          "phase": 1,
+                          "title": "Initial Encounter",
+                          "description": "The player starts the journey with a brief introduction.",
+                          "images": []
+                        },
+                        {
+                          "phase": 2,
+                          "title": "Battle Commences",
+                          "description": "A challenging enemy appears, forcing the player to fight.",
+                          "images": ["images/phase2.jpg"]
+                        }
+                    ]
                 },
                 {
                     "id": "gelonusMQ_4",
                     "title": "Gashan's Tower (MQ)",
                     "Encountered": "yes",
                     "description": "Protect the sacred temple from an incoming attack.",
-                    "images": []
+                    "images": [],
+                    "phases": [
+                        {
+                          "phase": 1,
+                          "title": "Initial Encounter",
+                          "description": "The player starts the journey with a brief introduction.",
+                          "images": []
+                        },
+                        {
+                          "phase": 2,
+                          "title": "Battle Commences",
+                          "description": "A challenging enemy appears, forcing the player to fight.",
+                          "images": ["images/phase2.jpg"]
+                        }
+                    ]
                 },
                 {
                     "id": "gelonusMQ_5",
                     "title": "Am Kai's Garden (MQ)",
                     "Encountered": "yes",
                     "description": "Protect the sacred temple from an incoming attack.",
-                    "images": []
+                    "images": [],
+                    "phases": [
+                        {
+                          "phase": 1,
+                          "title": "Initial Encounter",
+                          "description": "The player starts the journey with a brief introduction.",
+                          "images": []
+                        },
+                        {
+                          "phase": 2,
+                          "title": "Battle Commences",
+                          "description": "A challenging enemy appears, forcing the player to fight.",
+                          "images": ["images/phase2.jpg"]
+                        }
+                    ]
                 },
                 {
                     "id": "gelonusMQ_6",
                     "title": "Gashan's Curse (MQ)",
                     "Encountered": "yes",
                     "description": "Find and return the ancient relic lost deep within the ruins.",
-                    "images": ["images/relic1.jpg", "images/relic2.jpg"]
+                    "images": ["images/relic1.jpg", "images/relic2.jpg"],
+                    "phases": [
+                        {
+                          "phase": 1,
+                          "title": "Initial Encounter",
+                          "description": "The player starts the journey with a brief introduction.",
+                          "images": []
+                        },
+                        {
+                          "phase": 2,
+                          "title": "Battle Commences",
+                          "description": "A challenging enemy appears, forcing the player to fight.",
+                          "images": ["images/phase2.jpg"]
+                        }
+                    ]
                 },
                 {
                     "id": "gelonusMQ_7",
                     "title": "Hei Bai's Rage (MQ)",
                     "Encountered": "yes",
                     "description": "Protect the sacred temple from an incoming attack.",
-                    "images": []
+                    "images": [],
+                    "phases": [
+                        {
+                          "phase": 1,
+                          "title": "Initial Encounter",
+                          "description": "The player starts the journey with a brief introduction.",
+                          "images": []
+                        },
+                        {
+                          "phase": 2,
+                          "title": "Battle Commences",
+                          "description": "A challenging enemy appears, forcing the player to fight.",
+                          "images": ["images/phase2.jpg"]
+                        }
+                    ]
                 },
                 {
                     "id": "gelonusMQ_8",
                     "title": "The God Of Games (MQ)",
                     "Encountered": "yes",
                     "description": "Protect the sacred temple from an incoming attack.",
-                    "images": []
+                    "images": [],
+                    "phases": [
+                        {
+                          "phase": 1,
+                          "title": "Initial Encounter",
+                          "description": "The player starts the journey with a brief introduction.",
+                          "images": []
+                        },
+                        {
+                          "phase": 2,
+                          "title": "Battle Commences",
+                          "description": "A challenging enemy appears, forcing the player to fight.",
+                          "images": ["images/phase2.jpg"]
+                        }
+                    ]
                 },
                 {
                     "id": "gelonusMQ_9",
                     "title": "The Truth Sanctum (MQ)",
                     "Encountered": "no",
                     "description": null,
-                    "images": []
+                    "images": [],
+                    "phases": [
+                        {
+                          "phase": 1,
+                          "title": "The Lost Battle Agains Hades",
+                          "description": "The players fight in the Etherwhite again Hades, here they find out that Hades is the bad guy. The party gest oblidorated and awakens back in the normal realm. ",
+                          "images": [null]
+                        },
+                        {
+                          "phase": 2,
+                          "title": "Returning To Mirstone",
+                          "description": "A challenging enemy appears, forcing the player to fight.",
+                          "images": [null]
+                        },
+                        {
+                          "phase": 3,
+                          "title": "Meeting The Captain",
+                          "description": "A challenging enemy appears, forcing the player to fight.",
+                          "images": [null]
+                        },
+                        {
+                          "phase": 4,
+                          "title": "Finding And Entering The Truth Sanctum",
+                          "description": "A challenging enemy appears, forcing the player to fight.",
+                          "images": [null]
+                        },
+                        {
+                          "phase": 5,
+                          "title": "Find The Files",
+                          "description": "A challenging enemy appears, forcing the player to fight.",
+                          "images": [null]
+                        },
+                        {
+                          "phase": 6,
+                          "title": "The Unyielding Fang",
+                          "description": "A challenging enemy appears, forcing the player to fight.",
+                          "images": [null]
+                        },
+                        {
+                          "phase": 7,
+                          "title": "The Smuggle",
+                          "description": "A challenging enemy appears, forcing the player to fight.",
+                          "images": [null]
+                        }
+                    ]
                 }
             ]
         },

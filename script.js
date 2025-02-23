@@ -66,12 +66,13 @@ function showMissionDetails(mission, missionItem) {
   detailsDiv.classList.add("mission-details");
   detailsDiv.style.display = "block";
 
+  // Basic mission information
   detailsDiv.innerHTML = `
     <h2>${mission.title}</h2>
     <p>${mission.description}</p>
   `;
 
-  // If there are any images, add them
+  // Add mission images if available
   if (mission.images && mission.images.length > 0) {
     const imagesDiv = document.createElement("div");
     imagesDiv.classList.add("mission-images");
@@ -85,6 +86,42 @@ function showMissionDetails(mission, missionItem) {
     });
 
     detailsDiv.appendChild(imagesDiv);
+  }
+
+  // Check for and display any mission phases
+  if (mission.phases && mission.phases.length > 0) {
+    const phasesDiv = document.createElement("div");
+    phasesDiv.classList.add("mission-phases");
+
+    mission.phases.forEach(phase => {
+      const phaseDiv = document.createElement("div");
+      phaseDiv.classList.add("mission-phase");
+
+      phaseDiv.innerHTML = `
+        <h3>Phase ${phase.phase}: ${phase.title}</h3>
+        <p>${phase.description}</p>
+      `;
+
+      // If the phase has images, add them too
+      if (phase.images && phase.images.length > 0) {
+        const phaseImagesDiv = document.createElement("div");
+        phaseImagesDiv.classList.add("phase-images");
+
+        phase.images.forEach(phaseImageUrl => {
+          const img = document.createElement("img");
+          img.src = phaseImageUrl;
+          img.alt = `${mission.title} - Phase ${phase.phase}`;
+          img.loading = "lazy";
+          phaseImagesDiv.appendChild(img);
+        });
+
+        phaseDiv.appendChild(phaseImagesDiv);
+      }
+
+      phasesDiv.appendChild(phaseDiv);
+    });
+
+    detailsDiv.appendChild(phasesDiv);
   }
 
   // Insert the mission details immediately after the clicked mission item
