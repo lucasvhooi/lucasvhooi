@@ -345,6 +345,16 @@ body.popup-open {
 }
 
 @media screen and (max-width: 480px) {
+    section {
+      max-width: 90%;   /* Make the section narrower on mobile */
+      margin: 0 auto;   /* Keep it centered horizontally */
+      text-align: center; /* If you want all text inside centered */
+      padding: 20px;    /* Adjust padding for smaller screens */
+    }
+  }
+  
+
+@media screen and (max-width: 480px) {
     nav ul {
         flex-direction: row; /* Keep items in a row */
         flex-wrap: wrap; /* Allow items to wrap instead of stacking */
