@@ -86,6 +86,7 @@ section {
     gap: 20px;
     margin-top: 20px;
     justify-items: center;
+    justify-content: center;
 }
 
 /* Card Pair Styling */
@@ -310,6 +311,7 @@ body.popup-open {
 
 @media screen and (max-width: 480px) {
     .category-buttons {
+        align-items: center;
         flex-wrap: wrap; /* Allow buttons to wrap instead of overflowing */
         justify-content: center;
         gap: 5px; /* Reduce gap for better spacing */
@@ -328,6 +330,7 @@ body.popup-open {
         flex-direction: row; /* Keep items in a row */
         flex-wrap: wrap; /* Allow items to wrap instead of stacking */
         justify-content: center; /* Keep items centered */
+        align-items: center;
     }
 
     nav ul li {
