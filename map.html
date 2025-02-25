@@ -27,17 +27,21 @@
     </div>
   </div>
 
-  <!-- Modal for marker assignment -->
-  <div id="marker-modal" class="modal">
+<!-- Modal for marker assignment -->
+<div id="marker-modal" class="modal">
     <div class="modal-content">
+      <!-- Delete button (only visible in admin mode) -->
+      <button id="delete-marker" class="delete-marker-btn" style="display: none;">×</button>
       <h3>Select Place</h3>
       <select id="place-select"></select>
+      <div id="place-info"></div>
       <div class="modal-buttons">
         <button id="save-marker">Save</button>
         <button id="cancel-marker">Cancel</button>
       </div>
     </div>
   </div>
+  
 
   <script src="map.js"></script>
 </body>

@@ -108,26 +108,13 @@ section {
     pointer-events: auto;
 }
 
-.delete-btn {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    background: rgba(0,0,0,0.7);
-    color: #fff;
-    font-size: 16px;
-    width: 18px;
-    height: 18px;
-    line-height: 16px;
-    text-align: center;
-    border-radius: 50%;
-    cursor: pointer;
-    z-index: 2;
-  }
+  
   
 /* ---------------------- */
 /* Modal Styling          */
 /* ---------------------- */
 
+/* Modal styling */
 .modal {
     display: none; /* Hidden by default */
     position: fixed;
@@ -139,22 +126,50 @@ section {
     justify-content: center;
     align-items: center;
     z-index: 20;
-}
-
-.modal-content {
+  }
+  
+  .modal-content {
     background: #fff;
     padding: 20px;
     border-radius: 5px;
     text-align: center;
-}
-
-.modal-buttons {
+    max-width: 500px;  /* Increased size */
+    width: 90%;
+    /* Prevent page scaling by ensuring pointer events are caught */
+    pointer-events: auto;
+  }
+  
+  #place-info {
+    color: black;
+    text-align: left;
     margin-top: 10px;
-}
-
-.modal-buttons button {
-    margin: 0 5px;
-}
+  }
+  
+  #place-info img {
+    max-width: 200px;
+    height: auto;
+    display: block;
+    margin: 10px auto;
+  }
+  
+  /* Delete button in popup */
+  .delete-marker-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    font-size: 20px;
+    width: 30px;
+    height: 30px;
+    line-height: 28px;
+    text-align: center;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-block;
+  }
+  
 
 /* ---------------------- */
 /* Additional Provided CSS*/
@@ -201,6 +216,19 @@ section {
     transition: 0.3s;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.4);
 }
+#place-info {
+  color: black;
+  text-align: left;
+  margin-top: 10px;
+}
+
+#place-info img {
+  max-width: 200px;
+  height: auto;
+  display: block;
+  margin: 10px auto;
+}
+
 
 .location:hover {
     background: #57381f;

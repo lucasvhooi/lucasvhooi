@@ -23,8 +23,9 @@ function updateTransform() {
 }
 
 /* --- Zooming --- */
-// Desktop: use mouse wheel
+// Disable zoom if modal is open
 mapContainer.addEventListener("wheel", function(e) {
+  if (markerModal.style.display === "flex") return; // do not zoom when popup is open
   e.preventDefault();
   const zoomIntensity = 0.001;
   const delta = e.deltaY;
@@ -40,44 +41,41 @@ mapContainer.addEventListener("wheel", function(e) {
 });
 
 /* --- Panning & Pinch-Zoom on Mobile --- */
-const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
 if (isTouchDevice) {
-  // Variables for panning
+  // Variables for single-touch panning
   let touchStartX = 0, touchStartY = 0;
   // Variables for pinch zoom
   let isPinching = false;
   let initialDistance = 0;
   let initialScale = scale;
   
-  function getDistance(touch1, touch2) {
-    const dx = touch1.clientX - touch2.clientX;
-    const dy = touch1.clientY - touch2.clientY;
+  function getDistance(t1, t2) {
+    const dx = t1.clientX - t2.clientX;
+    const dy = t1.clientY - t2.clientY;
     return Math.sqrt(dx * dx + dy * dy);
   }
   
-  mapContainer.addEventListener('touchstart', function(e) {
-    if(e.touches.length === 2) {
-      // Start pinch zoom
+  mapContainer.addEventListener("touchstart", function(e) {
+    if (e.touches.length === 2) {
       isPinching = true;
       initialDistance = getDistance(e.touches[0], e.touches[1]);
       initialScale = scale;
-    } else if(e.touches.length === 1) {
-      // Single touch for panning
+    } else if (e.touches.length === 1) {
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
     }
   });
   
-  mapContainer.addEventListener('touchmove', function(e) {
+  mapContainer.addEventListener("touchmove", function(e) {
     if (isPinching && e.touches.length === 2) {
-      // Update pinch zoom
       const newDistance = getDistance(e.touches[0], e.touches[1]);
       let zoomFactor = newDistance / initialDistance;
       let newScale = initialScale * zoomFactor;
       newScale = Math.min(Math.max(newScale, 0.1), 5);
       
-      // Optionally, compute mid-point to adjust origin for better centering
+      // Use midpoint between touches for centering
       const rect = mapContainer.getBoundingClientRect();
       const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
       const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
@@ -87,8 +85,7 @@ if (isTouchDevice) {
       scale = newScale;
       updateTransform();
       e.preventDefault();
-    } else if(e.touches.length === 1 && !isPinching) {
-      // Panning with one finger
+    } else if (e.touches.length === 1 && !isPinching) {
       let currentX = e.touches[0].clientX;
       let currentY = e.touches[0].clientY;
       const dx = currentX - touchStartX;
@@ -102,21 +99,18 @@ if (isTouchDevice) {
     }
   }, { passive: false });
   
-  mapContainer.addEventListener('touchend', function(e) {
-    // Reset pinch flag when fewer than 2 touches remain
+  mapContainer.addEventListener("touchend", function(e) {
     if (e.touches.length < 2) {
       isPinching = false;
     }
   });
-  
 } else {
   // Desktop: Toggle panning on/off with left mouse click.
   let panningActive = false;
   let lastX, lastY;
   
   mapContainer.addEventListener("mousedown", function(e) {
-    if (e.button === 0) {
-      // Only toggle if clicking on the container (and not on markers)
+    if (e.button === 0) { // Left mouse button
       if (
         e.target.id === "map-container" ||
         e.target.id === "map-wrapper" ||
@@ -126,10 +120,10 @@ if (isTouchDevice) {
           panningActive = true;
           lastX = e.clientX;
           lastY = e.clientY;
-          mapContainer.style.cursor = 'grabbing';
+          mapContainer.style.cursor = "grabbing";
         } else {
           panningActive = false;
-          mapContainer.style.cursor = 'grab';
+          mapContainer.style.cursor = "grab";
         }
       }
     }
@@ -149,12 +143,12 @@ if (isTouchDevice) {
 }
 
 /* --- Persistence Functions --- */
-// Save the savedMarkers array to localStorage
+// Save markers to localStorage
 function saveMarkers() {
   localStorage.setItem("markers", JSON.stringify(savedMarkers));
 }
 
-// Load saved markers from localStorage and create DOM elements for them
+// Load saved markers from localStorage and create their DOM elements
 function loadSavedMarkers() {
   const stored = localStorage.getItem("markers");
   if (stored) {
@@ -165,33 +159,20 @@ function loadSavedMarkers() {
   }
 }
 
-// Create a marker DOM element based on a marker object and attach event listeners
+// Create a marker DOM element based on a marker object
 function createMarkerElement(markerObj) {
   const markerEl = document.createElement("div");
   markerEl.className = "marker";
   markerEl.style.left = markerObj.x + "px";
   markerEl.style.top = markerObj.y + "px";
-  markerEl.dataset.id = markerObj.id; // assign unique ID
-
+  markerEl.dataset.id = markerObj.id;
+  
   if (markerObj.place) {
     markerEl.dataset.place = JSON.stringify(markerObj.place);
     markerEl.title = markerObj.place.name;
   }
   
-  // Add a delete cross if in admin mode
-  if (isAdmin) {
-    const delBtn = document.createElement("span");
-    delBtn.textContent = "×";
-    delBtn.className = "delete-btn";
-    // Stop propagation so the marker's own tap/click isn't triggered
-    delBtn.addEventListener("click", function(e) {
-      e.stopPropagation();
-      deleteMarker(markerEl);
-    });
-    markerEl.appendChild(delBtn);
-  }
-  
-  // Allow both click and touchend on marker to open modal for assignment
+  // Allow click/touch to open modal for assignment (admin mode)
   markerEl.addEventListener("click", function(e) {
     e.stopPropagation();
     if (!isAdmin) return;
@@ -218,7 +199,6 @@ mapContainer.addEventListener("contextmenu", function(e) {
   const mapX = (clickX - originX) / scale;
   const mapY = (clickY - originY) / scale;
   
-  // Create a unique ID for the marker (using timestamp)
   const markerId = Date.now().toString();
   const markerObj = {
     id: markerId,
@@ -231,20 +211,10 @@ mapContainer.addEventListener("contextmenu", function(e) {
   createMarkerElement(markerObj);
 });
 
-/* --- Delete Marker Function --- */
-function deleteMarker(markerEl) {
-  const markerId = markerEl.dataset.id;
-  // Remove from DOM
-  markersContainer.removeChild(markerEl);
-  // Remove from savedMarkers array
-  savedMarkers = savedMarkers.filter(m => m.id !== markerId);
-  saveMarkers();
-}
-
-/* --- Modal & Loading Locations from JSON --- */
+/* --- Modal & Location Selection --- */
 // Load locations from external JSON file
 function loadLocations() {
-  fetch('locations.json')
+  fetch("locations.json")
     .then(response => response.json())
     .then(data => {
       flattenedPlaces = flattenPlaces(data);
@@ -254,7 +224,7 @@ function loadLocations() {
     });
 }
 
-// Flatten nested location JSON into an array of options
+// Flatten nested JSON structure into an array of options
 function flattenPlaces(data) {
   const options = [];
   for (const continentKey in data.continents) {
@@ -273,32 +243,44 @@ function flattenPlaces(data) {
   return options;
 }
 
-// Load JSON data on page load
+// Load locations and saved markers on page load
 loadLocations();
-// Load saved markers from localStorage
 loadSavedMarkers();
 
 // Modal elements
 const markerModal = document.getElementById("marker-modal");
 const placeSelect = document.getElementById("place-select");
-const placeInfo = document.getElementById("place-info"); // For detailed info
+const placeInfo = document.getElementById("place-info"); // For detailed info display
 const saveMarkerBtn = document.getElementById("save-marker");
 const cancelMarkerBtn = document.getElementById("cancel-marker");
+const deleteMarkerBtn = document.getElementById("delete-marker");
 
 let currentMarker = null;
 
-// When the select option changes, update detailed info in the modal
+// When the select option changes, update the detailed info in the popup
 placeSelect.addEventListener("change", function() {
   const selectedIndex = placeSelect.value;
   const selectedPlace = flattenedPlaces[selectedIndex];
-  placeInfo.innerHTML = `<p><strong>${selectedPlace.name}</strong></p>
-                         <p>${selectedPlace.description || "No description available."}</p>
-                         ${ selectedPlace.map ? `<img src="${selectedPlace.map}" alt="${selectedPlace.name}" style="max-width:100%; height:auto;">` : ""}`;
+  placeInfo.innerHTML = `<p style="color: black;"><strong>${selectedPlace.name}</strong></p>
+                         <p style="color: black;">${selectedPlace.description || "No description available."}</p>
+                         ${
+                           selectedPlace.map
+                             ? `<img src="${selectedPlace.map}" alt="${selectedPlace.name}" style="max-width:200px; height:auto;">`
+                             : ""
+                         }`;
 });
 
-// Open the modal and populate the select element with places
+// Close modal when clicking outside the modal content
+markerModal.addEventListener("click", function(e) {
+  if (e.target === markerModal) {
+    closeMarkerModal();
+  }
+});
+
+// Open the modal for a marker
 function openMarkerModal(marker) {
   currentMarker = marker;
+  // Populate the dropdown with options from flattenedPlaces
   placeSelect.innerHTML = "";
   flattenedPlaces.forEach((place, index) => {
     const option = document.createElement("option");
@@ -306,23 +288,41 @@ function openMarkerModal(marker) {
     option.textContent = `${place.name} (${place.continent})`;
     placeSelect.appendChild(option);
   });
-  // Trigger a change to display info for the first option by default
+  // If the marker already has an assigned place, pre-select it
+  if (currentMarker.dataset.place) {
+    const assigned = JSON.parse(currentMarker.dataset.place);
+    const idx = flattenedPlaces.findIndex(p => p.name === assigned.name);
+    if (idx >= 0) {
+      placeSelect.value = idx;
+    }
+  }
+  // Trigger a change event to update detailed info in the popup
   placeSelect.dispatchEvent(new Event("change"));
+  
+  // Show delete button only if marker already has a place assigned and in admin mode
+  if (isAdmin && currentMarker.dataset.place) {
+    deleteMarkerBtn.style.display = "block";
+  } else {
+    deleteMarkerBtn.style.display = "none";
+  }
+  
   markerModal.style.display = "flex";
 }
 
+// Close the modal
 function closeMarkerModal() {
   markerModal.style.display = "none";
   currentMarker = null;
 }
 
-// When "Save" is clicked, assign the selected place to the marker and update storage
+// Save the selected location to the marker and update storage
 saveMarkerBtn.addEventListener("click", function() {
   if (currentMarker) {
     const selectedIndex = placeSelect.value;
     const selectedPlace = flattenedPlaces[selectedIndex];
     currentMarker.dataset.place = JSON.stringify(selectedPlace);
     currentMarker.title = selectedPlace.name;
+    
     // Update the corresponding marker object in savedMarkers
     const markerId = currentMarker.dataset.id;
     const markerObj = savedMarkers.find(m => m.id === markerId);
@@ -334,6 +334,19 @@ saveMarkerBtn.addEventListener("click", function() {
   closeMarkerModal();
 });
 
+// Cancel button just closes the modal
 cancelMarkerBtn.addEventListener("click", function() {
+  closeMarkerModal();
+});
+
+// Delete marker button in the popup (cross)
+deleteMarkerBtn.addEventListener("click", function(e) {
+  e.stopPropagation();
+  if (currentMarker) {
+    const markerId = currentMarker.dataset.id;
+    markersContainer.removeChild(currentMarker);
+    savedMarkers = savedMarkers.filter(m => m.id !== markerId);
+    saveMarkers();
+  }
   closeMarkerModal();
 });
