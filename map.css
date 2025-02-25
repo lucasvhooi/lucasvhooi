@@ -1,412 +1,64 @@
-/* --------------------------- */
-/* General Styles & Navigation */
-/* --------------------------- */
-
-/* General Styles */
-body {
-    font-family: 'Garamond', serif;
+/* Reset and general styles */
+html, body {
     margin: 0;
     padding: 0;
-    background-color: #1a1a1a;
-    color: #f4e6d7;
-    text-align: center;
-}
-
-/* Navigation Bar */
-nav {
+    height: 100%;
+    background: #000; /* Black background to avoid any gray */
+    overflow: hidden;
+  }
+  
+  /* Navbar styling */
+  nav {
     background: linear-gradient(to right, #5e3b20, #2c1a0a);
     padding: 15px;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
-}
-
-nav ul {
+    position: relative;
+    z-index: 100;
+  }
+  nav ul {
     list-style: none;
-    padding: 0;
     margin: 0;
+    padding: 0;
     display: flex;
     justify-content: center;
-}
-
-nav ul li {
+  }
+  nav ul li {
     margin: 0 20px;
-}
-
-nav ul li a {
+  }
+  nav ul li a {
     color: #f4e6d7;
     text-decoration: none;
     font-size: 20px;
     font-weight: bold;
     transition: 0.3s;
-}
-
-nav ul li a:hover {
+  }
+  nav ul li a:hover {
     color: #ffcc66;
     text-shadow: 0px 0px 10px rgba(255, 204, 102, 0.8);
-}
-
-/* Section Styling (if needed elsewhere) */
-section {
-    padding: 40px;
-    max-width: 800px;
-    margin: auto;
-}
-
-/* ---------------------- */
-/* Map & Marker Styling   */
-/* ---------------------- */
-
-/* Full-screen map container.
-   The top is offset to leave space for the navbar (assumed 60px tall) */
-#map-container {
-    position: fixed;
-    top: 60px; /* Adjust this value to match your navbar height */
+  }
+  
+  /* Map container fills the remaining screen */
+  #map-container {
+    position: absolute;
+    top: 70px; /* Adjust based on navbar height */
     left: 0;
-    width: 100%;
-    height: calc(100% - 60px);
-    background: #333;
+    right: 0;
+    bottom: 0;
     overflow: hidden;
     cursor: grab;
-}
-
-/* Change cursor when dragging */
-#map-container:active {
-    cursor: grabbing;
-}
-
-/* Transformable wrapper for panning/zooming */
-#map-wrapper {
+  }
+  
+  /* The transformable wrapper for panning and zooming */
+  #map-wrapper {
     position: absolute;
     top: 0;
     left: 0;
     transform-origin: 0 0;
-}
-
-/* Map image styling */
-#map-image {
-    display: block;
-}
-
-/* Markers container styling */
-#markers-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-}
-
-/* Marker styling: using a WebP file as the marker image */
-.marker {
-    position: absolute;
-    width: 32px;
-    height: 32px;
-    background: url('Images/Other/maps-and-flags.webp') no-repeat center center;
-    background-size: contain;
-    transform: translate(-50%, -50%);
-    cursor: pointer;
-    pointer-events: auto;
-}
-
-  
-  
-/* ---------------------- */
-/* Modal Styling          */
-/* ---------------------- */
-
-/* Modal styling */
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    justify-content: center;
-    align-items: center;
-    z-index: 20;
   }
   
-  .modal-content {
-    background: #fff;
-    padding: 20px;
-    border-radius: 5px;
-    text-align: center;
-    max-width: 500px;  /* Increased size */
-    width: 90%;
-    /* Prevent page scaling by ensuring pointer events are caught */
-    pointer-events: auto;
+  /* Map image displays at its natural size */
+  #map-image {
+    display: block;
+    max-width: none;
   }
   
-  #place-info {
-    color: black;
-    text-align: left;
-    margin-top: 10px;
-  }
-  
-  #place-info img {
-    max-width: 200px;
-    height: auto;
-    display: block;
-    margin: 10px auto;
-  }
-  
-  /* Delete button in popup */
-  .delete-marker-btn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: rgba(0,0,0,0.7);
-    color: #fff;
-    font-size: 20px;
-    width: 30px;
-    height: 30px;
-    line-height: 28px;
-    text-align: center;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    display: inline-block;
-  }
-  
-
-/* ---------------------- */
-/* Additional Provided CSS*/
-/* ---------------------- */
-
-/* Mission & Phase Images */
-.mission-images img, 
-.phase-images img {
-    max-width: 100%;
-    height: auto;
-    max-height: 300px;
-    border-radius: 8px;
-    border: 2px solid #333;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    object-fit: contain;
-}
-
-@media screen and (max-width: 768px) {
-    .mission-images img, 
-    .phase-images img {
-        max-height: 250px;
-    }
-}
-
-@media screen and (max-width: 480px) {
-    .mission-images img, 
-    .phase-images img {
-        max-height: 200px;
-    }
-}
-
-/* Location Styling */
-.location {
-    background: #3e2b1b;
-    color: #ffcc66;
-    padding: 15px;
-    border-radius: 10px;
-    margin: 10px auto;
-    width: 80%;
-    font-size: 20px;
-    font-weight: bold;
-    text-align: center;
-    cursor: pointer;
-    transition: 0.3s;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.4);
-}
-#place-info {
-  color: black;
-  text-align: left;
-  margin-top: 10px;
-}
-
-#place-info img {
-  max-width: 200px;
-  height: auto;
-  display: block;
-  margin: 10px auto;
-}
-
-
-.location:hover {
-    background: #57381f;
-    color: #f4e6d7;
-}
-
-/* Mission List & Details */
-.mission-list {
-    display: none;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.mission-list li {
-    background: #2c1a0a;
-    padding: 10px;
-    border-radius: 8px;
-    margin: 5px auto;
-    width: 75%;
-    font-size: 18px;
-    color: #ffcc66;
-    text-align: center;
-    transition: 0.3s;
-    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.3);
-}
-
-.mission-list li:hover {
-    background: #4e2c14;
-    color: #f4e6d7;
-}
-
-.mission-details {
-    display: none;
-    background: #2c1a0a;
-    color: #f4e6d7;
-    padding: 15px;
-    margin-top: 10px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-}
-
-.mission-images {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    margin-top: 15px;
-}
-
-.mission-images img {
-    max-width: 200px;
-    height: auto;
-    border-radius: 8px;
-    border: 2px solid #333;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-
-/* Responsive Adjustments for Mission Lists */
-@media (max-width: 600px) {
-    ul#mission-list li {
-        width: 100%;
-    }
-    
-    #mission-details {
-        width: 100%;
-    }
-}
-
-/* Art Categories */
-.category-list {
-    margin-bottom: 20px;
-}
-
-.category {
-    background-color: #333;
-    color: white;
-    padding: 10px;
-    cursor: pointer;
-    font-size: 18px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-}
-
-.category:hover {
-    background-color: #f0c674;
-}
-
-/* Art Page & Gallery */
-.land {
-    margin-bottom: 20px;
-}
-
-.land-button, .category-button {
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
-    margin: 10px 0;
-    display: block;
-    padding: 10px;
-    background-color: #f0f0f0;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-}
-
-.land-button:hover, .category-button:hover {
-    background-color: #ddd;
-}
-
-.image-gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.image-gallery img {
-    width: 100%;
-    height: auto;
-    cursor: pointer;
-    border-radius: 8px;
-}
-
-#imageDisplay img {
-    width: 100%;
-    height: auto;
-    max-width: 800px;
-    margin: 0 auto;
-    display: block;
-}
-
-.image-gallery img:hover {
-    transform: scale(1.05);
-    transition: 0.3s ease;
-}
-
-#imageDisplay img {
-    width: 100%;
-    height: auto;
-    max-width: 800px;
-    margin: 0 auto;
-    display: block;
-}
-
-.category-list .category.active {
-    background-color: #f0c674;
-}
-
-/* Responsive Design for Navigation */
-@media screen and (max-width: 768px) {
-    nav ul {
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    nav ul li {
-        margin: 5px;
-        flex: 1 1 auto;
-    }
-    nav ul li a {
-        font-size: 16px;
-        padding: 6px 10px;
-    }
-}
-
-@media screen and (max-width: 480px) {
-    nav ul {
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    nav ul li {
-        margin: 5px;
-        flex: 1 1 auto;
-    }
-    nav ul li a {
-        font-size: 14px;
-        padding: 4px 6px;
-        white-space: nowrap;
-    }
-}
