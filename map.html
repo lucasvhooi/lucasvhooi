@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DnD Campaign - Map</title>
+  <link rel="stylesheet" href="map.css">
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav>
+      <ul>
+          <li><a href="homepage.html">Home</a></li>
+          <li><a href="missions.html">Missions</a></li>
+          <li><a href="Exploration.html">Exploration</a></li>
+          <li><a href="locations.html">Locations</a></li>
+          <li><a href="map.html">Map</a></li>
+      </ul>
+  </nav>
+
+  <!-- Map Container (adjusted to leave room for the navbar) -->
+  <div id="map-container">
+    <div id="map-wrapper">
+      <!-- Use your webp image for the map -->
+      <img id="map-image" src="Images/Maps/map.webp" alt="DnD Map">
+      <div id="markers-container"></div>
+    </div>
+  </div>
+
+  <!-- Modal for marker assignment -->
+  <div id="marker-modal" class="modal">
+    <div class="modal-content">
+      <h3>Select Place</h3>
+      <select id="place-select"></select>
+      <div class="modal-buttons">
+        <button id="save-marker">Save</button>
+        <button id="cancel-marker">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="map.js"></script>
+</body>
+</html>

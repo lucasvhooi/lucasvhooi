@@ -133,42 +133,127 @@
                     "id": "gelonusMQ_7",
                     "title": "Hei Bai's Rage (MQ)",
                     "Encountered": "yes",
-                    "description": "Protect the sacred temple from an incoming attack.",
+                    "description": "Quest insipred by: Avatar The Last Airbender, Winter Solstice, Part 1: The Spirit World",
                     "images": [],
                     "phases": [
-                        {
-                          "phase": 1,
-                          "title": "Initial Encounter",
-                          "description": "The player starts the journey with a brief introduction.",
-                          "images": []
-                        },
-                        {
-                          "phase": 2,
-                          "title": "Battle Commences",
-                          "description": "A challenging enemy appears, forcing the player to fight.",
-                          "images": ["images/phase2.jpg"]
-                        }
+                      {
+                        "phase": 1,
+                        "title": "Introduction: Trouble in Yarn",
+                        "description": "The party arrives in the small coastal village of Yarn, where they hear troubling reports from multiple villagers. A great beast, known as Hei Bai, has been attacking the area, causing widespread fear and destruction.",
+                        "images": []
+                      },
+                      {
+                        "phase": 2,
+                        "title": "Journey to Azmos Roots",
+                        "description": "The party sets off towards Azmos Roots to investigate. As they get closer, they witness the environment deteriorating—lush greenery turns to barren land, creatures appear sickly, and nature itself seems to be dying.",
+                        "images": []
+                      },
+                      {
+                        "phase": 3,
+                        "title": "The Mysterious Fountain",
+                        "description": "In the nearby forest, the party encounters a well filled with a black, poisonous liquid that melts anything it touches. At the center of the well stands a statue of a panda, surrounded by a small pond of the same dark liquid. An inscription on the fountain reads: 'Ik ben een stille heerser, zonder gezicht, ik bedek de wereld zonder licht. Mijn komst is onontkombaar.' Answer: 'Nacht'.",
+                        "images": []
+                      },
+                      {
+                        "phase": 4,
+                        "title": "Entering the Spirit World",
+                        "description": "At night, the black liquid in the fountain transforms into clear water, allowing the party to enter. Once inside, they find themselves in a spirit world—a shadowy reflection of their own reality. Everything appears the same, but they are unable to interact with anything.",
+                        "images": []
+                      },
+                      {
+                        "phase": 5,
+                        "title": "The Drill and the Masters",
+                        "description": "From a distance, the party notices smoke rising. Upon investigation, they discover a massive metal drill, operated by Irving Alric (Master of Science) and Akron Sildor (Master of Magic), alongside a squad of guards. However, before the party arrives, Irving and Akron escape via a magical portal, leaving their forces behind.",
+                        "images": []
+                      },
+                      {
+                        "phase": 6,
+                        "title": "The Enemy Forces",
+                        "description": "The drill is guarded and operated by two types of enemies: Small Miner Rats (AC: 12-14, HP: 20-25, Move Speed: 35ft, 2D4 slashing damage) and Bruut Miner Rats (AC: 15-16, HP: 45-50, Move Speed: 20ft, Shield: AC 12 HP 15, 1D4 slashing damage, Reaction: Deflect - forces attackers to roll another D20 to hit, usable once every 5 turns).",
+                        "images": []
+                      },
+                      {
+                        "phase": 7,
+                        "title": "The Boss Fight: The Operator",
+                        "description": "The party faces The Operator, a formidable foe. Stats: AC 20, HP 250, Move Speed 25ft. Abilities: Decimate (AoE pickaxe swing, Dex save or take 1D8 bludgeoning damage), Rock Solid (turns to stone, AC 20, 2D20 shield, absorbs 10% damage to unleash later, 2 charges), Dig Deep (creates a hole, used later for ambush), Call of the Rats (summons 1D6 small miner rats).",
+                        "images": []
+                      },
+                      {
+                        "phase": 8,
+                        "title": "Operation Elster",
+                        "description": "Inside the drill’s control room, the party finds a sealed letter titled Operation Elster, magically protected by a barrier. To break this seal, they need the help of Fey Redwood, who resides in Frostholm.",
+                        "images": []
+                      },
+                      {
+                        "phase": 9,
+                        "title": "Hei Bai’s Revelation",
+                        "description": "After the drill is destroyed, the party encounters Hei Bai, who transforms back into a panda. He speaks, revealing an even greater disturbance. The party must travel to Azmos’s Temple to meet the God of Games. They receive a Celestial Crystal, which glows near Spirit Realm portals and allows them to summon Hei Bai once.",
+                        "images": []
+                      },
+                      {
+                        "phase": 10,
+                        "title": "Loot Found in the Drill",
+                        "description": "1. Pickaxe (Gold Medallion, 4SP), 2. Miner’s Helmet (2GP, Health Potion), 3. Arcane Scroll: Operation Elster (20SP, Magic-Sealed Scroll), 4. Boots of Elvenkind (Enhanced stealth and silent movement).",
+                        "images": []
+                      },
+                      {
+                        "phase": 11,
+                        "title": "Next Steps",
+                        "description": "Travel to Frostholm to find Fey Redwood and break the magical seal. Journey to Azmos’s Temple to uncover the true nature of the disturbance. Use the Celestial Crystal wisely to summon Hei Bai in times of need.",
+                        "images": ["images/Characters/AkronSildor.webp", "images/Characters/HeiBaiFront.webp", "images/Characters/TheOperator.webp", "images/Characters/IrvingAlric.webp", "images/Locations/SpiritRealm.webp", "images/Locations/AzmosRoots.webp","images/Locations/ArcaneBoreMKVI.webp", "images/Maps/BoreMKVI.webp"]
+                      }
                     ]
                 },
                 {
                     "id": "gelonusMQ_8",
                     "title": "The God Of Games (MQ)",
                     "Encountered": "yes",
-                    "description": "Protect the sacred temple from an incoming attack.",
-                    "images": [],
+                    "description": "The party has found the temple of Asmos. In this region, Asmos is the worshipped god, specifically the god of games. The party has to venture through multiple puzzle rooms. Each room holds a riddle or puzzle to be solved, where everyone in the party has to contribute their part. After solving all puzzles, the party will meet Asmos and convince him for his help. Here, the party has to win a game of chess against the god of games. The party can roll for intelligence or use other tactics to help them in their game.",
+                    "images": ["images/Maps/AzmosTempleLayout.webp"],
                     "phases": [
-                        {
-                          "phase": 1,
-                          "title": "Initial Encounter",
-                          "description": "The player starts the journey with a brief introduction.",
-                          "images": []
-                        },
-                        {
-                          "phase": 2,
-                          "title": "Battle Commences",
-                          "description": "A challenging enemy appears, forcing the player to fight.",
-                          "images": ["images/phase2.jpg"]
-                        }
+                      {
+                        "phase": 1,
+                        "title": "Room 1: The Entrance",
+                        "description": "After finding the entrance and entering the temple, the party is met with the first puzzle. There are 4 pedestals, each with a riddle inscribed:\n\n- 'I consume all that I touch, yet I am vital for life's clutch. My dance is both beauty and dread. From me, both life and death are fed.' (**FIRE**)\n- 'I can be still or rush in a rapid flow. Essential for life, wherever I go. I shape the land with patience and might. In my absence, darkness would shroud the light.' (**WATER**)\n- 'I'm a precious gift, cherished by all. In times of triumph, in times of a fall. I'm a mystery, yet a familiar embrace. With every heartbeat, I quicken the pace.' (**LIFE**)\n- 'I am the end, where all roads conclude. A silent visitor, leaving many subdued. I am the eternal night, where dreams may cease. In my embrace, all tumult finds peace.' (**DEATH**)\n\nThe players need to place an item on the pedestals resembling the answer to the riddle. The mage can use magic to cast fire or water. After this is done, everything placed on the pedestals burns to ash, and the door opens.",
+                        "images": []
+                      },
+                      {
+                        "phase": 2,
+                        "title": "Room 2: Without a Shadow",
+                        "description": "Upon entering the room, the party encounters a group of four bandits who are attempting to unlock the door using a giant key. Observing their struggle, the party realizes that the bandits have inserted the key but are having difficulty opening the door. The party has the option to either defeat the bandits, attempt to steal the key and trigger a trap, or choose to befriend the bandits as they are unaware of what lies ahead.\n\nOn the floor, a message is inscribed: 'Only without a shadow in sight will I open.' To unlock the door, all players must stand against the wall and remove anything that casts a shadow on the floor.",
+                        "images": []
+                      },
+                      {
+                        "phase": 3,
+                        "title": "Room 3: Silent as Death",
+                        "description": "The party steps into a chamber lined with menacing spikes, offering two doorways as potential exits. They quickly discern that any noise triggers the activation of the spikes, which thrust out from the walls. The spikes retreat only when the room falls silent again.\n\nNotably, there are two levers that must be pulled simultaneously to disable the trap. To progress, the party must find a way to stealthily navigate through the chamber and trigger both levers. One potential solution involves the rogue carrying a party member to one lever and then quietly maneuvering to the other lever, leveraging the rogue's exceptional stealth abilities.",
+                        "images": []
+                      },
+                      {
+                        "phase": 4,
+                        "title": "Room 4: The Break Room",
+                        "description": "The party discovers a storage area suitable for taking a well-deserved rest. The room offers various provisions, including gear, gold, and food for the party's replenishment. Upon closer inspection, the party notices a wounded mouse nestled in the corner. The mouse is unable to walk and emits a faint blue glow from its eye.\n\nUnbeknownst to the party, this seemingly ordinary mouse holds the key to overcoming the challenge in Room 5. To progress, the party must nurture and heal the mouse, which, in gratitude, will guide them through the eternal maze in Room 5.",
+                        "images": []
+                      },
+                      {
+                        "phase": 5,
+                        "title": "Room 5: The Eternal Maze",
+                        "description": "Room 5 holds the eternal maze. If someone enters the maze without knowing where to go, they will always exit where they entered. Only if one knows the way to go will they make it through.\n\nExiting the maze, the players see that the hallway is blocked by a metal door with another keyhole. To their right, there is another hallway leading to another room.",
+                        "images": []
+                      },
+                      {
+                        "phase": 6,
+                        "title": "Room 6: The Tomb",
+                        "description": "A key dangles on a piece of string in the center of the room. When the party grabs the key, the entrance closes and skeletons start climbing out of the wall. The party enters combat.\n\nThe party quickly finds out that after every skeleton they kill within 10 seconds, another one spawns. This is part of another puzzle where the players need to kill all the skeletons within 10 seconds to stop them from spawning. On all four walls is written a word: 'Only', 'Leave', 'As', 'Group'. The words are out of order, so it is up to the players to create the correct sentence. After they do this, the entrance opens again and they can use the key to get to Room 7.",
+                        "images": []
+                      },
+                      {
+                        "phase": 7,
+                        "title": "Room 7: Meeting Azmos",
+                        "description": "When entering Room 7, the party meets Azmos, the God of Games. As a final challenge, they must defeat him in a game of chess. They can roll for intelligence to get the best moves from the DM.\n\nAfter beating Azmos, he provides the party with valuable information on the campaign and story, which they need to advance. The players must continue playing until they win a game of chess.",
+                        "images": ["images/Locations/BoundrySanctuary.webp", "images/Items/AzmossChessPiece.webp", "images/Items/AzmossChessPieceBack.webp", "images/Other/ChessSession.webp"]
+                      }
+                      
                     ]
                 },
                 {
@@ -178,50 +263,107 @@
                     "description": null,
                     "images": [],
                     "phases": [
-                        {
-                          "phase": 1,
-                          "title": "The Lost Battle Agains Hades",
-                          "description": "The players fight in the Etherwhite again Hades, here they find out that Hades is the bad guy. The party gest oblidorated and awakens back in the normal realm. ",
-                          "images": [null]
-                        },
-                        {
-                          "phase": 2,
-                          "title": "Returning To Mirstone",
-                          "description": "A challenging enemy appears, forcing the player to fight.",
-                          "images": [null]
-                        },
-                        {
-                          "phase": 3,
-                          "title": "Meeting The Captain",
-                          "description": "A challenging enemy appears, forcing the player to fight.",
-                          "images": [null]
-                        },
-                        {
-                          "phase": 4,
-                          "title": "Finding And Entering The Truth Sanctum",
-                          "description": "A challenging enemy appears, forcing the player to fight.",
-                          "images": [null]
-                        },
-                        {
-                          "phase": 5,
-                          "title": "Find The Files",
-                          "description": "A challenging enemy appears, forcing the player to fight.",
-                          "images": [null]
-                        },
-                        {
-                          "phase": 6,
-                          "title": "The Unyielding Fang",
-                          "description": "A challenging enemy appears, forcing the player to fight.",
-                          "images": [null]
-                        },
-                        {
-                          "phase": 7,
-                          "title": "The Smuggle",
-                          "description": "A challenging enemy appears, forcing the player to fight.",
-                          "images": [null]
-                        }
-                    ]
-                }
+                      {
+                        "phase": 1,
+                        "title": "Hades",
+                        "description": "After defeating the High-Hatted Spirit, the players are suddenly ensnared by magical chains emerging from the ground and awaken in the Etherwhite Realm. Here, they encounter Hades for the first time. He delivers a short monologue revealing glimpses of his sinister plans. Immediately after, the party engages in battle against Hades but is completely overwhelmed. They fall in combat, only to reawaken in the upper world, their defeat leaving them with lingering questions and an unsettling sense of doom.",
+                        "images": []
+                      },
+                      {
+                        "phase": 2,
+                        "title": "Seeking Passage in Mirestone",
+                        "description": "The party returns to Mirestone and needs to find a boat that can take them to Arcadia. However, when they return to the city, they find posters of their faces plastered on the walls, labeling them as 'WANTED: Escapists and Murderers.' This drastically reduces their chances of securing passage, as most ship captains refuse to be associated with fugitives.",
+                        "images": []
+                      },
+                      {
+                        "phase": 3,
+                        "title": "The Crestfallen's Secret",
+                        "description": "The party hears rumors of a hidden pirate ship, 'The Crestfallen.' However, they need a pirate coin to board. They must either purchase entry for 300GP or complete a mission for Captain Morgan Dredge.",
+                        "images": []
+                      },
+                      {
+                        "phase": 4,
+                        "title": "The Truth Sanctum’s Secrets",
+                        "description": "Captain Dredge tells them about The Truth Sanctum, where the kingdom hides forbidden knowledge. Among the documents stored there is a war strategy to eradicate piracy, containing naval fleet routes, ship captains targeted for execution, and destruction plans for pirate strongholds.",
+                        "images": []
+                      },
+                      {
+                        "phase": 5,
+                        "title": "Entering the Sanctum",
+                        "description": "The party arrives at The Truth Sanctum, an ancient fortress between Mirestone and Frostholm. Guarded by deadly traps, magical wards, and its legendary warden, The Unyielding Fang.",
+                        "images": []
+                      },
+                      {
+                        "phase": 6,
+                        "title": "Boss Fight: The Unyielding Fang",
+                        "description": "Kastor Redwood, known as The Unyielding Fang, is the warden of the Truth Sanctum. Using Adaptive Defense, he becomes immune to the last damage type that hit him, forcing players to adapt. He can use Disintegrate Grip to destroy weapons and armor, and his Mind Control ability turns Joe Rits against the party.",
+                        "images": []
+                      },
+                      {
+                        "phase": 7,
+                        "title": "The Hardest Escape",
+                        "description": "Whether the party wins or loses, escaping the Truth Sanctum is just as dangerous. Kastor Redwood hunts them, using his knowledge of the terrain and ancient magics.",
+                        "images": []
+                      },
+                      {
+                        "phase": 8,
+                        "title": "The Smuggle",
+                        "description": "Once the party return to Mirstone with this information they are able to enter the Crestfallen and travel to Arcadia.",
+                        "images": ["images/Characters/SecondWardenOfTheKing.webp", "images/Characters/JoeRitsFront.webp", "images/Locations/Etherwhite.webp"]
+                      }
+  ]
+                },
+                {
+                  "id": "gelonusMQ_10",
+                  "title": "The Curse of the High-Hatted Spirit (Sinterklaas Holiday Special)",
+                  "Encountered": "no",
+                  "description": null,
+                  "images": [],
+                  "phases": [
+                      {
+                        "phase": 1,
+                        "title": "The Drunken Bard",
+                        "description": "Jorn Fallowheel tells the party to come with him to mirestone to help with a evil spirit. Once a year they have a feast where they worship the High Hatted Spirit. He delivers presents at night while everyone is asleep. But now when he comes by he doesn’t leave anything and curses the home owners to stay asleep forever. He needs the party to help investigate and hopefully defeat the High Hatted Spirit",
+                        "images": []
+                      },
+                      {
+                        "phase": 2,
+                        "title": "Returning To Mirstone",
+                        "description": "A challenging enemy appears, forcing the player to fight.",
+                        "images": [null]
+                      },
+                      {
+                        "phase": 3,
+                        "title": "Meeting The Captain",
+                        "description": "A challenging enemy appears, forcing the player to fight.",
+                        "images": [null]
+                      },
+                      {
+                        "phase": 4,
+                        "title": "Finding And Entering The Truth Sanctum",
+                        "description": "A challenging enemy appears, forcing the player to fight.",
+                        "images": [null]
+                      },
+                      {
+                        "phase": 5,
+                        "title": "Find The Files",
+                        "description": "A challenging enemy appears, forcing the player to fight.",
+                        "images": [null]
+                      },
+                      {
+                        "phase": 6,
+                        "title": "The Unyielding Fang",
+                        "description": "A challenging enemy appears, forcing the player to fight.",
+                        "images": [null]
+                      },
+                      {
+                        "phase": 7,
+                        "title": "The Smuggle",
+                        "description": "A challenging enemy appears, forcing the player to fight.",
+                        "images": [null]
+                      }
+                  ]
+              }
             ]
         },
         "arcadia": {

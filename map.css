@@ -1,3 +1,7 @@
+/* --------------------------- */
+/* General Styles & Navigation */
+/* --------------------------- */
+
 /* General Styles */
 body {
     font-family: 'Garamond', serif;
@@ -27,34 +31,6 @@ nav ul li {
     margin: 0 20px;
 }
 
-/* Ensure mission images in the popup fit properly */
-.mission-images img, 
-.phase-images img {
-    max-width: 100%;
-    height: auto;
-    max-height: 300px; /* Prevents images from being too large */
-    border-radius: 8px;
-    border: 2px solid #333;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    object-fit: contain; /* Ensures proper scaling */
-}
-
-/* Responsive Adjustments */
-@media screen and (max-width: 768px) {
-    .mission-images img, 
-    .phase-images img {
-        max-height: 250px; /* Reduce image size on smaller screens */
-    }
-}
-
-@media screen and (max-width: 480px) {
-    .mission-images img, 
-    .phase-images img {
-        max-height: 200px; /* Further reduce size for mobile */
-    }
-}
-
-
 nav ul li a {
     color: #f4e6d7;
     text-decoration: none;
@@ -68,11 +44,130 @@ nav ul li a:hover {
     text-shadow: 0px 0px 10px rgba(255, 204, 102, 0.8);
 }
 
-/* Section Styling */
+/* Section Styling (if needed elsewhere) */
 section {
     padding: 40px;
     max-width: 800px;
     margin: auto;
+}
+
+/* ---------------------- */
+/* Map & Marker Styling   */
+/* ---------------------- */
+
+/* Full-screen map container.
+   The top is offset to leave space for the navbar (assumed 60px tall) */
+#map-container {
+    position: fixed;
+    top: 60px; /* Adjust this value to match your navbar height */
+    left: 0;
+    width: 100%;
+    height: calc(100% - 60px);
+    background: #333;
+    overflow: hidden;
+    cursor: grab;
+}
+
+/* Change cursor when dragging */
+#map-container:active {
+    cursor: grabbing;
+}
+
+/* Transformable wrapper for panning/zooming */
+#map-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+}
+
+/* Map image styling */
+#map-image {
+    display: block;
+}
+
+/* Markers container styling */
+#markers-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Marker styling: using a WebP file as the marker image */
+.marker {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background: url('Images/Other/maps-and-flags.webp') no-repeat center center;
+    background-size: contain;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+/* ---------------------- */
+/* Modal Styling          */
+/* ---------------------- */
+
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.modal-buttons {
+    margin-top: 10px;
+}
+
+.modal-buttons button {
+    margin: 0 5px;
+}
+
+/* ---------------------- */
+/* Additional Provided CSS*/
+/* ---------------------- */
+
+/* Mission & Phase Images */
+.mission-images img, 
+.phase-images img {
+    max-width: 100%;
+    height: auto;
+    max-height: 300px;
+    border-radius: 8px;
+    border: 2px solid #333;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    object-fit: contain;
+}
+
+@media screen and (max-width: 768px) {
+    .mission-images img, 
+    .phase-images img {
+        max-height: 250px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .mission-images img, 
+    .phase-images img {
+        max-height: 200px;
+    }
 }
 
 /* Location Styling */
@@ -96,15 +191,14 @@ section {
     color: #f4e6d7;
 }
 
-/* Hide mission lists initially */
+/* Mission List & Details */
 .mission-list {
-    display: none;  /* Ensures they start hidden */
+    display: none;
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-/* Add smooth transition */
 .mission-list li {
     background: #2c1a0a;
     padding: 10px;
@@ -118,16 +212,13 @@ section {
     box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.3);
 }
 
-
 .mission-list li:hover {
     background: #4e2c14;
     color: #f4e6d7;
 }
 
-
-/* Mission Details */
 .mission-details {
-    display: none; /* Hidden by default, shown when clicked */
+    display: none;
     background: #2c1a0a;
     color: #f4e6d7;
     padding: 15px;
@@ -152,9 +243,7 @@ section {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
-
-
-/* Responsive Design */
+/* Responsive Adjustments for Mission Lists */
 @media (max-width: 600px) {
     ul#mission-list li {
         width: 100%;
@@ -165,7 +254,7 @@ section {
     }
 }
 
-/* Art categories */
+/* Art Categories */
 .category-list {
     margin-bottom: 20px;
 }
@@ -183,7 +272,8 @@ section {
 .category:hover {
     background-color: #f0c674;
 }
-/* General styles for art page */
+
+/* Art Page & Gallery */
 .land {
     margin-bottom: 20px;
 }
@@ -226,11 +316,11 @@ section {
     display: block;
 }
 
-
 .image-gallery img:hover {
     transform: scale(1.05);
     transition: 0.3s ease;
 }
+
 #imageDisplay img {
     width: 100%;
     height: auto;
@@ -239,62 +329,40 @@ section {
     display: block;
 }
 
-/* Make the category images look like the Missions ones */
 .category-list .category.active {
     background-color: #f0c674;
 }
 
-/* Mobile responsiveness */
-@media screen and (max-width: 768px) {
-    .image-gallery {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media screen and (max-width: 480px) {
-    .image-gallery {
-        grid-template-columns: 1fr;
-    }
-}
-
-
-/* Responsive Design */
+/* Responsive Design for Navigation */
 @media screen and (max-width: 768px) {
     nav ul {
-        flex-direction: row; /* Keep items in a row */
-        flex-wrap: wrap; /* Allow items to wrap instead of stacking */
-        justify-content: center; /* Keep items centered */
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
     }
-
     nav ul li {
-        margin: 5px; /* Adjust margin for better spacing */
-        flex: 1 1 auto; /* Ensure items adjust to fit */
+        margin: 5px;
+        flex: 1 1 auto;
     }
-
     nav ul li a {
-        font-size: 16px; /* Reduce font size slightly */
-        padding: 6px 10px; /* Reduce padding */
+        font-size: 16px;
+        padding: 6px 10px;
     }
 }
 
 @media screen and (max-width: 480px) {
     nav ul {
-        flex-direction: row; /* Keep items in a row */
-        flex-wrap: wrap; /* Allow items to wrap instead of stacking */
-        justify-content: center; /* Keep items centered */
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
     }
-
     nav ul li {
-        margin: 5px; /* Adjust margin for better spacing */
-        flex: 1 1 auto; /* Ensure items adjust to fit */
+        margin: 5px;
+        flex: 1 1 auto;
     }
-
     nav ul li a {
-        font-size: 14px; /* Reduce font size slightly for better fit */
-        padding: 4px 6px; /* Adjust padding to save space */
-        white-space: nowrap; /* Prevent text from wrapping to the next line */
+        font-size: 14px;
+        padding: 4px 6px;
+        white-space: nowrap;
     }
 }
-
-
-
