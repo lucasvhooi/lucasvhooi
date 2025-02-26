@@ -7,7 +7,7 @@
                     "id": "gelonusMQ_1",
                     "title": "The Royale Trails (MQ)",
                     "Encountered": "yes",
-                    "description": "Stinyk monkey",
+                    "description": "First mission=",
                     "images": [],
                     "phases": [
                         {
@@ -311,7 +311,71 @@
                         "description": "Once the party return to Mirstone with this information they are able to enter the Crestfallen and travel to Arcadia.",
                         "images": ["images/Characters/SecondWardenOfTheKing.webp", "images/Characters/JoeRitsFront.webp", "images/Locations/Etherwhite.webp"]
                       }
-  ]
+                  ],
+                  "loot": [
+                    {
+                      "name": "Golden Chalice",
+                      "description": "A richly decorated chalice imbued with ancient magic.",
+                      "value": "Rare"
+                    },
+                    {
+                      "name": "Ancient Tome",
+                      "description": "A book filled with forbidden lore.",
+                      "value": "Legendary"
+                    }
+                  ],
+                  "bosses": [
+                    {
+                      "name": "Hades, God of Death",
+                      "stats": {
+                        "AC": 22,
+                        "HP": 300,
+                        "Speed": "30 ft., fly 60 ft.",
+                        "STR": "24 (+7)",
+                        "DEX": "18 (+4)",
+                        "CON": "26 (+8)",
+                        "INT": "20 (+5)",
+                        "WIS": "18 (+4)",
+                        "CHA": "28 (+9)",
+                        "Saving Throws": "Con +15, Wis +11, Cha +16",
+                        "Damage Resistances": "Bludgeoning, Piercing, and Slashing (nonmagical)",
+                        "Damage Immunities": "Necrotic, Poison",
+                        "Condition Immunities": "Charmed, Frightened, Exhaustion, Paralyzed, Poisoned",
+                        "Senses": "Darkvision 120 ft., Passive Perception 14",
+                        "Languages": "All, Telepathy 120 ft.",
+                        "Challenge": "17 (Legendary)",
+                        "Legendary Resistance": "3/Day"
+                      },
+                      "abilities": [
+                        {
+                          "name": "Multiattack",
+                          "description": "Hades makes two attacks with his Reaper’s Scythe."
+                        },
+                        {
+                          "name": "Reaper’s Scythe",
+                          "description": "Melee Weapon Attack: +12 to hit, 5 ft. reach; Hit: 2d10+7 slashing + 3d10 necrotic damage. On hit, target must succeed on a DC18 Con save or lose max HP equal to half the necrotic damage."
+                        },
+                        {
+                          "name": "Chains of the Underworld",
+                          "description": "Recharge 5–6. Hades slams the ground to summon spectral chains in a 20-ft radius; target must succeed on a DC18 Str save or be restrained until the end of his next turn."
+                        },
+                        {
+                          "name": "Death’s Gaze",
+                          "description": "One creature within 60 ft must succeed on a DC18 Wis save or be frightened until the end of its next turn."
+                        },
+                        {
+                          "name": "Aura of Despair",
+                          "description": "Any enemy starting its turn within 30 ft must succeed on a DC18 Wis save or be frightened until the start of its next turn."
+                        },
+                        {
+                          "name": "Legendary Actions",
+                          "description": "Hades can take 3 legendary actions per round: Scythe Strike (1 action), Shadow Step (1 action), and Necrotic Burst (2 actions: 10-ft radius, DC18 Con, 3d6 necrotic damage)."
+                        }
+                      ],
+                      "description": "Hades wields the Reaper’s Scythe and commands the chains of the underworld. His overwhelming aura and devastating abilities mark him as a foe far beyond the capabilities of a level 4 party."
+                    }
+                    
+                  ]
                 },
                 {
                   "id": "gelonusMQ_10",

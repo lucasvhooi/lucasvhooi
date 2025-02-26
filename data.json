@@ -264,107 +264,105 @@
         "src": "Images/Characters/AkronSildor.webp",
         "Encountered": "yes",
         "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
+        "description": "A master of magic and a fearless knight sworn to protect Gelonus. Akron Sildor is a legendary figure known for his unyielding dedication to the kingdom. He stands as a bastion against darkness and danger.",
         "tags": ["Akron Sildor", "Gelonus", "master of magic"]
       },
       {
         "src": "Images/Characters/AphroditeFront.webp",
         "Encountered": "no",
         "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
+        "description": "The goddess of beauty Aphrodite is a figure of intrigue and desire. Her presence in the world is a curious one. Some claim she has the power to enchant and transform those who meet her eye.",
         "tags": ["Aphrodite", "god of beauty"]
       },
       {
         "src": "Images/Characters/Imp.webp",
         "Encountered": "yes",
         "backImage": "Images/Characters/ImpBack.webp",
-        "description": "",
+        "description": "This mischievous creature roams the shadows of Gelonus. Its small form and deceptive nature make it both an enigma and a threat. Little is known about its true intentions, but its actions carry great consequences.",
         "tags": ["imp"]
       },
       {
         "src": "Images/Characters/AylinBrightenloof.webp",
         "Encountered": "yes",
         "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
+        "description": "The queen of Gelonus, Aylin Brightenloof is a strong and wise leader who carries the heavy burden of governance with grace. She stands as the heart of the kingdom, beloved and respected by all.",
         "tags": ["Aylin Brightenloof", "queen", "king", "gelonus"]
       },
       {
         "src": "Images/Characters/BorisTheGreat.webp",
         "Encountered": "yes",
         "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
+        "description": "Boris The Great is a revered knight known for his tactical brilliance and formidable strength. His reputation as a protector of Gelonus has earned him the loyalty of many.",
         "tags": ["Boris The Great", "upgrade"]
       },
       {
         "src": "Images/Characters/DonatWard.webp",
         "Encountered": "yes",
         "backImage": null,
-        "description": "",
+        "description": "Donat Ward, known as the Hand of the King, is a knight entrusted with protecting the royal family. He is a loyal and determined protector, always ready to defend the kingdom.",
         "tags": ["Donat Ward", "hand of the king", "knight", "gelonus"]
       },
       {
         "src": "Images/Characters/FeyRedwoodFront.webp",
         "Encountered": "yes",
         "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
+        "description": "Fey Redwood is a half-elf knight with striking red hair. Known for her swift movements and sharp wit, she is an adept fighter and a fierce protector of Gelonus.",
         "tags": ["Fey Redwood", "half-elf", "red hair", "gelonus"]
       },
       {
         "src": "Images/Characters/GidionSolergaFront.webp",
         "Encountered": "yes",
         "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
+        "description": "Gidion Solerga, a financial backer in Gelonus, is an influential figure with a network of connections. Known for his blue masks, he has a mysterious air and is often seen in the company of the kingdom’s elite.",
         "tags": ["Gidion Solerga", "Blue masks", "financial backer", "gelonus"]
       },
       {
         "src": "Images/Characters/GodOfLiminality.webp",
         "Encountered": "no",
         "backImage": null,
-        "description": "",
+        "description": "The God of Liminality is a powerful and enigmatic figure from Arcadia. Known for his ability to control thresholds and transitions, he plays a critical role in the balance between worlds.",
         "tags": ["God Of Liminality", "Arcadia"]
       },
       {
         "src": "Images/Characters/HeiBaiFront.webp",
         "Encountered": "yes",
         "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
+        "description": "Hei Bai is a mysterious entity tied to the Spirit Realm. With his presence, he brings both fear and awe. His true nature is unknown, but he is closely connected to the kingdom’s spiritual balance.",
         "tags": ["Hei Bai", "Spirit Realm"]
       },
       {
         "src": "Images/Characters/Hoofdpiet.webp",
         "Encountered": "yes",
         "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
+        "description": "Hoofdpiet is a member of the Sinterklaas order. Known for his connection to coal and his relentless pursuit of justice, he is a fierce protector of Gelonus.",
         "tags": ["Hoofdpiet", "sinterklaas", "coal", "gelonus"]
       },
       {
         "src": "Images/Characters/IrvingAlric.webp",
         "Encountered": "yes",
         "backImage": null,
-        "description": "",
+        "description": "Irving Alric is a master of science with an expertise in fire-based technologies. His experiments have led to revolutionary discoveries, although his methods often raise ethical concerns.",
         "tags": ["Irving Alric", "fire", "master of science", "gelonus"]
       },
-
-
       {
         "src": "Images/Characters/IwanWarrick.webp",
         "Encountered": "yes",
         "backImage": null,
-        "description": "",
+        "description": "Iwan Warrick is the head of the City Watch in Gelonus. A disciplined warrior, he ensures the safety of the people while dealing with threats from both within and beyond the kingdom’s borders.",
         "tags": ["Iwan Warrick", "Head City Watch", "warrior", "gelonus"]
       },
       {
         "src": "Images/Characters/JahvisJundruk.webp",
         "Encountered": "no",
         "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
+        "description": "Jahvis Jundruk is a captain known as the Master of the Sea. He commands respect on the water, and his knowledge of naval combat makes him a vital asset to Gelonus’s defense.",
         "tags": ["Jahvis Jundruk", "Master of the sea", "captain", "gelonus"]
       },
       {
         "src": "Images/Characters/JoeRitsFront.webp",
         "Encountered": "yes",
         "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
+        "description": "Joe Rits is a traveler and bard known for his songs of adventure. His tales have spread throughout Gelonus, making him a beloved figure among the common folk.",
         "tags": ["Joe Rits", "party", "traveler", "bard", "gelonus"]
       },
       {
