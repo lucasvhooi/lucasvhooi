@@ -6,7 +6,7 @@ let originY = 0;
 const mapContainer = document.getElementById("map-container");
 const mapWrapper = document.getElementById("map-wrapper");
 
-// Update the transform style on the map wrapper
+// Update the transform on the map wrapper
 function updateTransform() {
   mapWrapper.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
 }
@@ -22,7 +22,7 @@ mapContainer.addEventListener("wheel", function(e) {
   const mouseX = e.clientX - rect.left;
   const mouseY = e.clientY - rect.top;
   
-  // Adjust the origin so the zoom centers on the mouse pointer
+  // Adjust the origin so the zoom centers on the pointer
   originX -= (mouseX - originX) * (newScale / scale - 1);
   originY -= (mouseY - originY) * (newScale / scale - 1);
   
@@ -59,7 +59,7 @@ document.addEventListener("mouseup", function() {
   }
 });
 
-/* --- Touch Support for Mobile --- */
+/* --- Touch Support (Mobile) --- */
 const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 if (isTouchDevice) {
   let touchStartX = 0, touchStartY = 0;
