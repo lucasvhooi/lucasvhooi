@@ -309,19 +309,24 @@
                         "phase": 8,
                         "title": "The Smuggle",
                         "description": "Once the party return to Mirstone with this information they are able to enter the Crestfallen and travel to Arcadia.",
-                        "images": ["images/Characters/SecondWardenOfTheKing.webp", "images/Characters/JoeRitsFront.webp", "images/Locations/Etherwhite.webp"]
+                        "images": ["images/Characters/SecondWardenOfTheKing.webp", "images/Characters/Hades.webp", "images/Characters/JoeRitsFront.webp", "Images/Characters/MorganDredge.webp", "images/Locations/Etherwhite.webp", "Images/Weapons/Wardbreaker bladeFront.webp"]
                       }
                   ],
                   "loot": [
                     {
-                      "name": "Golden Chalice",
-                      "description": "A richly decorated chalice imbued with ancient magic.",
-                      "value": "Rare"
+                      "name": "Wardbreaker Balde",
+                      "description": "Forged from black steel tempered by arcane fires, this longsword radiates disruptive energy that unsettles magical wards. Each swing reverberates with the echo of The Unyielding Fang’s unwavering resolve, marking it as a weapon of defiance.",
+                      "value": "Epic"
                     },
                     {
-                      "name": "Ancient Tome",
-                      "description": "A book filled with forbidden lore.",
-                      "value": "Legendary"
+                      "name": "Obsidian Ring of Silence",
+                      "description": "A sleek, jet‑black ring crafted from obsidian, said to mute the sounds around its wearer. Once worn, it grants near-perfect silence, a prized ability for sneaking into the most secure areas of the Sanctum. makes everything + 16 a crit",
+                      "value": "25GP"
+                    },
+                    {
+                      "name": "3 Pirate Coins",
+                      "description": "Coins needed to enter the Crestfallen",
+                      "value": "300GP P/C"
                     }
                   ],
                   "bosses": [
@@ -373,8 +378,60 @@
                         }
                       ],
                       "description": "Hades wields the Reaper’s Scythe and commands the chains of the underworld. His overwhelming aura and devastating abilities mark him as a foe far beyond the capabilities of a level 4 party."
+                    },
+                    {
+                      "name": "The Unyielding Fang",
+                      "stats": {
+                        "Armor Class": "18 (natural armor)",
+                        "Hit Points": "150",
+                        "Speed": "30 ft.",
+                        "STR": "18 (+4)",
+                        "DEX": "14 (+2)",
+                        "CON": "16 (+3)",
+                        "INT": "10 (+0)",
+                        "WIS": "12 (+1)",
+                        "CHA": "14 (+2)",
+                        "Saving Throws": "CON +5, WIS +3",
+                        "Damage Resistances": "None",
+                        "Damage Immunities": "None",
+                        "Condition Immunities": "Frightened",
+                        "Senses": "Passive Perception 11",
+                        "Languages": "Common, Giant",
+                        "Challenge": "5"
+                      },
+                      "abilities": [
+                        {
+                          "name": "Multiattack",
+                          "description": "The Unyielding Fang makes two melee attacks: one with his Sword Slash and one with his Gauntlet Smash."
+                        },
+                        {
+                          "name": "Sword Slash",
+                          "description": "Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 1d8 + 4 slashing damage."
+                        },
+                        {
+                          "name": "Gauntlet Smash",
+                          "description": "Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 1d6 + 4 bludgeoning damage. On a hit, the target must succeed on a DC 14 Strength saving throw or be knocked prone."
+                        },
+                        {
+                          "name": "Adaptive Shield",
+                          "description": "The Unyielding Fang becomes invulnerable to the last two damage types that hit him, forcing enemies to vary their tactics."
+                        },
+                        {
+                          "name": "Disintegrate Grip",
+                          "description": "When The Unyielding Fang grabs a player's weapon or armor, the target must succeed on a DC 15 Strength check. On a failure, he makes an additional attack roll; if that hits, the item is turned to dust forever."
+                        },
+                        {
+                          "name": "Frightening Roar",
+                          "description": "As an action, The Unyielding Fang emits a terrifying roar. Each creature within 10 ft. must succeed on a DC 13 Wisdom saving throw or be frightened until the end of its next turn."
+                        },
+                        {
+                          "name": "Shadow Step",
+                          "description": "As a bonus action, The Unyielding Fang can move up to half his speed without provoking opportunity attacks."
+                        }
+                      ],
+                      "description": "The second Warden of the King, The Unyielding Fang stands vigilant in battered armor at the Truth Sanctum of Gelonus. He adapts to foes by becoming invulnerable to their last two damage types, and can disintegrate a target’s weapon or armor with a single crushing grip. With powerful melee attacks, fearsome roars, and the ability to vanish in the shadows, he presents a daunting challenge for adventurers."
                     }
-                    
+                     
                   ]
                 },
                 {

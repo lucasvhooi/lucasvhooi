@@ -1,10 +1,4 @@
-/******************************************************
- * script.js
- * Loads missions from JSON and displays them in a list.
- * If DM mode (admin), also shows hidden missions & extra info.
- ******************************************************/
 document.addEventListener("DOMContentLoaded", () => {
-  // Determine if the user is in admin mode or not.
   const isAdmin = localStorage.getItem("isAdmin") === "true";
 
   fetch("missions.json")
@@ -13,52 +7,44 @@ document.addEventListener("DOMContentLoaded", () => {
     .catch(error => console.error("Error loading missions:", error));
 });
 
-/**
- * Loads the mission data and populates the mission list for each location.
- */
 function loadMissions(locations, isAdmin) {
   const locationList = document.getElementById("location-list");
-  locationList.innerHTML = ""; // Clear any existing content
+  locationList.innerHTML = ""; // Clear existing content
 
-  // For each location, create a clickable div and a hidden list of missions
   Object.keys(locations).forEach(locationKey => {
     const locationData = locations[locationKey];
 
-    // Create a div for the location name
+    // Location name (clickable)
     const locationDiv = document.createElement("div");
     locationDiv.classList.add("location");
     locationDiv.textContent = locationData.name;
     locationDiv.onclick = () => toggleMissions(locationKey);
 
-    // Create an unordered list to hold the missions
+    // Hidden mission list
     const missionList = document.createElement("ul");
     missionList.classList.add("mission-list");
     missionList.id = locationKey;
-    missionList.style.display = "none"; // Hide the mission list by default
+    missionList.style.display = "none";
 
-    // Loop through each mission in this location
+    // Populate missions
     locationData.missions.forEach(mission => {
-      // If in admin mode, show all missions; otherwise, only show Encountered === "yes"
+      // Show all if DM; else only "Encountered: yes"
       if (isAdmin || (mission.Encountered && mission.Encountered.toLowerCase() === "yes")) {
         const missionItem = document.createElement("li");
         missionItem.textContent = mission.title;
         missionItem.onclick = (event) => {
-          event.stopPropagation(); // Prevent the location's click event from firing
+          event.stopPropagation();
           showMissionDetails(mission, missionItem);
         };
         missionList.appendChild(missionItem);
       }
     });
 
-    // Append the location div and its mission list to the main container
     locationList.appendChild(locationDiv);
     locationList.appendChild(missionList);
   });
 }
 
-/**
- * Toggles the visibility of the mission list for a location.
- */
 function toggleMissions(locationId) {
   const missionList = document.getElementById(locationId);
   missionList.style.display = (missionList.style.display === "none" || missionList.style.display === "")
@@ -66,16 +52,14 @@ function toggleMissions(locationId) {
     : "none";
 }
 
-/***************************************************
- * Helper: Creates a 5e-style stat block from a
- * boss.stats object. Returns a <div> with HTML.
- **************************************************/
+/********************************************************************
+ * Creates a 5e-style stat block from boss.stats (AC, HP, Speed, etc.)
+ ********************************************************************/
 function createBossStatBlock(stats) {
-  // Create the overall container
   const statBlockDiv = document.createElement("div");
   statBlockDiv.classList.add("boss-stat-block");
 
-  // Armor Class, Hit Points, Speed (only if present)
+  // AC, HP, Speed
   if (stats["Armor Class"]) {
     statBlockDiv.innerHTML += `<p><strong>Armor Class:</strong> ${stats["Armor Class"]}</p>`;
   }
@@ -86,7 +70,7 @@ function createBossStatBlock(stats) {
     statBlockDiv.innerHTML += `<p><strong>Speed:</strong> ${stats["Speed"]}</p>`;
   }
 
-  // If the boss has STR/DEX/CON/INT/WIS/CHA, display them in a small table
+  // STR, DEX, CON, INT, WIS, CHA
   const coreAbilities = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
   const hasAllSix = coreAbilities.every(ab => stats[ab]);
   if (hasAllSix) {
@@ -109,7 +93,7 @@ function createBossStatBlock(stats) {
     statBlockDiv.appendChild(table);
   }
 
-  // Display other stats (Saving Throws, Resistances, etc.) if they exist
+  // Other fields (Saving Throws, Resistances, etc.)
   const otherKeys = [
     "Saving Throws", "Skills", "Damage Resistances", "Damage Immunities",
     "Condition Immunities", "Senses", "Languages", "Challenge", "Legendary Resistance"
@@ -123,28 +107,27 @@ function createBossStatBlock(stats) {
   return statBlockDiv;
 }
 
-/**
- * Main function: Called when a mission is clicked.
- * Shows mission details, phases, loot, and bosses in 5e style.
- */
+/******************************************************
+ * Displays mission details, phases, LOOT, BOSSES, etc.
+ ******************************************************/
 function showMissionDetails(mission, missionItem) {
   console.log("Displaying mission details for:", mission.title);
 
-  // Remove any previously displayed mission details
+  // Remove old details
   document.querySelectorAll(".mission-details").forEach(el => el.remove());
 
-  // Create a new container for the mission details
+  // Create container
   const detailsDiv = document.createElement("div");
   detailsDiv.classList.add("mission-details");
   detailsDiv.style.display = "block";
 
-  // 1. Mission title & description
+  // Title & description
   detailsDiv.innerHTML = `<h2>${mission.title}</h2>`;
   if (mission.description) {
     detailsDiv.innerHTML += `<p>${mission.description}</p>`;
   }
 
-  // 2. Mission images
+  // Mission images
   if (mission.images && mission.images.length > 0) {
     const imagesDiv = document.createElement("div");
     imagesDiv.classList.add("mission-images");
@@ -158,7 +141,7 @@ function showMissionDetails(mission, missionItem) {
     detailsDiv.appendChild(imagesDiv);
   }
 
-  // 3. Mission phases
+  // Mission phases
   if (mission.phases && mission.phases.length > 0) {
     const phasesDiv = document.createElement("div");
     phasesDiv.classList.add("mission-phases");
@@ -185,59 +168,89 @@ function showMissionDetails(mission, missionItem) {
         });
         phaseDiv.appendChild(phaseImagesDiv);
       }
-
       phasesDiv.appendChild(phaseDiv);
     });
 
     detailsDiv.appendChild(phasesDiv);
   }
 
-  // 4. DM-only sections: Loot & Bosses
+  // DM sections
   const isAdmin = localStorage.getItem("isAdmin") === "true";
   if (isAdmin) {
-    // Loot
+    /************
+     * LOOT
+     ************/
     if (mission.loot && mission.loot.length > 0) {
       const lootDiv = document.createElement("div");
       lootDiv.classList.add("mission-loot");
-      lootDiv.innerHTML = `<h3>Loot</h3>`;
+
+      // Create the heading with an arrow
+      const lootHeader = document.createElement("h3");
+      lootHeader.classList.add("toggle-header");
+      lootHeader.innerHTML = `Loot <span class="toggle-arrow">▼</span>`;
+      lootDiv.appendChild(lootHeader);
+
+      // Create a container for loot items
+      const lootContent = document.createElement("div");
+      lootContent.classList.add("toggle-content");
+
       mission.loot.forEach(item => {
-        lootDiv.innerHTML += `<p><strong>${item.name}</strong>: ${item.description} (Value: ${item.value})</p>`;
+        lootContent.innerHTML += `<p><strong>${item.name}</strong>: ${item.description} (Value: ${item.value})</p>`;
       });
+      lootDiv.appendChild(lootContent);
+
+      // Add toggle event
+      lootHeader.addEventListener("click", () => {
+        lootContent.classList.toggle("hidden");
+        const arrow = lootHeader.querySelector(".toggle-arrow");
+        arrow.textContent = (arrow.textContent === "▼") ? "►" : "▼";
+      });
+
       detailsDiv.appendChild(lootDiv);
     }
 
-    // Bosses
+    /************
+     * BOSSES
+     ************/
     if (mission.bosses && mission.bosses.length > 0) {
       const bossesDiv = document.createElement("div");
       bossesDiv.classList.add("mission-bosses");
-      bossesDiv.innerHTML = `<h3>Bosses</h3>`;
 
+      // Bosses heading with arrow
+      const bossesHeader = document.createElement("h3");
+      bossesHeader.classList.add("toggle-header");
+      bossesHeader.innerHTML = `Bosses <span class="toggle-arrow">▼</span>`;
+      bossesDiv.appendChild(bossesHeader);
+
+      // Container for boss data
+      const bossesContent = document.createElement("div");
+      bossesContent.classList.add("toggle-content");
+
+      // For each boss
       mission.bosses.forEach(boss => {
         const bossContainer = document.createElement("div");
         bossContainer.classList.add("boss-container");
 
-        // Boss Name
+        // Boss name
         bossContainer.innerHTML += `<h4 class="boss-name">${boss.name}</h4>`;
 
-        // Stat Block (only if we have an object)
+        // Stat block
         if (boss.stats && typeof boss.stats === "object") {
           const statBlock = createBossStatBlock(boss.stats);
           bossContainer.appendChild(statBlock);
         }
 
-        // Abilities array (if it exists)
+        // Abilities
         if (boss.abilities && Array.isArray(boss.abilities) && boss.abilities.length > 0) {
           const abilitiesDiv = document.createElement("div");
           abilitiesDiv.classList.add("boss-abilities");
           abilitiesDiv.innerHTML = `<h5>Abilities</h5><ul></ul>`;
           const ul = abilitiesDiv.querySelector("ul");
-
           boss.abilities.forEach(ability => {
             const li = document.createElement("li");
             li.innerHTML = `<strong>${ability.name}:</strong> ${ability.description}`;
             ul.appendChild(li);
           });
-
           bossContainer.appendChild(abilitiesDiv);
         }
 
@@ -246,13 +259,22 @@ function showMissionDetails(mission, missionItem) {
           bossContainer.innerHTML += `<p class="boss-description">${boss.description}</p>`;
         }
 
-        bossesDiv.appendChild(bossContainer);
+        bossesContent.appendChild(bossContainer);
+      });
+
+      bossesDiv.appendChild(bossesContent);
+
+      // Toggle event for bosses
+      bossesHeader.addEventListener("click", () => {
+        bossesContent.classList.toggle("hidden");
+        const arrow = bossesHeader.querySelector(".toggle-arrow");
+        arrow.textContent = (arrow.textContent === "▼") ? "►" : "▼";
       });
 
       detailsDiv.appendChild(bossesDiv);
     }
   }
 
-  // 5. Insert the mission details immediately after the clicked mission item
+  // Insert the mission details after the clicked mission item
   missionItem.insertAdjacentElement("afterend", detailsDiv);
 }

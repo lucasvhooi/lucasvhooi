@@ -188,6 +188,8 @@ section {
     margin-bottom: 20px;
 }
 
+
+
 .land-button, .category-button {
     font-size: 18px;
     font-weight: bold;
@@ -244,6 +246,122 @@ section {
     background-color: #f0c674;
 }
 
+/* BOSS WINDOW ---------------------------------------------------------------------------------------------------------------------
+/* Toggle heading & arrow styling */
+.toggle-header {
+    cursor: pointer;
+    display: inline-block;
+    margin: 0;
+    font-size: 18px;
+    color: #ffcc66; /* pick any color you want for the heading */
+  }
+  .toggle-arrow {
+    font-weight: bold;
+    margin-left: 5px;
+  }
+  
+  /* Toggle content hidden class */
+  .toggle-content.hidden {
+    display: none;
+  }
+/* Bosses Section Container: tighter spacing */
+.mission-bosses {
+    margin-top: 5px;
+    padding: 5px;
+    background-color: #1f1f1f;
+    border-radius: 6px;
+  }
+
+  .mission-loot{
+    margin-top: 5px;
+    padding: 5px;
+    background-color: #1f1f1f;
+    border-radius: 6px;
+
+  }
+  
+  /* Each Boss Container: minimal spacing & smaller border */
+  .boss-container {
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #444;
+  }
+  
+  /* Boss Name: slightly smaller font & less margin */
+  .boss-name {
+    font-size: 25px;
+    margin-bottom: 3px;
+    color: #fff;
+  }
+  
+  /* The 5e-Style Stat Block Container: more condensed */
+  .boss-stat-block {
+    background-color: #2a2a2a;
+    border-radius: 4px;
+    padding: 5px;
+    margin-bottom: 5px;
+    color: #e2e2e2;
+    line-height: 1.2; /* Tighter line spacing */
+    font-size: 12px; /* Smaller text overall */
+  }
+  
+  /* Lines for AC, HP, Speed, etc.: center text & minimal margins */
+  .boss-stat-block p {
+    margin: 2px 0;
+    text-align: center;
+  }
+  
+  /* Table for STR/DEX/CON/INT/WIS/CHA: narrower cells & centered text */
+  .boss-ability-scores {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 4px 0;
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .boss-ability-scores th,
+  .boss-ability-scores td {
+    border: 1px solid #444;
+    padding: 3px 6px; /* Tighter padding */
+    text-align: center;
+    vertical-align: middle; /* Vertically center the text */
+    background-color: #333;
+    color: #fff;
+    font-size: 12px; /* Match the smaller font */
+  }
+  
+  .boss-ability-scores th {
+    background-color: #710d09;
+  }
+  
+  /* Abilities List: smaller margins & font */
+  .boss-abilities h5 {
+    margin: 4px 0 2px;
+    font-size: 13px;
+    color: #fff;
+    text-align: center; /* Center the “Abilities” header */
+  }
+  
+  .boss-abilities ul {
+    margin: 0;
+    padding-left: 16px; /* Indent list slightly */
+  }
+  
+  .boss-abilities li {
+    margin-bottom: 2px;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+  
+  /* Boss Description: minimal top margin */
+  .boss-description {
+    margin-top: 3px;
+    font-size: 12px;
+    color: #ccc;
+    text-align: center; /* Center or change to 'left' if you prefer */
+  }
+
 /* Mobile responsiveness */
 @media screen and (max-width: 768px) {
     .image-gallery {
@@ -294,93 +412,8 @@ section {
         padding: 4px 6px; /* Adjust padding to save space */
         white-space: nowrap; /* Prevent text from wrapping to the next line */
     }
-/* Bosses Section Container: tighter spacing */
-.mission-bosses {
-    margin-top: 5px;
-    padding: 5px;
-    background-color: #1f1f1f;
-    border-radius: 6px;
-  }
-  
-  /* Each Boss Container: minimal spacing & smaller border */
-  .boss-container {
-    margin-bottom: 6px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid #444;
-  }
-  
-  /* Boss Name: slightly smaller font & less margin */
-  .boss-name {
-    font-size: 16px;
-    margin-bottom: 3px;
-    color: #fff;
-  }
-  
-  /* The 5e-Style Stat Block Container: more condensed */
-  .boss-stat-block {
-    background-color: #2a2a2a;
-    border-radius: 4px;
-    padding: 5px;
-    margin-bottom: 5px;
-    color: #e2e2e2;
-    line-height: 1.2; /* Tighter line spacing */
-    font-size: 12px; /* Smaller text overall */
-  }
-  
-  /* Lines for AC, HP, Speed, etc.: center text & minimal margins */
-  .boss-stat-block p {
-    margin: 2px 0;
-    text-align: center;
-  }
-  
-  /* Table for STR/DEX/CON/INT/WIS/CHA: narrower cells & centered text */
-  .boss-ability-scores {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 4px 0;
-  }
-  
-  .boss-ability-scores th,
-  .boss-ability-scores td {
-    border: 1px solid #444;
-    padding: 3px 6px; /* Tighter padding */
-    text-align: center;
-    vertical-align: middle; /* Vertically center the text */
-    background-color: #333;
-    color: #fff;
-    font-size: 12px; /* Match the smaller font */
-  }
-  
-  .boss-ability-scores th {
-    background-color: #444;
-  }
-  
-  /* Abilities List: smaller margins & font */
-  .boss-abilities h5 {
-    margin: 4px 0 2px;
-    font-size: 13px;
-    color: #fff;
-    text-align: center; /* Center the “Abilities” header */
-  }
-  
-  .boss-abilities ul {
-    margin: 0;
-    padding-left: 16px; /* Indent list slightly */
-  }
-  
-  .boss-abilities li {
-    margin-bottom: 2px;
-    font-size: 12px;
-    line-height: 1.2;
-  }
-  
-  /* Boss Description: minimal top margin */
-  .boss-description {
-    margin-top: 3px;
-    font-size: 12px;
-    color: #ccc;
-    text-align: center; /* Center or change to 'left' if you prefer */
-  }
+
+    
   
   
 }
