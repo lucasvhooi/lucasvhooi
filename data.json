@@ -10,7 +10,7 @@
       },
       {
         "src": "Images/Weapons/Volcanic Edge.webp",
-        "Encountered": "yes",
+        "Encountered": "no",
         "backImage": "Images/Weapons/Volcanic EdgeBack.webp",
         "description": null,
         "video": "images/Characters/hadesVideo.mp4",
@@ -105,6 +105,13 @@
         "backImage": "Images/Items/AzmossChessPieceBack.webp",
         "description": "DOES NOT WORK",
         "tags": ["Azmos", "Chess Piece", "Key Item"]
+      },
+      {
+        "src": "Images/Items/MimirsGaze.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "DOES NOT WORK",
+        "tags": ["Mimirs Gaze"]
       },
       {
         "src": "Images/Items/Frostbeardsbrewfront.webp",
@@ -476,7 +483,7 @@
       },
       {
         "src": "Images/Characters/Melinoe.webp",
-        "Encountered": "yes",
+        "Encountered": "no",
         "backImage": null,
         "description": "",
         "tags": ["sword", "fire", "legendary"]
@@ -501,7 +508,7 @@
       },
       {
         "src": "Images/Armor/Pyrelight Cloak.webp",
-        "Encountered": "yes",
+        "Encountered": "no",
         "backImage": "Images/Armor/Pyrelight CloakBack.webp",
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["Pyrelight Cloak", "robe"]
@@ -565,7 +572,7 @@
       },
       {
         "src": "Images/Armor/Cindergrasp Gauntlets.webp",
-        "Encountered": "yes",
+        "Encountered": "no",
         "backImage": "Images/Armor/Cindergrasp GauntletsBack.webp",
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Cindergrasp Gauntlets", "Gloves", "Fire"]
@@ -604,7 +611,7 @@
       },
       {
         "src": "Images/Locations/Silverleaf.webp",
-        "Encountered": "yes",
+        "Encountered": "no",
         "backImage": null,
         "description": null,
         "tags": ["Silver leaf", "Silverleaf", "elf", "forest"]
@@ -778,7 +785,7 @@
       },
       {
         "src": "Images/Locations/HeimdallsVigil.webp",
-        "Encountered": "yes",
+        "Encountered": "no",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["Yarn", "gelonus", "Village"]
