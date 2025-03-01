@@ -502,7 +502,7 @@
       {
         "src": "Images/Armor/HoofdpietsMask.webp",
         "Encountered": "yes",
-        "backImage": "Images/Armor/HoofdpietsMaskBack.webP",
+        "backImage": "Images/Armor/HoofdpietsMaskBack.webp",
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["piest", "zwart", "zwartepiet", "Hoofdpiet", "mask", "Hoofdpiet mask"]
       },
