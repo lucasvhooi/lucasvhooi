@@ -91,7 +91,7 @@
         "description": "Forged from black steel tempered by arcane fires, this longsword radiates disruptive energy that unsettles magical wards. Each swing reverberates with the echo of The Unyielding Fang’s unwavering resolve, marking it as a weapon of defiance.",
         "src": "Images/Weapons/Wardbreaker bladeFront.webp",
         "backImage": "Images/Weapons/Wardbreaker bladeBack.webp",
-        "Encountered": "no",
+        "Encountered": "yes",
         "tags": ["Wardbreaker Blade", "Sword", "warden"]
       }
 
@@ -459,14 +459,14 @@
       },
       {
         "src": "Images/Characters/Hades.webp",
-        "Encountered": "no",
+        "Encountered": "yes",
         "backImage": null,
         "description": "",
         "tags": ["hell", "hades", "god of death"]
       },
       {
         "src": "Images/Characters/MorganDredge.webp",
-        "Encountered": "no",
+        "Encountered": "yes",
         "backImage": null,
         "description": "",
         "tags": ["Morgan Dredge", "captain", "pirate", "The Crestfallen"]
@@ -558,7 +558,7 @@
 
       {
         "src": "Images/Armor/NecklaceoftheGlimmeringSea.webp",
-        "Encountered": "no",
+        "Encountered": "yes",
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Necklace of the Glimmering Sea", "Sea", "Necklace"]
@@ -579,7 +579,7 @@
       },
       {
         "src": "Images/Armor/ObsidianRingofSilence.webp",
-        "Encountered": "no",
+        "Encountered": "yes",
         "backImage": null,
         "description": "A sleek, jet‑black ring crafted from obsidian, said to mute the sounds around its wearer. Once worn, it grants near-perfect silence, a prized ability for sneaking into the most secure areas of the Sanctum.",
         "tags": ["Obsidian Ring of Silence"]
@@ -741,7 +741,7 @@
 
       {
         "src": "Images/Locations/TheCrestefallen.webp",
-        "Encountered": "no",
+        "Encountered": "yes",
         "backImage": null,
         "description": "A mechanical marvel used to delve into the unknown.",
         "tags": ["The Creste fallen", "ship", "boat", "pirate"]
