@@ -556,7 +556,7 @@
                 "title": "The Crestfallen's Curse (MQ)",
                 "Encountered": "no",
                 "description": null,
-                "images": ["Images/Locations/TheCrestefallen.webp","Images/Locations/TheCrestefallenGhostship.webp","Images/Characters/MorganDredge.webp", "Images/Armor/AnchorhookGauntletFront copy.webp", "Images/Characters/Kraken.webp"],
+                "images": ["Images/Locations/TheCrestefallen.webp","Images/Locations/TheCrestefallenGhostship.webp","Images/Characters/MorganDredge.webp", "Images/Armor/AnchorhookGauntletFront copy.webp", "Images/Characters/Kraken.webp", "Images/Maps/BoatLayout.webp"],
                 "phases": [
                   
                     {
@@ -570,7 +570,7 @@
                           "solution": "Everyone starts with 5 cards. The person with the highest amount of red cards numbers combined win. the black cards are cursed and are points that get taken off the total. King, Queen, Joker, and A are all -10 or +10, There are 2 rounds where each player gets a card that they can look at. They can choose to swap a card from their hands with the one on the table. After each round there is a bluff so when the cards are dealt and after each round of swapping. players can choose to fold or bet more money. everyone needs to bet the same amount or higher. ",
                           "reward": "have the highest amount of points combined. Win the money!"
                         },
-                        
+
                         {
                           "title": "Lore Table – The Circle of Steel",
                           "setup": "Table 2, scorched in a ring pattern with two rusted blades embedded in its surface. The wood is splintered, as if from repeated blows.",
