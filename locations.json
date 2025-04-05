@@ -436,7 +436,15 @@
                     "wealth": null,
                     "map": null,
                     "description": null
-                }
+                },
+                "Thule14": {
+                    "name": "14) Sanctum Salora",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": "Radiating soft luminescence, this majestic tower’s delicate arches and runic inscriptions inspire both awe and steadfast courage."
+                },
             }
         },
         "Hermesia": {

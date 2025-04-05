@@ -696,7 +696,7 @@
                     {
                       "phase": 5,
                       "title": "The Night of the Murder",
-                      "description": "The crew is in position. The party must split up, each member assigned to one of the four targets: Captain, First Mate, Second Mate, and Peacekeeper. Each leader is in a different chamber of the ship, guarded by six crew members now loyal to the rebellion. Their job: restrain. The party's job: kill. The plan must happen quickly, before alarms are raised.",
+                      "description": "The crew is in position. The party must split up, each member assigned to one of the four targets: Captain, First Mate, Second Mate, and Peacekeeper. Each leader is in a different chamber of the ship, followed by six crew members now loyal to the rebellion. Their job: restrain. The party's job: kill. The plan must happen quickly, before alarms are raised.",
                       "images": [],
                       "puzzleSteps": [
                         {
@@ -890,16 +890,6 @@
                   {
                     "name": "HoofdpietsMask",
                     "description": "Mask gained by killing and looting hoofdpiet",
-                    "value": "Unkown"
-                  },
-                  {
-                    "name": "Miter of Sinterklaas",
-                    "description": "The holy miter of Sinterklaas. Gain by killing and looting sinterklaas",
-                    "value": "Unkown"
-                  },
-                  {
-                    "name": "Nutcracker Chain",
-                    "description": "Chain gained by rolling a nat 20 on the presents",
                     "value": "Unkown"
                   }
                 ],
