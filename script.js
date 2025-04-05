@@ -151,9 +151,55 @@ function showMissionDetails(mission, missionItem) {
       phaseDiv.classList.add("mission-phase");
 
       phaseDiv.innerHTML = `<h3>Phase ${phase.phase}: ${phase.title}</h3>`;
+
+      
       if (phase.description) {
         phaseDiv.innerHTML += `<p>${phase.description}</p>`;
+
+        if (phase.puzzleSteps && Array.isArray(phase.puzzleSteps) && phase.puzzleSteps.length > 0) {
+          const puzzleStepsDiv = document.createElement("div");
+          puzzleStepsDiv.classList.add("mission-puzzle-steps");
+        
+          // Create header with toggle arrow (default closed state)
+          const puzzleHeader = document.createElement("h4");
+          puzzleHeader.classList.add("toggle-header");
+          puzzleHeader.innerHTML = `Puzzle Steps <span class="toggle-arrow">►</span>`;
+          puzzleStepsDiv.appendChild(puzzleHeader);
+        
+          // Create container for puzzle step content, hidden by default
+          const puzzleContent = document.createElement("div");
+          puzzleContent.classList.add("toggle-content", "hidden");
+        
+          phase.puzzleSteps.forEach((step, index) => {
+            const stepDiv = document.createElement("div");
+            stepDiv.classList.add("puzzle-step");
+        
+            // Build HTML for each step, including puzzle title if provided
+            stepDiv.innerHTML = `
+              <p><strong>Step ${index + 1}:</strong></p>
+              ${step.title ? `<p><strong>Title:</strong> ${step.title}</p>` : ""}
+              <p><strong>Setup:</strong> ${step.setup ? step.setup : "N/A"}</p>
+              <p><strong>Solution:</strong> ${step.solution ? step.solution : "N/A"}</p>
+              <p><strong>Reward:</strong> ${step.reward ? step.reward : "N/A"}</p>
+            `;
+            puzzleContent.appendChild(stepDiv);
+          });
+        
+          puzzleStepsDiv.appendChild(puzzleContent);
+        
+          // Toggle event for the puzzle steps section
+          puzzleHeader.addEventListener("click", () => {
+            puzzleContent.classList.toggle("hidden");
+            const arrow = puzzleHeader.querySelector(".toggle-arrow");
+            arrow.textContent = (arrow.textContent === "►") ? "▼" : "►";
+          });
+        
+          phaseDiv.appendChild(puzzleStepsDiv);
+        }
+        
+        
       }
+      
 
       // Phase images
       if (phase.images && phase.images.length > 0) {
@@ -173,6 +219,8 @@ function showMissionDetails(mission, missionItem) {
 
     detailsDiv.appendChild(phasesDiv);
   }
+
+  
 
   // DM sections
   const isAdmin = localStorage.getItem("isAdmin") === "true";

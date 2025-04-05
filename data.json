@@ -93,6 +93,14 @@
         "backImage": "Images/Weapons/Wardbreaker bladeBack.webp",
         "Encountered": "yes",
         "tags": ["Wardbreaker Blade", "Sword", "warden"]
+      },
+      {
+        "name": "Joe Rits Balladstring",
+        "description": "Forged from black steel tempered by arcane fires, this longsword radiates disruptive energy that unsettles magical wards. Each swing reverberates with the echo of The Unyielding Fang’s unwavering resolve, marking it as a weapon of defiance.",
+        "src": "Images/Weapons/JoeRitsBalladstringFront.webp",
+        "backImage": "Images/Weapons/JoeRitsBalladstringBack.webp",
+        "Encountered": "yes",
+        "tags": ["Joe Rits", "Guitar", "Balladstring"]
       }
 
     ],
@@ -470,6 +478,21 @@
         "backImage": null,
         "description": "",
         "tags": ["Morgan Dredge", "captain", "pirate", "The Crestfallen"]
+      },      
+      
+      {
+        "src": "Images/Characters/Kraken.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "",
+        "tags": ["Kraken", "sea", "pandora's box of the sea poseidon"]
+      },
+      {
+        "src": "Images/Characters/Wyrmsign.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "",
+        "tags": ["Red Dragon", "Thule", "Fire"]
       },
 
 
@@ -590,6 +613,13 @@
         "backImage": "Images/Armor/HelmetOfAchillesBack.webp",
         "description": "",
         "tags": ["Helmet Of Achilles", "God"]
+      },
+      {
+        "src": "Images/Armor/AnchorhookGauntletFront copy.webp",
+        "Encountered": "no",
+        "backImage": "Images/Armor/AnchorhookGauntletBack.webp",
+        "description": "",
+        "tags": ["Anchorhook Gauntlet", "The Creste fallen","Ocean","Gauntlet"]
       }
     ],
 
@@ -601,6 +631,27 @@
         "backImage": null,
         "description": "ArcaneBoreMKVI: In the spectral gloom of the Spirit Realm, amidst forests where the mist clings to the trunks of towering, gnarled trees, lies the ArcaneBore MKVI, its glowing drill-head a beacon of purpose and danger.",
         "tags": ["ArcaneBoreMKVI", "Bore", "Arcane", "Hei Bai", "Spirit"]
+      },
+      {
+        "src": "Images/Locations/TheTruthSanctum.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "",
+        "tags": ["The Truth Sanctum", "Warden","Gelonus"]
+      },
+      {
+        "src": "Images/Locations/TheCrestefallenGhostship.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "",
+        "tags": ["The Crestefallen Ghost Ship", "Boat"]
+      },
+      {
+        "src": "Images/Locations/SanctumSolara.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "",
+        "tags": ["Sanctum Solara", "Thule","Paladin Guilde"]
       },
       {
         "src": "Images/Locations/AzmosRoots.webp",

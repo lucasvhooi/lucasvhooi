@@ -8,6 +8,10 @@ body {
     text-align: center;
 }
 
+.toggle-content.hidden {
+    display: none;
+  }
+
 /* Navigation Bar */
 nav {
     background: linear-gradient(to right, #5e3b20, #2c1a0a);
@@ -279,6 +283,8 @@ section {
     border-radius: 6px;
 
   }
+
+  
   
   /* Each Boss Container: minimal spacing & smaller border */
   .boss-container {

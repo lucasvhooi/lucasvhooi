@@ -261,7 +261,7 @@
                     "title": "The Truth Sanctum (MQ)",
                     "Encountered": "yes",
                     "description": null,
-                    "images": [],
+                    "images": ["Images/Weapons/JoeRitsBalladstringFront.webp", "Images/Locations/TheTruthSanctum.webp"],
                     "phases": [
                       {
                         "phase": 1,
@@ -309,7 +309,7 @@
                         "phase": 8,
                         "title": "The Smuggle",
                         "description": "Once the party return to Mirstone with this information they are able to enter the Crestfallen and travel to Arcadia.",
-                        "images": ["images/Characters/SecondWardenOfTheKing.webp", "images/Characters/Hades.webp", "images/Characters/JoeRitsFront.webp", "Images/Characters/MorganDredge.webp", "images/Locations/Etherwhite.webp", "Images/Weapons/Wardbreaker bladeFront.webp"]
+                        "images": ["Images/Characters/SecondWardenOfTheKing.webp", "Images/Characters/Hades.webp", "Images/Characters/JoeRitsFront.webp", "Images/Characters/MorganDredge.webp", "Images/Locations/Etherwhite.webp", "Images/Weapons/Wardbreaker bladeFront.webp"]
                       }
                   ],
                   "loot": [
@@ -435,11 +435,11 @@
                   ]
                 },
                 {
-                  "id": "gelonusMQ_10",
+                  "id": "gelonusSQ",
                   "title": "The Curse of the High-Hatted Spirit (Sinterklaas Holiday Special)",
                   "Encountered": "no",
                   "description": null,
-                  "images": [],
+                  "images": ["Images/Characters/Sinterklaas.webp","Images/Characters/Hoofdpiet.webp","Images/Armor/NutcrackerChain.webp","Images/Armor/HoofdpietsMask.webp","Images/Armor/Miter of Sinterklaas.webp", "Images/Locations/DarkstoneCoalworks.webp"],
                   "phases": [
                       {
                         "phase": 1,
@@ -451,40 +451,509 @@
                         "phase": 2,
                         "title": "Returning To Mirstone",
                         "description": "A challenging enemy appears, forcing the player to fight.",
-                        "images": [null]
+                        "images": []
                       },
                       {
                         "phase": 3,
                         "title": "Meeting The Captain",
                         "description": "A challenging enemy appears, forcing the player to fight.",
-                        "images": [null]
+                        "images": []
                       },
                       {
                         "phase": 4,
                         "title": "Finding And Entering The Truth Sanctum",
                         "description": "A challenging enemy appears, forcing the player to fight.",
-                        "images": [null]
+                        "images": []
                       },
                       {
                         "phase": 5,
                         "title": "Find The Files",
                         "description": "A challenging enemy appears, forcing the player to fight.",
-                        "images": [null]
+                        "images": []
                       },
                       {
                         "phase": 6,
                         "title": "The Unyielding Fang",
                         "description": "A challenging enemy appears, forcing the player to fight.",
-                        "images": [null]
+                        "images": []
                       },
                       {
                         "phase": 7,
                         "title": "The Smuggle",
                         "description": "A challenging enemy appears, forcing the player to fight.",
-                        "images": [null]
+                        "images": []
                       }
+                  ],
+                  "loot": [
+                    {
+                      "name": "HoofdpietsMask",
+                      "description": "Mask gained by killing and looting hoofdpiet",
+                      "value": "Unkown"
+                    },
+                    {
+                      "name": "Miter of Sinterklaas",
+                      "description": "The holy miter of Sinterklaas. Gain by killing and looting sinterklaas",
+                      "value": "Unkown"
+                    },
+                    {
+                      "name": "Nutcracker Chain",
+                      "description": "Chain gained by rolling a nat 20 on the presents",
+                      "value": "Unkown"
+                    }
+                  ],
+                  "bosses": [
+                    {
+                      "name": "Sinterklaas",
+                      "stats": {
+                        "AC": 22,
+                        "HP": 300,
+                        "Speed": "30 ft., fly 60 ft.",
+                        "STR": "16 (+3)",
+                        "DEX": "12 (+1)",
+                        "CON": "16 (+3)",
+                        "INT": "14 (+2)",
+                        "WIS": "16 (+3)",
+                        "CHA": "18 (+4)",
+                        "Saving Throws": "Wis +5, Cha +6",
+                        "Damage Resistances": "Cold, Radient",
+                        "Damage Immunities": "Charm, Fear",
+                        "Senses": "Darkvision 60 ft., Passive Perception 15",
+                        "Languages": "Common, Sylvan, Celestial",
+                        "Challenge": "5"
+                      },
+                      "abilities": [
+                        {
+                          "name": "Multiattack",
+                          "description": "Hades makes two attacks with his Reaper’s Scythe."
+                        },
+                        {
+                          "name": "Reaper’s Scythe",
+                          "description": "Melee Weapon Attack: +12 to hit, 5 ft. reach; Hit: 2d10+7 slashing + 3d10 necrotic damage. On hit, target must succeed on a DC18 Con save or lose max HP equal to half the necrotic damage."
+                        },
+                        {
+                          "name": "Chains of the Underworld",
+                          "description": "Recharge 5–6. Hades slams the ground to summon spectral chains in a 20-ft radius; target must succeed on a DC18 Str save or be restrained until the end of his next turn."
+                        },
+                        {
+                          "name": "Death’s Gaze",
+                          "description": "One creature within 60 ft must succeed on a DC18 Wis save or be frightened until the end of its next turn."
+                        },
+                        {
+                          "name": "Aura of Despair",
+                          "description": "Any enemy starting its turn within 30 ft must succeed on a DC18 Wis save or be frightened until the start of its next turn."
+                        },
+                        {
+                          "name": "Legendary Actions",
+                          "description": "Hades can take 3 legendary actions per round: Scythe Strike (1 action), Shadow Step (1 action), and Necrotic Burst (2 actions: 10-ft radius, DC18 Con, 3d6 necrotic damage)."
+                        }
+                      ],
+                      "description": "Hades wields the Reaper’s Scythe and commands the chains of the underworld. His overwhelming aura and devastating abilities mark him as a foe far beyond the capabilities of a level 4 party."
+                    }
                   ]
-              }
+              },
+              {
+                "id": "gelonusMQ_11",
+                "title": "The Crestfallen's Curse (MQ)",
+                "Encountered": "no",
+                "description": null,
+                "images": ["Images/Locations/TheCrestefallen.webp","Images/Locations/TheCrestefallenGhostship.webp","Images/Characters/MorganDredge.webp", "Images/Armor/AnchorhookGauntletFront copy.webp", "Images/Characters/Kraken.webp"],
+                "phases": [
+                  
+                    {
+                      "phase": 0,
+                      "title": "Games to do and things to do.",
+                      "description": "After returning to open waters, the sea begins to churn with unnatural fury. Dark clouds gather, lightning cracks across the sky, and the cursed crew falls silent. At last, the party faces their final trial—the Kraken awakens beneath the waves, and the battle to break the curse begins.",
+                      "puzzleSteps": [
+                        {
+                          "title": "In-World Flavor - card game",
+                          "setup": "Table 1, there are 2 others playing",
+                          "solution": "Everyone starts with 5 cards. The person with the highest amount of red cards numbers combined win. the black cards are cursed and are points that get taken off the total. King, Queen, Joker, and A are all -10 or +10, There are 2 rounds where each player gets a card that they can look at. They can choose to swap a card from their hands with the one on the table. After each round there is a bluff so when the cards are dealt and after each round of swapping. players can choose to fold or bet more money. everyone needs to bet the same amount or higher. ",
+                          "reward": "have the highest amount of points combined. Win the money!"
+                        },
+                        
+                        {
+                          "title": "Lore Table – The Circle of Steel",
+                          "setup": "Table 2, scorched in a ring pattern with two rusted blades embedded in its surface. The wood is splintered, as if from repeated blows.",
+                          "solution": "Etched around the blades are the words: 'Only one could lay it down. The other, too proud to yield.' Between the blades is a bloodstain shaped like a handprint. A torn page nearby mentions two crewmates locked in a feud that never ended.",
+                          "reward": "Hints at the Endless Duel puzzle. Suggests that the outcome depends not on strength, but on **who was willing to let go first**."
+                        },
+                        {
+                          "title": "Lore Table – The Island Never Seen",
+                          "setup": "Table 2, scattered with broken compass needles and scratched spyglass lenses. A scrap of a chart shows a crescent-shaped island, marked with the words 'Only her eyes ever found it.'",
+                          "solution": "Hints at Puzzle 1: The Eye Above. Suggests only the ghostly lookout, Mirin Salt-Eye, ever saw the phantom island—players will need a special lens to find it.",
+                          "reward": "Clue for Puzzle 1 – Look for a magical spyglass to reveal the island."
+                        },
+                        {
+                          "title": "Lore Table – Five Verses, One Curse",
+                          "setup": "Table 2, a sea-worn songbook rests open to a missing page. Scribbled in the margins: 'We forgot the words… and so the sea remembered.'",
+                          "solution": "Hints at Puzzle 2: The Shanty of Release. Suggests the original shanty must be restored—by collecting forgotten verses scattered among the crew.",
+                          "reward": "Clue for Puzzle 2 – Find five crew members mumbling fragments of the old sea shanty."
+                        },
+                        {
+                          "title": "Lore Table – The Name in the Bones",
+                          "setup": "Table 3, a cracked bowl holds fragments of carved bone. A childlike scrawl burned into the table reads: 'His name was swallowed, so we broke it into pieces.'",
+                          "solution": "Hints at Puzzle 3: The Name in the Bones. Reveals that the Kraken’s true name is split across multiple bone pieces that must be arranged.",
+                          "reward": "Clue for Puzzle 3 – Find and align all six bone fragments to reveal the name."
+                        },
+                        {
+                          "title": "Lore Table – Tears Beneath the Tide",
+                          "setup": "Table 3, adorned with a hollow pearl embedded in salt-crusted coral. Written in dried ink: 'To break the chains, we must feel as we did… when we lost everything.'",
+                          "solution": "Hints at Puzzle 4: The Leviathan’s Tear. Tells players they must recreate or understand emotional moments of loss to shatter the pearl.",
+                          "reward": "Clue for Puzzle 4 – Interact with ghost memories and sacrifice something meaningful."
+                        },
+                        {
+                          "title": "Lore Table – The Duel Without End",
+                          "setup": "Table 3, two rusted daggers are embedded deep into the table’s center. A note carved in blood reads: 'One died with guilt. One lived with pride. Only one can be forgiven.'",
+                          "solution": "Hints at Puzzle 5: The Endless Duel. Suggests that only one of the dueling ghosts was truly remorseful, and resolving the conflict requires siding with the one who could let go.",
+                          "reward": "Clue for Puzzle 5 – Watch the ghost memories to judge who sought peace and who refused to yield."
+                        },
+                        {
+                          "title": "Lore Table – The Captain’s Ledger",
+                          "setup": "Table 3, a black-bound ledger sits alone. Its pages shimmer with ink that moves like oil.",
+                          "solution": "Reading the book reveals the names of every soul lost aboard the ship. At the very bottom, written faintly and incomplete, are the party members’ names—already being etched in.",
+                          "reward": "Hints that the party is now considered part of the crew and cannot escape the curse without slaying the Kraken or breaking the seal."
+                        },
+
+                        {
+                          "title": "“Silent Toast” – Drinking With the Dead",
+                          "setup": "Table 4, The crew sits in silence. They invite the player to drink—but the mug fills with memories, not ale.",
+                          "solution": "The player drinks, then makes a CON save (DC 13). Pass: you relive a vision of the ship’s past. Gain a clue. Fail: you inherit a lingering fear or trait (Feared for the rest of the day).",
+                          "reward": "Players can move freely across the ship during the night of the murders."
+                        },
+                        {
+                          "title": "“Bones & Bluffs” – Ghost Dice Game",
+                          "setup": "Table 5, there are 2 others playing",
+                          "solution": "Each player rolls 3d6 secretly and can bluff about the total. Others can call the bluff or raise. If a bluff is caught, the liar loses a chip (or a temporary HP).",
+                          "reward": "If they lose they must give something of value to them, if they win they gain something valueble like a dragon scale or knowledge."
+                        },
+                        {
+                          "title": "“Crab Cup Clash” – Reflex Challenge",
+                          "setup": "Table 6, There are 6 undead crabs walk on the table. Everyone rolls initative and gets to capture one crab. But one is cursed if you have the cursed one your it and you take a cut to the arm. (-1 hp). There also is 1 who is magic and glows purple this is the Winner grap this winner gets to make the cut with a magical knife and gains the hp lost by the other member as temp HP.",
+                          "solution": "Win the magical crab and gain hp",
+                          "reward": "If they win from a crewmember, so take his 1 hp they get a hint about something on the ship."
+                        }
+                      ],
+                      "images": []
+                    },
+                    {
+                      "phase": 1,
+                      "title": "Exporing the deck",
+                      "description": "Let the party explore some of the boat and talk to some of the crew before thing kick-off.",
+                      "images": []
+                    },
+                    {
+                      "phase": 2,
+                      "title": "No Mercy",
+                      "description": "The party witnesses the captain's true cruelty. A stowaway couple, discovered hiding in the lower hold, are dragged onto the deck by the captain. Without hesitation, he gives the order to have them executed and thrown overboard. The crew watches in silence, some clearly disturbed. This moment reveals the heartless tyranny of the ship's leadership.",
+                      "images": []
+                    },
+                    {
+                      "phase": 3,
+                      "title": "The Crew’s Betrayal",
+                      "description": "Later, the party is approached in secret by a few loyal but broken crew members. They reveal their intent to rebel against the captain, the first mate, second mate, and the peacekeeper. These leaders are cruel and have long since broken their oaths. However, the crew themselves are magically bound by an ancient vow—they cannot harm their commanders directly. The party learns that they are outsiders, unbound by the oath, and therefore capable of killing them. The crew promises their full support—information, sabotage, distractions. All the party must do is strike the final blows.",
+                      "images": [],
+                      "puzzleSteps": [
+                        {
+                          "title": "Reveal the Vow",
+                          "setup": "A ritual scar glows when a crewmember tries to raise a hand toward a leader. The party witnesses this and learns about the magical bond that protects the officers.",
+                          "solution": "Understand that only outsiders (the party) can bypass the magical restriction. The crew memders show a symbol on their hand that is part of this curse.",
+                          "reward": "Party is granted permission to kill the leaders."
+                        },
+                        {
+                          "title": "Gain Trust",
+                          "setup": "The crew won’t reveal everything at once. The party must show sympathy or offer help first, such as tending to an injured ghost or defending a weak crewman from a beating.",
+                          "solution": "Roleplay or Charisma-based persuasion or acts of kindness.",
+                          "reward": "The crew opens up and shares the plan."
+                        }
+                      ]
+                    },
+                    {
+                      "phase": 4,
+                      "title": "The Murder Setup",
+                      "description": "The crew provides the party with a list of small but crucial tasks to prepare for the coordinated strike. These tasks must be done in secret, away from the eyes of the leaders. Each task contributes to the final success of the plan.",
+                      "images": [],
+                      "puzzleSteps": [
+                        {
+                          "title": "Steal the Weapons",
+                          "setup": "The armory is locked and guarded. A key is hidden in the quarters of the second mate.",
+                          "solution": "Steal the key, sneak into the armory, and smuggle out four prepared weapons.",
+                          "reward": "Crew members are now armed and ready to restrain the leaders."
+                        },
+                        {
+                          "title": "Unlock the Passageways",
+                          "setup": "Certain doors and hatches are sealed during the night. One rogue crewmember hints that the Peacekeeper has a master key on his belt.",
+                          "solution": "Pickpocket or assassinate the Peacekeeper to obtain the master key.",
+                          "reward": "Players can move freely across the ship during the night of the murders."
+                        },
+                        {
+                          "title": "Seal the Helm",
+                          "setup": "To prevent the captain from calling on sea magic or controlling the ship, a magical amulet must be placed inside the captains room.",
+                          "solution": "Find a way inside the captains room and secretly hide and place the amulet",
+                          "reward": "The captain’s magical connection to the sea is severed for the night."
+                        }
+                      ]
+                    },
+                    {
+                      "phase": 5,
+                      "title": "The Night of the Murder",
+                      "description": "The crew is in position. The party must split up, each member assigned to one of the four targets: Captain, First Mate, Second Mate, and Peacekeeper. Each leader is in a different chamber of the ship, guarded by six crew members now loyal to the rebellion. Their job: restrain. The party's job: kill. The plan must happen quickly, before alarms are raised.",
+                      "images": [],
+                      "puzzleSteps": [
+                        {
+                          "title": "Assign the Party",
+                          "setup": "Each player is assigned one target. They must move in silence and strike without hesitation.",
+                          "solution": "Synchronize movements and take out each target at the same time.",
+                          "reward": "All four leaders are killed in a single coordinated strike. The rebellion succeeds."
+                        },
+                        {
+                          "title": "Silence the Alarms",
+                          "setup": "There is a magical bell above the captain’s cabin that will ring if any of the leaders call for help.",
+                          "solution": "Destroy or dispel the bell before the strikes begin.",
+                          "reward": "Ensures no reinforcements arrive during the murders."
+                        }
+                      ]
+                    },
+                    
+                    {
+                      "phase": 6,
+                      "title": "Hoist The Colors",
+                      "description": "The fallen leaders stir—their eyes snap open. With a wicked grin, the captain begins to sing. One by one, the crew erupts in laughter and joins in chorus. The party has been deceived. In chains and surrounded by mockery, they’re dragged below deck and locked away in the ship’s prison. All the while, the cursed melody echoes through the halls. From their cells, the party watches in horror as the ship begins to change—wood blackens, sails rot, and the crew fades into ghostly forms. The vessel is becoming a true ghost ship. They manage to escape… but it’s a trap. Just before freedom, they are caught again. This time, they’re hauled to the main deck and interrogated by the captain himself. ‘How did you get out?’ he asks with a cold smile. A lie earns punishment—a crewmate’s treasured item tossed into the sea, or worse… death. But death is not the end. One by one, the party awakens once more—this time as members of the cursed crew. They are undead now, bound to the ship and its curse. Only two things can set them free: the breaking of the curse… or stepping on land for one day, once a year.",
+                      "puzzleSteps": [
+                        {
+                          "title": "Escape posibility 1:",
+                          "setup":"There is a faint rune scratched on the floor. Arcana check reveals it’s an ancient marking of blood sacrifice. A player needs to sacrifice something with blood. like cutting of a finger. This can have PERM stat conseqnses.",
+                          "solution":"bleed on this marking",
+                          "reward":"Cage door opens"
+                        },
+                        {
+                          "title": "Escape posibility 2:",
+                          "setup":"A small pipe leak drips bilgewater into the cell. It's slightly acidic. A player who collects the drips into a container (boot, bowl, helmet) over time can corrode a chain or hinge.",
+                          "solution":"Corrode the chain",
+                          "reward":"Cage door opens"
+                        },
+                        {
+                          "title": "Escape posibility 3:",
+                          "setup":"All other posibility's fail",
+                          "solution":"Boris the Great steps in and gives the party the upgraded Shard Breaker and a magical key that can open all locks.",
+                          "reward":"upgraded Shard Breaker, Key to many doors"
+                        },
+                        {
+                          "title": "Escape posibility 4:",
+                          "setup":"something else creative",
+                          "solution":"Lets see what you can come up with.",
+                          "reward":"Cage door opens"
+                        }
+                      ],
+                      "images": []
+                    },
+                    {
+                      "phase": 7,
+                      "title": "Puzzle 1 (The Eye Above)",
+                      "description": "High in the crow’s nest, the cursed spirit of Lookout Mirin Salt-Eye watches endlessly through an ancient spyglass. To break the chain, the players must uncover the phantom island she once saw before her death, locate it again using the ghostly lens, and speak its true name aloud.",
+                      "puzzleSteps": [
+                    {
+                      "setup": "At the top of the crow’s nest there is crew member who is looking in the distance asif he sees something in the distance. He mumbles: The island is near. But the party dont see anything.",
+                      "solution": "Players can find a spyglass on the cartografers table and use this. Its magical and now they see a Island in the distance that isnt there. They can tell this to the crewmember and he will say: I forgot its name again...",
+                      "reward": "The island flickers fully into view. Mirin's ghost begins to hum a forgotten song."
+                    },
+                    {
+                      "setup": "On the deck they find out a guys at the table is the one who kill the crewmember on a hidden island. They need to win a dice game to find out what the island name is.",
+                      "solution": "Return to the crow’s nest and, while peering through the spyglass with the island in view, speak the name 'Isle of Hollow Moons' aloud.",
+                      "reward": "The spyglass shatters in a flash of light. Mirin’s ghost lets out a relieved breath and fades. The air grows colder—the first chain breaks."
+                    }
+                      ],
+                      "images": []
+                    },
+                    {
+                      "phase": 8,
+                      "title": "Puzzle 2 (The Shanty of Release)",
+                      "description": "There are 5 crewmembers that can be heard mumbeling the verse of a old song. It looks like everyone forgot the full song. the party needs to find all 5 verses and sing it with the crew in the correct order.",
+                      "puzzleSteps": [
+                        {
+                          "title": "Line 1:",
+                          "setup":"“The sea was still and the stars hung low,”",
+                          "solution": "1",
+                          "reward":""
+                        },
+                        {
+                          "title": "Line 2:",
+                          "setup":"“We chased the moon where no wind’d blow,”",
+                          "solution": "2",
+                          "reward":"The pearl cracks. The ship groans. The ocean churns. Fifth and final chain breaks."
+                        },
+                        {
+                          "title": "Line 3:",
+                          "setup":"“The beatin’ drums from below did sound,”",
+                          "solution": "3.",
+                          "reward":""
+                        },
+                        {
+                          "title": "Line 4:",
+                          "setup":"“The mast went crack and the crew spun ‘round,”",
+                          "solution": "4",
+                          "reward":""
+                        },
+                        {
+                          "title": "Line 5:",
+                          "setup":"“Now cursed we sail and can’t go home.”",
+                          "solution": "5",
+                          "reward":""
+                        }
+                      ],
+                      "images": []
+                    },
+                    {
+                      "phase": 9,
+                      "title": "Puzzle 3 (The Name in the Bones)",
+                      "description": "Players find six ancient bone fragments, each carved with symbols. When placed in a ring, the bones glow faintly—forming a shifting puzzle-lock that reveals letters of the Kraken’s true name.",
+                      "images": ["Images/Other/KrakenNameBonesQuest.webp"]
+                    },
+                    {
+                      "phase": 10,
+                      "title": "Puzzle 4 (The Leviathan’s Tear)",
+                      "description": "A glowing pearl the size of a human heart rests atop a pedestal of coral and chains. Surrounding it are five ghostly reflections of crew members—each reliving their death. They whisper something.",
+                      "puzzleSteps": [
+                        {
+                          "title": "Riddle 1:",
+                          "setup":"“To shatter the Tear, it must feel what we felt: Loss, guilt, and the will to die.”",
+                          "solution": "Drax committed petty theft but believed it was justified. This memory suggests guilt, but not malice or intent to harm the crew.",
+                          "reward":"Riddle 2"
+                        },
+                        {
+                          "title": "Riddle 2:",
+                          "setup":"“What do you give up to break what binds? A tool? Or part of your mind?”",
+                          "solution": "1: Players roleplay their offering and explain its meaning. 2: At least one character must give something with real narrative weight.",
+                          "reward":"The pearl cracks. The ship groans. The ocean churns. Fifth and final chain breaks."
+                        }
+                      ],
+                      "images": []
+                    },
+                    {
+                      "phase": 11,
+                      "title": "Puzzle 5 (The Endless Duel)",
+                      "description": "The party enters a chamber lit by swaying lanterns and filled with the clash of spectral blades. Roven and Drax—ghostly images of two former crewmates—are locked in an eternal duel. They clash violently, vanish in a blast of mist, and reappear to start over. The room smells of blood and salt. Appearing nearby: six glowing orbs of mist slowly drift into view. As players approach each, they shimmer and replay fragments of memory like ghostly illusions. The orbs are labeled in etched iron plates. Players can activate them in any order. If they choose Roven, the duel ends. And Drax fades peacefully, If they Choose Drax, the dueal resets violently and one player takes 3D10 psychic damage from the echo backlash.",
+                      "puzzleSteps": [
+                        {
+                          "title": "Memory Fragment 1 – “The Coin”",
+                          "setup":"Drax stands in the cargo hold, slipping a silver coin into his boot while looking over both shoulders. He mutters, 'Doesn’t matter what the manifest says. It’s just one coin. I earned it more than any of ‘em.' (Clue: Drax was stealing. He justified it to himself—but it's still theft.)",
+                          "solution": "Drax committed petty theft but believed it was justified. This memory suggests guilt, but not malice or intent to harm the crew.",
+                          "reward":""
+                        },
+                        {
+                          "title": "Memory Fragment 2 – “The Warning”",
+                          "setup":"Roven stands over a barrel with Captain Edrin, voice hushed. 'Drax is planning something. He’s skimming, maybe worse. I don’t have proof yet... but if I wait, someone’ll get hurt.' (Clue: Roven suspects Drax and reports him, but admits he has no evidence. His concern may or may not be paranoia.)",
+                          "solution": "Roven acted on suspicion without proof. His actions may have been fueled by genuine concern, but also impulsiveness and personal bias.",
+                          "reward":""
+                        },
+                        {
+                          "title": "Memory Fragment 3 – “The Confrontation”",
+                          "setup":"Below deck. Drax and Roven are nose to nose, shouting. Drax yells, 'You stabbed me in the back for what—pocket change?' Roven retorts, 'You lied to the crew. You endangered them for your pride.' Drax fires back, 'I kept this ship afloat while you grovelled for favor.' (Clue: Conflicting motives. Drax is defensive, possibly guilty but hurt. Roven may have acted out of rivalry, not justice.)",
+                          "solution": "Both men were emotionally invested. Drax is defensive but feels betrayed. Roven is more focused on moral superiority than resolution.",
+                          "reward":""
+                        },
+                        {
+                          "title": "Memory Fragment 4 – “The Challenge”",
+                          "setup":"Night. A circle forms. The crew stands around. Roven throws down his glove. 'You won't confess? Then we let steel decide.' Drax responds, 'You want to kill a brother over a rumor?' (Clue: Roven initiates the duel—possibly rashly. Drax hesitated.)",
+                          "solution": "Roven escalated the situation by initiating a duel. Drax was reluctant and didn’t want bloodshed, implying he was not the true aggressor.",
+                          "reward":""
+                        },
+                        {
+                          "title": "Memory Fragment 5 – “The Whisper” (hidden behind a loose board or requires Perception check)",
+                          "setup":"Roven alone, pacing, muttering to himself behind a loose board. 'If he wins… they'll believe him. I can't let that happen. Not again.' (Clue: Roven is afraid of being doubted. He may not care about justice—he’s protecting his image.)",
+                          "solution": "Roven’s internal thoughts reveal fear of being undermined, hinting that his motivations were pride and reputation, not justice.",
+                          "reward":""
+                        },
+                        {
+                          "title": "Memory Fragment 6 – “The Death”",
+                          "setup":"Drax lies dying, blood pouring across the deck. He grabs Roven’s collar and wheezes, 'I never meant to hurt anyone... but you did. You turned the crew on each other... just to be right.' (Clue: Drax’s final words suggest remorse. Roven may have divided the crew for pride, not protection.)",
+                          "solution": "Drax’s dying words show remorse, and he accuses Roven of dividing the crew for pride. This confirms Drax’s lesser guilt and Roven’s deeper flaw.",
+                          "reward":""
+                        }
+                      ],
+                      
+                      "images": []
+                    },
+                    {
+                      "phase": 12,
+                      "title": "Freeing The Kraken",
+                      "description": "After completing all the trials, the party spots a mysterious island on the horizon—one that appears on no known map. As they draw closer, they see a towering stone gong engraved with the image of a great Kraken. To awaken the beast and confront their fate, the party must step onto land and strike the gong.",
+                      "images": []
+                    },
+                    {
+                      "phase": 13,
+                      "title": "The Fight Of The Sea",
+                      "description": "After returning to open waters, the sea begins to churn with unnatural fury. Dark clouds gather, lightning cracks across the sky, and the cursed crew falls silent. At last, the party faces their final trial—the Kraken awakens beneath the waves, and the battle to break the curse begins.",
+                      "images": []
+                    }
+                ],
+                "loot": [
+                  {
+                    "name": "HoofdpietsMask",
+                    "description": "Mask gained by killing and looting hoofdpiet",
+                    "value": "Unkown"
+                  },
+                  {
+                    "name": "Miter of Sinterklaas",
+                    "description": "The holy miter of Sinterklaas. Gain by killing and looting sinterklaas",
+                    "value": "Unkown"
+                  },
+                  {
+                    "name": "Nutcracker Chain",
+                    "description": "Chain gained by rolling a nat 20 on the presents",
+                    "value": "Unkown"
+                  }
+                ],
+                "bosses": [
+                  {
+                    "name": "The Kraken",
+                    "stats": {
+                      "AC": 18,
+                      "HP": 450,
+                      "Speed": "20 ft., swim 60 ft.",
+                      "STR": "22 (+6)",
+                      "DEX": "10 (+0)",
+                      "CON": "20 (+5)",
+                      "INT": "12 (+1)",
+                      "WIS": "14 (+2)",
+                      "CHA": "16 (+3)",
+                      "Saving Throws": "Con +8, Wis +5",
+                      "Damage Resistances": "Cold, Lightning, Piercing from non-magical weapons",
+                      "Damage Immunities": "Poison, Psychic; Condition Immunities: Charmed, Frightened, Grappled, Prone",
+                      "Senses": "Darkvision 120 ft., Tremorsense 60 ft., Passive Perception 15",
+                      "Languages": "Deep Speech, Primordial, understands Common",
+                      "Challenge": "6"
+                    },
+                    "abilities": [
+                      {
+                        "name": "Multiattack",
+                        "description": "The Kraken makes two Tentacle Slam attacks, or one Tentacle Slam and one Crushing Grasp."
+                      },
+                      {
+                        "name": "Tentacle Slam",
+                        "description": "Melee Weapon Attack: +8 to hit, reach 15 ft., one target. Hit: 2d8 + 6 bludgeoning damage. If the target is on the ship, they must make a DC 15 Dex save or fall prone or be thrown 10 ft."
+                      },
+                      {
+                        "name": "Crushing Grasp",
+                        "description": "A tentacle targets a creature within 15 ft. The target must succeed a DC 15 Strength save or be grappled (escape DC 15) and take 1d10 + 6 bludgeoning damage per turn while grappled."
+                      },
+                      {
+                        "name": "Hull Breaker",
+                        "description": "The Kraken slams a tentacle into the ship. Choose a 10 ft section of deck—anyone within must make a DC 14 Dex save or fall prone and take 2d6 bludgeoning damage. This area becomes difficult terrain."
+                      },
+                      {
+                        "name": "Anchored Tentacle Swipe",
+                        "description": "If a tentacle is already on the ship's deck, the Kraken can use it to make a sweeping attack without extending further. Melee Weapon Attack: +8 to hit, reach 10 ft from the tentacle’s position, one target. Hit: 1d10 + 4 bludgeoning damage and the target must make a DC 13 Strength save or be knocked prone."
+                      },
+                      {
+                        "name": "Legendary Actions",
+                        "description": "The Kraken can take 2 legendary actions per round. Slam Tentacle (1 action), Minor Surge (1 action – knocks one player prone), or Drown Pulse (2 actions – all creatures within 20 ft of a tentacle must succeed a DC 14 Con save or begin choking until the end of their next turn)."
+                      }
+                    ],
+                    "description": "This Kraken, bound by ancient chains and cursed to the depths, has awakened as the embodiment of the crew's torment. Though weakened by age and imprisonment, it remains a towering force of the sea. Its tentacles lash from beneath the waves, smashing wood and bone alike. The crew's fate is tied to its death—or its wrath. The kraken has 6 tentacles each with its own HP once a tentacle is destroyed it does a big amount of damage to the kraken."
+                  }
+                  
+                ]
+            }
             ]
         },
         "arcadia": {
