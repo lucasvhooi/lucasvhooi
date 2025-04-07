@@ -695,6 +695,21 @@
                     "description": "Thailand's capital, known for its temples and nightlife."
                 }
             }
+        },
+        "Other": {
+            "name": "Other",
+            "description": "Other places.",
+            "map": "Images/Maps/BoatLayoutPartyView.webp",
+            "locations": {
+                "crestfallen": {
+                    "name": "The Crestfallen",
+                    "Encountered": "yes",
+                    "population": "+-30",
+                    "wealth": "poor",
+                    "map": "Images/Maps/BoatLayoutPartyView.webp",
+                    "description": "The notorious pirate ship Crestfallen, led by the fearsome Captain Morgan Dredge, is a name whispered in every port and feared across the seas."
+                }
+            }
         }
     }
 }
