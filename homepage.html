@@ -5,130 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DnD Campaign</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- Additional DM Editor Styles -->
-  <style>
-    /* Container for both DM editors */
-    .dm-editors {
-
-    }
-    /* DM Mission Editor Card */
-    #dm-editor, #exploration-editor {
-      background: #232323;
-      border: 1px solid #444;
-      border-radius: 10px;
-      padding: 20px;
-      max-width: 380px;
-      width: 100%;
-      color: #f4e6d7;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-      font-family: 'Garamond', serif;
-      margin-bottom: 20px;
-    }
-    #dm-editor h2, #exploration-editor h2 {
-      margin-top: 0;
-      text-align: center;
-      font-size: 24px;
-      border-bottom: 1px solid #555;
-      padding-bottom: 10px;
-    }
-    #dm-editor label, #exploration-editor label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-      font-size: 16px;
-    }
-    #dm-editor input[type="text"],
-    #dm-editor textarea,
-    #dm-editor select,
-    #dm-editor button,
-    #exploration-editor input[type="text"],
-    #exploration-editor textarea,
-    #exploration-editor select,
-    #exploration-editor button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #666;
-      border-radius: 5px;
-      background: #1e1e1e;
-      color: #f4e6d7;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-    #dm-editor button, #exploration-editor button {
-      background: linear-gradient(to right, #5e3b20, #2c1a0a);
-      cursor: pointer;
-      border: none;
-      margin-top: 20px;
-      font-size: 18px;
-    }
-    #dm-editor button:hover, #exploration-editor button:hover {
-      background: #2c1a0a;
-    }
-    .section {
-      background: #2c1a0a;
-      border: 1px solid #555;
-      border-radius: 8px;
-      padding: 15px;
-      margin: 20px 0;
-    }
-    .section h3 {
-      margin: 0 0 10px;
-      font-size: 20px;
-      border-bottom: 1px solid #444;
-      padding-bottom: 5px;
-    }
-    /* Style for each dynamic entry */
-    .phase, .loot, .boss {
-      background: #1e1e1e;
-      border: 1px solid #444;
-      border-radius: 6px;
-      padding: 10px;
-      margin-bottom: 10px;
-      position: relative;
-    }
-    /* Delete button */
-    .delete-btn {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      background: transparent;
-      border: none;
-      color: #ff6666;
-      font-size: 18px;
-      cursor: pointer;
-    }
-    /* Toggle header for collapsible sections */
-    .toggle-header {
-      cursor: pointer;
-      font-weight: bold;
-      margin-bottom: 10px;
-      display: inline-block;
-      font-size: 18px;
-      color: #ffcc66;
-    }
-    .toggle-arrow {
-      font-weight: bold;
-      margin-left: 5px;
-    }
-    .toggle-content.hidden {
-      display: none;
-    }
-    /* JSON Output styling */
-    pre#output, pre#exploration-output {
-      background: #1e1e1e;
-      border: 1px solid #444;
-      border-radius: 5px;
-      padding: 15px;
-      margin-top: 20px;
-      text-align: left;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      font-family: monospace;
-      font-size: 14px;
-      color: #f4e6d7;
-    }
-  </style>
 </head>
 <body>
   <nav>
@@ -148,12 +24,12 @@
     <p>Feel free to use all maps, missions, and cards as you wish!</p>
   </section>
   
-  <!-- DM-only Editors (visible only in DM mode) -->
   <div class="dm-editors">
-    <!-- DM Mission Editor -->
     <section id="dm-editor" style="display: none;">
       <h2>DM Mission Editor</h2>
       <form id="mission-form">
+        <input type="hidden" id="mission-id" value="" />
+
         <label for="mission-title">Mission Title</label>
         <input type="text" id="mission-title" placeholder="Enter Mission Title" required />
         
@@ -181,38 +57,40 @@
           <option value="MQ">Main Quest (MQ)</option>
           <option value="SQ">Side Quest (SQ)</option>
         </select>
+
+        <label for="mission-encountered">Encountered?</label>
+        <select id="mission-encountered" required>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
         
         <label for="mission-images">Mission Image Paths</label>
         <input type="text" id="mission-images" placeholder="Enter folder/image1.webp, folder/image2.webp" />
         
-        <!-- Phases Section -->
         <div class="section" id="phases-section">
           <h3>Phases</h3>
           <div id="phases-container"></div>
           <button type="button" onclick="addPhase()">Add Phase</button>
         </div>
         
-        <!-- Loot Section -->
         <div class="section" id="loot-section">
           <h3>Loot</h3>
           <div id="loot-container"></div>
           <button type="button" onclick="addLoot()">Add Loot</button>
         </div>
         
-        <!-- Bosses Section -->
         <div class="section" id="bosses-section">
           <h3>Bosses</h3>
           <div id="bosses-container"></div>
           <button type="button" onclick="addBoss()">Add Boss</button>
         </div>
         
-        <button type="submit">Save Mission</button>
+        <button type="submit" id="save-mission-btn">Save Mission</button>
       </form>
-      <h3>Mission JSON Output</h3>
+      <h3>Mission JSON Output (for debugging)</h3>
       <pre id="output"></pre>
     </section>
     
-    <!-- DM Exploration Editor -->
     <section id="exploration-editor" style="display: none;">
       <h2>DM Exploration Editor</h2>
       <form id="exploration-form">
@@ -237,189 +115,18 @@
       <h3>Exploration JSON Output</h3>
       <pre id="exploration-output"></pre>
     </section>
-  </div>
-  
-  <script>
-    // Show DM editors only if user is in DM mode.
-    document.addEventListener("DOMContentLoaded", function(){
-      if(localStorage.getItem("isAdmin") === "true"){
-         document.getElementById("dm-editor").style.display = "block";
-         document.getElementById("exploration-editor").style.display = "block";
-      }
-    });
-    
-    // --- Mission Editor Functions ---
-    function addPhase() {
-      const container = document.getElementById('phases-container');
-      const phaseDiv = document.createElement('div');
-      phaseDiv.className = 'phase';
-      phaseDiv.innerHTML = `
-        <button type="button" class="delete-btn">✖</button>
-        <label>Phase Number</label>
-        <input type="text" placeholder="Phase Number" class="phase-number" required />
-        <label>Phase Title</label>
-        <input type="text" placeholder="Phase Title" class="phase-title" required />
-        <label>Phase Description</label>
-        <textarea placeholder="Phase Description" class="phase-description"></textarea>
-        <label>Extra WebP Path (e.g. map or card)</label>
-        <input type="text" placeholder="Extra WebP Path" class="phase-extra" />
-      `;
-      container.appendChild(phaseDiv);
-      phaseDiv.querySelector('.delete-btn').addEventListener("click", () => phaseDiv.remove());
-    }
-    
-    function addLoot() {
-      const container = document.getElementById('loot-container');
-      const lootDiv = document.createElement('div');
-      lootDiv.className = 'loot';
-      lootDiv.innerHTML = `
-        <button type="button" class="delete-btn">✖</button>
-        <label>Loot Name</label>
-        <input type="text" placeholder="Loot Name" class="loot-name" required />
-        <label>Loot Description</label>
-        <textarea placeholder="Loot Description" class="loot-description"></textarea>
-        <label>Value</label>
-        <input type="text" placeholder="Value" class="loot-value" />
-        <label>Extra WebP Path (e.g. map or card)</label>
-        <input type="text" placeholder="Extra WebP Path" class="loot-extra" />
-      `;
-      container.appendChild(lootDiv);
-      lootDiv.querySelector('.delete-btn').addEventListener("click", () => lootDiv.remove());
-    }
-    
-    function addBoss() {
-      const container = document.getElementById('bosses-container');
-      const bossDiv = document.createElement('div');
-      bossDiv.className = 'boss';
-      bossDiv.innerHTML = `
-        <button type="button" class="delete-btn">✖</button>
-        <label>Boss Name</label>
-        <input type="text" placeholder="Boss Name" class="boss-name" required />
-        <label>Boss Description</label>
-        <textarea placeholder="Boss Description" class="boss-description"></textarea>
-        <label>Boss Stats (JSON format)</label>
-        <textarea placeholder='{"Armor Class": "22", "Hit Points": "300", "Speed": "30 ft.", "STR": "24 (+7)", "DEX": "18 (+4)", "CON": "26 (+8)", "INT": "20 (+5)", "WIS": "18 (+4)", "CHA": "28 (+9)"}' class="boss-stats" rows="4"></textarea>
-        <label>Boss Abilities (JSON array format)</label>
-        <textarea placeholder='[{"name": "Multiattack", "description": "Makes two attacks."}]' class="boss-abilities" rows="4"></textarea>
-        <label>Extra WebP Path (e.g. map or card)</label>
-        <input type="text" placeholder="Extra WebP Path" class="boss-extra" />
-      `;
-      container.appendChild(bossDiv);
-      bossDiv.querySelector('.delete-btn').addEventListener("click", () => bossDiv.remove());
-    }
-    
-    document.getElementById('mission-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      let title = document.getElementById('mission-title').value;
-      const description = document.getElementById('mission-description').value;
-      const location = document.getElementById('mission-location').value;
-      const questType = document.getElementById('quest-type').value;
-      if (questType && !title.includes("(" + questType + ")")) {
-        title += " (" + questType + ")";
-      }
-      let imagesInput = document.getElementById('mission-images').value;
-      let images = [];
-      if (imagesInput.trim() !== "") {
-        images = imagesInput.split(",").map(s => s.trim());
-      }
-      
-      const mission = {
-        title: title,
-        description: description,
-        location: location,
-        questType: questType,
-        images: images,
-        phases: [],
-        loot: [],
-        bosses: []
-      };
-      
-      document.querySelectorAll('.phase').forEach(phaseEl => {
-        mission.phases.push({
-          phase: phaseEl.querySelector('.phase-number').value,
-          title: phaseEl.querySelector('.phase-title').value,
-          description: phaseEl.querySelector('.phase-description').value,
-          extra: phaseEl.querySelector('.phase-extra').value
-        });
-      });
-      
-      document.querySelectorAll('.loot').forEach(lootEl => {
-        mission.loot.push({
-          name: lootEl.querySelector('.loot-name').value,
-          description: lootEl.querySelector('.loot-description').value,
-          value: lootEl.querySelector('.loot-value').value,
-          extra: lootEl.querySelector('.loot-extra').value
-        });
-      });
-      
-      document.querySelectorAll('.boss').forEach(bossEl => {
-        let stats = {};
-        try {
-          stats = JSON.parse(bossEl.querySelector('.boss-stats').value);
-        } catch (err) {
-          console.error("Invalid boss stats JSON");
-        }
-        let abilities = [];
-        try {
-          abilities = JSON.parse(bossEl.querySelector('.boss-abilities').value);
-        } catch (err) {
-          console.error("Invalid boss abilities JSON");
-        }
-        mission.bosses.push({
-          name: bossEl.querySelector('.boss-name').value,
-          description: bossEl.querySelector('.boss-description').value,
-          stats: stats,
-          abilities: abilities,
-          extra: bossEl.querySelector('.boss-extra').value
-        });
-      });
-      
-      document.getElementById('output').textContent = JSON.stringify(mission, null, 2);
-    });
-    
-    // --- Exploration Editor Functions ---
-    document.getElementById('exploration-form')?.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const name = document.getElementById('exploration-name').value;
-      const description = document.getElementById('exploration-description').value;
-      const image = document.getElementById('exploration-image').value;
-      const encountered = document.getElementById('exploration-encountered').value;
-      
-      const exploration = {
-        name: name,
-        description: description,
-        src: image,
-        Encountered: encountered
-      };
-      
-      document.getElementById('exploration-output').textContent = JSON.stringify(exploration, null, 2);
-    });
-  </script>
-  
-  <!-- DM Exploration Editor -->
-  <section id="exploration-editor" style="display: none;">
-    <h2>DM Exploration Editor</h2>
-    <form id="exploration-form">
-      <label for="exploration-name">Exploration Name</label>
-      <input type="text" id="exploration-name" placeholder="Enter Exploration Name" required />
-      
-      <label for="exploration-description">Exploration Description</label>
-      <textarea id="exploration-description" placeholder="Enter Exploration Description"></textarea>
-      
-      <label for="exploration-image">Exploration Image Path</label>
-      <input type="text" id="exploration-image" placeholder="folder/image.webp" required />
-      
-      <label for="exploration-encountered">Encountered?</label>
-      <select id="exploration-encountered" required>
-        <option value="">Select</option>
-        <option value="yes">Yes</option>
-        <option value="no">No</option>
-      </select>
-      
-      <button type="submit">Save Exploration</button>
-    </form>
-    <h3>Exploration JSON Output</h3>
-    <pre id="exploration-output"></pre>
-  </section>
+
+    <section id="mission-management" style="display: none;">
+      <h2>DM Mission Management</h2>
+      <ul id="mission-list-dm">
+        </ul>
+      <div id="download-json-container" style="display: none;">
+        <p>Your `missions.json` data has been updated in memory.</p>
+        <p>To save changes, download the file and replace your existing `missions.json` on the server.</p>
+        <button id="download-json-btn">Download Updated missions.json</button>
+      </div>
+    </section>
+  </div>  
+  <script src="scripts/homepage.js"></script>
 </body>
 </html>

@@ -143,10 +143,10 @@
                 "Arcadia1": {
                     "name": "1) Silverleaf",
                     "Encountered": "no",
-                    "population": null,
-                    "wealth": null,
-                    "map": null,
-                    "description": null
+                    "population": 330,
+                    "wealth": "Rich",
+                    "map": "Images/Maps/Arcadia/SilverleafMap.webp",
+                    "description": "Nestled deep within the whispering trees of the Velowynn Forest, Silverleaf is a tranquil elven town bathed in perpetual moonlight. Graceful spires and gabled rooftops rise from the earth as though grown from the roots themselves, each structure adorned with delicate silver-leaf motifs that shimmer with ethereal light. A crystal-clear river meanders gently through the heart of town, crossed by mossy stone bridges and lined with glowing flora that sway as if alive. At night, the town radiates a soft glow, as magical lanterns awaken and the buildings hum with quiet enchantments. From the melodic bustle of Moonshade Market to the sacred hush of the Temple of Elenya, Silverleaf is a haven of harmony and mysticism. Here, elven artisans, rangers, weavers, and spellwrights live in tune with nature, their lives steeped in ancient tradition and quiet wonder. Whether you're seeking rare herbs, arcane wisdom, or a moment of serenity beneath the moon’s gaze, Silverleaf welcomes all with open arms—though few ever wish to leave its dreamlike embrace."
                 },
                 "Arcadia2": {
                     "name": "2) Elarion Ruins",
@@ -244,7 +244,7 @@
                     "map": null,
                     "description": null
                 },
-                "Arcadia14": { 
+                "Arcadia14": {
                     "name": "14) Silverspire Vein",
                     "Encountered": "no",
                     "population": null,
@@ -425,10 +425,10 @@
                 },
                 "ironhold": {
                     "name": "Second City) Ironhold",
-                    "population": null,
-                    "wealth": null,
-                    "map": null,
-                    "description": null
+                    "population": 4076,
+                    "wealth": "Rich",
+                    "map": "Images/Maps/Thule/Ironhold.webp",
+                    "description": "Built atop a colossal stalagmite deep within the Stonecradle Peaks, Ironhold is a fortress-city carved into the mountain itself. Home to around 4,000 dwarves, halflings, and cliffborn vikings, it is a stronghold of stone, steel, and unshakable pride. There is only one way in and one way out—a narrow, winding tunnel guarded day and night. Its blacksteel gates have never fallen, earning Ironhold the title of “the Impenetrable Spine.” Dwarves forge legendary weapons in molten halls, halflings trade in spice and song, and viking clans watch from their fire-lit longhalls etched into the mountain walls. Though hidden from the world, Ironhold's name is spoken with awe—and caution—wherever warriors gather."
                 },
                 "emberstone": {
                     "name": "Third City) Emberstone",
@@ -441,9 +441,17 @@
                     "name": "14) Sanctum Salora",
                     "Encountered": "no",
                     "population": null,
-                    "wealth": null,
+                    "wealth": "",
                     "map": null,
                     "description": ""
+                },
+                "Thule36": {
+                    "name": "36) Varghelm",
+                    "Encountered": "no",
+                    "population": 428,
+                    "wealth": "Poor",
+                    "map": "images/Maps/Thule/Verghelm.webp",
+                    "description": "Perched high on the jagged cliffs of the northern coast, Varghelm is a rugged coastal town built into wind-blasted stone and frostbitten soil. Its wooden structures cling to the rock like stubborn roots, lashed by icy winds and the constant roar of the sea below. Wide, looping paths connect stone-walled districts, and a massive longhall towers above the rest—overlooking both the settlement and the endless horizon of crashing waves. Founded by sea-raiders and wolf-cloaked wanderers, Varghelm has grown into a hardened yet proud community. Fishers and frost-smiths labor by day, while skalds sing of storms and sacrifice by firelight at night. The townsfolk revere old gods—some giant-blooded, some bestial—and speak of a time when the sea was a path, not a prison. They say the cliffs remember the first screams of battle… and the last songs of those who never returned from the sea."
                 }
             }
         },
@@ -661,9 +669,7 @@
             "name": "Atlantis",
             "description": "The largest and most populous continent.",
             "map": "images/asia.jpg",
-            "locations": {
-
-            }
+            "locations": {}
         },
         "Dimentions": {
             "name": "Dimentions",
