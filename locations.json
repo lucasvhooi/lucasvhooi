@@ -714,6 +714,14 @@
                     "wealth": "poor",
                     "map": "Images/Maps/BoatLayoutPartyView.webp",
                     "description": "The notorious pirate ship Crestfallen, led by the fearsome Captain Morgan Dredge, is a name whispered in every port and feared across the seas."
+                },
+                "silverleafmoonmap": {
+                    "name": "Starpath Map",
+                    "Encountered": "yes",
+                    "population": "",
+                    "wealth": "",
+                    "map": "Images/Maps/Other/StarpathMap.webp",
+                    "description": "They picked up the Starpath Map from a quiet stall in Silverleaf, its shelves stacked with odd silver-inked charts. By day the parchment looks blank, but at night under the moon it shows faint glowing lines — secret paths and hidden trails no other map reveals."
                 }
             }
         }

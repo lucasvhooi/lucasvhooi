@@ -278,6 +278,13 @@
         "backImage": null,
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Spellcard Cure Wounds", "Cure", "Wounds", "Scroll", "Spellcard"]
+      },
+      {
+        "src": "Images/Items/UlsasSpyglass.webp",
+        "Encountered": "yes",
+        "backImage": null,
+        "description": "",
+        "tags": ["Spyglass", "Ulsa", "Crestfallen"]
       }
     ],
 
@@ -517,6 +524,13 @@
         "backImage": null,
         "description": "",
         "tags": ["hell", "hades", "god of death"]
+      },      
+      {
+        "src": "Images/Characters/OwlBearMountFrontweb.webp",
+        "Encountered": "yes",
+        "backImage": "Images/Characters/OwlBearMountBackweb.webp",
+        "description": "A tamed Owlbear in leather armor (AC 14, HP 63) fights with beak and claws, and as a special trait it can make a claw attack as a reaction against anyone who strikes its rider.",
+        "tags": ["owlbear", "feathers", "cought"]
       }
     ],
 
