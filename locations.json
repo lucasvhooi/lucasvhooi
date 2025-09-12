@@ -142,7 +142,7 @@
                 },
                 "Arcadia1": {
                     "name": "1) Silverleaf",
-                    "Encountered": "no",
+                    "Encountered": "yes",
                     "population": 330,
                     "wealth": "Rich",
                     "map": "Images/Maps/Arcadia/SilverleafMap.webp",
