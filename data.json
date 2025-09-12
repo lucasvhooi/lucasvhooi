@@ -5,7 +5,6 @@
         "Encountered": "yes",
         "backImage": "Images/Weapons/BloodthirsterUpgradeBack.webp",
         "description": "This is a legendary sword forged in dragon fire.",
-        "video": "images/Characters/hadesVideo.mp4",
         "tags": ["Bloodthirster", "sword", "upgrade"]
       },
       {
@@ -13,7 +12,6 @@
         "Encountered": "no",
         "backImage": "Images/Weapons/Volcanic EdgeBack.webp",
         "description": null,
-        "video": "images/Characters/hadesVideo.mp4",
         "tags": ["Volcanic Edge", "sword", "fire"]
       },
       {
@@ -22,6 +20,13 @@
         "backImage": "Images/Weapons/BoomerangOfDestinyBack.webp",
         "description": "This is a legendary sword forged in dragon fire.",
         "tags": ["Boomerang Of Destiny", "upgraded"]
+      },
+            {
+        "src": "Images/Weapons/BloodbiteShieldFront.webp",
+        "Encountered": "no",
+        "backImage": "Images/Weapons/BloodbiteShieldBack.webp",
+        "description": "This is a legendary sword forged in dragon fire.",
+        "tags": ["Bloodbite Shield", "upgraded"]
       },
       {
         "src": "Images/Weapons/Boomerang.webp",
@@ -113,6 +118,13 @@
         "backImage": "Images/Items/AzmossChessPieceBack.webp",
         "description": "DOES NOT WORK",
         "tags": ["Azmos", "Chess Piece", "Key Item"]
+      },
+            {
+        "src": "Images/Items/DiceOfImpossibleOdds.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "DOES NOT WORK",
+        "tags": ["Dice Of Impossible Odds"]
       },
       {
         "src": "Images/Items/MimirsGaze.webp",
@@ -296,6 +308,13 @@
         "backImage": null,
         "description": "A master of magic and a fearless knight sworn to protect Gelonus. Akron Sildor is a legendary figure known for his unyielding dedication to the kingdom. He stands as a bastion against darkness and danger.",
         "tags": ["Akron Sildor", "Gelonus", "master of magic"]
+      },
+            {
+        "src": "Images/Characters/Abomination.webp",
+        "Encountered": "no",
+        "backImage": null,
+        "description": "A master of magic and a fearless knight sworn to protect Gelonus. Akron Sildor is a legendary figure known for his unyielding dedication to the kingdom. He stands as a bastion against darkness and danger.",
+        "tags": ["Abomination", "master of magic"]
       },
       {
         "src": "Images/Characters/AphroditeFront.webp",
@@ -542,6 +561,13 @@
         "backImage": "Images/Armor/HoofdpietsMaskBack.webp",
         "description": "A fearless knight sworn to protect the kingdom.",
         "tags": ["piest", "zwart", "zwartepiet", "Hoofdpiet", "mask", "Hoofdpiet mask"]
+      },
+            {
+        "src": "Images/Armor/BootsOfSwiftnessFront.webp",
+        "Encountered": "no",
+        "backImage": "Images/Armor/BootsOfSwiftnessBack.webp",
+        "description": "A fearless knight sworn to protect the kingdom.",
+        "tags": ["Boots Of Swiftness", "upgrade"]
       },
       {
         "src": "Images/Armor/Pyrelight Cloak.webp",
