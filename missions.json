@@ -554,7 +554,7 @@
               {
                 "id": "gelonusMQ_11",
                 "title": "The Crestfallen's Curse (MQ)",
-                "Encountered": "no",
+                "Encountered": "yes",
                 "description": null,
                 "images": ["Images/Locations/TheCrestefallen.webp","Images/Locations/TheCrestefallenGhostship.webp","Images/Characters/MorganDredge.webp", "Images/Armor/AnchorhookGauntletFront copy.webp", "Images/Characters/Kraken.webp", "Images/Maps/BoatLayout.webp"],
                 "phases": [
