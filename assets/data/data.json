@@ -13,7 +13,7 @@
         },
         {
             "src": "Images/Weapons/Volcanic Edge.webp",
-            "Encountered": "no",
+            "Encountered": "yes",
             "backImage": "Images/Weapons/Volcanic EdgeBack.webp",
             "description": null,
             "tags": [
@@ -34,7 +34,7 @@
         },
         {
             "src": "Images/Weapons/BloodbiteShieldFront.webp",
-            "Encountered": "no",
+            "Encountered": "yes",
             "backImage": "Images/Weapons/BloodbiteShieldBack.webp",
             "description": "This is a legendary sword forged in dragon fire.",
             "tags": [
@@ -673,7 +673,7 @@
         },
         {
             "src": "Images/Locations/Gelonus/Characters/SecondWardenOfTheKing.webp",
-            "Encountered": "no",
+            "Encountered": "yes",
             "backImage": null,
             "description": "A fearless knight sworn to protect the kingdom.",
             "tags": [
@@ -784,7 +784,7 @@
         },
         {
             "src": "Images/Locations/Sea/Characters/Kraken.webp",
-            "Encountered": "no",
+            "Encountered": "yes",
             "backImage": null,
             "description": "",
             "tags": [
@@ -847,6 +847,66 @@
                 "feathers",
                 "cought"
             ]
+        },
+                {
+            "src": "Images/Locations/Noxus/Characters/DariusBloodcinder.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": null,
+            "tags": [
+                "Darius Bloodcinder",
+                "Noxus"
+            ]
+        },
+                {
+            "src": "Images/Locations/Noxus/Characters/MordekaiserMalgrim.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": null,
+            "tags": [
+                "Mordekaiser Malgrim",
+                "Noxus"
+            ]
+        },
+                {
+            "src": "Images/Locations/Noxus/Characters/ProfessorZulmarSarrik.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": null,
+            "tags": [
+                "Professor ZulmarSarrik",
+                "Noxus"
+            ]
+        },
+                {
+            "src": "Images/Locations/Noxus/Characters/Sion Krag’thul.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": null,
+            "tags": [
+                "Sion Krag’thul",
+                "Noxus"
+            ]
+        },
+                {
+            "src": "Images/Locations/Noxus/Characters/SwainVhar’zul.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": null,
+            "tags": [
+                "Swain Vhar’zul",
+                "Noxus"
+            ]
+        },
+                {
+            "src": "Images/Locations/Noxus/Characters/VexaraVhar’zul.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": null,
+            "tags": [
+                "Vexara Vhar’zul",
+                "Noxus"
+            ]
         }
     ],
     "armor": [
@@ -866,7 +926,7 @@
         },
         {
             "src": "Images/Armor/BootsOfSwiftnessFront.webp",
-            "Encountered": "no",
+            "Encountered": "yes",
             "backImage": "Images/Armor/BootsOfSwiftnessBack.webp",
             "description": "A fearless knight sworn to protect the kingdom.",
             "tags": [
@@ -876,7 +936,7 @@
         },
         {
             "src": "Images/Armor/Pyrelight Cloak.webp",
-            "Encountered": "no",
+            "Encountered": "yes",
             "backImage": "Images/Armor/Pyrelight CloakBack.webp",
             "description": "A fearless knight sworn to protect the kingdom.",
             "tags": [
@@ -1005,7 +1065,7 @@
         },
         {
             "src": "Images/Armor/AnchorhookGauntletFront copy.webp",
-            "Encountered": "no",
+            "Encountered": "yes",
             "backImage": "Images/Armor/AnchorhookGauntletBack.webp",
             "description": "",
             "tags": [
@@ -1013,66 +1073,6 @@
                 "The Creste fallen",
                 "Ocean",
                 "Gauntlet"
-            ]
-        },
-                {
-            "src": "Images/Locations/Noxus/Characters/DariusBloodcinder.webp",
-            "Encountered": "no",
-            "backImage": null,
-            "description": null,
-            "tags": [
-                "Darius Bloodcinder",
-                "Noxus"
-            ]
-        },
-                {
-            "src": "Images/Locations/Noxus/Characters/MordekaiserMalgrim.webp",
-            "Encountered": "no",
-            "backImage": null,
-            "description": null,
-            "tags": [
-                "Mordekaiser Malgrim",
-                "Noxus"
-            ]
-        },
-                {
-            "src": "Images/Locations/Noxus/Characters/ProfessorZulmarSarrik.webp",
-            "Encountered": "no",
-            "backImage": null,
-            "description": null,
-            "tags": [
-                "Professor ZulmarSarrik",
-                "Noxus"
-            ]
-        },
-                {
-            "src": "Images/Locations/Noxus/Characters/Sion Krag’thul.webp",
-            "Encountered": "no",
-            "backImage": null,
-            "description": null,
-            "tags": [
-                "Sion Krag’thul",
-                "Noxus"
-            ]
-        },
-                {
-            "src": "Images/Locations/Noxus/Characters/SwainVhar’zul.webp",
-            "Encountered": "no",
-            "backImage": null,
-            "description": null,
-            "tags": [
-                "Swain Vhar’zul",
-                "Noxus"
-            ]
-        },
-                {
-            "src": "Images/Locations/Noxus/Characters/VexaraVhar’zul.webp",
-            "Encountered": "no",
-            "backImage": null,
-            "description": null,
-            "tags": [
-                "Vexara Vhar’zul",
-                "Noxus"
             ]
         }
     ],
@@ -1103,7 +1103,7 @@
         },
         {
             "src": "Images/Locations/Sea/Locations/TheCrestefallenGhostship.webp",
-            "Encountered": "no",
+            "Encountered": "yes",
             "backImage": null,
             "description": "",
             "tags": [
@@ -1238,7 +1238,7 @@
         },
         {
             "src": "Images/Locations/Arcadia/Locations/Eldoria.webp",
-            "Encountered": "no",
+            "Encountered": "yes",
             "backImage": null,
             "description": "A mechanical marvel used to delve into the unknown.",
             "tags": [
