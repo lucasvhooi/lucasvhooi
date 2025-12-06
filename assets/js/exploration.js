@@ -1,6 +1,9 @@
 // Object to store loaded image data
 let imageData = {};
 
+// Check if the current user is a DM (admin)
+const isAdmin = localStorage.getItem("isAdmin") === "true";
+
 // Prefix relative asset paths so they resolve correctly from the /pages directory
 function resolveAssetPath(path) {
   if (!path) return path;
@@ -54,16 +57,21 @@ function showCategory(category) {
   images.forEach(item => {
     const isEncountered = item.Encountered && item.Encountered.toLowerCase() === "yes";
 
+    // Players should only see encountered items
+    if (!isAdmin && !isEncountered) return;
+
     const card = document.createElement("div");
     card.classList.add("card-pair");
     if (!isEncountered) {
       card.classList.add("unencountered");
     }
 
-    const statusBadge = document.createElement("div");
-    statusBadge.classList.add("status-badge");
-    statusBadge.textContent = isEncountered ? "Encountered" : "Not encountered";
-    card.appendChild(statusBadge);
+    if (isAdmin) {
+      const statusBadge = document.createElement("div");
+      statusBadge.classList.add("status-badge");
+      statusBadge.textContent = isEncountered ? "Encountered" : "Not encountered";
+      card.appendChild(statusBadge);
+    }
 
     // Front image
     const frontImg = document.createElement("img");
@@ -176,16 +184,21 @@ function searchAllImages() {
 
   // Display results
   matchedImages.forEach(item => {
+    // Players should not see unencountered entries
+    if (!isAdmin && !item.isEncountered) return;
+
     const card = document.createElement("div");
     card.classList.add("card-pair");
     if (!item.isEncountered) {
       card.classList.add("unencountered");
     }
 
-    const statusBadge = document.createElement("div");
-    statusBadge.classList.add("status-badge");
-    statusBadge.textContent = item.isEncountered ? "Encountered" : "Not encountered";
-    card.appendChild(statusBadge);
+    if (isAdmin) {
+      const statusBadge = document.createElement("div");
+      statusBadge.classList.add("status-badge");
+      statusBadge.textContent = item.isEncountered ? "Encountered" : "Not encountered";
+      card.appendChild(statusBadge);
+    }
 
     // Front image
     const frontImg = document.createElement("img");
