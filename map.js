@@ -5,11 +5,41 @@ let originY = 0;
 
 const mapContainer = document.getElementById("map-container");
 const mapWrapper = document.getElementById("map-wrapper");
+const mapImage = document.getElementById("map-image");
 
 // Update the transform on the map wrapper
 function updateTransform() {
   mapWrapper.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
 }
+
+// Fit the map image within the container on load and resize
+function fitMapToContainer() {
+  const containerRect = mapContainer.getBoundingClientRect();
+
+  if (!mapImage.naturalWidth || !mapImage.naturalHeight) {
+    return;
+  }
+
+  const scaleX = containerRect.width / mapImage.naturalWidth;
+  const scaleY = containerRect.height / mapImage.naturalHeight;
+  scale = Math.min(scaleX, scaleY);
+
+  const scaledWidth = mapImage.naturalWidth * scale;
+  const scaledHeight = mapImage.naturalHeight * scale;
+
+  originX = (containerRect.width - scaledWidth) / 2;
+  originY = (containerRect.height - scaledHeight) / 2;
+
+  updateTransform();
+}
+
+if (mapImage.complete) {
+  fitMapToContainer();
+} else {
+  mapImage.addEventListener("load", fitMapToContainer);
+}
+
+window.addEventListener("resize", fitMapToContainer);
 
 /* --- Zooming (Desktop) --- */
 mapContainer.addEventListener("wheel", function(e) {
@@ -30,18 +60,20 @@ mapContainer.addEventListener("wheel", function(e) {
   updateTransform();
 });
 
-/* --- Panning (Desktop) --- */
+/* --- Panning (Desktop with Pointer Events) --- */
 let isDragging = false;
 let startX, startY;
 
-mapContainer.addEventListener("mousedown", function(e) {
+mapContainer.addEventListener("pointerdown", function(e) {
+  if (e.pointerType !== "mouse" || e.button !== 0) return; // Only respond to primary mouse button
   isDragging = true;
   startX = e.clientX;
   startY = e.clientY;
   mapContainer.style.cursor = "grabbing";
+  mapContainer.setPointerCapture(e.pointerId);
 });
 
-document.addEventListener("mousemove", function(e) {
+mapContainer.addEventListener("pointermove", function(e) {
   if (!isDragging) return;
   const dx = e.clientX - startX;
   const dy = e.clientY - startY;
@@ -52,12 +84,15 @@ document.addEventListener("mousemove", function(e) {
   updateTransform();
 });
 
-document.addEventListener("mouseup", function() {
+function endDrag() {
   if (isDragging) {
     isDragging = false;
     mapContainer.style.cursor = "grab";
   }
-});
+}
+
+mapContainer.addEventListener("pointerup", endDrag);
+mapContainer.addEventListener("pointercancel", endDrag);
 
 /* --- Touch Support (Mobile) --- */
 const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
