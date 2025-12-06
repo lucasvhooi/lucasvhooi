@@ -7,6 +7,10 @@ const mapContainer = document.getElementById("map-container");
 const mapWrapper = document.getElementById("map-wrapper");
 const mapImage = document.getElementById("map-image");
 
+// Prevent the browser's default image drag behavior, which interrupts panning
+mapImage.draggable = false;
+mapImage.addEventListener("dragstart", (e) => e.preventDefault());
+
 // Update the transform on the map wrapper
 function updateTransform() {
   mapWrapper.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
