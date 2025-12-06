@@ -49,7 +49,7 @@ nav ul li a:hover {
 /* Section Styling */
 section {
     padding: 40px;
-    max-width: 800px;
+    width: min(1200px, 95vw);
     margin: auto;
 }
 
@@ -82,7 +82,7 @@ section {
 /* Image Gallery */
 .image-gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
     margin-top: 20px;
     justify-items: center;
