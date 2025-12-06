@@ -3,7 +3,7 @@
         "Gelonus": {
             "name": "Gelonus",
             "description": "A continent rich in history and culture.",
-            "map": "images/europe.jpg",
+            "map": "Images/Maps/map.webp",
             "locations": {
                 "Frostholm": {
                     "Encountered": "yes",
@@ -98,7 +98,7 @@
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
-                    "map": "Images/Maps/ThaunburgMine.webp",
+                    "map": "Images/Maps/map.webp",
                     "description": null
                 },
                 "Ruthorham": {
@@ -122,7 +122,7 @@
         "Arcadia": {
             "name": "Arcadia",
             "description": "The largest and most populous continent.",
-            "map": "images/asia.jpg",
+            "map": "Images/Maps/map.webp",
             "locations": {
                 "eldoria": {
                     "name": "Capital) Eldoria",
@@ -393,7 +393,7 @@
         "Elysium Colony": {
             "name": "Elysium Colony",
             "description": "The largest and most populous continent.",
-            "map": "images/asia.jpg",
+            "map": "Images/Maps/map.webp",
             "locations": {
                 "apollo": {
                     "name": "Capital) Apollo",
@@ -414,7 +414,7 @@
         "Thule": {
             "name": "Thule",
             "description": "The largest and most populous continent.",
-            "map": "images/asia.jpg",
+            "map": "Images/Maps/map.webp",
             "locations": {
                 "demeteron": {
                     "name": "Capital) Demeteron",
@@ -450,7 +450,7 @@
                     "Encountered": "no",
                     "population": 428,
                     "wealth": "Poor",
-                    "map": "images/Maps/Thule/Verghelm.webp",
+                    "map": "Images/Maps/Thule/Verghelm.webp",
                     "description": "Perched high on the jagged cliffs of the northern coast, Varghelm is a rugged coastal town built into wind-blasted stone and frostbitten soil. Its wooden structures cling to the rock like stubborn roots, lashed by icy winds and the constant roar of the sea below. Wide, looping paths connect stone-walled districts, and a massive longhall towers above the rest—overlooking both the settlement and the endless horizon of crashing waves. Founded by sea-raiders and wolf-cloaked wanderers, Varghelm has grown into a hardened yet proud community. Fishers and frost-smiths labor by day, while skalds sing of storms and sacrifice by firelight at night. The townsfolk revere old gods—some giant-blooded, some bestial—and speak of a time when the sea was a path, not a prison. They say the cliffs remember the first screams of battle… and the last songs of those who never returned from the sea."
                 }
             }
@@ -458,7 +458,7 @@
         "Hermesia": {
             "name": "Hermesia",
             "description": "The largest and most populous continent.",
-            "map": "images/asia.jpg",
+            "map": "Images/Maps/map.webp",
             "locations": {
                 "thalassia": {
                     "name": "Capital) Thalassia",
@@ -486,7 +486,7 @@
         "Pythos": {
             "name": "Pythos",
             "description": "The largest and most populous continent.",
-            "map": "images/asia.jpg",
+            "map": "Images/Maps/map.webp",
             "locations": {
                 "stromwatch": {
                     "name": "Capital) Stormwatch",
@@ -514,7 +514,7 @@
         "Elysium": {
             "name": "Elysium",
             "description": "The largest and most populous continent.",
-            "map": "images/asia.jpg",
+            "map": "Images/Maps/map.webp",
             "locations": {
                 "thundertop": {
                     "name": "Capital) Thundertop",
@@ -556,7 +556,7 @@
         "Noxus": {
             "name": "Noxus",
             "description": "The largest and most populous continent.",
-            "map": "images/asia.jpg",
+            "map": "Images/Maps/map.webp",
             "locations": {
                 "panthos": {
                     "name": "Capital) Panthos",
@@ -668,20 +668,20 @@
         "Atlantis": {
             "name": "Atlantis",
             "description": "The largest and most populous continent.",
-            "map": "images/asia.jpg",
+            "map": "Images/Maps/map.webp",
             "locations": {}
         },
         "Dimentions": {
             "name": "Dimentions",
             "description": "The largest and most populous continent.",
-            "map": "images/asia.jpg",
+            "map": "Images/Maps/map.webp",
             "locations": {
                 "spiritrealm": {
                     "name": "Spirit realm",
                     "Encountered": "yes",
                     "population": "Unkown",
                     "wealth": "Unkown",
-                    "map": "images/tokyo.jpg",
+                    "map": "Images/Maps/map.webp",
                     "description": "Unkown"
                 },
                 "thehollowveil": {
@@ -689,7 +689,7 @@
                     "Encountered": "no",
                     "population": "8.3M",
                     "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
+                    "map": "Images/Maps/map.webp",
                     "description": "Thailand's capital, known for its temples and nightlife."
                 },
                 "etherwhite": {
@@ -697,7 +697,7 @@
                     "Encountered": "no",
                     "population": null,
                     "wealth": "Medium",
-                    "map": "images/bangkok.jpg",
+                    "map": "Images/Maps/map.webp",
                     "description": "Thailand's capital, known for its temples and nightlife."
                 }
             }
