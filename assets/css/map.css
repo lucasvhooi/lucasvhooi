@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Garamond&display=swap');
+
+#map-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 120px);
+  overflow: hidden;
+  background: #111;
+  cursor: grab;
+}
+
+#map-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  transition: transform 0.05s linear;
+}
+
+#map-image {
+  display: block;
+  user-select: none;
+}

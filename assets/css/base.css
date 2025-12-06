@@ -1,0 +1,88 @@
+:root {
+  --bg: #1a1a1a;
+  --text: #f4e6d7;
+  --accent: #ffcc66;
+  --panel: #2c1a0a;
+  --panel-alt: #3e2b1b;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --font: 'Garamond', serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font);
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  text-align: center;
+}
+
+a {
+  color: var(--text);
+}
+
+a:hover {
+  color: var(--accent);
+}
+
+nav {
+  background: linear-gradient(to right, #5e3b20, #2c1a0a);
+  padding: 15px;
+  box-shadow: 0 4px 8px var(--shadow);
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+nav a {
+  text-decoration: none;
+  font-size: 20px;
+  font-weight: bold;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+nav a:hover {
+  color: var(--accent);
+  text-shadow: 0 0 10px rgba(255, 204, 102, 0.8);
+}
+
+section {
+  padding: 40px;
+  margin: auto;
+  max-width: 1000px;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.toggle-content.hidden {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  nav a {
+    font-size: 16px;
+    padding: 6px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  nav a {
+    font-size: 14px;
+    padding: 4px 6px;
+    white-space: nowrap;
+  }
+}

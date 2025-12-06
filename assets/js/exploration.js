@@ -3,22 +3,14 @@ let imageData = {};
 
 // Function to load data from the JSON file
 function loadData() {
-  fetch('data.json') // Fetch JSON file
-    .then(response => response.json()) // Convert response to JSON
+  fetch("../assets/data/data.json")
+    .then(response => response.json())
     .then(data => {
-      imageData = data; // Store loaded data
-      generateCategoryButtons(); // Create category buttons
+      imageData = data;
+      generateCategoryButtons();
     })
     .catch(error => console.error("Error loading data:", error));
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  loadData(); // Load data from JSON
-
-  // Force-hide the popup on page load
-  const popup = document.getElementById('popup');
-  popup.style.display = "none";
-});
 
 // Generate category buttons dynamically
 function generateCategoryButtons() {

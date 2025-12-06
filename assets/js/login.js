@@ -3,13 +3,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const playerButton = document.getElementById("player-login");
   const passwordInput = document.getElementById("admin-password");
   const errorMessage = document.getElementById("error-message");
-  const ADMIN_PASSWORD = "DnD!"; // Change as desired
+  const ADMIN_PASSWORD = "DnD!";
 
   adminButton.addEventListener("click", (e) => {
     e.preventDefault();
     if (passwordInput.value === ADMIN_PASSWORD) {
       localStorage.setItem("isAdmin", "true");
-      window.location.href = "homepage.html";
+      window.location.href = "pages/homepage.html";
     } else {
       errorMessage.textContent = "Incorrect admin password.";
     }
@@ -18,6 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
   playerButton.addEventListener("click", (e) => {
     e.preventDefault();
     localStorage.setItem("isAdmin", "false");
-    window.location.href = "homepage.html";
+    window.location.href = "pages/homepage.html";
   });
 });

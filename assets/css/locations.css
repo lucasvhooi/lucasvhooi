@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Garamond&display=swap');
+
+.continent {
+  background: var(--panel-alt);
+  color: var(--accent);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px auto;
+  width: min(720px, 90%);
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+}
+
+.continent:hover {
+  background: #57381f;
+  color: var(--text);
+}
+
+.location-list {
+  display: none;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.location-list li {
+  background: var(--panel);
+  padding: 10px;
+  border-radius: 8px;
+  margin: 6px auto;
+  width: min(680px, 85%);
+  font-size: 18px;
+  color: var(--accent);
+  text-align: center;
+  transition: 0.3s;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.location-list li:hover {
+  background: #4e2c14;
+  color: var(--text);
+}
+
+.location-details {
+  display: none;
+  background: var(--panel);
+  color: var(--text);
+  padding: 15px;
+  margin-top: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.location-details img {
+  max-width: 100%;
+  border-radius: 8px;
+  border: 2px solid #333;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  margin-top: 10px;
+}
+
+@media (max-width: 600px) {
+  .location-list li,
+  .location-details,
+  .continent {
+    width: 90%;
+    max-width: 400px;
+  }
+}

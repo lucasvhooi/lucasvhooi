@@ -4,66 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DnD Campaign Login</title>
-  <link rel="stylesheet" href="styles.css" />
-  <style>
-    /* Login Page CSS */
-    body {
-      font-family: 'Garamond', serif;
-      background-color: #1a1a1a;
-      color: #f4e6d7;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-    .login-container {
-      max-width: 400px;
-      margin: 100px auto;
-      padding: 20px;
-      background-color: #333;
-      border-radius: 8px;
-      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
-    }
-    .login-container h1 {
-      margin-bottom: 20px;
-    }
-    .login-container input[type="password"] {
-      width: 80%;
-      padding: 10px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    .login-container button {
-      padding: 10px 20px;
-      margin: 10px;
-      border: none;
-      border-radius: 5px;
-      background-color: #5e3b20;
-      color: #f4e6d7;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .login-container button:hover {
-      background-color: #2c1a0a;
-    }
-    .error-message {
-      color: red;
-      margin-top: 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/login.css" />
 </head>
 <body>
   <div class="login-container">
     <h1>Login</h1>
     <input type="password" id="admin-password" placeholder="Admin Password" />
-    <div>
+    <div class="actions">
       <button id="admin-login">Login as DM</button>
       <button id="player-login">Login as Player</button>
     </div>
     <div class="error-message" id="error-message"></div>
   </div>
-  <script src="login.js"></script>
-  
+  <script src="assets/js/login.js"></script>
 </body>
 </html>

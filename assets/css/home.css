@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Garamond&display=swap');
+
+.hero {
+  background: linear-gradient(135deg, #2c1a0a, #1a0f06);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
+  margin-bottom: 24px;
+}
+
+.dm-editors {
+  display: grid;
+  gap: 20px;
+}
+
+.dm-section {
+  background: var(--panel);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.dm-section h2 {
+  margin-top: 0;
+}
+
+.dm-section form {
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+
+.dm-section label {
+  font-weight: bold;
+}
+
+.dm-section input,
+.dm-section select,
+.dm-section textarea,
+.dm-section button {
+  font-family: var(--font);
+}
+
+.dm-section input,
+.dm-section select,
+.dm-section textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #4a3a2a;
+  background: #150c06;
+  color: var(--text);
+}
+
+.dm-section button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #5e3b20;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.dm-section button:hover {
+  background: #2c1a0a;
+}
+
+#download-json-container {
+  margin-top: 10px;
+  background: #1f1208;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+pre {
+  background: #0f0a06;
+  padding: 12px;
+  border-radius: 8px;
+  overflow: auto;
+}
+
+@media (min-width: 960px) {
+  .dm-editors {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

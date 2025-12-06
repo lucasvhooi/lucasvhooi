@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exploration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Garamond&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/exploration.css">
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="homepage.html">Home</a></li>
+      <li><a href="missions.html">Missions</a></li>
+      <li><a href="exploration.html">Exploration</a></li>
+      <li><a href="locations.html">Locations</a></li>
+      <li><a href="map.html">Map</a></li>
+    </ul>
+  </nav>
+
+  <section>
+    <h1>Exploration</h1>
+    <p>Select a category to view what has been explored:</p>
+    <input type="text" id="searchBar" placeholder="Search by tags..." oninput="searchAllImages()">
+    <div class="category-buttons"></div>
+    <div class="image-gallery"></div>
+  </section>
+
+  <div class="popup" id="popup">
+    <div class="popup-content">
+      <span class="close-button" id="closePopup">✖</span>
+      <div class="popup-body"></div>
+    </div>
+  </div>
+
+  <script src="../assets/js/exploration.js"></script>
+</body>
+</html>
