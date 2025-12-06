@@ -1,6 +1,6 @@
 // location.js
 document.addEventListener("DOMContentLoaded", () => {
-  fetch("locations.json")
+  fetch("../assets/data/locations.json")
     .then(response => response.json())
     .then(data => loadContinents(data.continents))
     .catch(error => console.error("Error loading locations:", error));

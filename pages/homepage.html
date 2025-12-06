@@ -4,38 +4,40 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DnD Campaign</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/home.css" />
 </head>
 <body>
   <nav>
     <ul>
       <li><a href="homepage.html">Home</a></li>
       <li><a href="missions.html">Missions</a></li>
-      <li><a href="Exploration.html">Exploration</a></li>
+      <li><a href="exploration.html">Exploration</a></li>
       <li><a href="locations.html">Locations</a></li>
       <li><a href="map.html">Map</a></li>
     </ul>
   </nav>
-  <section>
+
+  <section class="hero">
     <h1>The Legends Of Essolis DnD 5TH Campaign</h1>
     <p>Explore the world of Enora and the characters within.</p>
     <p>Disclaimer: Almost all card art is generated using AI. If this isn't the case, the artist or source will be credited. Some items, enemies, bosses, etc. might be very OP or deviate from DnD 5e rules. Use this as inspiration.</p>
     <p>Locations, missions, characters, etc. are updated after each session so that the site remains spoiler‑free.</p>
     <p>Feel free to use all maps, missions, and cards as you wish!</p>
   </section>
-  
+
   <div class="dm-editors">
-    <section id="dm-editor" style="display: none;">
+    <section class="dm-section dm-only" id="dm-editor">
       <h2>DM Mission Editor</h2>
       <form id="mission-form">
         <input type="hidden" id="mission-id" value="" />
 
         <label for="mission-title">Mission Title</label>
         <input type="text" id="mission-title" placeholder="Enter Mission Title" required />
-        
+
         <label for="mission-description">Mission Description</label>
         <textarea id="mission-description" placeholder="Enter Mission Description"></textarea>
-        
+
         <label for="mission-location">Mission Location</label>
         <select id="mission-location" required>
           <option value="">Select Mission Location</option>
@@ -50,7 +52,7 @@
           <option value="atlantis">Atlantis</option>
           <option value="dimentions">Dimentions</option>
         </select>
-        
+
         <label for="quest-type">Quest Type</label>
         <select id="quest-type" required>
           <option value="">Select Quest Type</option>
@@ -63,70 +65,70 @@
           <option value="yes">Yes</option>
           <option value="no">No</option>
         </select>
-        
+
         <label for="mission-images">Mission Image Paths</label>
         <input type="text" id="mission-images" placeholder="Enter folder/image1.webp, folder/image2.webp" />
-        
+
         <div class="section" id="phases-section">
           <h3>Phases</h3>
           <div id="phases-container"></div>
           <button type="button" onclick="addPhase()">Add Phase</button>
         </div>
-        
+
         <div class="section" id="loot-section">
           <h3>Loot</h3>
           <div id="loot-container"></div>
           <button type="button" onclick="addLoot()">Add Loot</button>
         </div>
-        
+
         <div class="section" id="bosses-section">
           <h3>Bosses</h3>
           <div id="bosses-container"></div>
           <button type="button" onclick="addBoss()">Add Boss</button>
         </div>
-        
+
         <button type="submit" id="save-mission-btn">Save Mission</button>
       </form>
       <h3>Mission JSON Output (for debugging)</h3>
       <pre id="output"></pre>
     </section>
-    
-    <section id="exploration-editor" style="display: none;">
+
+    <section class="dm-section dm-only" id="exploration-editor">
       <h2>DM Exploration Editor</h2>
       <form id="exploration-form">
         <label for="exploration-name">Exploration Name</label>
         <input type="text" id="exploration-name" placeholder="Enter Exploration Name" required />
-        
+
         <label for="exploration-description">Exploration Description</label>
         <textarea id="exploration-description" placeholder="Enter Exploration Description"></textarea>
-        
+
         <label for="exploration-image">Exploration Image Path</label>
         <input type="text" id="exploration-image" placeholder="folder/image.webp" required />
-        
+
         <label for="exploration-encountered">Encountered?</label>
         <select id="exploration-encountered" required>
           <option value="">Select</option>
           <option value="yes">Yes</option>
           <option value="no">No</option>
         </select>
-        
+
         <button type="submit">Save Exploration</button>
       </form>
       <h3>Exploration JSON Output</h3>
       <pre id="exploration-output"></pre>
     </section>
 
-    <section id="mission-management" style="display: none;">
+    <section class="dm-section dm-only" id="mission-management">
       <h2>DM Mission Management</h2>
-      <ul id="mission-list-dm">
-        </ul>
+      <ul id="mission-list-dm"></ul>
       <div id="download-json-container" style="display: none;">
-        <p>Your `missions.json` data has been updated in memory.</p>
-        <p>To save changes, download the file and replace your existing `missions.json` on the server.</p>
+        <p>Your <code>missions.json</code> data has been updated in memory.</p>
+        <p>To save changes, download the file and replace your existing <code>missions.json</code> on the server.</p>
         <button id="download-json-btn">Download Updated missions.json</button>
       </div>
     </section>
-  </div>  
-  <script src="scripts/homepage.js"></script>
+  </div>
+
+  <script src="../assets/js/homepage.js"></script>
 </body>
 </html>

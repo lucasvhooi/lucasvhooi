@@ -1,0 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=Garamond&display=swap');
+
+.location {
+  background: var(--panel-alt);
+  color: var(--accent);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px auto;
+  width: min(720px, 90%);
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+}
+
+.location:hover {
+  background: #57381f;
+  color: var(--text);
+}
+
+.mission-list {
+  display: none;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mission-list li {
+  background: var(--panel);
+  padding: 10px;
+  border-radius: 8px;
+  margin: 6px auto;
+  width: min(680px, 85%);
+  font-size: 18px;
+  color: var(--accent);
+  text-align: center;
+  transition: 0.3s;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.mission-list li:hover {
+  background: #4e2c14;
+  color: var(--text);
+}
+
+.mission-details {
+  display: none;
+  background: var(--panel);
+  color: var(--text);
+  padding: 16px;
+  margin-top: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.mission-images,
+.phase-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.mission-images img,
+.phase-images img {
+  max-width: 220px;
+  max-height: 300px;
+  border-radius: 8px;
+  border: 2px solid #333;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  object-fit: contain;
+}
+
+.mission-phase {
+  margin-top: 16px;
+  padding: 12px;
+  background: #1f1208;
+  border-radius: 8px;
+}
+
+.toggle-header {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0;
+  font-size: 18px;
+  color: var(--accent);
+}
+
+.toggle-arrow {
+  font-weight: bold;
+}
+
+.mission-loot,
+.mission-bosses {
+  margin-top: 12px;
+  padding: 10px;
+  background-color: #1f1f1f;
+  border-radius: 6px;
+}
+
+.boss-container {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #444;
+}
+
+.boss-name {
+  font-size: 24px;
+  margin: 0 0 6px;
+  color: #fff;
+}
+
+.boss-stat-block {
+  background-color: #2a2a2a;
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 8px;
+  color: #e2e2e2;
+  line-height: 1.3;
+  font-size: 13px;
+}
+
+.boss-stat-block p {
+  margin: 3px 0;
+  text-align: center;
+}
+
+.boss-ability-scores {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 4px 0;
+  text-align: center;
+}
+
+.boss-ability-scores th,
+.boss-ability-scores td {
+  border: 1px solid #444;
+  padding: 4px 6px;
+  background-color: #333;
+  color: #fff;
+  font-size: 12px;
+}
+
+.boss-ability-scores th {
+  background-color: #710d09;
+}
+
+.boss-abilities h5 {
+  margin: 4px 0 2px;
+  font-size: 14px;
+  color: #fff;
+  text-align: center;
+}
+
+.boss-abilities ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.boss-abilities li {
+  margin-bottom: 3px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.boss-description {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #ccc;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .mission-images img,
+  .phase-images img {
+    max-height: 240px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mission-images img,
+  .phase-images img {
+    max-height: 200px;
+  }
+}

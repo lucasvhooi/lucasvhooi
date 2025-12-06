@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const isAdmin = localStorage.getItem("isAdmin") === "true";
 
-  fetch("missions.json")
+  fetch("../assets/data/missions.json")
     .then(response => response.json())
     .then(data => loadMissions(data.locations, isAdmin))
     .catch(error => console.error("Error loading missions:", error));
