@@ -129,7 +129,7 @@
                     "Encountered": "no",
                     "population": null,
                     "wealth": null,
-                    "map": null,
+                    "map": "Images/Maps/Arcadia/Eldoriamap.webp",
                     "description": null
                 },
                 "silverwyn": {

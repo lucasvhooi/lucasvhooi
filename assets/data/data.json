@@ -1014,6 +1014,66 @@
                 "Ocean",
                 "Gauntlet"
             ]
+        },
+                {
+            "src": "Images/Locations/Noxus/Characters/DariusBloodcinder.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": null,
+            "tags": [
+                "Darius Bloodcinder",
+                "Noxus"
+            ]
+        },
+                {
+            "src": "Images/Locations/Noxus/Characters/MordekaiserMalgrim.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": null,
+            "tags": [
+                "Mordekaiser Malgrim",
+                "Noxus"
+            ]
+        },
+                {
+            "src": "Images/Locations/Noxus/Characters/ProfessorZulmarSarrik.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": null,
+            "tags": [
+                "Professor ZulmarSarrik",
+                "Noxus"
+            ]
+        },
+                {
+            "src": "Images/Locations/Noxus/Characters/Sion Krag’thul.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": null,
+            "tags": [
+                "Sion Krag’thul",
+                "Noxus"
+            ]
+        },
+                {
+            "src": "Images/Locations/Noxus/Characters/SwainVhar’zul.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": null,
+            "tags": [
+                "Swain Vhar’zul",
+                "Noxus"
+            ]
+        },
+                {
+            "src": "Images/Locations/Noxus/Characters/VexaraVhar’zul.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": null,
+            "tags": [
+                "Vexara Vhar’zul",
+                "Noxus"
+            ]
         }
     ],
     "locations": [
