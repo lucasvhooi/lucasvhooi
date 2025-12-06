@@ -6,6 +6,7 @@ html, body {
 
 section {
   width: min(1400px, 95vw);
+  max-width: none;
 }
 
 .category-buttons {
