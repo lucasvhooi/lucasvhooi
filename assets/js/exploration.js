@@ -1,6 +1,24 @@
 // Object to store loaded image data
 let imageData = {};
 
+// Prefix relative asset paths so they resolve correctly from the /pages directory
+function resolveAssetPath(path) {
+  if (!path) return path;
+
+  // Skip URLs that are already absolute or already rooted
+  if (/^(https?:)?\/\//i.test(path) || path.startsWith("/")) {
+    return path;
+  }
+
+  // If the path already includes an upward traversal, keep it
+  if (path.startsWith("../")) {
+    return path;
+  }
+
+  // Default: prefix with ../ so files in /pages can reach /Images
+  return `../${path}`;
+}
+
 // Function to load data from the JSON file
 function loadData() {
   fetch("../assets/data/data.json")
@@ -46,7 +64,7 @@ function showCategory(category) {
 
     // Front image
     const frontImg = document.createElement("img");
-    frontImg.src = item.src;
+    frontImg.src = resolveAssetPath(item.src);
     frontImg.alt = "Gallery Image";
     frontImg.classList.add("gallery-image");
     frontImg.loading = "lazy"; // Lazy loading for better performance
@@ -79,7 +97,7 @@ function openPopup(frontSrc, backSrc, description) {
 
   // Add front image
   const frontImg = document.createElement("img");
-  frontImg.src = frontSrc;
+  frontImg.src = resolveAssetPath(frontSrc);
   frontImg.alt = "Front Image";
   frontImg.loading = "lazy";
   imageContainer.appendChild(frontImg);
@@ -87,7 +105,7 @@ function openPopup(frontSrc, backSrc, description) {
   // Add back image if available
   if (backSrc && backSrc !== "null" && backSrc !== "") {
     const backImg = document.createElement("img");
-    backImg.src = backSrc;
+    backImg.src = resolveAssetPath(backSrc);
     backImg.alt = "Back Image";
     backImg.loading = "lazy";
     imageContainer.appendChild(backImg);
@@ -163,7 +181,7 @@ function searchAllImages() {
 
     // Front image
     const frontImg = document.createElement("img");
-    frontImg.src = item.src;
+    frontImg.src = resolveAssetPath(item.src);
     frontImg.alt = "Gallery Image";
     frontImg.classList.add("gallery-image");
     frontImg.loading = "lazy";
