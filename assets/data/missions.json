@@ -20,7 +20,7 @@
                           "phase": 2,
                           "title": "Battle Commences",
                           "description": "A challenging enemy appears, forcing the player to fight.",
-                          "images": ["images/phase2.jpg"]
+                          "images": ["Images/Other/maps-and-flags.webp"]
                         }
                     ]
                 },
@@ -41,7 +41,7 @@
                           "phase": 2,
                           "title": "Battle Commences",
                           "description": "A challenging enemy appears, forcing the player to fight.",
-                          "images": ["images/phase2.jpg"]
+                          "images": ["Images/Other/maps-and-flags.webp"]
                         }
                     ]
                 },
@@ -62,7 +62,7 @@
                           "phase": 2,
                           "title": "Battle Commences",
                           "description": "A challenging enemy appears, forcing the player to fight.",
-                          "images": ["images/phase2.jpg"]
+                          "images": ["Images/Other/maps-and-flags.webp"]
                         }
                     ]
                 },
@@ -83,7 +83,7 @@
                           "phase": 2,
                           "title": "Battle Commences",
                           "description": "A challenging enemy appears, forcing the player to fight.",
-                          "images": ["images/phase2.jpg"]
+                          "images": ["Images/Other/maps-and-flags.webp"]
                         }
                     ]
                 },
@@ -104,7 +104,7 @@
                           "phase": 2,
                           "title": "Battle Commences",
                           "description": "A challenging enemy appears, forcing the player to fight.",
-                          "images": ["images/phase2.jpg"]
+                          "images": ["Images/Other/maps-and-flags.webp"]
                         }
                     ]
                 },
@@ -113,7 +113,7 @@
                     "title": "Gashan's Curse (MQ)",
                     "Encountered": "yes",
                     "description": "Find and return the ancient relic lost deep within the ruins.",
-                    "images": ["images/relic1.jpg", "images/relic2.jpg"],
+                    "images": ["Images/Other/maps-and-flags.webp"],
                     "phases": [
                         {
                           "phase": 1,
@@ -125,7 +125,7 @@
                           "phase": 2,
                           "title": "Battle Commences",
                           "description": "A challenging enemy appears, forcing the player to fight.",
-                          "images": ["images/phase2.jpg"]
+                          "images": ["Images/Other/maps-and-flags.webp"]
                         }
                     ]
                 },
@@ -200,7 +200,7 @@
                         "phase": 11,
                         "title": "Next Steps",
                         "description": "Travel to Frostholm to find Fey Redwood and break the magical seal. Journey to Azmos’s Temple to uncover the true nature of the disturbance. Use the Celestial Crystal wisely to summon Hei Bai in times of need.",
-                        "images": ["images/Characters/AkronSildor.webp", "images/Characters/HeiBaiFront.webp", "images/Characters/TheOperator.webp", "images/Characters/IrvingAlric.webp", "images/Locations/SpiritRealm.webp", "images/Locations/AzmosRoots.webp","images/Locations/ArcaneBoreMKVI.webp", "images/Maps/BoreMKVI.webp"]
+                        "images": ["Images/Characters/AkronSildor.webp", "Images/Characters/HeiBaiFront.webp", "Images/Characters/TheOperator.webp", "Images/Characters/IrvingAlric.webp", "Images/Locations/SpiritRealm.webp", "Images/Locations/AzmosRoots.webp", "Images/Locations/ArcaneBoreMKVI.webp", "Images/Maps/BoreMKVI.webp"]
                       }
                     ]
                 },
@@ -209,7 +209,7 @@
                     "title": "The God Of Games (MQ)",
                     "Encountered": "yes",
                     "description": "The party has found the temple of Asmos. In this region, Asmos is the worshipped god, specifically the god of games. The party has to venture through multiple puzzle rooms. Each room holds a riddle or puzzle to be solved, where everyone in the party has to contribute their part. After solving all puzzles, the party will meet Asmos and convince him for his help. Here, the party has to win a game of chess against the god of games. The party can roll for intelligence or use other tactics to help them in their game.",
-                    "images": ["images/Maps/AzmosTempleLayout.webp"],
+                    "images": ["Images/Maps/AzmosTempleLayout.webp"],
                     "phases": [
                       {
                         "phase": 1,
@@ -251,7 +251,7 @@
                         "phase": 7,
                         "title": "Room 7: Meeting Azmos",
                         "description": "When entering Room 7, the party meets Azmos, the God of Games. As a final challenge, they must defeat him in a game of chess. They can roll for intelligence to get the best moves from the DM.\n\nAfter beating Azmos, he provides the party with valuable information on the campaign and story, which they need to advance. The players must continue playing until they win a game of chess.",
-                        "images": ["images/Locations/BoundrySanctuary.webp", "images/Items/AzmossChessPiece.webp", "images/Items/AzmossChessPieceBack.webp", "images/Other/ChessSession.webp"]
+                        "images": ["Images/Locations/BoundrySanctuary.webp", "Images/Items/AzmossChessPiece.webp", "Images/Items/AzmossChessPieceBack.webp", "Images/Other/ChessSession.webp"]
                       }
                       
                     ]
