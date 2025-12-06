@@ -1,5 +1,6 @@
 // Initialize transformation values
 let scale = 1;
+let minScale = 1;
 let originX = 0;
 let originY = 0;
 
@@ -29,6 +30,7 @@ function fitMapToContainer() {
 
   // Use the larger scale so the map fully covers the container without borders
   scale = Math.max(scaleX, scaleY);
+  minScale = scale;
 
   const scaledWidth = mapImage.naturalWidth * scale;
   const scaledHeight = mapImage.naturalHeight * scale;
@@ -36,6 +38,7 @@ function fitMapToContainer() {
   originX = (containerRect.width - scaledWidth) / 2;
   originY = (containerRect.height - scaledHeight) / 2;
 
+  clampToBounds();
   updateTransform();
 }
 
@@ -47,12 +50,24 @@ if (mapImage.complete) {
 
 window.addEventListener("resize", fitMapToContainer);
 
+function clampToBounds() {
+  const containerRect = mapContainer.getBoundingClientRect();
+  const scaledWidth = mapImage.naturalWidth * scale;
+  const scaledHeight = mapImage.naturalHeight * scale;
+
+  const minX = Math.min(0, containerRect.width - scaledWidth);
+  const minY = Math.min(0, containerRect.height - scaledHeight);
+
+  originX = Math.min(0, Math.max(minX, originX));
+  originY = Math.min(0, Math.max(minY, originY));
+}
+
 /* --- Zooming (Desktop) --- */
 mapContainer.addEventListener("wheel", function(e) {
   e.preventDefault();
   const zoomIntensity = 0.001;
   let newScale = scale * (1 - e.deltaY * zoomIntensity);
-  newScale = Math.min(Math.max(newScale, 0.1), 5);
+  newScale = Math.min(Math.max(newScale, minScale), 5);
   
   const rect = mapContainer.getBoundingClientRect();
   const mouseX = e.clientX - rect.left;
@@ -63,6 +78,7 @@ mapContainer.addEventListener("wheel", function(e) {
   originY -= (mouseY - originY) * (newScale / scale - 1);
   
   scale = newScale;
+  clampToBounds();
   updateTransform();
 });
 
@@ -87,6 +103,7 @@ mapContainer.addEventListener("pointermove", function(e) {
   startY = e.clientY;
   originX += dx;
   originY += dy;
+  clampToBounds();
   updateTransform();
 });
 
@@ -129,7 +146,7 @@ if (isTouchDevice) {
     if (isPinching && e.touches.length === 2) {
       const newDistance = getDistance(e.touches[0], e.touches[1]);
       let newScale = initialScale * (newDistance / initialDistance);
-      newScale = Math.min(Math.max(newScale, 0.1), 5);
+      newScale = Math.min(Math.max(newScale, minScale), 5);
       
       const rect = mapContainer.getBoundingClientRect();
       const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
@@ -138,6 +155,7 @@ if (isTouchDevice) {
       originY -= (midY - originY) * (newScale / scale - 1);
       
       scale = newScale;
+      clampToBounds();
       updateTransform();
       e.preventDefault();
     } else if (e.touches.length === 1 && !isPinching) {
@@ -147,6 +165,7 @@ if (isTouchDevice) {
       const dy = currentY - touchStartY;
       originX += dx;
       originY += dy;
+      clampToBounds();
       updateTransform();
       touchStartX = currentX;
       touchStartY = currentY;
