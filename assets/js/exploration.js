@@ -62,9 +62,7 @@ function showCategory(category) {
 
     const card = document.createElement("div");
     card.classList.add("card-pair");
-    if (!isEncountered) {
-      card.classList.add("unencountered");
-    }
+    card.classList.add(isEncountered ? "encountered" : "unencountered");
 
     if (isAdmin) {
       const statusBadge = document.createElement("div");
@@ -189,9 +187,7 @@ function searchAllImages() {
 
     const card = document.createElement("div");
     card.classList.add("card-pair");
-    if (!item.isEncountered) {
-      card.classList.add("unencountered");
-    }
+    card.classList.add(item.isEncountered ? "encountered" : "unencountered");
 
     if (isAdmin) {
       const statusBadge = document.createElement("div");
