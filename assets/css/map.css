@@ -14,6 +14,7 @@ body.map-page {
   min-height: 0;
   overflow: hidden;
   background: #111;
+  touch-action: none;
   cursor: grab;
 }
 
@@ -28,7 +29,8 @@ body.map-page {
 #map-image {
   display: block;
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-width: none;
+  max-height: none;
   user-select: none;
-  object-fit: cover;
 }
