@@ -50,17 +50,20 @@ function showCategory(category) {
   galleryDiv.innerHTML = ""; // Clear previous content
 
   const images = imageData[category] || [];
-  // Read admin flag: if true, show all items; if false, show only those with Encountered="yes"
-  const isAdmin = localStorage.getItem("isAdmin") === "true";
 
   images.forEach(item => {
-    // If not admin, skip this item unless Encountered equals "yes" (case‑insensitive)
-    if (!isAdmin && (!item.Encountered || item.Encountered.toLowerCase() !== "yes")) {
-      return; // Skip this item in player mode
-    }
+    const isEncountered = item.Encountered && item.Encountered.toLowerCase() === "yes";
 
     const card = document.createElement("div");
     card.classList.add("card-pair");
+    if (!isEncountered) {
+      card.classList.add("unencountered");
+    }
+
+    const statusBadge = document.createElement("div");
+    statusBadge.classList.add("status-badge");
+    statusBadge.textContent = isEncountered ? "Encountered" : "Not encountered";
+    card.appendChild(statusBadge);
 
     // Front image
     const frontImg = document.createElement("img");
@@ -151,8 +154,6 @@ function searchAllImages() {
 
   if (query === "") return; // If search is empty, do nothing
 
-  // Read admin flag so that in player mode, only encountered items are searched
-  const isAdmin = localStorage.getItem("isAdmin") === "true";
   const queryTags = query.split(" "); // Allow multiple keywords
   let matchedImages = [];
 
@@ -161,15 +162,14 @@ function searchAllImages() {
     const images = imageData[category];
 
     images.forEach(item => {
-      // If not admin, skip if item is not encountered
-      if (!isAdmin && (!item.Encountered || item.Encountered.toLowerCase() !== "yes")) return;
+      const isEncountered = item.Encountered && item.Encountered.toLowerCase() === "yes";
 
       const matchesAnyTag = queryTags.some(tag =>
         item.tags.some(itemTag => itemTag.toLowerCase().includes(tag))
       );
 
       if (matchesAnyTag) {
-        matchedImages.push(item);
+        matchedImages.push({ ...item, isEncountered });
       }
     });
   });
@@ -178,6 +178,14 @@ function searchAllImages() {
   matchedImages.forEach(item => {
     const card = document.createElement("div");
     card.classList.add("card-pair");
+    if (!item.isEncountered) {
+      card.classList.add("unencountered");
+    }
+
+    const statusBadge = document.createElement("div");
+    statusBadge.classList.add("status-badge");
+    statusBadge.textContent = item.isEncountered ? "Encountered" : "Not encountered";
+    card.appendChild(statusBadge);
 
     // Front image
     const frontImg = document.createElement("img");
