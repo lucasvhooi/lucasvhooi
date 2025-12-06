@@ -26,7 +26,9 @@ function fitMapToContainer() {
 
   const scaleX = containerRect.width / mapImage.naturalWidth;
   const scaleY = containerRect.height / mapImage.naturalHeight;
-  scale = Math.min(scaleX, scaleY);
+
+  // Use the larger scale so the map fully covers the container without borders
+  scale = Math.max(scaleX, scaleY);
 
   const scaledWidth = mapImage.naturalWidth * scale;
   const scaledHeight = mapImage.naturalHeight * scale;
