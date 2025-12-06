@@ -1,894 +1,1387 @@
 {
     "weapons": [
-      {
-        "src": "Images/Weapons/BloodthirsterUpgradeFront.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Weapons/BloodthirsterUpgradeBack.webp",
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Bloodthirster", "sword", "upgrade"]
-      },
-      {
-        "src": "Images/Weapons/Volcanic Edge.webp",
-        "Encountered": "no",
-        "backImage": "Images/Weapons/Volcanic EdgeBack.webp",
-        "description": null,
-        "tags": ["Volcanic Edge", "sword", "fire"]
-      },
-      {
-        "src": "Images/Weapons/BoomerangOfDestinyFront.webp",
-        "Encountered": "no",
-        "backImage": "Images/Weapons/BoomerangOfDestinyBack.webp",
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Boomerang Of Destiny", "upgraded"]
-      },
-            {
-        "src": "Images/Weapons/BloodbiteShieldFront.webp",
-        "Encountered": "no",
-        "backImage": "Images/Weapons/BloodbiteShieldBack.webp",
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Bloodbite Shield", "upgraded"]
-      },
-      {
-        "src": "Images/Weapons/Boomerang.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Boomerang"]
-      },
-      {
-        "src": "Images/Weapons/EnergySwordFront.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Weapons/EnergySwordBack.webp",
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Energy Sword", "Halo", "game"]
-      },
-      {
-        "src": "Images/Weapons/GalesCleaverFront.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Weapons/GalesCleaverBack.webp",
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Gales Cleaver", "Hocus Lookout", "The cook"]
-      },
-      {
-        "src": "Images/Weapons/MejijKatanaFront.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Weapons/MejijKatanaBack.webp",
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Mejij Katana", "sword"]
-      },
-      {
-        "src": "Images/Weapons/RayGunFront.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Weapons/RayGunBack.webp",
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Ray Gun", "Call of duty", "game"]
-      },
-      {
-        "src": "Images/Weapons/ShardbreakerFront.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Weapons/ShardbreakerBack.webp",
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Shardbreaker", "Pickaxe", "operator"]
-      },
-      {
-        "src": "Images/Weapons/ShockTongueQuarterStaffFront.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Weapons/ShockTongueQuarterStaffBack.webp",
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Shock Tongue Quarter Staff", "upgraded", "electric"]
-      },
-      {
-        "src": "Images/Weapons/StaffOfTheWoodlandsFront.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Weapons/StaffOfTheWoodlandsBack.webp",
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Staff Of The Woodlands", "plant"]
-      },
-      {
-        "src": "Images/Weapons/WhisperingDartFront.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Weapons/WhisperingDartBack.webp",
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Whispering Dart"]
-      },
-      {
-        "name": "Wardbreaker Blade",
-        "description": "Forged from black steel tempered by arcane fires, this longsword radiates disruptive energy that unsettles magical wards. Each swing reverberates with the echo of The Unyielding Fang’s unwavering resolve, marking it as a weapon of defiance.",
-        "src": "Images/Weapons/Wardbreaker bladeFront.webp",
-        "backImage": "Images/Weapons/Wardbreaker bladeBack.webp",
-        "Encountered": "yes",
-        "tags": ["Wardbreaker Blade", "Sword", "warden"]
-      },
-      {
-        "name": "Joe Rits Balladstring",
-        "description": "Forged from black steel tempered by arcane fires, this longsword radiates disruptive energy that unsettles magical wards. Each swing reverberates with the echo of The Unyielding Fang’s unwavering resolve, marking it as a weapon of defiance.",
-        "src": "Images/Weapons/JoeRitsBalladstringFront.webp",
-        "backImage": "Images/Weapons/JoeRitsBalladstringBack.webp",
-        "Encountered": "yes",
-        "tags": ["Joe Rits", "Guitar", "Balladstring"]
-      }
-
+        {
+            "src": "Images/Weapons/BloodthirsterUpgradeFront.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Weapons/BloodthirsterUpgradeBack.webp",
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Bloodthirster",
+                "sword",
+                "upgrade"
+            ]
+        },
+        {
+            "src": "Images/Weapons/Volcanic Edge.webp",
+            "Encountered": "no",
+            "backImage": "Images/Weapons/Volcanic EdgeBack.webp",
+            "description": null,
+            "tags": [
+                "Volcanic Edge",
+                "sword",
+                "fire"
+            ]
+        },
+        {
+            "src": "Images/Weapons/BoomerangOfDestinyFront.webp",
+            "Encountered": "no",
+            "backImage": "Images/Weapons/BoomerangOfDestinyBack.webp",
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Boomerang Of Destiny",
+                "upgraded"
+            ]
+        },
+        {
+            "src": "Images/Weapons/BloodbiteShieldFront.webp",
+            "Encountered": "no",
+            "backImage": "Images/Weapons/BloodbiteShieldBack.webp",
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Bloodbite Shield",
+                "upgraded"
+            ]
+        },
+        {
+            "src": "Images/Weapons/Boomerang.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Boomerang"
+            ]
+        },
+        {
+            "src": "Images/Weapons/EnergySwordFront.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Weapons/EnergySwordBack.webp",
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Energy Sword",
+                "Halo",
+                "game"
+            ]
+        },
+        {
+            "src": "Images/Weapons/GalesCleaverFront.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Weapons/GalesCleaverBack.webp",
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Gales Cleaver",
+                "Hocus Lookout",
+                "The cook"
+            ]
+        },
+        {
+            "src": "Images/Weapons/MejijKatanaFront.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Weapons/MejijKatanaBack.webp",
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Mejij Katana",
+                "sword"
+            ]
+        },
+        {
+            "src": "Images/Weapons/RayGunFront.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Weapons/RayGunBack.webp",
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Ray Gun",
+                "Call of duty",
+                "game"
+            ]
+        },
+        {
+            "src": "Images/Weapons/ShardbreakerFront.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Weapons/ShardbreakerBack.webp",
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Shardbreaker",
+                "Pickaxe",
+                "operator"
+            ]
+        },
+        {
+            "src": "Images/Weapons/ShockTongueQuarterStaffFront.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Weapons/ShockTongueQuarterStaffBack.webp",
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Shock Tongue Quarter Staff",
+                "upgraded",
+                "electric"
+            ]
+        },
+        {
+            "src": "Images/Weapons/StaffOfTheWoodlandsFront.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Weapons/StaffOfTheWoodlandsBack.webp",
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Staff Of The Woodlands",
+                "plant"
+            ]
+        },
+        {
+            "src": "Images/Weapons/WhisperingDartFront.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Weapons/WhisperingDartBack.webp",
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Whispering Dart"
+            ]
+        },
+        {
+            "name": "Wardbreaker Blade",
+            "description": "Forged from black steel tempered by arcane fires, this longsword radiates disruptive energy that unsettles magical wards. Each swing reverberates with the echo of The Unyielding Fang\u2019s unwavering resolve, marking it as a weapon of defiance.",
+            "src": "Images/Weapons/Wardbreaker bladeFront.webp",
+            "backImage": "Images/Weapons/Wardbreaker bladeBack.webp",
+            "Encountered": "yes",
+            "tags": [
+                "Wardbreaker Blade",
+                "Sword",
+                "warden"
+            ]
+        },
+        {
+            "name": "Joe Rits Balladstring",
+            "description": "Forged from black steel tempered by arcane fires, this longsword radiates disruptive energy that unsettles magical wards. Each swing reverberates with the echo of The Unyielding Fang\u2019s unwavering resolve, marking it as a weapon of defiance.",
+            "src": "Images/Weapons/JoeRitsBalladstringFront.webp",
+            "backImage": "Images/Weapons/JoeRitsBalladstringBack.webp",
+            "Encountered": "yes",
+            "tags": [
+                "Joe Rits",
+                "Guitar",
+                "Balladstring"
+            ]
+        }
     ],
-
-
     "items": [
-      {
-        "src": "Images/Items/AzmossChessPiece.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Items/AzmossChessPieceBack.webp",
-        "description": "DOES NOT WORK",
-        "tags": ["Azmos", "Chess Piece", "Key Item"]
-      },
-            {
-        "src": "Images/Items/DiceOfImpossibleOdds.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "DOES NOT WORK",
-        "tags": ["Dice Of Impossible Odds"]
-      },
-      {
-        "src": "Images/Items/MimirsGaze.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "DOES NOT WORK",
-        "tags": ["Mimirs Gaze"]
-      },
-      {
-        "src": "Images/Items/Frostbeardsbrewfront.webp",
-        "Encountered": "no",
-        "backImage": "Images/Items/FrostbeardsbrewBack.webp",
-        "description": "Encased in a small, frost-kissed flask that seems carved from enchanted ice, Frostbeard’s Brew is a relic of ancient Norse magic and forgotten frost giants. The flask itself is a work of art—etched with archaic runes and intricate patterns that mimic the swirling forms of winter storms. Its surface is perpetually encrusted with delicate, crystalline frost that glitters under even the faintest light, hinting at the brew’s potent, icy nature. Inside, the mysterious ale glows with a spectral blue light, swirling in mesmerizing patterns that evoke the aurora borealis. Wisps of ethereal mist occasionally escape from the opening, carrying with them the faint sound of a distant, echoing wind. The liquid’s deep, rich hue suggests a complexity of flavors and magical properties—one sip promises both invigorating battle fervor and the chill of ancient winters. Surrounded by a backdrop of a rugged Norse landscape—towering, snow-dusted mountains and swirling blizzards—the flask seems to capture the very essence of winters power and beauty. This brew, said to be distilled in the forgotten halls of frost giants, offers the drinker a temporary resistance to cold and a surge of melee might. However, the lingering effects of the ale impose a subtle, almost haunting chill, as if a fragment of the frost giant’s ancient essence remains forever within the drinker’s veins. Rendered in a detailed, atmospheric style, Frostbeard’s Brew embodies the duality of warmth and frost—a magical libation that is as much a blessing as it is a warning from the icy realms of old.",
-        "tags": ["Frostbeards brew", "potion", "consumable"]
-      },
-      {
-        "src": "Images/Items/BookOfBetterHealth.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "Book",
-        "tags": ["Book of better health", "book", "health"]
-      },
-      {
-        "src": "Images/Items/BookOfEverExpansion.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "DOES NOT WORK",
-        "tags": ["Book Of Ever Expansion", "book", "spellslot"]
-      },
-      {
-        "src": "Images/Items/BookOfGamblersKnowledge.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Book of Gamblers Knowledge", "book", "Gamblers", "Knowledge"]
-      },
-      {
-        "src": "Images/Items/UpShroom.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Shroom", "Up", "Mario", "Up Shroom", "Game"]
-      },
-
-      {
-        "src": "Images/Items/BookOfGuardiansAngel.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Book", "Guardians Angel", "Guardians", "Angel", "Book Of Guardians Angel"]
-      },
-      {
-        "src": "Images/Items/BookOfHardendHands.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Book Of Hardend Hands", "book", "Hardend", "Hands"]
-      },
-      {
-        "src": "Images/Items/BookOfInitiation.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Book Of Initiation", "book", "Initiation", "Initiative"]
-      },
-      {
-        "src": "Images/Items/FlameTongue.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Flame Tongue", "Flame", "Tongue"]
-      },
-
-      {
-        "src": "Images/Items/FrontCardBasic.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Celestial Cristal", "Hei Bai", "key item", "Celestial", "Cristal"]
-      },
-      {
-        "src": "Images/Items/ImmovableRodFront.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Immovable Rod", "Immovable", "Rod"]
-      },
-      {
-        "src": "Images/Items/LeafTongue.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Leaf Tongue", "Leaf", "Tongue"]
-      },
-      {
-        "src": "Images/Items/MetallonFlowerLeafFront.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Metallon Flower Leaf", "Metallon", "blood", "Flower", "Leaf", "Metal" ]
-      },
-      {
-        "src": "Images/Items/PipBoy3000.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["PipBoy3000", "Pipboy", "fallout", "game"]
-      },
-      {
-        "src": "Images/Items/Pokeball.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Pokeball", "pokemon", "ball", "game"]
-      },
-      {
-        "src": "Images/Items/ShockTongue.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Shock Tongue", "Shock", "Tongue"]
-      },
-
-
-      {
-        "src": "Images/Items/SpellCardEldritchBlast.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Spellcard Eldritch Blast", "Eldritch", "Blast", "Scroll", "Spellcard"]
-      },
-      {
-        "src": "Images/Items/SpellCardFireball.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Spellcard Fireball", "Fireball", "Fire", "Scroll", "Spellcard"]
-      },
-      {
-        "src": "Images/Items/SpellCardMagicMissle.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Spellcard Magic Missle", "Missle", "Magic", "Scroll", "Spellcard"]
-      },
-      {
-        "src": "Images/Items/SpellCardMistyStep.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Spellcard Misty Step", "Misty", "Step", "Scroll", "Spellcard"]
-      },
-      {
-        "src": "Images/Items/SpellCardShield.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Spellcard Shield", "Shield", "Scroll", "Spellcard"]
-      },
-      {
-        "src": "Images/Items/SpellCrdCureWounds.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Spellcard Cure Wounds", "Cure", "Wounds", "Scroll", "Spellcard"]
-      },
-      {
-        "src": "Images/Items/UlsasSpyglass.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "",
-        "tags": ["Spyglass", "Ulsa", "Crestfallen"]
-      }
+        {
+            "src": "Images/Items/AzmossChessPiece.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Items/AzmossChessPieceBack.webp",
+            "description": "DOES NOT WORK",
+            "tags": [
+                "Azmos",
+                "Chess Piece",
+                "Key Item"
+            ]
+        },
+        {
+            "src": "Images/Items/DiceOfImpossibleOdds.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "DOES NOT WORK",
+            "tags": [
+                "Dice Of Impossible Odds"
+            ]
+        },
+        {
+            "src": "Images/Items/MimirsGaze.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "DOES NOT WORK",
+            "tags": [
+                "Mimirs Gaze"
+            ]
+        },
+        {
+            "src": "Images/Items/Frostbeardsbrewfront.webp",
+            "Encountered": "no",
+            "backImage": "Images/Items/FrostbeardsbrewBack.webp",
+            "description": "Encased in a small, frost-kissed flask that seems carved from enchanted ice, Frostbeard\u2019s Brew is a relic of ancient Norse magic and forgotten frost giants. The flask itself is a work of art\u2014etched with archaic runes and intricate patterns that mimic the swirling forms of winter storms. Its surface is perpetually encrusted with delicate, crystalline frost that glitters under even the faintest light, hinting at the brew\u2019s potent, icy nature. Inside, the mysterious ale glows with a spectral blue light, swirling in mesmerizing patterns that evoke the aurora borealis. Wisps of ethereal mist occasionally escape from the opening, carrying with them the faint sound of a distant, echoing wind. The liquid\u2019s deep, rich hue suggests a complexity of flavors and magical properties\u2014one sip promises both invigorating battle fervor and the chill of ancient winters. Surrounded by a backdrop of a rugged Norse landscape\u2014towering, snow-dusted mountains and swirling blizzards\u2014the flask seems to capture the very essence of winters power and beauty. This brew, said to be distilled in the forgotten halls of frost giants, offers the drinker a temporary resistance to cold and a surge of melee might. However, the lingering effects of the ale impose a subtle, almost haunting chill, as if a fragment of the frost giant\u2019s ancient essence remains forever within the drinker\u2019s veins. Rendered in a detailed, atmospheric style, Frostbeard\u2019s Brew embodies the duality of warmth and frost\u2014a magical libation that is as much a blessing as it is a warning from the icy realms of old.",
+            "tags": [
+                "Frostbeards brew",
+                "potion",
+                "consumable"
+            ]
+        },
+        {
+            "src": "Images/Items/BookOfBetterHealth.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "Book",
+            "tags": [
+                "Book of better health",
+                "book",
+                "health"
+            ]
+        },
+        {
+            "src": "Images/Items/BookOfEverExpansion.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "DOES NOT WORK",
+            "tags": [
+                "Book Of Ever Expansion",
+                "book",
+                "spellslot"
+            ]
+        },
+        {
+            "src": "Images/Items/BookOfGamblersKnowledge.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Book of Gamblers Knowledge",
+                "book",
+                "Gamblers",
+                "Knowledge"
+            ]
+        },
+        {
+            "src": "Images/Items/UpShroom.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Shroom",
+                "Up",
+                "Mario",
+                "Up Shroom",
+                "Game"
+            ]
+        },
+        {
+            "src": "Images/Items/BookOfGuardiansAngel.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Book",
+                "Guardians Angel",
+                "Guardians",
+                "Angel",
+                "Book Of Guardians Angel"
+            ]
+        },
+        {
+            "src": "Images/Items/BookOfHardendHands.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Book Of Hardend Hands",
+                "book",
+                "Hardend",
+                "Hands"
+            ]
+        },
+        {
+            "src": "Images/Items/BookOfInitiation.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Book Of Initiation",
+                "book",
+                "Initiation",
+                "Initiative"
+            ]
+        },
+        {
+            "src": "Images/Items/FlameTongue.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Flame Tongue",
+                "Flame",
+                "Tongue"
+            ]
+        },
+        {
+            "src": "Images/Items/FrontCardBasic.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Celestial Cristal",
+                "Hei Bai",
+                "key item",
+                "Celestial",
+                "Cristal"
+            ]
+        },
+        {
+            "src": "Images/Items/ImmovableRodFront.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Immovable Rod",
+                "Immovable",
+                "Rod"
+            ]
+        },
+        {
+            "src": "Images/Items/LeafTongue.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Leaf Tongue",
+                "Leaf",
+                "Tongue"
+            ]
+        },
+        {
+            "src": "Images/Items/MetallonFlowerLeafFront.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Metallon Flower Leaf",
+                "Metallon",
+                "blood",
+                "Flower",
+                "Leaf",
+                "Metal"
+            ]
+        },
+        {
+            "src": "Images/Items/PipBoy3000.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "PipBoy3000",
+                "Pipboy",
+                "fallout",
+                "game"
+            ]
+        },
+        {
+            "src": "Images/Items/Pokeball.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Pokeball",
+                "pokemon",
+                "ball",
+                "game"
+            ]
+        },
+        {
+            "src": "Images/Items/ShockTongue.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Shock Tongue",
+                "Shock",
+                "Tongue"
+            ]
+        },
+        {
+            "src": "Images/Items/SpellCardEldritchBlast.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Spellcard Eldritch Blast",
+                "Eldritch",
+                "Blast",
+                "Scroll",
+                "Spellcard"
+            ]
+        },
+        {
+            "src": "Images/Items/SpellCardFireball.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Spellcard Fireball",
+                "Fireball",
+                "Fire",
+                "Scroll",
+                "Spellcard"
+            ]
+        },
+        {
+            "src": "Images/Items/SpellCardMagicMissle.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Spellcard Magic Missle",
+                "Missle",
+                "Magic",
+                "Scroll",
+                "Spellcard"
+            ]
+        },
+        {
+            "src": "Images/Items/SpellCardMistyStep.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Spellcard Misty Step",
+                "Misty",
+                "Step",
+                "Scroll",
+                "Spellcard"
+            ]
+        },
+        {
+            "src": "Images/Items/SpellCardShield.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Spellcard Shield",
+                "Shield",
+                "Scroll",
+                "Spellcard"
+            ]
+        },
+        {
+            "src": "Images/Items/SpellCrdCureWounds.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Spellcard Cure Wounds",
+                "Cure",
+                "Wounds",
+                "Scroll",
+                "Spellcard"
+            ]
+        },
+        {
+            "src": "Images/Items/UlsasSpyglass.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "",
+            "tags": [
+                "Spyglass",
+                "Ulsa",
+                "Crestfallen"
+            ]
+        }
     ],
-
-
     "characters": [
-      {
-        "src": "Images/Characters/AkronSildor.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A master of magic and a fearless knight sworn to protect Gelonus. Akron Sildor is a legendary figure known for his unyielding dedication to the kingdom. He stands as a bastion against darkness and danger.",
-        "tags": ["Akron Sildor", "Gelonus", "master of magic"]
-      },
-            {
-        "src": "Images/Characters/Abomination.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A master of magic and a fearless knight sworn to protect Gelonus. Akron Sildor is a legendary figure known for his unyielding dedication to the kingdom. He stands as a bastion against darkness and danger.",
-        "tags": ["Abomination", "master of magic"]
-      },
-      {
-        "src": "Images/Characters/AphroditeFront.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "The goddess of beauty Aphrodite is a figure of intrigue and desire. Her presence in the world is a curious one. Some claim she has the power to enchant and transform those who meet her eye.",
-        "tags": ["Aphrodite", "god of beauty"]
-      },
-      {
-        "src": "Images/Characters/Imp.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Characters/ImpBack.webp",
-        "description": "This mischievous creature roams the shadows of Gelonus. Its small form and deceptive nature make it both an enigma and a threat. Little is known about its true intentions, but its actions carry great consequences.",
-        "tags": ["imp"]
-      },
-      {
-        "src": "Images/Characters/AylinBrightenloof.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "The queen of Gelonus, Aylin Brightenloof is a strong and wise leader who carries the heavy burden of governance with grace. She stands as the heart of the kingdom, beloved and respected by all.",
-        "tags": ["Aylin Brightenloof", "queen", "king", "gelonus"]
-      },
-      {
-        "src": "Images/Characters/BorisTheGreat.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "Boris The Great is a revered knight known for his tactical brilliance and formidable strength. His reputation as a protector of Gelonus has earned him the loyalty of many.",
-        "tags": ["Boris The Great", "upgrade"]
-      },
-      {
-        "src": "Images/Characters/DonatWard.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "Donat Ward, known as the Hand of the King, is a knight entrusted with protecting the royal family. He is a loyal and determined protector, always ready to defend the kingdom.",
-        "tags": ["Donat Ward", "hand of the king", "knight", "gelonus"]
-      },
-      {
-        "src": "Images/Characters/FeyRedwoodFront.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "Fey Redwood is a half-elf knight with striking red hair. Known for her swift movements and sharp wit, she is an adept fighter and a fierce protector of Gelonus.",
-        "tags": ["Fey Redwood", "half-elf", "red hair", "gelonus"]
-      },
-      {
-        "src": "Images/Characters/GidionSolergaFront.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "Gidion Solerga, a financial backer in Gelonus, is an influential figure with a network of connections. Known for his blue masks, he has a mysterious air and is often seen in the company of the kingdom’s elite.",
-        "tags": ["Gidion Solerga", "Blue masks", "financial backer", "gelonus"]
-      },
-      {
-        "src": "Images/Characters/GodOfLiminality.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "The God of Liminality is a powerful and enigmatic figure from Arcadia. Known for his ability to control thresholds and transitions, he plays a critical role in the balance between worlds.",
-        "tags": ["God Of Liminality", "Arcadia"]
-      },
-      {
-        "src": "Images/Characters/HeiBaiFront.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "Hei Bai is a mysterious entity tied to the Spirit Realm. With his presence, he brings both fear and awe. His true nature is unknown, but he is closely connected to the kingdom’s spiritual balance.",
-        "tags": ["Hei Bai", "Spirit Realm"]
-      },
-      {
-        "src": "Images/Characters/Hoofdpiet.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "Hoofdpiet is a member of the Sinterklaas order. Known for his connection to coal and his relentless pursuit of justice, he is a fierce protector of Gelonus.",
-        "tags": ["Hoofdpiet", "sinterklaas", "coal", "gelonus"]
-      },
-      {
-        "src": "Images/Characters/IrvingAlric.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "Irving Alric is a master of science with an expertise in fire-based technologies. His experiments have led to revolutionary discoveries, although his methods often raise ethical concerns.",
-        "tags": ["Irving Alric", "fire", "master of science", "gelonus"]
-      },
-      {
-        "src": "Images/Characters/IwanWarrick.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "Iwan Warrick is the head of the City Watch in Gelonus. A disciplined warrior, he ensures the safety of the people while dealing with threats from both within and beyond the kingdom’s borders.",
-        "tags": ["Iwan Warrick", "Head City Watch", "warrior", "gelonus"]
-      },
-      {
-        "src": "Images/Characters/JahvisJundruk.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "Jahvis Jundruk is a captain known as the Master of the Sea. He commands respect on the water, and his knowledge of naval combat makes him a vital asset to Gelonus’s defense.",
-        "tags": ["Jahvis Jundruk", "Master of the sea", "captain", "gelonus"]
-      },
-      {
-        "src": "Images/Characters/JoeRitsFront.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "Joe Rits is a traveler and bard known for his songs of adventure. His tales have spread throughout Gelonus, making him a beloved figure among the common folk.",
-        "tags": ["Joe Rits", "party", "traveler", "bard", "gelonus"]
-      },
-      {
-        "src": "Images/Characters/Karlis Amel.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "",
-        "tags": ["Karlis Amel", "Master of relations", "gelonus"]
-      },
-
-
-      {
-        "src": "Images/Characters/PriskoColby.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "",
-        "tags": ["Prisko Colby", "Master of Religion", "gelonus"]
-      },
-      {
-        "src": "Images/Characters/SecondWardenOfTheKing.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
-      },
-      {
-        "src": "Images/Characters/Sinterklaas.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
-      },
-      {
-        "src": "Images/Characters/TheOperator.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "",
-        "tags": ["sword", "fire", "legendary"]
-      },
-
-
-      {
-        "src": "Images/Characters/TyrellBeno.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "",
-        "tags": ["sword", "fire", "legendary"]
-      },
-      {
-        "src": "Images/Characters/Valdemar Brightenloof.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
-      },
-      {
-        "src": "Images/Characters/VitalesSorol.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
-      },
-
-
-
-      {
-        "src": "Images/Characters/ZharOth.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
-      },
-      {
-        "src": "Images/Characters/ZwartePiet.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "",
-        "tags": ["sword", "fire", "legendary"]
-      },
-      {
-        "src": "Images/Characters/Hades.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "",
-        "tags": ["hell", "hades", "god of death"]
-      },
-      {
-        "src": "Images/Characters/MorganDredge.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "",
-        "tags": ["Morgan Dredge", "captain", "pirate", "The Crestfallen"]
-      },      
-      
-      {
-        "src": "Images/Characters/Kraken.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "",
-        "tags": ["Kraken", "sea", "pandora's box of the sea poseidon"]
-      },
-      {
-        "src": "Images/Characters/Wyrmsign.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "",
-        "tags": ["Red Dragon", "Thule", "Fire"]
-      },
-
-
-
-      {
-        "src": "Images/Characters/Mimir.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sword", "fire", "legendary"]
-      },
-      {
-        "src": "Images/Characters/Melinoe.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "",
-        "tags": ["sword", "fire", "legendary"]
-      },
-      {
-        "src": "Images/Characters/ate.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "",
-        "tags": ["hell", "hades", "god of death"]
-      },      
-      {
-        "src": "Images/Characters/OwlBearMountFrontweb.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Characters/OwlBearMountBackweb.webp",
-        "description": "A tamed Owlbear in leather armor (AC 14, HP 63) fights with beak and claws, and as a special trait it can make a claw attack as a reaction against anyone who strikes its rider.",
-        "tags": ["owlbear", "feathers", "cought"]
-      }
+        {
+            "src": "Images/Locations/Gelonus/Characters/AkronSildor.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A master of magic and a fearless knight sworn to protect Gelonus. Akron Sildor is a legendary figure known for his unyielding dedication to the kingdom. He stands as a bastion against darkness and danger.",
+            "tags": [
+                "Akron Sildor",
+                "Gelonus",
+                "master of magic"
+            ]
+        },
+        {
+            "src": "Images/Locations/Arcadia/Characters/Abomination.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A master of magic and a fearless knight sworn to protect Gelonus. Akron Sildor is a legendary figure known for his unyielding dedication to the kingdom. He stands as a bastion against darkness and danger.",
+            "tags": [
+                "Abomination",
+                "master of magic"
+            ]
+        },
+        {
+            "src": "Images/Characters/Humanoids/AphroditeFront.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "The goddess of beauty Aphrodite is a figure of intrigue and desire. Her presence in the world is a curious one. Some claim she has the power to enchant and transform those who meet her eye.",
+            "tags": [
+                "Aphrodite",
+                "god of beauty"
+            ]
+        },
+        {
+            "src": "Images/Characters/Creatures/Imp.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Characters/Creatures/ImpBack.webp",
+            "description": "This mischievous creature roams the shadows of Gelonus. Its small form and deceptive nature make it both an enigma and a threat. Little is known about its true intentions, but its actions carry great consequences.",
+            "tags": [
+                "imp"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Characters/AylinBrightenloof.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "The queen of Gelonus, Aylin Brightenloof is a strong and wise leader who carries the heavy burden of governance with grace. She stands as the heart of the kingdom, beloved and respected by all.",
+            "tags": [
+                "Aylin Brightenloof",
+                "queen",
+                "king",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Characters/Humanoids/BorisTheGreat.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "Boris The Great is a revered knight known for his tactical brilliance and formidable strength. His reputation as a protector of Gelonus has earned him the loyalty of many.",
+            "tags": [
+                "Boris The Great",
+                "upgrade"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Characters/DonatWard.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "Donat Ward, known as the Hand of the King, is a knight entrusted with protecting the royal family. He is a loyal and determined protector, always ready to defend the kingdom.",
+            "tags": [
+                "Donat Ward",
+                "hand of the king",
+                "knight",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Characters/Humanoids/FeyRedwoodFront.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "Fey Redwood is a half-elf knight with striking red hair. Known for her swift movements and sharp wit, she is an adept fighter and a fierce protector of Gelonus.",
+            "tags": [
+                "Fey Redwood",
+                "half-elf",
+                "red hair",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Characters/GidionSolergaFront.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "Gidion Solerga, a financial backer in Gelonus, is an influential figure with a network of connections. Known for his blue masks, he has a mysterious air and is often seen in the company of the kingdom\u2019s elite.",
+            "tags": [
+                "Gidion Solerga",
+                "Blue masks",
+                "financial backer",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Characters/Gods/GodOfLiminality.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "The God of Liminality is a powerful and enigmatic figure from Arcadia. Known for his ability to control thresholds and transitions, he plays a critical role in the balance between worlds.",
+            "tags": [
+                "God Of Liminality",
+                "Arcadia"
+            ]
+        },
+        {
+            "src": "Images/Characters/Creatures/HeiBaiFront.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "Hei Bai is a mysterious entity tied to the Spirit Realm. With his presence, he brings both fear and awe. His true nature is unknown, but he is closely connected to the kingdom\u2019s spiritual balance.",
+            "tags": [
+                "Hei Bai",
+                "Spirit Realm"
+            ]
+        },
+        {
+            "src": "Images/Characters/Humanoids/Hoofdpiet.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "Hoofdpiet is a member of the Sinterklaas order. Known for his connection to coal and his relentless pursuit of justice, he is a fierce protector of Gelonus.",
+            "tags": [
+                "Hoofdpiet",
+                "sinterklaas",
+                "coal",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Characters/IrvingAlric.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "Irving Alric is a master of science with an expertise in fire-based technologies. His experiments have led to revolutionary discoveries, although his methods often raise ethical concerns.",
+            "tags": [
+                "Irving Alric",
+                "fire",
+                "master of science",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Characters/IwanWarrick.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "Iwan Warrick is the head of the City Watch in Gelonus. A disciplined warrior, he ensures the safety of the people while dealing with threats from both within and beyond the kingdom\u2019s borders.",
+            "tags": [
+                "Iwan Warrick",
+                "Head City Watch",
+                "warrior",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Characters/JahvisJundruk.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "Jahvis Jundruk is a captain known as the Master of the Sea. He commands respect on the water, and his knowledge of naval combat makes him a vital asset to Gelonus\u2019s defense.",
+            "tags": [
+                "Jahvis Jundruk",
+                "Master of the sea",
+                "captain",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Characters/JoeRitsFront.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "Joe Rits is a traveler and bard known for his songs of adventure. His tales have spread throughout Gelonus, making him a beloved figure among the common folk.",
+            "tags": [
+                "Joe Rits",
+                "party",
+                "traveler",
+                "bard",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Characters/Karlis Amel.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "",
+            "tags": [
+                "Karlis Amel",
+                "Master of relations",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Characters/PriskoColby.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "",
+            "tags": [
+                "Prisko Colby",
+                "Master of Religion",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Characters/SecondWardenOfTheKing.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A fearless knight sworn to protect the kingdom.",
+            "tags": [
+                "sword",
+                "fire",
+                "legendary"
+            ]
+        },
+        {
+            "src": "Images/Characters/Humanoids/Sinterklaas.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A fearless knight sworn to protect the kingdom.",
+            "tags": [
+                "sword",
+                "fire",
+                "legendary"
+            ]
+        },
+        {
+            "src": "Images/Characters/Humanoids/TheOperator.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "",
+            "tags": [
+                "sword",
+                "fire",
+                "legendary"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Characters/TyrellBeno.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "",
+            "tags": [
+                "sword",
+                "fire",
+                "legendary"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Characters/Valdemar Brightenloof.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A fearless knight sworn to protect the kingdom.",
+            "tags": [
+                "sword",
+                "fire",
+                "legendary"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Characters/VitalesSorol.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A fearless knight sworn to protect the kingdom.",
+            "tags": [
+                "sword",
+                "fire",
+                "legendary"
+            ]
+        },
+        {
+            "src": "Images/Characters/Gods/ZharOth.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A fearless knight sworn to protect the kingdom.",
+            "tags": [
+                "sword",
+                "fire",
+                "legendary"
+            ]
+        },
+        {
+            "src": "Images/Characters/Humanoids/ZwartePiet.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "",
+            "tags": [
+                "sword",
+                "fire",
+                "legendary"
+            ]
+        },
+        {
+            "src": "Images/Characters/Humanoids/Hades.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "",
+            "tags": [
+                "hell",
+                "hades",
+                "god of death"
+            ]
+        },
+        {
+            "src": "Images/Locations/Sea/Characters/MorganDredge.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "",
+            "tags": [
+                "Morgan Dredge",
+                "captain",
+                "pirate",
+                "The Crestfallen"
+            ]
+        },
+        {
+            "src": "Images/Locations/Sea/Characters/Kraken.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "",
+            "tags": [
+                "Kraken",
+                "sea",
+                "pandora's box of the sea poseidon"
+            ]
+        },
+        {
+            "src": "Images/Characters/Creatures/Wyrmsign.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "",
+            "tags": [
+                "Red Dragon",
+                "Thule",
+                "Fire"
+            ]
+        },
+        {
+            "src": "Images/Locations/Arcadia/Characters/Mimir.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A fearless knight sworn to protect the kingdom.",
+            "tags": [
+                "sword",
+                "fire",
+                "legendary"
+            ]
+        },
+        {
+            "src": "Images/Characters/Gods/Melinoe.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "",
+            "tags": [
+                "sword",
+                "fire",
+                "legendary"
+            ]
+        },
+        {
+            "src": "Images/Characters/Creatures/ate.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "",
+            "tags": [
+                "hell",
+                "hades",
+                "god of death"
+            ]
+        },
+        {
+            "src": "Images/Characters/Creatures/OwlBearMountFrontweb.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Characters/Creatures/OwlBearMountBackweb.webp",
+            "description": "A tamed Owlbear in leather armor (AC 14, HP 63) fights with beak and claws, and as a special trait it can make a claw attack as a reaction against anyone who strikes its rider.",
+            "tags": [
+                "owlbear",
+                "feathers",
+                "cought"
+            ]
+        }
     ],
-
-
     "armor": [
-      {
-        "src": "Images/Armor/HoofdpietsMask.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Armor/HoofdpietsMaskBack.webp",
-        "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["piest", "zwart", "zwartepiet", "Hoofdpiet", "mask", "Hoofdpiet mask"]
-      },
-            {
-        "src": "Images/Armor/BootsOfSwiftnessFront.webp",
-        "Encountered": "no",
-        "backImage": "Images/Armor/BootsOfSwiftnessBack.webp",
-        "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["Boots Of Swiftness", "upgrade"]
-      },
-      {
-        "src": "Images/Armor/Pyrelight Cloak.webp",
-        "Encountered": "no",
-        "backImage": "Images/Armor/Pyrelight CloakBack.webp",
-        "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["Pyrelight Cloak", "robe"]
-      },
-      {
-        "src": "Images/Armor/Miter of Sinterklaas.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Armor/Miter of SinterklaasBack.webp",
-        "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sinterklaas", "Miter", "legendary"]
-      },
-      {
-        "src": "Images/Armor/MiningHelmetUpgradeFront.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Armor/MiningHelmetUpgradeBack.webp",
-        "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sinterklaas", "Miter", "legendary"]
-      },
-      {
-        "src": "Images/Armor/BootsofElvenkind.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sinterklaas", "Miter", "legendary"]
-      },
-      {
-        "src": "Images/Armor/NutcrackerChain.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Armor/NutcrackerChainBack.webp",
-        "description": "A fearless knight sworn to protect the kingdom.",
-        "tags": ["sinterklaas", "Miter", "legendary"]
-      },
-      {
-        "src": "Images/Armor/BootsOfStridingAndSprinting.webp",
-        "Encountered": "yes",
-        "backImage": "Images/Armor/BootsOfStridingAndSprintingBack.webp",
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Boots Of Striding And Sprinting", "Sprinting", "Boots", "Striding"]
-      },
-      {
-        "src": "Images/Armor/MoonstoneChain.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Moonstone Chain", "Moonstone", "Chain"]
-      },
-
-      {
-        "src": "Images/Armor/NecklaceoftheGlimmeringSea.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Necklace of the Glimmering Sea", "Sea", "Necklace"]
-      },
-      {
-        "src": "Images/Armor/PendantoftheTimeless Oak.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Book of better health", "book", "health"]
-      },
-      {
-        "src": "Images/Armor/Cindergrasp Gauntlets.webp",
-        "Encountered": "no",
-        "backImage": "Images/Armor/Cindergrasp GauntletsBack.webp",
-        "description": "This is a legendary sword forged in dragon fire.",
-        "tags": ["Cindergrasp Gauntlets", "Gloves", "Fire"]
-      },
-      {
-        "src": "Images/Armor/ObsidianRingofSilence.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A sleek, jet‑black ring crafted from obsidian, said to mute the sounds around its wearer. Once worn, it grants near-perfect silence, a prized ability for sneaking into the most secure areas of the Sanctum.",
-        "tags": ["Obsidian Ring of Silence"]
-      },
-      {
-        "src": "Images/Armor/HelmetOfAchillesfront.webp",
-        "Encountered": "no",
-        "backImage": "Images/Armor/HelmetOfAchillesBack.webp",
-        "description": "",
-        "tags": ["Helmet Of Achilles", "God"]
-      },
-      {
-        "src": "Images/Armor/AnchorhookGauntletFront copy.webp",
-        "Encountered": "no",
-        "backImage": "Images/Armor/AnchorhookGauntletBack.webp",
-        "description": "",
-        "tags": ["Anchorhook Gauntlet", "The Creste fallen","Ocean","Gauntlet"]
-      }
+        {
+            "src": "Images/Armor/HoofdpietsMask.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Armor/HoofdpietsMaskBack.webp",
+            "description": "A fearless knight sworn to protect the kingdom.",
+            "tags": [
+                "piest",
+                "zwart",
+                "zwartepiet",
+                "Hoofdpiet",
+                "mask",
+                "Hoofdpiet mask"
+            ]
+        },
+        {
+            "src": "Images/Armor/BootsOfSwiftnessFront.webp",
+            "Encountered": "no",
+            "backImage": "Images/Armor/BootsOfSwiftnessBack.webp",
+            "description": "A fearless knight sworn to protect the kingdom.",
+            "tags": [
+                "Boots Of Swiftness",
+                "upgrade"
+            ]
+        },
+        {
+            "src": "Images/Armor/Pyrelight Cloak.webp",
+            "Encountered": "no",
+            "backImage": "Images/Armor/Pyrelight CloakBack.webp",
+            "description": "A fearless knight sworn to protect the kingdom.",
+            "tags": [
+                "Pyrelight Cloak",
+                "robe"
+            ]
+        },
+        {
+            "src": "Images/Armor/Miter of Sinterklaas.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Armor/Miter of SinterklaasBack.webp",
+            "description": "A fearless knight sworn to protect the kingdom.",
+            "tags": [
+                "sinterklaas",
+                "Miter",
+                "legendary"
+            ]
+        },
+        {
+            "src": "Images/Armor/MiningHelmetUpgradeFront.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Armor/MiningHelmetUpgradeBack.webp",
+            "description": "A fearless knight sworn to protect the kingdom.",
+            "tags": [
+                "sinterklaas",
+                "Miter",
+                "legendary"
+            ]
+        },
+        {
+            "src": "Images/Armor/BootsofElvenkind.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A fearless knight sworn to protect the kingdom.",
+            "tags": [
+                "sinterklaas",
+                "Miter",
+                "legendary"
+            ]
+        },
+        {
+            "src": "Images/Armor/NutcrackerChain.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Armor/NutcrackerChainBack.webp",
+            "description": "A fearless knight sworn to protect the kingdom.",
+            "tags": [
+                "sinterklaas",
+                "Miter",
+                "legendary"
+            ]
+        },
+        {
+            "src": "Images/Armor/BootsOfStridingAndSprinting.webp",
+            "Encountered": "yes",
+            "backImage": "Images/Armor/BootsOfStridingAndSprintingBack.webp",
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Boots Of Striding And Sprinting",
+                "Sprinting",
+                "Boots",
+                "Striding"
+            ]
+        },
+        {
+            "src": "Images/Armor/MoonstoneChain.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Moonstone Chain",
+                "Moonstone",
+                "Chain"
+            ]
+        },
+        {
+            "src": "Images/Armor/NecklaceoftheGlimmeringSea.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Necklace of the Glimmering Sea",
+                "Sea",
+                "Necklace"
+            ]
+        },
+        {
+            "src": "Images/Armor/PendantoftheTimeless Oak.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Book of better health",
+                "book",
+                "health"
+            ]
+        },
+        {
+            "src": "Images/Armor/Cindergrasp Gauntlets.webp",
+            "Encountered": "no",
+            "backImage": "Images/Armor/Cindergrasp GauntletsBack.webp",
+            "description": "This is a legendary sword forged in dragon fire.",
+            "tags": [
+                "Cindergrasp Gauntlets",
+                "Gloves",
+                "Fire"
+            ]
+        },
+        {
+            "src": "Images/Armor/ObsidianRingofSilence.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A sleek, jet\u2011black ring crafted from obsidian, said to mute the sounds around its wearer. Once worn, it grants near-perfect silence, a prized ability for sneaking into the most secure areas of the Sanctum.",
+            "tags": [
+                "Obsidian Ring of Silence"
+            ]
+        },
+        {
+            "src": "Images/Armor/HelmetOfAchillesfront.webp",
+            "Encountered": "no",
+            "backImage": "Images/Armor/HelmetOfAchillesBack.webp",
+            "description": "",
+            "tags": [
+                "Helmet Of Achilles",
+                "God"
+            ]
+        },
+        {
+            "src": "Images/Armor/AnchorhookGauntletFront copy.webp",
+            "Encountered": "no",
+            "backImage": "Images/Armor/AnchorhookGauntletBack.webp",
+            "description": "",
+            "tags": [
+                "Anchorhook Gauntlet",
+                "The Creste fallen",
+                "Ocean",
+                "Gauntlet"
+            ]
+        }
     ],
-
-
     "locations": [
-      {
-        "src": "Images/Locations/ArcaneBoreMKVI.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "ArcaneBoreMKVI: In the spectral gloom of the Spirit Realm, amidst forests where the mist clings to the trunks of towering, gnarled trees, lies the ArcaneBore MKVI, its glowing drill-head a beacon of purpose and danger.",
-        "tags": ["ArcaneBoreMKVI", "Bore", "Arcane", "Hei Bai", "Spirit"]
-      },
-      {
-        "src": "Images/Locations/TheTruthSanctum.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "",
-        "tags": ["The Truth Sanctum", "Warden","Gelonus"]
-      },
-      {
-        "src": "Images/Locations/TheCrestefallenGhostship.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "",
-        "tags": ["The Crestefallen Ghost Ship", "Boat"]
-      },
-      {
-        "src": "Images/Locations/SanctumSolara.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "",
-        "tags": ["Sanctum Solara", "Thule","Paladin Guilde"]
-      },
-      {
-        "src": "Images/Locations/AzmosRoots.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "AzmosRoots: A mechanical marvel used to delve into the unknown.",
-        "tags": ["AzmosRoots", "Azmos", "roots", "Shrine", "Gelonus", "Fountain"]
-      },
-      {
-        "src": "Images/Locations/Silverleaf.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": null,
-        "tags": ["Silver leaf", "Silverleaf", "elf", "forest"]
-      },
-      {
-        "src": "Images/Locations/TheDrunkBard.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["the", "drunk", "bard", "Tavern", "the drunken bard", "gelonus"]
-      },
-      {
-        "src": "Images/Locations/Atlantis.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "Beneath the waves, beyond mortal reach, lies Atlantis—a legendary city of towering spires, ancient wisdom, and unfathomable depths, illuminated by glowing corals and swirling schools of luminescent fish. Once a thriving empire of magic and innovation, Atlantis succumbed to a great cataclysm, sinking into the abyss where time and tide hold dominion. Now, its people—evolved to breathe the ocean’s embrace—live in harmony with the deep, guarding their knowledge fiercely with arcane technology and divine relics. Yet, rumors persist of dark forces stirring in the ruins, eldritch beings pressing against the city's mystical wards, and whispers that Atlantis is waking, preparing for its long-awaited return—or final descent into oblivion.",
-        "tags": ["Atlantis", "city", "water", "sea"]
-      },
-      {
-        "src": "Images/Locations/Beckinsdale.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Beckinsdale", "town", "gelonus"]
-      },
-
-      {
-        "src": "Images/Locations/BoundrySanctuary.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Boundry Sanctuary", "Temple", "chess", "azmos", "gelonus"]
-      },
-      {
-        "src": "Images/Locations/Chronara.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Chronara", "city", "Arcadia", "clocks", "time"]
-      },
-      {
-        "src": "Images/Locations/DarkstoneCoalworks.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Darkstone Coalworks", "factory", "sinterklaas", "coal", "gelonus"]
-      },
-      {
-        "src": "Images/Locations/DeadlyDelves.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Deadly Delves", "Tumb", "death", "gelonus"]
-      },
-
-      {
-        "src": "Images/Locations/Eldoria.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["eldoria", "captial", "Arcadia"]
-      },
-      {
-        "src": "Images/Locations/Etherwhite.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Etherwhite", "white", "layer", "dimention", "infinate"]
-      },
-      {
-        "src": "Images/Locations/Frostholm.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Frostholm", "capital", "city", "gelonus"]
-      },
-      {
-        "src": "Images/Locations/HocusLookout.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Hocus Lookout", "warden", "prison", "escape", "gelonus"]
-      },
-      {
-        "src": "Images/Locations/Mirestone.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Mirestone", "Village", "sea", "harbor", "gelonus"]
-      },
-
-      {
-        "src": "Images/Locations/OnyxHollow.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Onyx Hollow", "cave", "gelonus"]
-      },
-      {
-        "src": "Images/Locations/PirnFarms.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Pirn Farms", "Farm", "gelonus"]
-      },
-      {
-        "src": "Images/Locations/Ruthorham.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Ruthorham", "town", "tree", "gelonus"]
-      },
-      {
-        "src": "Images/Locations/SpiritRealm.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Spirit Realm", "dimention", "layer"]
-      },
-      {
-        "src": "Images/Locations/ThaunburgMine.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Thaunburg Mine", "Mine", "gelonus"]
-      },
-
-      {
-        "src": "Images/Locations/TheCrestefallen.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["The Creste fallen", "ship", "boat", "pirate"]
-      },
-      {
-        "src": "Images/Locations/TheErodedCaverns.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["The Eroded Caverns", "Cave", "gelonus"]
-      },
-      {
-        "src": "Images/Locations/TheHollowVeil.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["The Hollow Veil", "layer", "dimention"]
-      },
-      {
-        "src": "Images/Locations/Yarn.webp",
-        "Encountered": "yes",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Yarn", "gelonus", "Village"]
-      },
-
-
-      {
-        "src": "Images/Locations/BifrostsEdge.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["The Eroded Caverns", "Cave", "gelonus"]
-      },
-      {
-        "src": "Images/Locations/BurisTemple.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["The Hollow Veil", "layer", "dimention"]
-      },
-      {
-        "src": "Images/Locations/HeimdallsVigil.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["Yarn", "gelonus", "Village"]
-      },
-      {
-        "src": "Images/Locations/OldOlympus.webp",
-        "Encountered": "no",
-        "backImage": null,
-        "description": "A mechanical marvel used to delve into the unknown.",
-        "tags": ["The Hollow Veil", "layer", "dimention"]
-      }
-      
+        {
+            "src": "Images/Locations/Dimentions/SpiritRealm/ArcaneBoreMKVI.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "ArcaneBoreMKVI: In the spectral gloom of the Spirit Realm, amidst forests where the mist clings to the trunks of towering, gnarled trees, lies the ArcaneBore MKVI, its glowing drill-head a beacon of purpose and danger.",
+            "tags": [
+                "ArcaneBoreMKVI",
+                "Bore",
+                "Arcane",
+                "Hei Bai",
+                "Spirit"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/TheTruthSanctum.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "",
+            "tags": [
+                "The Truth Sanctum",
+                "Warden",
+                "Gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Sea/Locations/TheCrestefallenGhostship.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "",
+            "tags": [
+                "The Crestefallen Ghost Ship",
+                "Boat"
+            ]
+        },
+        {
+            "src": "Images/Locations/Thule/Locations/SanctumSolara.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "",
+            "tags": [
+                "Sanctum Solara",
+                "Thule",
+                "Paladin Guilde"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/AzmosRoots.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "AzmosRoots: A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "AzmosRoots",
+                "Azmos",
+                "roots",
+                "Shrine",
+                "Gelonus",
+                "Fountain"
+            ]
+        },
+        {
+            "src": "Images/Locations/Arcadia/Locations/Silverleaf.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": null,
+            "tags": [
+                "Silver leaf",
+                "Silverleaf",
+                "elf",
+                "forest"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/TheDrunkBard.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "the",
+                "drunk",
+                "bard",
+                "Tavern",
+                "the drunken bard",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Sea/Locations/Atlantis.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "Beneath the waves, beyond mortal reach, lies Atlantis\u2014a legendary city of towering spires, ancient wisdom, and unfathomable depths, illuminated by glowing corals and swirling schools of luminescent fish. Once a thriving empire of magic and innovation, Atlantis succumbed to a great cataclysm, sinking into the abyss where time and tide hold dominion. Now, its people\u2014evolved to breathe the ocean\u2019s embrace\u2014live in harmony with the deep, guarding their knowledge fiercely with arcane technology and divine relics. Yet, rumors persist of dark forces stirring in the ruins, eldritch beings pressing against the city's mystical wards, and whispers that Atlantis is waking, preparing for its long-awaited return\u2014or final descent into oblivion.",
+            "tags": [
+                "Atlantis",
+                "city",
+                "water",
+                "sea"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/Beckinsdale.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Beckinsdale",
+                "town",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/BoundrySanctuary.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Boundry Sanctuary",
+                "Temple",
+                "chess",
+                "azmos",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Arcadia/Locations/Chronara.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Chronara",
+                "city",
+                "Arcadia",
+                "clocks",
+                "time"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/DarkstoneCoalworks.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Darkstone Coalworks",
+                "factory",
+                "sinterklaas",
+                "coal",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/DeadlyDelves.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Deadly Delves",
+                "Tumb",
+                "death",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Arcadia/Locations/Eldoria.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "eldoria",
+                "captial",
+                "Arcadia"
+            ]
+        },
+        {
+            "src": "Images/Locations/Dimentions/Etherwhite/Etherwhite.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Etherwhite",
+                "white",
+                "layer",
+                "dimention",
+                "infinate"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/Frostholm.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Frostholm",
+                "capital",
+                "city",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/HocusLookout.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Hocus Lookout",
+                "warden",
+                "prison",
+                "escape",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/Mirestone.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Mirestone",
+                "Village",
+                "sea",
+                "harbor",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/OnyxHollow.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Onyx Hollow",
+                "cave",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/PirnFarms.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Pirn Farms",
+                "Farm",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/Ruthorham.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Ruthorham",
+                "town",
+                "tree",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Dimentions/SpiritRealm/SpiritRealm.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Spirit Realm",
+                "dimention",
+                "layer"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/ThaunburgMine.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Thaunburg Mine",
+                "Mine",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Sea/Locations/TheCrestefallen.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "The Creste fallen",
+                "ship",
+                "boat",
+                "pirate"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/TheErodedCaverns.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "The Eroded Caverns",
+                "Cave",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Dimentions/TheHollowVeil/TheHollowVeil.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "The Hollow Veil",
+                "layer",
+                "dimention"
+            ]
+        },
+        {
+            "src": "Images/Locations/Gelonus/Locations/Yarn.webp",
+            "Encountered": "yes",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Yarn",
+                "gelonus",
+                "Village"
+            ]
+        },
+        {
+            "src": "Images/Locations/Thule/Locations/BifrostsEdge.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "The Eroded Caverns",
+                "Cave",
+                "gelonus"
+            ]
+        },
+        {
+            "src": "Images/Locations/Thule/Locations/BurisTemple.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "The Hollow Veil",
+                "layer",
+                "dimention"
+            ]
+        },
+        {
+            "src": "Images/Locations/Arcadia/Locations/HeimdallsVigil.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "Yarn",
+                "gelonus",
+                "Village"
+            ]
+        },
+        {
+            "src": "Images/Locations/Arcadia/Locations/OldOlympus.webp",
+            "Encountered": "no",
+            "backImage": null,
+            "description": "A mechanical marvel used to delve into the unknown.",
+            "tags": [
+                "The Hollow Veil",
+                "layer",
+                "dimention"
+            ]
+        }
     ]
-  }
-  
+}
