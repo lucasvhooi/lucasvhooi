@@ -25,6 +25,10 @@ function fitMapToContainer() {
     return;
   }
 
+  // Size the wrapper to the image's natural dimensions so scaling behaves predictably
+  mapWrapper.style.width = `${mapImage.naturalWidth}px`;
+  mapWrapper.style.height = `${mapImage.naturalHeight}px`;
+
   const scaleX = containerRect.width / mapImage.naturalWidth;
   const scaleY = containerRect.height / mapImage.naturalHeight;
 
