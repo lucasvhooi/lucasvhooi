@@ -6,6 +6,17 @@ document.addEventListener("DOMContentLoaded", () => {
     .catch(error => console.error("Error loading locations:", error));
 });
 
+function resolveAssetPath(path) {
+  if (!path) return path;
+  if (/^(https?:)?\/\//i.test(path) || path.startsWith("/")) {
+    return path;
+  }
+  if (path.startsWith("../")) {
+    return path;
+  }
+  return `../${path}`;
+}
+
 function loadContinents(continents) {
   const locationList = document.getElementById("location-list");
   locationList.innerHTML = ""; // Clear any existing content
@@ -96,7 +107,7 @@ function toggleLocationDetails(location, locationItem) {
 
   if (location.map) {
     const img = document.createElement("img");
-    img.src = location.map;
+    img.src = resolveAssetPath(location.map);
     img.alt = location.name;
     img.loading = "lazy";
     detailsDiv.appendChild(img);

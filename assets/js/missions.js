@@ -7,6 +7,17 @@ document.addEventListener("DOMContentLoaded", () => {
     .catch(error => console.error("Error loading missions:", error));
 });
 
+function resolveAssetPath(path) {
+  if (!path) return path;
+  if (/^(https?:)?\/\//i.test(path) || path.startsWith("/")) {
+    return path;
+  }
+  if (path.startsWith("../")) {
+    return path;
+  }
+  return `../${path}`;
+}
+
 function loadMissions(locations, isAdmin) {
   const locationList = document.getElementById("location-list");
   locationList.innerHTML = ""; // Clear existing content
@@ -131,12 +142,12 @@ function showMissionDetails(mission, missionItem) {
   if (mission.images && mission.images.length > 0) {
     const imagesDiv = document.createElement("div");
     imagesDiv.classList.add("mission-images");
-    mission.images.forEach(imageUrl => {
-      const img = document.createElement("img");
-      img.src = imageUrl;
-      img.alt = mission.title;
-      img.loading = "lazy";
-      imagesDiv.appendChild(img);
+      mission.images.forEach(imageUrl => {
+        const img = document.createElement("img");
+        img.src = resolveAssetPath(imageUrl);
+        img.alt = mission.title;
+        img.loading = "lazy";
+        imagesDiv.appendChild(img);
     });
     detailsDiv.appendChild(imagesDiv);
   }
@@ -207,7 +218,7 @@ function showMissionDetails(mission, missionItem) {
         phaseImagesDiv.classList.add("phase-images");
         phase.images.forEach(phaseImageUrl => {
           const img = document.createElement("img");
-          img.src = phaseImageUrl;
+          img.src = resolveAssetPath(phaseImageUrl);
           img.alt = `${mission.title} - Phase ${phase.phase}`;
           img.loading = "lazy";
           phaseImagesDiv.appendChild(img);
