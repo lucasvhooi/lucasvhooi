@@ -126,10 +126,10 @@
             "locations": {
                 "eldoria": {
                     "name": "Capital) Eldoria",
-                    "Encountered": "no",
+                    "Encountered": "yes",
                     "population": null,
                     "wealth": null,
-                    "map": "Images/Maps/Arcadia/Eldoriamap.webp",
+                    "map": "Images/Maps/Arcadia/EldoriaMap.webp",
                     "description": null
                 },
                 "silverwyn": {
