@@ -816,14 +816,10 @@ const shName         = document.getElementById("sh-name");
 const shMeta         = document.getElementById("sh-meta");
 const shOwner        = document.getElementById("sh-owner");
 const shInventory    = document.getElementById("sh-inventory");
-const shManage       = document.getElementById("sh-manage");
-const shStockSearch  = document.getElementById("sh-stock-search");
-const shStockList    = document.getElementById("sh-stock-list");
 const shTypeDot      = document.getElementById("sh-type-dot");
 const shRarityFilter = document.getElementById("sh-rarity-filter");
 const shGenerateBtn  = document.getElementById("sh-generate-btn");
 
-let shopStockQuery   = "";
 let shopRarityFilter = "all";
 
 // Which item tags each shop type automatically carries
@@ -836,6 +832,24 @@ const SHOP_TYPE_TAGS = {
   "Market":  ["adventuring", "food", "tool", "light"],
   "House":   [],
   "Other":   []
+};
+
+// Rarity distribution weights for shop generation
+const RARITY_WEIGHTS = {
+  "common":      60,  // 60% chance
+  "uncommon":    25,  // 25% chance
+  "rare":        10,  // 10% chance
+  "very rare":   4,   // 4% chance
+  "legendary":   1    // 1% chance
+};
+
+// Rarity color mapping
+const RARITY_COLORS = {
+  "common":      "#9e9e9e",
+  "uncommon":    "#4caf50",
+  "rare":        "#2196f3",
+  "very rare":   "#9c27b0",
+  "legendary":   "#ff9800"
 };
 
 // Deterministic price multiplier per shop+item combo (0.85 – 1.15)
@@ -857,14 +871,53 @@ function shopPrice(basePrice, shopId, itemId) {
   return Math.round(p * 100) / 100;
 }
 
-// Persist generated inventory for a shop (6–15 random items from its pool)
+// Pick rarity based on weighted distribution
+function pickRarity() {
+  const total = Object.values(RARITY_WEIGHTS).reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (const [rarity, weight] of Object.entries(RARITY_WEIGHTS)) {
+    r -= weight;
+    if (r <= 0) return rarity;
+  }
+  return "common";
+}
+
+// Persist generated inventory for a shop (6–15 random items from its pool, weighted by rarity)
 async function generateShopInventory(marker) {
   const pool = getShopPool(marker);
   if (pool.length === 0) return;
 
   const count = 6 + Math.floor(Math.random() * 10); // 6–15
-  const shuffled = [...pool].sort(() => Math.random() - 0.5);
-  const picked = shuffled.slice(0, Math.min(count, shuffled.length));
+
+  // Group pool by rarity
+  const poolByRarity = {};
+  for (const item of pool) {
+    const tags = parseTags(item.tags);
+    const rarity = getRarityFromTags(tags);
+    if (!poolByRarity[rarity]) poolByRarity[rarity] = [];
+    poolByRarity[rarity].push(item);
+  }
+
+  const picked = [];
+  const pickedIds = new Set();
+
+  // Generate items with rarity weighting
+  for (let i = 0; i < count && picked.length < Math.min(count, pool.length); i++) {
+    const targetRarity = pickRarity();
+    const rarityPool = poolByRarity[targetRarity] || pool;
+
+    // Try to find an unpicked item of the target rarity
+    let available = rarityPool.filter(item => !pickedIds.has(item.id));
+    if (available.length === 0) {
+      // Fall back to any unpicked item
+      available = pool.filter(item => !pickedIds.has(item.id));
+    }
+    if (available.length === 0) break;
+
+    const selected = available[Math.floor(Math.random() * available.length)];
+    picked.push(selected);
+    pickedIds.add(selected.id);
+  }
 
   // Clear old generated set, write new one
   await set(ref(db, `locations/${locationId}/subMarkers/${marker.id}/generatedInventory`),
@@ -909,6 +962,14 @@ function getShopItems(marker) {
   return items;
 }
 
+function getRarityFromTags(tags) {
+  const rarities = ["legendary", "very rare", "rare", "uncommon", "common"];
+  for (const r of rarities) {
+    if (tags.includes(r)) return r;
+  }
+  return "common";
+}
+
 function renderShopInventory(marker) {
   shInventory.innerHTML = "";
 
@@ -929,68 +990,27 @@ function renderShopInventory(marker) {
   items.forEach(item => {
     const price = shopPrice(item.price, marker.id, item.id);
     const tags  = parseTags(item.tags);
-    const row   = document.createElement("div");
+    const rarity = getRarityFromTags(tags);
+    const rarityColor = RARITY_COLORS[rarity] || "#9e9e9e";
+
+    const row = document.createElement("div");
     row.className = "shop-item-row";
     row.innerHTML = `
-      <div class="shop-item-info">
+      <div class="shop-item-header">
+        <div class="shop-item-rarity-dot rarity-${rarity.replace(" ", "-")}" style="background-color: ${rarityColor}" title="${rarity}"></div>
         <div class="shop-item-name">${item.name}</div>
-        ${tags.length ? `<div class="shop-item-tags">${tags.map(t => `<span class="item-tag">${t}</span>`).join("")}</div>` : ""}
-        ${item.description ? `<div class="shop-item-desc">${item.description}</div>` : ""}
       </div>
+      ${tags.length ? `<div class="shop-item-tags">${tags.map(t => `<span class="item-tag">${t}</span>`).join("")}</div>` : ""}
+      ${item.description ? `<div class="shop-item-desc">${item.description}</div>` : ""}
       <div class="shop-item-price">${formatGold(price)}</div>
     `;
+
+    // Click to toggle description
+    row.addEventListener("click", () => {
+      row.classList.toggle("description-visible");
+    });
+
     shInventory.appendChild(row);
-  });
-}
-
-function renderStockList(marker) {
-  shStockList.innerHTML = "";
-  const manualIds  = marker.inventory || {};
-  const typeTags   = SHOP_TYPE_TAGS[marker.type] || [];
-  const autoIds    = new Set(
-    typeTags.length > 0
-      ? globalItems.filter(i => parseTags(i.tags).some(t => typeTags.includes(t))).map(i => i.id)
-      : []
-  );
-  const q = shopStockQuery.toLowerCase();
-
-  let filtered = [...globalItems];
-  if (q) filtered = filtered.filter(i =>
-    i.name.toLowerCase().includes(q) ||
-    parseTags(i.tags).some(t => t.includes(q))
-  );
-  filtered.sort((a, b) => a.name.localeCompare(b.name));
-
-  if (filtered.length === 0) {
-    shStockList.innerHTML = `<p class="shop-empty">No items found. Add items on the Items page.</p>`;
-    return;
-  }
-
-  filtered.forEach(item => {
-    const isAuto   = autoIds.has(item.id);
-    const isManual = !!manualIds[item.id];
-    const checked  = isAuto || isManual;
-    const row = document.createElement("div");
-    row.className = "stock-row" + (checked ? " in-stock" : "") + (isAuto ? " stock-auto" : "");
-    row.innerHTML = `
-      <label class="stock-label">
-        <input type="checkbox" class="stock-check" ${checked ? "checked" : ""} ${isAuto ? "disabled" : ""} />
-        <span class="stock-item-name">${item.name}</span>
-        <span class="stock-item-price">${formatGold(item.price)} base</span>
-        ${isAuto ? `<span class="stock-auto-badge">auto</span>` : ""}
-      </label>
-    `;
-    if (!isAuto) {
-      row.querySelector(".stock-check").addEventListener("change", e => {
-        if (e.target.checked) {
-          set(ref(db, `locations/${locationId}/subMarkers/${marker.id}/inventory/${item.id}`), true);
-        } else {
-          remove(ref(db, `locations/${locationId}/subMarkers/${marker.id}/inventory/${item.id}`));
-        }
-        row.classList.toggle("in-stock", e.target.checked);
-      });
-    }
-    shStockList.appendChild(row);
   });
 }
 
@@ -1039,7 +1059,6 @@ function openShopModal(marker) {
       // Firebase onValue will update marker; re-read from subMarkers
       const updated = subMarkers.find(m => m.id === marker.id) || marker;
       renderShopInventory(updated);
-      renderStockList(updated);
       shGenerateBtn.disabled = false;
       shGenerateBtn.textContent = "⚡ Generate Inventory";
     };
@@ -1050,27 +1069,11 @@ function openShopModal(marker) {
   // Inventory
   renderShopInventory(marker);
 
-  // DM stock management
-  if (isAdmin) {
-    shManage.style.display = "block";
-    shopStockQuery = "";
-    shStockSearch.value = "";
-    renderStockList(marker);
-
-    shStockSearch.oninput = e => {
-      shopStockQuery = e.target.value;
-      renderStockList(marker);
-    };
-  } else {
-    shManage.style.display = "none";
-  }
-
   shopModal.classList.add("open");
 }
 
 function closeShopModal() {
   shopModal.classList.remove("open");
-  shopStockQuery = "";
 }
 
 shopClose.addEventListener("click", closeShopModal);
