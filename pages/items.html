@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Items — DnD Campaign</title>
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/items.css" />
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="homepage.html">Home</a></li>
+      <li><a href="missions.html">Missions</a></li>
+      <li><a href="exploration.html">Exploration</a></li>
+      <li><a href="locations.html">Locations</a></li>
+      <li><a href="items.html">Items</a></li>
+      <li><a href="map.html">Map</a></li>
+    </ul>
+  </nav>
+
+  <header class="items-hero">
+    <h1 class="items-title">Items</h1>
+    <p class="items-subtitle">Global item database for shops &amp; merchants</p>
+  </header>
+
+  <main class="items-main">
+    <div class="items-toolbar">
+      <input type="text" id="items-search" class="items-search" placeholder="Search items…" />
+      <div id="tag-filter" class="tag-filter"></div>
+      <button id="add-item-btn" class="dm-btn" style="display:none">+ Add Item</button>
+    </div>
+
+    <div id="items-grid" class="items-grid"></div>
+  </main>
+
+  <!-- Item modal -->
+  <div id="item-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2 id="im-title">Add Item</h2>
+      <div class="form-row">
+        <label>Name <span class="req">*</span>
+          <input type="text" id="im-name" placeholder="e.g. Health Potion" />
+        </label>
+      </div>
+      <div class="form-row">
+        <label>Description
+          <textarea id="im-desc" rows="3" placeholder="What does this item do or look like?"></textarea>
+        </label>
+      </div>
+      <div class="form-row two-col">
+        <label>Base Price (gp) <span class="req">*</span>
+          <input type="number" id="im-price" placeholder="e.g. 50" min="0" step="0.01" />
+        </label>
+        <label>Tags
+          <input type="text" id="im-tags" placeholder="potion, healing, common" />
+        </label>
+      </div>
+      <p class="form-hint">Tags are comma-separated and used to stock shops. e.g. <em>weapon, armor, potion, food, magic</em></p>
+      <div id="im-error" class="modal-error"></div>
+      <div class="modal-actions">
+        <button id="im-save" class="dm-btn">Save Item</button>
+        <button id="im-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../assets/js/items.js"></script>
+  <script src="../assets/js/base.js"></script>
+</body>
+</html>

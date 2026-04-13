@@ -23,7 +23,6 @@ body.map-page {
   top: 0;
   left: 0;
   transform-origin: top left;
-  transition: transform 0.05s linear;
 }
 
 #map-image {
@@ -33,4 +32,490 @@ body.map-page {
   max-width: none;
   max-height: none;
   user-select: none;
+}
+
+/* ── Marker Layer ── */
+#marker-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ── Individual Markers ── */
+.map-marker {
+  position: absolute;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(var(--counter-scale, 1));
+  transform-origin: center center;
+  z-index: 10;
+  cursor: pointer;
+}
+
+.marker-pin {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,0,0,0.6);
+  box-shadow: 0 0 6px rgba(0,0,0,0.8);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+/* Larger invisible tap target (44×44 minimum for touch) */
+.marker-pin::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+}
+
+.map-marker:hover .marker-pin,
+.map-marker.active .marker-pin {
+  transform: scale(1.4);
+  box-shadow: 0 0 12px rgba(0,0,0,0.9);
+}
+
+/* Explored / unexplored colors */
+.map-marker[data-explored="true"]  .marker-pin { background: #FFD700; }
+.map-marker[data-explored="false"] .marker-pin { background: #FF8A80; }
+
+/* ── Tooltip ── */
+.marker-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 10, 5, 0.95);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 8px 12px;
+  min-width: 140px;
+  max-width: 220px;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text);
+  text-align: left;
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 20;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+}
+
+.map-marker:hover .marker-tooltip,
+.map-marker.active .marker-tooltip {
+  opacity: 1;
+}
+
+.tooltip-name {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.tooltip-type {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #aaa;
+  margin-bottom: 4px;
+}
+
+.tooltip-row {
+  font-size: 12px;
+  color: var(--text);
+  margin: 2px 0;
+}
+
+.tooltip-notes {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #444;
+  font-size: 11px;
+  font-style: italic;
+  color: #ffbb55;
+  white-space: pre-wrap;
+}
+
+/* ── DM Edit/Delete Buttons ── */
+.marker-dm-controls {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  gap: 4px;
+  z-index: 30;
+  white-space: nowrap;
+}
+
+.map-marker:hover .marker-dm-controls,
+.map-marker.active .marker-dm-controls {
+  display: flex;
+}
+
+.marker-dm-controls button {
+  font-size: 10px;
+  padding: 2px 6px;
+  border: 1px solid #555;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--font);
+  line-height: 1.4;
+}
+
+.marker-edit-btn {
+  background: #3e2b1b;
+  color: var(--accent);
+}
+
+.marker-edit-btn:hover {
+  background: #5a3e28;
+}
+
+.marker-delete-btn {
+  background: #3b1515;
+  color: #E57373;
+}
+
+.marker-delete-btn:hover {
+  background: #5a2020;
+}
+
+/* ── Place Mode Cursor & Banner ── */
+#map-container.placing-mode {
+  cursor: crosshair;
+}
+
+#placing-banner {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 10, 5, 0.92);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--accent);
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+#placing-banner.visible {
+  opacity: 1;
+}
+
+/* ── DM Toolbar ── */
+#dm-toolbar {
+  display: none;
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 50;
+  background: rgba(20, 10, 5, 0.92);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 8px 12px;
+  gap: 8px;
+  align-items: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.7);
+}
+
+.dm-label {
+  font-family: var(--font);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-right: 4px;
+}
+
+.dm-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 5px 14px;
+  background: var(--accent);
+  color: #1a0a00;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.dm-btn:hover {
+  background: #ffe08a;
+}
+
+.dm-btn.active {
+  background: #E57373;
+  color: #fff;
+}
+
+.dm-btn.active:hover {
+  background: #ef9a9a;
+}
+
+.dm-btn-secondary {
+  background: #3e2b1b;
+  color: var(--text);
+  border: 1px solid #555;
+}
+
+.dm-btn-secondary:hover {
+  background: #5a3e28;
+}
+
+/* ── Modals ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-box {
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 24px 28px;
+  width: 420px;
+  max-width: 95vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+  font-family: var(--font);
+  color: var(--text);
+}
+
+.modal-box h2 {
+  margin: 0 0 18px;
+  color: var(--accent);
+  font-size: 20px;
+  text-align: center;
+}
+
+.form-row {
+  margin-bottom: 14px;
+}
+
+.form-row label {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: #aaa;
+  gap: 5px;
+}
+
+.form-row.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-row input,
+.form-row select,
+.form-row textarea {
+  background: #2a1810;
+  border: 1px solid #554433;
+  border-radius: 5px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-row input:focus,
+.form-row select:focus,
+.form-row textarea:focus {
+  border-color: var(--accent);
+}
+
+.form-row textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.required {
+  color: #E57373;
+}
+
+.dm-only {
+  font-size: 11px;
+  color: #ffbb55;
+  font-style: italic;
+}
+
+/* Explored checkbox */
+.checkbox-label {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text);
+  padding: 4px 0;
+}
+
+.checkbox-label input[type="checkbox"] {
+  display: none;
+}
+
+.checkbox-box {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #554433;
+  border-radius: 4px;
+  background: #2a1810;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkbox-box {
+  background: #FFD700;
+  border-color: #FFD700;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkbox-box::after {
+  content: "";
+  width: 5px;
+  height: 9px;
+  border: 2px solid #1a0a00;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg) translate(-1px, -1px);
+  display: block;
+}
+
+.checkbox-hint {
+  font-size: 11px;
+  color: #888;
+  font-style: italic;
+}
+
+.modal-error {
+  font-size: 13px;
+  color: #E57373;
+  min-height: 18px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.export-info {
+  font-size: 13px;
+  color: #aaa;
+  margin-bottom: 10px;
+}
+
+.export-info code {
+  background: #2a1810;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--accent);
+  font-size: 12px;
+}
+
+#export-text {
+  width: 100%;
+  height: 160px;
+  background: #1a0e08;
+  border: 1px solid #443322;
+  border-radius: 5px;
+  color: #aaa;
+  font-family: monospace;
+  font-size: 11px;
+  padding: 8px;
+  resize: none;
+  margin-bottom: 14px;
+  box-sizing: border-box;
+}
+
+/* ── Mobile ── */
+@media (max-width: 600px) {
+  /* Modal: full-width, scrollable so keyboard doesn't block inputs */
+  .modal-overlay {
+    align-items: flex-end;
+  }
+
+  .modal-box {
+    width: 100%;
+    max-width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 14px 14px 0 0;
+    padding: 20px 18px 32px;
+  }
+
+  /* Tooltip: wider and readable on small screens */
+  .marker-tooltip {
+    min-width: 160px;
+    max-width: 240px;
+    font-size: 14px;
+  }
+
+  /* Tooltip above — flip to below if near top edge */
+  .marker-tooltip {
+    bottom: auto;
+    top: calc(100% + 8px);
+  }
+
+  /* DM toolbar: larger tap targets */
+  #dm-toolbar {
+    top: 8px;
+    left: 8px;
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .dm-btn {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+
+  .dm-label {
+    display: none;
+  }
+
+  /* Marker edit/delete: bigger buttons for touch */
+  .marker-dm-controls button {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+
+  /* Banner text */
+  #placing-banner {
+    font-size: 13px;
+    padding: 8px 16px;
+    bottom: 16px;
+  }
 }

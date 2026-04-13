@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Location — DnD Campaign</title>
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/location.css" />
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="homepage.html">Home</a></li>
+      <li><a href="missions.html">Missions</a></li>
+      <li><a href="exploration.html">Exploration</a></li>
+      <li><a href="locations.html">Locations</a></li>
+      <li><a href="map.html">Map</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <header class="loc-hero">
+    <a href="map.html" class="back-link">&#8592; Back to Map</a>
+    <h1 class="loc-title" id="loc-title">Loading&hellip;</h1>
+    <div class="loc-stats" id="loc-stats"></div>
+  </header>
+
+  <main class="loc-main">
+
+    <!-- Column 1: Map + About -->
+    <div class="loc-col loc-col-map">
+
+      <!-- Location Map -->
+      <section class="loc-section anim-1" id="sec-map">
+        <div class="sec-header-row">
+          <h2 class="sec-heading">Location Map</h2>
+          <div id="loc-dm-toolbar" class="loc-dm-toolbar" style="display:none">
+            <label for="loc-map-upload" class="dm-btn dm-btn-sm">Upload Map</label>
+            <input type="file" id="loc-map-upload" accept="image/*" style="display:none" />
+            <button id="loc-btn-place" class="dm-btn dm-btn-sm">Place Marker</button>
+          </div>
+        </div>
+        <div class="loc-map-outer">
+          <div id="loc-map-container" class="loc-map-container">
+            <img id="loc-map-img" alt="Location map" style="display:none" />
+            <div id="loc-map-placeholder" class="map-placeholder">
+              <span class="placeholder-icon">&#9788;</span>
+              <span>No map uploaded yet</span>
+              <span class="placeholder-hint" id="loc-upload-hint" style="display:none">Upload one using the button above</span>
+            </div>
+            <div id="loc-marker-layer"></div>
+            <div id="loc-placing-banner" class="loc-placing-banner">Click anywhere on the map to place a marker</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- About -->
+      <section class="loc-section anim-2" id="sec-desc">
+        <div class="sec-header-row">
+          <h2 class="sec-heading">About</h2>
+          <button id="loc-edit-desc-btn" class="dm-btn dm-btn-sm" style="display:none">Edit</button>
+        </div>
+        <p id="loc-desc-text" class="loc-description" style="display:none"></p>
+        <p id="loc-desc-empty" class="loc-desc-empty">No description added yet.</p>
+      </section>
+
+    </div>
+
+    <!-- Column 2: Buildings (DM only) -->
+    <div class="loc-col loc-col-buildings">
+      <section class="loc-section anim-3" id="sec-buildings" style="display:none">
+        <div class="sec-header-row">
+          <h2 class="sec-heading">Buildings <span class="dm-badge">DM Only</span></h2>
+        </div>
+        <div id="loc-buildings-list" class="buildings-list"></div>
+      </section>
+    </div>
+
+    <!-- Column 3: NPCs (DM only) -->
+    <div class="loc-col loc-col-npcs">
+      <section class="loc-section anim-4" id="sec-npcs" style="display:none">
+        <div class="sec-header-row">
+          <h2 class="sec-heading">NPCs <span class="dm-badge">DM Only</span></h2>
+          <button id="loc-add-npc-btn" class="dm-btn dm-btn-sm">+ Add NPC</button>
+        </div>
+
+        <div class="npc-generator-panel">
+          <div class="generator-controls">
+            <span class="generator-label">Generate</span>
+            <input type="number" id="gen-count" value="20" min="1" max="500" class="gen-count-input" />
+            <span class="generator-label">NPCs</span>
+            <button id="gen-btn" class="dm-btn dm-btn-sm">&#9889; Generate</button>
+            <button id="gen-clear-btn" class="dm-btn dm-btn-sm dm-btn-secondary">Clear All</button>
+          </div>
+          <p id="gen-hint" class="gen-hint">Uses this location's Main Race &amp; population for weighted generation.</p>
+          <p id="gen-status" class="gen-status"></p>
+        </div>
+
+        <div id="loc-npc-list" class="npc-list"></div>
+      </section>
+    </div>
+
+  </main>
+
+  <!-- Sub-marker modal -->
+  <div id="loc-marker-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2 id="lm-title">Place Marker</h2>
+      <div class="form-row">
+        <label>Name <span class="req">*</span>
+          <input type="text" id="lm-name" placeholder="e.g. The Rusty Anvil" />
+        </label>
+      </div>
+      <div class="form-row">
+        <label>Type
+          <select id="lm-type">
+            <option value="Forge">Forge / Blacksmith</option>
+            <option value="Shop">Shop</option>
+            <option value="Tavern">Tavern / Inn</option>
+            <option value="House">House / Residence</option>
+            <option value="Temple">Temple / Shrine</option>
+            <option value="Guard">Guard Post</option>
+            <option value="Market">Market Stall</option>
+            <option value="Other">Other</option>
+          </select>
+        </label>
+      </div>
+      <div class="form-row">
+        <label>Owner <span class="dm-hint">(NPC)</span>
+          <select id="lm-owner"></select>
+        </label>
+      </div>
+      <div class="form-row">
+        <label>Notes
+          <textarea id="lm-notes" placeholder="DM notes about this place..."></textarea>
+        </label>
+      </div>
+      <div id="lm-error" class="modal-error"></div>
+      <div class="modal-actions">
+        <button id="lm-save" class="dm-btn">Save</button>
+        <button id="lm-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NPC modal -->
+  <div id="loc-npc-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2 id="ln-title">Add NPC</h2>
+      <div class="form-row">
+        <label>Name <span class="req">*</span>
+          <input type="text" id="ln-name" placeholder="e.g. Aldric the Smith" />
+        </label>
+      </div>
+      <div class="form-row two-col">
+        <label>Race
+          <input type="text" id="ln-race" placeholder="e.g. Human" />
+        </label>
+        <label>Role
+          <input type="text" id="ln-role" placeholder="e.g. Blacksmith" />
+        </label>
+      </div>
+      <div class="form-row">
+        <label>Age
+          <input type="number" id="ln-age" placeholder="e.g. 45" min="0" max="9999" />
+        </label>
+      </div>
+      <div class="form-row">
+        <label>Description
+          <textarea id="ln-desc" placeholder="What do players see or know about this NPC?"></textarea>
+        </label>
+      </div>
+      <div class="form-row">
+        <label>DM Notes <span class="dm-hint">(secret)</span>
+          <textarea id="ln-notes" placeholder="Secret motives, quest hooks, stats..."></textarea>
+        </label>
+      </div>
+      <div id="ln-error" class="modal-error"></div>
+      <div class="modal-actions">
+        <button id="ln-save" class="dm-btn">Save NPC</button>
+        <button id="ln-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description edit modal -->
+  <div id="loc-desc-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>Edit Description</h2>
+      <div class="form-row">
+        <label>Description
+          <textarea id="ld-text" rows="8" placeholder="Describe this location to your players..."></textarea>
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button id="ld-save" class="dm-btn">Save</button>
+        <button id="ld-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../assets/js/location.js"></script>
+  <script src="../assets/js/base.js"></script>
+</body>
+</html>

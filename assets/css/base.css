@@ -30,9 +30,13 @@ a:hover {
 }
 
 nav {
-  background: linear-gradient(to right, #5e3b20, #2c1a0a);
-  padding: 15px;
-  box-shadow: 0 4px 8px var(--shadow);
+  background: linear-gradient(180deg, #2a1505 0%, #1c0e03 100%);
+  border-bottom: 1px solid #3a2510;
+  padding: 0 24px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.6);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 nav ul {
@@ -41,20 +45,50 @@ nav ul {
   margin: 0;
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 4px;
   flex-wrap: wrap;
 }
 
 nav a {
   text-decoration: none;
-  font-size: 20px;
-  font-weight: bold;
-  transition: color 0.3s ease, text-shadow 0.3s ease;
+  font-size: 15px;
+  font-family: 'Garamond', serif;
+  letter-spacing: 0.06em;
+  color: #c9a87a;
+  padding: 14px 18px;
+  display: block;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+nav a::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 18px;
+  right: 18px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
 }
 
 nav a:hover {
   color: var(--accent);
-  text-shadow: 0 0 10px rgba(255, 204, 102, 0.8);
+  text-shadow: 0 0 12px rgba(255, 204, 102, 0.5);
+}
+
+nav a:hover::after {
+  transform: scaleX(1);
+}
+
+nav a.active {
+  color: var(--accent);
+}
+
+nav a.active::after {
+  transform: scaleX(1);
 }
 
 section {
@@ -73,16 +107,31 @@ img {
 }
 
 @media (max-width: 768px) {
+  nav {
+    padding: 0 8px;
+  }
+
   nav a {
-    font-size: 16px;
-    padding: 6px 10px;
+    font-size: 14px;
+    padding: 12px 12px;
+  }
+
+  nav a::after {
+    left: 12px;
+    right: 12px;
   }
 }
 
 @media (max-width: 480px) {
   nav a {
-    font-size: 14px;
-    padding: 4px 6px;
+    font-size: 13px;
+    padding: 10px 8px;
     white-space: nowrap;
+    letter-spacing: 0.03em;
+  }
+
+  nav a::after {
+    left: 8px;
+    right: 8px;
   }
 }

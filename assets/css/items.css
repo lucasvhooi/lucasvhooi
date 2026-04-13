@@ -1,0 +1,316 @@
+@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Hero ── */
+.items-hero {
+  background: linear-gradient(180deg, #3a1a05 0%, #2a1005 50%, #1a1a1a 100%);
+  padding: 40px 20px 28px;
+  text-align: center;
+  border-bottom: 1px solid #3a2510;
+}
+
+.items-title {
+  font-family: 'IM Fell English', 'Garamond', serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: var(--accent);
+  margin: 0 0 8px;
+  letter-spacing: 0.03em;
+}
+
+.items-subtitle {
+  color: #888;
+  font-size: 14px;
+  margin: 0;
+  font-style: italic;
+}
+
+/* ── Main layout ── */
+.items-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 20px 60px;
+}
+
+/* ── Toolbar ── */
+.items-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.items-search {
+  background: #2a1810;
+  border: 1px solid #554433;
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 8px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 220px;
+}
+.items-search:focus { border-color: var(--accent); }
+
+/* ── Tag filter ── */
+.tag-filter {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.tag-btn {
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid #554433;
+  background: transparent;
+  color: #aaa;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.tag-btn:hover  { border-color: var(--accent); color: var(--accent); }
+.tag-btn.active { background: rgba(255,204,102,0.12); border-color: var(--accent); color: var(--accent); }
+
+/* ── DM Buttons (shared with location) ── */
+.dm-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 6px 16px;
+  background: var(--accent);
+  color: #1a0a00;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+.dm-btn:hover  { background: #ffe08a; }
+.dm-btn:active { transform: scale(0.97); }
+.dm-btn-sm     { font-size: 12px; padding: 4px 12px; }
+.dm-btn-secondary {
+  background: #3e2b1b;
+  color: var(--text);
+  border: 1px solid #555;
+}
+.dm-btn-secondary:hover { background: #5a3e28; }
+
+.marker-delete-btn { background: #3b1515; color: #E57373; border: 1px solid #5a2020; }
+.marker-delete-btn:hover { background: #5a2020; }
+
+/* ── Items Grid ── */
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.items-empty {
+  color: #555;
+  font-style: italic;
+  font-size: 14px;
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px 0;
+}
+
+/* ── Item Card ── */
+.item-card {
+  background: var(--panel);
+  border: 1px solid #3a2510;
+  border-radius: 10px;
+  padding: 16px 18px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  animation: fadeInUp 0.4s ease-out both;
+  text-align: left;
+}
+.item-card:hover {
+  border-color: #554433;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.4);
+}
+
+.item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.item-name {
+  font-family: 'IM Fell English', 'Garamond', serif;
+  font-size: 16px;
+  color: var(--accent);
+  font-weight: normal;
+  flex: 1;
+  min-width: 0;
+}
+
+.item-price-badge {
+  font-size: 13px;
+  font-family: monospace;
+  background: rgba(255,204,102,0.1);
+  border: 1px solid rgba(255,204,102,0.25);
+  border-radius: 12px;
+  padding: 2px 10px;
+  color: var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.item-tag {
+  font-size: 11px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid #443322;
+  border-radius: 10px;
+  padding: 1px 8px;
+  color: #998877;
+  font-family: sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.item-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #b09070;
+  margin: 0 0 10px;
+  font-family: var(--font);
+}
+
+.item-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+/* ── Modal (shared structure with location) ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+
+.modal-box {
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 24px 28px;
+  width: 420px;
+  max-width: min(95vw, 420px);
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+  font-family: var(--font);
+  color: var(--text);
+}
+
+.modal-box h2 {
+  margin: 0 0 18px;
+  color: var(--accent);
+  font-size: 18px;
+  text-align: center;
+  font-family: 'IM Fell English', 'Garamond', serif;
+}
+
+.form-row { margin-bottom: 14px; }
+
+.form-row label {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: #aaa;
+  gap: 5px;
+  text-align: left;
+}
+
+.form-row.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-row input,
+.form-row select,
+.form-row textarea {
+  box-sizing: border-box;
+  width: 100%;
+  background: #2a1810;
+  border: 1px solid #554433;
+  border-radius: 5px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color 0.2s;
+  text-align: left;
+}
+.form-row input:focus,
+.form-row select:focus,
+.form-row textarea:focus { border-color: var(--accent); }
+
+.form-row textarea { resize: vertical; min-height: 70px; }
+
+.form-hint {
+  font-size: 11px;
+  color: #666;
+  font-style: italic;
+  margin: -8px 0 14px;
+  text-align: left;
+}
+
+.req     { color: #E57373; }
+
+.modal-error {
+  font-size: 13px;
+  color: #E57373;
+  min-height: 18px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 600px) {
+  .items-main { padding: 16px 12px 48px; }
+  .items-toolbar { gap: 8px; }
+  .items-search { width: 100%; }
+
+  .modal-overlay { align-items: flex-end; }
+  .modal-box {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 14px 14px 0 0;
+    padding: 20px 14px 32px;
+  }
+  .form-row.two-col { grid-template-columns: 1fr 1fr; gap: 8px; }
+}

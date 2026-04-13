@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DM Password Setup</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 480px;
+      margin: 80px auto;
+      padding: 0 20px;
+      background: #1a1a2e;
+      color: #e0e0e0;
+    }
+    h1 { color: #c9a84c; }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      background: #2a2a3e;
+      border: 1px solid #444;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      background: #c9a84c;
+      color: #1a1a2e;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button:hover { background: #e0c060; }
+    .result {
+      margin-top: 20px;
+      padding: 14px;
+      background: #2a2a3e;
+      border-radius: 6px;
+      border: 1px solid #444;
+      display: none;
+    }
+    .hash {
+      font-family: monospace;
+      font-size: 0.85rem;
+      word-break: break-all;
+      color: #7ec8a4;
+      margin: 8px 0;
+    }
+    .instructions {
+      margin-top: 14px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #aaa;
+    }
+    .instructions code {
+      background: #333;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #c9a84c;
+    }
+    #copy-btn { margin-top: 10px; font-size: 0.85rem; padding: 6px 14px; }
+  </style>
+</head>
+<body>
+  <h1>DM Password Setup</h1>
+  <p>Enter your desired DM password below. The hash will be generated — copy it into <code>assets/data/config.json</code>.</p>
+
+  <input type="password" id="password" placeholder="Enter your new DM password" />
+  <input type="password" id="password-confirm" placeholder="Confirm your password" />
+  <button id="generate">Generate Hash</button>
+
+  <div class="result" id="result">
+    <strong>Your password hash:</strong>
+    <div class="hash" id="hash-output"></div>
+    <button id="copy-btn">Copy Hash</button>
+    <div class="instructions">
+      <strong>Next steps:</strong><br />
+      1. Open <code>assets/data/config.json</code><br />
+      2. Replace <code>REPLACE_WITH_YOUR_HASH</code> with the hash above<br />
+      3. Save the file — you're done!<br /><br />
+      <em>Your real password is never stored anywhere.</em>
+    </div>
+  </div>
+
+  <div id="error" style="color:#e06060; margin-top:12px;"></div>
+
+  <script>
+    async function sha256(message) {
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    document.getElementById("generate").addEventListener("click", async () => {
+      const pw = document.getElementById("password").value;
+      const confirm = document.getElementById("password-confirm").value;
+      const error = document.getElementById("error");
+      const result = document.getElementById("result");
+
+      error.textContent = "";
+      result.style.display = "none";
+
+      if (!pw) {
+        error.textContent = "Please enter a password.";
+        return;
+      }
+      if (pw !== confirm) {
+        error.textContent = "Passwords do not match.";
+        return;
+      }
+
+      const hash = await sha256(pw);
+      document.getElementById("hash-output").textContent = hash;
+      result.style.display = "block";
+    });
+
+    document.getElementById("copy-btn").addEventListener("click", () => {
+      const hash = document.getElementById("hash-output").textContent;
+      navigator.clipboard.writeText(hash).then(() => {
+        document.getElementById("copy-btn").textContent = "Copied!";
+        setTimeout(() => { document.getElementById("copy-btn").textContent = "Copy Hash"; }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>
