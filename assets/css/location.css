@@ -820,6 +820,311 @@
   margin-top: 4px;
 }
 
+/* ── Building card actions ── */
+.building-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* ── Tooltip view button ── */
+.loc-marker-tooltip { pointer-events: none; }
+.loc-marker.active .loc-marker-tooltip { pointer-events: auto; }
+
+.tooltip-view-btn {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 3px 0;
+  background: rgba(255,204,102,0.12);
+  border: 1px solid rgba(255,204,102,0.35);
+  border-radius: 4px;
+  color: var(--accent);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.tooltip-view-btn:hover { background: rgba(255,204,102,0.22); }
+
+/* ── Shop Modal ── */
+.shop-modal-box {
+  width: 560px;
+  max-width: min(95vw, 560px);
+  padding: 28px 28px 24px;
+  position: relative;
+}
+
+.shop-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+.shop-close-btn:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+
+.shop-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.shop-type-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid rgba(0,0,0,0.4);
+  box-shadow: 0 0 6px rgba(0,0,0,0.6);
+}
+
+.shop-name-title {
+  font-family: 'IM Fell English', 'Garamond', serif;
+  font-size: 1.35rem;
+  color: var(--accent);
+  margin: 0 0 4px;
+  text-align: left;
+}
+
+.shop-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.shop-type-badge {
+  font-size: 11px;
+  background: rgba(255,204,102,0.1);
+  border: 1px solid rgba(255,204,102,0.25);
+  border-radius: 10px;
+  padding: 2px 10px;
+  color: var(--accent);
+  font-family: sans-serif;
+}
+
+.shop-owner-row {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #2e1c0c;
+}
+
+.shop-owner-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.shop-owner-icon { font-size: 20px; }
+
+.shop-owner-name {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--text);
+  font-family: var(--font);
+}
+
+.shop-owner-sub {
+  font-size: 12px;
+  color: #888;
+  font-family: var(--font);
+  margin-top: 1px;
+}
+
+.shop-section { margin-bottom: 20px; }
+
+.shop-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sh-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.shop-section-title {
+  font-family: 'IM Fell English', 'Garamond', serif;
+  font-size: 1rem;
+  color: var(--accent);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shop-price-note {
+  font-size: 11px;
+  color: #555;
+  font-style: italic;
+  font-family: var(--font);
+}
+
+/* Rarity filter bar */
+.shop-rarity-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+
+.rarity-btn {
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid #443322;
+  background: transparent;
+  color: #b8a090;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.rarity-btn:hover { background: #2a1f14; }
+
+.rarity-btn.active {
+  background: #8B6914;
+  border-color: #8B6914;
+  color: #fff;
+}
+
+/* Auto-stocked badge in manage panel */
+.stock-auto-badge {
+  font-size: 9px;
+  background: #1a3a1a;
+  color: #88cc88;
+  border-radius: 8px;
+  padding: 1px 6px;
+  margin-left: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stock-row.stock-auto { opacity: 0.7; }
+.stock-row.stock-auto .stock-check { cursor: default; }
+
+.shop-inventory { display: flex; flex-direction: column; gap: 6px; }
+
+.shop-item-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #231508;
+  border: 1px solid #2e1c0c;
+  border-radius: 6px;
+  padding: 10px 14px;
+  transition: border-color 0.15s;
+}
+.shop-item-row:hover { border-color: #443322; }
+
+.shop-item-info { flex: 1; min-width: 0; }
+
+.shop-item-name {
+  font-size: 14px;
+  color: var(--text);
+  font-family: var(--font);
+  font-weight: bold;
+}
+
+.shop-item-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+}
+
+.shop-item-desc {
+  font-size: 12px;
+  color: #887766;
+  margin: 4px 0 0;
+  font-family: var(--font);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.shop-item-price {
+  font-size: 13px;
+  font-family: monospace;
+  color: var(--accent);
+  background: rgba(255,204,102,0.08);
+  border: 1px solid rgba(255,204,102,0.2);
+  border-radius: 10px;
+  padding: 2px 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.shop-empty {
+  color: #555;
+  font-style: italic;
+  font-size: 13px;
+  margin: 8px 0 0;
+  text-align: left;
+}
+
+.shop-manage-section {
+  border-top: 1px solid #2e1c0c;
+  padding-top: 16px;
+  margin-top: 4px;
+}
+
+.shop-stock-search {
+  width: 100%;
+  box-sizing: border-box;
+  background: #2a1810;
+  border: 1px solid #554433;
+  border-radius: 5px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 10px;
+}
+.shop-stock-search:focus { border-color: var(--accent); }
+
+.shop-stock-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.stock-row { border-radius: 5px; transition: background 0.15s; }
+.stock-row:hover   { background: rgba(255,255,255,0.03); }
+.stock-row.in-stock { background: rgba(255,204,102,0.04); }
+
+.stock-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.stock-check {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.stock-item-name { flex: 1; font-size: 13px; font-family: var(--font); color: var(--text); }
+.stock-item-price { font-size: 11px; color: #665544; font-family: monospace; white-space: nowrap; }
+
 /* ── Player view (no DM panels — center map + about side by side) ── */
 .player-view .loc-main {
   grid-template-columns: 1fr;

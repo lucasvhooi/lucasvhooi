@@ -19,8 +19,21 @@ mapImage.draggable = false;
 mapImage.addEventListener("dragstart", (e) => e.preventDefault());
 
 function updateTransform() {
-  mapWrapper.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
+  // translate3d forces GPU compositing layer
+  mapWrapper.style.transform = `translate3d(${originX}px, ${originY}px, 0) scale(${scale})`;
   mapWrapper.style.setProperty("--counter-scale", 1 / scale);
+}
+
+// rAF throttle — batch all move events into one DOM write per display frame
+let rafPending = false;
+function scheduleTransform() {
+  if (rafPending) return;
+  rafPending = true;
+  requestAnimationFrame(() => {
+    clampToBounds();
+    updateTransform();
+    rafPending = false;
+  });
 }
 
 function fitMapToContainer() {
@@ -81,8 +94,7 @@ mapContainer.addEventListener("wheel", function(e) {
   originY -= (mouseY - originY) * (newScale / scale - 1);
 
   scale = newScale;
-  clampToBounds();
-  updateTransform();
+  scheduleTransform();
 });
 
 // ── Pan (Desktop) ─────────────────────────────────────────────────────────────
@@ -109,8 +121,7 @@ mapContainer.addEventListener("pointermove", function(e) {
   startY = e.clientY;
   originX += dx;
   originY += dy;
-  clampToBounds();
-  updateTransform();
+  scheduleTransform();
 });
 
 mapContainer.addEventListener("pointerup", function(e) {
@@ -175,8 +186,7 @@ if (isTouchDevice) {
       originY -= (midY - originY) * (newScale / scale - 1);
 
       scale = newScale;
-      clampToBounds();
-      updateTransform();
+      scheduleTransform();
       e.preventDefault();
     } else if (e.touches.length === 1 && !isPinching) {
       const currentX = e.touches[0].clientX;
@@ -185,10 +195,9 @@ if (isTouchDevice) {
       const dy = currentY - touchStartY;
       originX += dx;
       originY += dy;
-      clampToBounds();
-      updateTransform();
       touchStartX = currentX;
       touchStartY = currentY;
+      scheduleTransform();
       e.preventDefault();
     }
   }, { passive: false });

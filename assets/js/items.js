@@ -1,5 +1,6 @@
 import { db }                          from "./firebase.js";
 import { ref, set, remove, onValue }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+import { parseTags, formatGold }       from "./item-utils.js";
 
 const isAdmin  = localStorage.getItem("isAdmin") === "true";
 const itemsRef = ref(db, "items");
@@ -26,7 +27,9 @@ const imCancel  = document.getElementById("im-cancel");
 
 let editingItemId = null;
 
-if (isAdmin) addItemBtn.style.display = "inline-block";
+if (isAdmin) {
+  addItemBtn.style.display = "inline-block";
+}
 
 // ── Firebase ──────────────────────────────────────────────────────────────────
 onValue(itemsRef, snapshot => {
@@ -35,23 +38,6 @@ onValue(itemsRef, snapshot => {
   renderTagFilter();
   renderItems();
 });
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-export function parseTags(tagStr) {
-  if (!tagStr) return [];
-  return tagStr.split(",").map(t => t.trim().toLowerCase()).filter(Boolean);
-}
-
-export function formatGold(gp) {
-  gp = parseFloat(gp) || 0;
-  if (gp >= 1) {
-    const r = Math.round(gp * 10) / 10;
-    return `${r % 1 === 0 ? r : r.toFixed(1)} gp`;
-  }
-  const sp = gp * 10;
-  if (sp >= 1) return `${Math.round(sp)} sp`;
-  return `${Math.round(gp * 100)} cp`;
-}
 
 function getAllTags() {
   const set = new Set();
@@ -127,9 +113,19 @@ function renderItems() {
       ` : ""}
     `;
 
+    // Click card to expand/collapse description
+    card.addEventListener("click", e => {
+      if (e.target.closest(".item-actions")) return; // don't toggle on edit/delete
+      card.classList.toggle("expanded");
+    });
+
     if (isAdmin) {
-      card.querySelector(".item-edit-btn").addEventListener("click", () => openItemModal(item.id));
-      card.querySelector(".item-del-btn").addEventListener("click", () => {
+      card.querySelector(".item-edit-btn").addEventListener("click", e => {
+        e.stopPropagation();
+        openItemModal(item.id);
+      });
+      card.querySelector(".item-del-btn").addEventListener("click", e => {
+        e.stopPropagation();
         if (!confirm(`Delete "${item.name}"? This cannot be undone.`)) return;
         remove(ref(db, `items/${item.id}`));
       });

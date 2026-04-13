@@ -14,6 +14,7 @@
       <li><a href="missions.html">Missions</a></li>
       <li><a href="exploration.html">Exploration</a></li>
       <li><a href="locations.html">Locations</a></li>
+      <li class="nav-dm-only"><a href="items.html">Items</a></li>
       <li><a href="map.html">Map</a></li>
     </ul>
   </nav>
@@ -179,6 +180,51 @@
       <div class="modal-actions">
         <button id="ln-save" class="dm-btn">Save NPC</button>
         <button id="ln-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shop detail modal -->
+  <div id="shop-modal" class="modal-overlay">
+    <div class="modal-box shop-modal-box">
+      <button id="shop-close" class="shop-close-btn">&times;</button>
+
+      <div class="shop-header">
+        <div class="shop-type-dot" id="sh-type-dot"></div>
+        <div>
+          <h2 id="sh-name" class="shop-name-title"></h2>
+          <div id="sh-meta" class="shop-meta"></div>
+        </div>
+      </div>
+
+      <div id="sh-owner" class="shop-owner-row"></div>
+
+      <!-- Inventory -->
+      <div class="shop-section">
+        <div class="shop-section-header">
+          <h3 class="shop-section-title">Inventory</h3>
+          <div class="sh-header-actions">
+            <span id="sh-price-note" class="shop-price-note">Prices vary by shop</span>
+            <button id="sh-generate-btn" class="dm-btn dm-btn-sm" style="display:none">&#9889; Generate Inventory</button>
+          </div>
+        </div>
+        <div id="sh-rarity-filter" class="shop-rarity-filter">
+          <button class="rarity-btn active" data-rarity="all">All</button>
+          <button class="rarity-btn" data-rarity="common">Common</button>
+          <button class="rarity-btn" data-rarity="uncommon">Uncommon</button>
+          <button class="rarity-btn" data-rarity="rare">Rare</button>
+          <button class="rarity-btn" data-rarity="very rare">Very Rare</button>
+        </div>
+        <div id="sh-inventory" class="shop-inventory"></div>
+      </div>
+
+      <!-- DM: Manage Stock -->
+      <div id="sh-manage" class="shop-manage-section" style="display:none">
+        <div class="shop-section-header">
+          <h3 class="shop-section-title">Manage Stock <span class="dm-badge">DM Only</span></h3>
+        </div>
+        <input type="text" id="sh-stock-search" class="shop-stock-search" placeholder="Search items to add…" />
+        <div id="sh-stock-list" class="shop-stock-list"></div>
       </div>
     </div>
   </div>

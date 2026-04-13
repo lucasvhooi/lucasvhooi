@@ -28,6 +28,18 @@
   font-style: italic;
 }
 
+/* ── Seed status ── */
+.seed-status {
+  max-width: 1100px;
+  margin: 0 auto 12px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  font-size: 13px;
+  color: #aaa;
+}
+
 /* ── Main layout ── */
 .items-main {
   max-width: 1100px;
@@ -113,6 +125,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
+  align-items: start;
 }
 
 .items-empty {
@@ -133,6 +146,9 @@
   transition: border-color 0.2s, box-shadow 0.2s;
   animation: fadeInUp 0.4s ease-out both;
   text-align: left;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
 }
 .item-card:hover {
   border-color: #554433;
@@ -192,7 +208,10 @@
   color: #b09070;
   margin: 0 0 10px;
   font-family: var(--font);
+  display: none;
 }
+
+.item-card.expanded .item-desc { display: block; }
 
 .item-actions {
   display: flex;

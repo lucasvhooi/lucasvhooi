@@ -1,6 +1,7 @@
 import { db }                          from "./firebase.js";
 import { ref, set, remove, onValue }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { NPC_NAMES, AGE_RANGES, DEFAULT_PROFESSIONS, RACE_PROFESSIONS, RACE_BASE_WEIGHTS, ELF_SUBTYPE_WEIGHTS, NPC_TRAITS } from "./npc-data.js";
+import { parseTags, formatGold }       from "./item-utils.js";
 
 // ── Setup ─────────────────────────────────────────────────────────────────────
 const params     = new URLSearchParams(window.location.search);
@@ -67,6 +68,13 @@ onValue(npcsRef, snapshot => {
   const data = snapshot.val();
   npcs = data ? Object.values(data) : [];
   renderNpcs();
+});
+
+// Global items (for shop modal)
+let globalItems = [];
+onValue(ref(db, "items"), snapshot => {
+  const data = snapshot.val();
+  globalItems = data ? Object.values(data) : [];
 });
 
 // ── Render Hero ───────────────────────────────────────────────────────────────
@@ -151,8 +159,13 @@ function renderSubMarkers() {
       <div class="tooltip-name">${marker.name}</div>
       <div class="tooltip-type">${marker.type || "Other"}</div>
       ${ownerNpc ? `<div class="tooltip-owner">&#128100; ${ownerNpc.name}</div>` : ""}
-      ${marker.notes ? `<div class="tooltip-notes">${marker.notes}</div>` : ""}
+      ${marker.notes && isAdmin ? `<div class="tooltip-notes">${marker.notes}</div>` : ""}
+      <button class="tooltip-view-btn">View</button>
     `;
+    tooltip.querySelector(".tooltip-view-btn").addEventListener("click", e => {
+      e.stopPropagation();
+      openShopModal(marker);
+    });
 
     el.appendChild(pin);
     el.appendChild(tooltip);
@@ -361,8 +374,17 @@ function renderBuildings() {
         <div class="building-type">${marker.type || "Other"}${bOwner ? ` · ${bOwner.name}` : ""}</div>
         ${marker.notes ? `<div class="building-notes">${marker.notes}</div>` : ""}
       </div>
-      <button class="building-vis-btn${marker.discovered ? " active" : ""}" title="${marker.discovered ? "Hide from players" : "Reveal to players"}">&#128065;</button>
+      <div class="building-card-actions">
+        <button class="building-open-btn dm-btn dm-btn-sm" title="View shop">Open</button>
+        <button class="building-vis-btn${marker.discovered ? " active" : ""}" title="${marker.discovered ? "Hide from players" : "Reveal to players"}">&#128065;</button>
+      </div>
     `;
+
+    // ── Open shop modal ─────────────────────────────────────────────────────
+    card.querySelector(".building-open-btn").addEventListener("click", e => {
+      e.stopPropagation();
+      openShopModal(marker);
+    });
 
     // ── Reveal/hide toggle ──────────────────────────────────────────────────
     card.querySelector(".building-vis-btn").addEventListener("click", e => {
@@ -786,6 +808,273 @@ if (genClearBtn) {
     setTimeout(() => { genStatus.textContent = ""; }, 3000);
   });
 }
+
+// ── Shop Modal ────────────────────────────────────────────────────────────────
+const shopModal      = document.getElementById("shop-modal");
+const shopClose      = document.getElementById("shop-close");
+const shName         = document.getElementById("sh-name");
+const shMeta         = document.getElementById("sh-meta");
+const shOwner        = document.getElementById("sh-owner");
+const shInventory    = document.getElementById("sh-inventory");
+const shManage       = document.getElementById("sh-manage");
+const shStockSearch  = document.getElementById("sh-stock-search");
+const shStockList    = document.getElementById("sh-stock-list");
+const shTypeDot      = document.getElementById("sh-type-dot");
+const shRarityFilter = document.getElementById("sh-rarity-filter");
+const shGenerateBtn  = document.getElementById("sh-generate-btn");
+
+let shopStockQuery   = "";
+let shopRarityFilter = "all";
+
+// Which item tags each shop type automatically carries
+const SHOP_TYPE_TAGS = {
+  "Forge":   ["weapon", "melee", "armor", "shield", "ammunition", "tool", "forge"],
+  "Shop":    ["adventuring", "potion", "tool", "light"],
+  "Tavern":  ["food", "drink", "ale", "wine", "potion"],
+  "Temple":  ["potion", "healing", "protection", "holy"],
+  "Guard":   ["weapon", "melee", "ranged", "armor", "shield", "ammunition"],
+  "Market":  ["adventuring", "food", "tool", "light"],
+  "House":   [],
+  "Other":   []
+};
+
+// Deterministic price multiplier per shop+item combo (0.85 – 1.15)
+function hashCode(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+  }
+  return Math.abs(h);
+}
+
+function shopPrice(basePrice, shopId, itemId) {
+  const h = hashCode(shopId + itemId);
+  const mult = 0.85 + (h % 10000) / 10000 * 0.30;
+  const p = basePrice * mult;
+  if (p >= 100) return Math.round(p);
+  if (p >= 10)  return Math.round(p * 2) / 2;
+  if (p >= 1)   return Math.round(p * 10) / 10;
+  return Math.round(p * 100) / 100;
+}
+
+// Persist generated inventory for a shop (6–15 random items from its pool)
+async function generateShopInventory(marker) {
+  const pool = getShopPool(marker);
+  if (pool.length === 0) return;
+
+  const count = 6 + Math.floor(Math.random() * 10); // 6–15
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, Math.min(count, shuffled.length));
+
+  // Clear old generated set, write new one
+  await set(ref(db, `locations/${locationId}/subMarkers/${marker.id}/generatedInventory`),
+    Object.fromEntries(picked.map(i => [i.id, true]))
+  );
+}
+
+// Items eligible for this shop based on its type tags
+function getShopPool(marker) {
+  const typeTags = SHOP_TYPE_TAGS[marker.type] || [];
+  if (typeTags.length === 0) return [];
+  return globalItems.filter(item => parseTags(item.tags).some(t => typeTags.includes(t)));
+}
+
+function getShopItems(marker) {
+  const generatedIds = marker.generatedInventory || {};
+  const manualIds    = marker.inventory || {};
+
+  // If a generated inventory exists, use it; otherwise fall back to full type pool
+  const hasSeed = Object.keys(generatedIds).length > 0;
+  let items;
+
+  if (hasSeed) {
+    const allIds = new Set([...Object.keys(generatedIds), ...Object.keys(manualIds)]);
+    items = globalItems.filter(i => allIds.has(i.id));
+  } else {
+    const typeTags = SHOP_TYPE_TAGS[marker.type] || [];
+    items = typeTags.length > 0
+      ? globalItems.filter(item => parseTags(item.tags).some(t => typeTags.includes(t)))
+      : [];
+
+    // Merge any manually added extras
+    const autoIds = new Set(items.map(i => i.id));
+    Object.keys(manualIds).forEach(id => {
+      if (!autoIds.has(id)) {
+        const item = globalItems.find(i => i.id === id);
+        if (item) items.push(item);
+      }
+    });
+  }
+
+  return items;
+}
+
+function renderShopInventory(marker) {
+  shInventory.innerHTML = "";
+
+  let items = getShopItems(marker);
+
+  // Apply rarity filter
+  if (shopRarityFilter !== "all") {
+    items = items.filter(i => parseTags(i.tags).includes(shopRarityFilter));
+  }
+
+  if (items.length === 0) {
+    shInventory.innerHTML = `<p class="shop-empty">${globalItems.length === 0 ? 'No items in the database yet. Add items on the Items page.' : 'No items match this filter.'}</p>`;
+    return;
+  }
+
+  items.sort((a, b) => a.name.localeCompare(b.name));
+
+  items.forEach(item => {
+    const price = shopPrice(item.price, marker.id, item.id);
+    const tags  = parseTags(item.tags);
+    const row   = document.createElement("div");
+    row.className = "shop-item-row";
+    row.innerHTML = `
+      <div class="shop-item-info">
+        <div class="shop-item-name">${item.name}</div>
+        ${tags.length ? `<div class="shop-item-tags">${tags.map(t => `<span class="item-tag">${t}</span>`).join("")}</div>` : ""}
+        ${item.description ? `<div class="shop-item-desc">${item.description}</div>` : ""}
+      </div>
+      <div class="shop-item-price">${formatGold(price)}</div>
+    `;
+    shInventory.appendChild(row);
+  });
+}
+
+function renderStockList(marker) {
+  shStockList.innerHTML = "";
+  const manualIds  = marker.inventory || {};
+  const typeTags   = SHOP_TYPE_TAGS[marker.type] || [];
+  const autoIds    = new Set(
+    typeTags.length > 0
+      ? globalItems.filter(i => parseTags(i.tags).some(t => typeTags.includes(t))).map(i => i.id)
+      : []
+  );
+  const q = shopStockQuery.toLowerCase();
+
+  let filtered = [...globalItems];
+  if (q) filtered = filtered.filter(i =>
+    i.name.toLowerCase().includes(q) ||
+    parseTags(i.tags).some(t => t.includes(q))
+  );
+  filtered.sort((a, b) => a.name.localeCompare(b.name));
+
+  if (filtered.length === 0) {
+    shStockList.innerHTML = `<p class="shop-empty">No items found. Add items on the Items page.</p>`;
+    return;
+  }
+
+  filtered.forEach(item => {
+    const isAuto   = autoIds.has(item.id);
+    const isManual = !!manualIds[item.id];
+    const checked  = isAuto || isManual;
+    const row = document.createElement("div");
+    row.className = "stock-row" + (checked ? " in-stock" : "") + (isAuto ? " stock-auto" : "");
+    row.innerHTML = `
+      <label class="stock-label">
+        <input type="checkbox" class="stock-check" ${checked ? "checked" : ""} ${isAuto ? "disabled" : ""} />
+        <span class="stock-item-name">${item.name}</span>
+        <span class="stock-item-price">${formatGold(item.price)} base</span>
+        ${isAuto ? `<span class="stock-auto-badge">auto</span>` : ""}
+      </label>
+    `;
+    if (!isAuto) {
+      row.querySelector(".stock-check").addEventListener("change", e => {
+        if (e.target.checked) {
+          set(ref(db, `locations/${locationId}/subMarkers/${marker.id}/inventory/${item.id}`), true);
+        } else {
+          remove(ref(db, `locations/${locationId}/subMarkers/${marker.id}/inventory/${item.id}`));
+        }
+        row.classList.toggle("in-stock", e.target.checked);
+      });
+    }
+    shStockList.appendChild(row);
+  });
+}
+
+function openShopModal(marker) {
+  // Header
+  shTypeDot.style.background = TYPE_COLORS[marker.type] || "#BDBDBD";
+  shName.textContent = marker.name;
+  shMeta.innerHTML   = `<span class="shop-type-badge">${marker.type || "Other"}</span>`;
+
+  // Owner
+  const owner = marker.ownerId ? npcs.find(n => n.id === marker.ownerId) : null;
+  if (owner) {
+    const subtitle = [owner.race, owner.role].filter(Boolean).join(" · ");
+    shOwner.innerHTML = `
+      <div class="shop-owner-info">
+        <span class="shop-owner-icon">&#128100;</span>
+        <div>
+          <div class="shop-owner-name">${owner.name}</div>
+          ${subtitle ? `<div class="shop-owner-sub">${subtitle}</div>` : ""}
+        </div>
+      </div>
+    `;
+  } else {
+    shOwner.innerHTML = "";
+  }
+
+  // Rarity filter
+  shopRarityFilter = "all";
+  shRarityFilter.querySelectorAll(".rarity-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.rarity === "all");
+    btn.onclick = () => {
+      shRarityFilter.querySelectorAll(".rarity-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      shopRarityFilter = btn.dataset.rarity;
+      renderShopInventory(marker);
+    };
+  });
+
+  // Generate inventory button (DM only, only for shop types with a pool)
+  if (isAdmin && (SHOP_TYPE_TAGS[marker.type] || []).length > 0) {
+    shGenerateBtn.style.display = "inline-block";
+    shGenerateBtn.onclick = async () => {
+      shGenerateBtn.disabled = true;
+      shGenerateBtn.textContent = "Generating…";
+      await generateShopInventory(marker);
+      // Firebase onValue will update marker; re-read from subMarkers
+      const updated = subMarkers.find(m => m.id === marker.id) || marker;
+      renderShopInventory(updated);
+      renderStockList(updated);
+      shGenerateBtn.disabled = false;
+      shGenerateBtn.textContent = "⚡ Generate Inventory";
+    };
+  } else {
+    shGenerateBtn.style.display = "none";
+  }
+
+  // Inventory
+  renderShopInventory(marker);
+
+  // DM stock management
+  if (isAdmin) {
+    shManage.style.display = "block";
+    shopStockQuery = "";
+    shStockSearch.value = "";
+    renderStockList(marker);
+
+    shStockSearch.oninput = e => {
+      shopStockQuery = e.target.value;
+      renderStockList(marker);
+    };
+  } else {
+    shManage.style.display = "none";
+  }
+
+  shopModal.classList.add("open");
+}
+
+function closeShopModal() {
+  shopModal.classList.remove("open");
+  shopStockQuery = "";
+}
+
+shopClose.addEventListener("click", closeShopModal);
+shopModal.addEventListener("click", e => { if (e.target === shopModal) closeShopModal(); });
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function generateId() {

@@ -23,6 +23,7 @@ body.map-page {
   top: 0;
   left: 0;
   transform-origin: top left;
+  will-change: transform;
 }
 
 #map-image {
@@ -80,6 +81,9 @@ body.map-page {
   transform: scale(1.4);
   box-shadow: 0 0 12px rgba(0,0,0,0.9);
 }
+
+/* Active marker floats above all neighbours so its tooltip is never obscured */
+.map-marker.active { z-index: 100 !important; }
 
 /* Explored / unexplored colors */
 .map-marker[data-explored="true"]  .marker-pin { background: #FFD700; }
@@ -506,10 +510,16 @@ body.map-page {
     display: none;
   }
 
-  /* Marker edit/delete: bigger buttons for touch */
+  /* Marker edit/delete: flip above marker on mobile (tooltip is below) */
+  .marker-dm-controls {
+    top: auto;
+    bottom: calc(100% + 6px);
+    flex-direction: row;
+  }
+
   .marker-dm-controls button {
     font-size: 13px;
-    padding: 6px 12px;
+    padding: 8px 14px;
   }
 
   /* Banner text */

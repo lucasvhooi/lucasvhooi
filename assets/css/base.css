@@ -49,6 +49,9 @@ nav ul {
   flex-wrap: wrap;
 }
 
+/* Hidden by default; base.js un-hides for admins */
+nav li.nav-dm-only { display: none; }
+
 nav a {
   text-decoration: none;
   font-size: 15px;
