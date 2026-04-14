@@ -34,9 +34,21 @@ window.addEventListener("resize", _updateCachedRect, { passive: true });
 requestAnimationFrame(_updateCachedRect);
 
 function updateTransform() {
-  // translate3d forces GPU compositing layer
+  // translate3d forces GPU compositing — only touch the composited property
   mapWrapper.style.transform = `translate3d(${originX}px, ${originY}px, 0) scale(${scale})`;
+}
+
+// --counter-scale triggers a style recalc on every marker — only flush it
+// when the gesture ends, not on every move frame.
+function flushCounterScale() {
   mapWrapper.style.setProperty("--counter-scale", 1 / scale);
+}
+
+// Debounced flush for wheel zoom (fires 120ms after the last wheel event)
+let _wheelFlushTimer = 0;
+function scheduleCounterScaleFlush() {
+  clearTimeout(_wheelFlushTimer);
+  _wheelFlushTimer = setTimeout(flushCounterScale, 120);
 }
 
 // rAF throttle — batch all move events into one DOM write per display frame
@@ -73,6 +85,7 @@ function fitMapToContainer() {
 
   clampToBounds();
   updateTransform();
+  flushCounterScale();
 }
 
 if (mapImage.complete) {
@@ -109,6 +122,7 @@ mapContainer.addEventListener("wheel", function(e) {
 
   scale = newScale;
   scheduleTransform();
+  scheduleCounterScaleFlush();
 });
 
 // ── Pan (Desktop) ─────────────────────────────────────────────────────────────
@@ -176,6 +190,8 @@ if (isTouchDevice) {
   }
 
   mapContainer.addEventListener("touchstart", function(e) {
+    // Disable marker hit-testing during gesture to avoid hover recalcs
+    markerLayer.style.pointerEvents = "none";
     if (e.touches.length === 2) {
       isPinching = true;
       initialDistance = getDistance(e.touches[0], e.touches[1]);
@@ -184,9 +200,10 @@ if (isTouchDevice) {
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
     }
-  });
+  }, { passive: true });
 
   mapContainer.addEventListener("touchmove", function(e) {
+    e.preventDefault();
     if (isPinching && e.touches.length === 2) {
       const newDistance = getDistance(e.touches[0], e.touches[1]);
       let newScale = initialScale * (newDistance / initialDistance);
@@ -199,23 +216,30 @@ if (isTouchDevice) {
 
       scale = newScale;
       scheduleTransform();
-      e.preventDefault();
     } else if (e.touches.length === 1 && !isPinching) {
       const currentX = e.touches[0].clientX;
       const currentY = e.touches[0].clientY;
-      const dx = currentX - touchStartX;
-      const dy = currentY - touchStartY;
-      originX += dx;
-      originY += dy;
+      originX += currentX - touchStartX;
+      originY += currentY - touchStartY;
       touchStartX = currentX;
       touchStartY = currentY;
       scheduleTransform();
-      e.preventDefault();
     }
   }, { passive: false });
 
+  function onTouchDone() {
+    markerLayer.style.pointerEvents = "";
+    flushCounterScale();
+  }
+
+  mapContainer.addEventListener("touchcancel", onTouchDone, { passive: true });
+
   mapContainer.addEventListener("touchend", function(e) {
     if (e.touches.length < 2) isPinching = false;
+    if (e.touches.length === 0) {
+      // Restore marker interaction and sync counter-scale now that gesture is done
+      onTouchDone();
+    }
 
     // Tap to place marker (DM on mobile)
     if (placingMode && isAdmin && !isPinching && e.changedTouches.length === 1) {
