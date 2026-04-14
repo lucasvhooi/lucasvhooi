@@ -530,6 +530,53 @@
   margin: 4px 0 0;
 }
 
+/* ── Inventory Tag Buttons ── */
+.inv-tag-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.inv-tag-btn {
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid #554433;
+  background: transparent;
+  color: #998877;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.inv-tag-btn:hover  { border-color: var(--accent); color: var(--accent); }
+.inv-tag-btn.active {
+  background: rgba(255,204,102,0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── NPC Search ── */
+.npc-search-row {
+  margin-bottom: 12px;
+}
+
+.npc-search-input {
+  width: 100%;
+  background: #2a1810;
+  border: 1px solid #554433;
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 7px 12px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.npc-search-input:focus { border-color: var(--accent); }
+
 /* ── NPC Generator Panel ── */
 .npc-generator-panel {
   background: rgba(255,204,102,0.04);
@@ -775,6 +822,13 @@
   gap: 12px;
 }
 
+.form-row.three-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr;
+  gap: 10px;
+  align-items: start;
+}
+
 .form-row input,
 .form-row select,
 .form-row textarea,
@@ -849,6 +903,15 @@
 }
 .tooltip-view-btn:hover { background: rgba(255,204,102,0.22); }
 
+/* ── Scrollbar styling for modals ── */
+.modal-box::-webkit-scrollbar       { width: 6px; }
+.modal-box::-webkit-scrollbar-track { background: transparent; }
+.modal-box::-webkit-scrollbar-thumb { background: #3a2510; border-radius: 3px; }
+.modal-box::-webkit-scrollbar-thumb:hover { background: #5a3820; }
+.servants-list::-webkit-scrollbar       { width: 4px; }
+.servants-list::-webkit-scrollbar-track { background: transparent; }
+.servants-list::-webkit-scrollbar-thumb { background: #3a2510; border-radius: 2px; }
+
 /* ── Shop Modal ── */
 .shop-modal-box {
   width: 900px;
@@ -872,6 +935,25 @@
   transition: color 0.15s, background 0.15s;
 }
 .shop-close-btn:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+
+.shop-edit-btn {
+  position: absolute;
+  top: 14px;
+  right: 52px;
+  background: rgba(255,204,102,0.08);
+  border: 1px solid rgba(255,204,102,0.3);
+  color: var(--accent);
+  font-size: 12px;
+  font-family: var(--font);
+  cursor: pointer;
+  padding: 3px 10px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.shop-edit-btn:hover { background: rgba(255,204,102,0.16); border-color: var(--accent); }
 
 .shop-header {
   display: flex;
@@ -1003,7 +1085,7 @@
 
 .shop-inventory {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 10px;
 }
 
@@ -1095,6 +1177,578 @@
   font-size: 13px;
   margin: 8px 0 0;
   text-align: left;
+}
+
+/* ── Wealth Selector (marker modal) ── */
+.wealth-selector {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.wealth-btn {
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid #554433;
+  background: transparent;
+  color: #998877;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.wealth-btn:hover { border-color: var(--accent); color: var(--accent); }
+.wealth-btn.active {
+  background: rgba(255,204,102,0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: bold;
+}
+
+/* ── Servants list (marker modal) ── */
+.servants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 6px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.servant-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+  font-family: var(--font);
+  padding: 3px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.1s;
+}
+.servant-item:hover { background: rgba(255,204,102,0.05); color: var(--accent); }
+.servant-checkbox { accent-color: var(--accent); cursor: pointer; }
+
+/* ── Tavern view (shop modal) ── */
+.tavern-meta-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.tavern-wealth-badge {
+  font-size: 12px;
+  padding: 3px 12px;
+  border-radius: 12px;
+  border: 1px solid;
+  font-family: var(--font);
+  font-weight: bold;
+}
+.tavern-wealth-badge.poor   { background: rgba(120,144,156,0.15); border-color: #78909C; color: #90A4AE; }
+.tavern-wealth-badge.middle { background: rgba(76,175,80,0.12);   border-color: #4caf50; color: #4caf50; }
+.tavern-wealth-badge.rich   { background: rgba(255,152,0,0.12);   border-color: #ff9800; color: #ff9800; }
+
+.tavern-tables-badge {
+  font-size: 12px;
+  color: #888;
+  font-family: var(--font);
+}
+
+.tavern-time-badge {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid;
+  font-family: var(--font);
+}
+.tavern-time-badge.day   { background: rgba(255,204,102,0.1); border-color: rgba(255,204,102,0.4); color: #ffcc66; }
+.tavern-time-badge.night { background: rgba(80,100,180,0.15); border-color: #5064b4; color: #8ba0e8; }
+
+.tavern-servants-row {
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #2e1c0c;
+}
+
+.tavern-servant-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tavern-servant-chip {
+  font-size: 12px;
+  background: rgba(255,204,102,0.07);
+  border: 1px solid rgba(255,204,102,0.2);
+  border-radius: 12px;
+  padding: 2px 10px;
+  color: var(--text);
+  font-family: var(--font);
+}
+
+/* ── Day/Night toggle ── */
+.sh-tavern-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.daynight-toggle {
+  display: flex;
+  border: 1px solid #3a2a50;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.daynight-btn {
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 5px 14px;
+  border: none;
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s;
+  white-space: nowrap;
+}
+.daynight-btn:hover { color: #aaa; background: rgba(255,255,255,0.04); }
+.daynight-btn.active {
+  color: #fff;
+  font-weight: bold;
+}
+.daynight-btn:first-child.active { background: #7a5c14; color: #ffe87a; }
+.daynight-btn:last-child.active  { background: #1e2a52; color: #8ba0e8; }
+
+/* ── Night-mode modal ── */
+.shop-modal-box {
+  transition: background 0.5s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+.shop-modal-box.night-mode {
+  background: linear-gradient(180deg, #060c1a 0%, #0a1428 45%, #0d1a35 100%);
+  border-color: #4a5a9a;
+  box-shadow: 0 8px 48px rgba(20,40,120,0.55);
+}
+.shop-modal-box.night-mode .shop-section-title,
+.shop-modal-box.night-mode .shop-name-title { color: #aabfff; }
+.shop-modal-box.night-mode .shop-type-badge {
+  background: rgba(100,130,255,0.1);
+  border-color: rgba(100,130,255,0.3);
+  color: #aabfff;
+}
+.shop-modal-box.night-mode .tavern-table-card { background: #0a1020; border-color: #1a2540; }
+.shop-modal-box.night-mode .tavern-menu-item  { background: #0a1020; border-color: #1a2540; }
+.shop-modal-box.night-mode .tavern-menu-item:hover { border-color: #2a3a60; }
+
+/* ── Seating layout ── */
+.tavern-seating { margin-bottom: 18px; }
+
+.tavern-bar { margin-bottom: 12px; }
+
+.tavern-bar-title {
+  font-size: 11px;
+  color: #888;
+  font-family: var(--font);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.tavern-bar-seats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tavern-tables-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.tavern-table-card {
+  background: #231508;
+  border: 1px solid #2e1c0c;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.tavern-table-label {
+  font-size: 10px;
+  color: #666;
+  font-family: var(--font);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.tavern-table-seats {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* NPC chips in seating */
+.npc-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--font);
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid;
+  min-width: 0;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.npc-chip:hover { filter: brightness(1.15); }
+
+.npc-chip.local {
+  background: rgba(255,255,255,0.03);
+  border-color: #3a2510;
+  color: var(--text);
+}
+
+.npc-chip.traveler {
+  background: linear-gradient(135deg, rgba(20,50,100,0.35) 0%, rgba(10,30,70,0.45) 100%);
+  border-color: #3a5888;
+  color: #a0c4e8;
+}
+
+.npc-chip-icon { display: none; }
+
+.npc-chip-header-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.npc-chip-traveler-tag {
+  font-size: 9px;
+  font-family: sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(58,120,200,0.3);
+  border: 1px solid #3a78c8;
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: #7ab4e8;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.npc-chip-name {
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.npc-chip-role {
+  font-size: 11px;
+  color: #777;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.npc-chip.traveler .npc-chip-role { color: #5a8ab8; }
+
+/* ── Staff cards (tavern view) ── */
+.tavern-servants-title {
+  font-size: 11px;
+  color: #888;
+  font-family: var(--font);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+
+.tavern-staff-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tavern-staff-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,204,102,0.05);
+  border: 1px solid rgba(255,204,102,0.18);
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-width: 140px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.tavern-staff-card:hover {
+  border-color: rgba(255,204,102,0.4);
+  background: rgba(255,204,102,0.09);
+}
+
+.staff-card-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.staff-card-info { min-width: 0; }
+
+.staff-card-name {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--accent);
+  font-family: var(--font);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.staff-card-role {
+  font-size: 11px;
+  color: #888;
+  font-family: var(--font);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Tavern Menu ── */
+.tavern-menu-section {
+  padding-top: 14px;
+  border-top: 1px solid #2e1c0c;
+}
+
+.tavern-menu-race-label {
+  font-size: 11px;
+  color: var(--accent);
+  font-style: italic;
+  opacity: 0.7;
+  margin-bottom: 10px;
+  text-transform: capitalize;
+  font-family: var(--font);
+}
+
+.tavern-menu-category { margin-bottom: 16px; }
+
+.tavern-menu-cat-title {
+  font-size: 12px;
+  color: #aaa;
+  font-family: var(--font);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.tavern-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 5px;
+}
+
+.tavern-menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  background: #231508;
+  border: 1px solid #2e1c0c;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-family: var(--font);
+  transition: border-color 0.15s;
+}
+.tavern-menu-item:hover { border-color: #443322; }
+
+.tavern-menu-name { font-size: 12px; color: var(--text); }
+
+.tavern-menu-price {
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* ── Room system ── */
+.tavern-rooms-section {
+  padding-top: 14px;
+  border-top: 1px solid #2e1c0c;
+  margin-top: 4px;
+}
+
+.tavern-rooms-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.rooms-status-badge {
+  font-size: 12px;
+  font-family: var(--font);
+  color: #888;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 3px 12px;
+  white-space: nowrap;
+}
+.rooms-status-badge.busy  { border-color: #cc8800; color: #ffaa33; background: rgba(204,136,0,0.08); }
+.rooms-status-badge.surge { border-color: #cc3300; color: #ff6633; background: rgba(200,50,0,0.1); }
+
+.tavern-rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.room-card {
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid;
+  font-family: var(--font);
+  cursor: default;
+  transition: border-color 0.15s, background 0.15s;
+  min-height: 62px;
+}
+
+.room-card.vacant {
+  background: rgba(255,255,255,0.02);
+  border-color: #2a2a2a;
+}
+.room-card.occupied {
+  background: rgba(255,255,255,0.04);
+  border-color: #3a2510;
+  cursor: pointer;
+}
+.room-card.occupied:hover { border-color: #554433; background: rgba(255,255,255,0.07); }
+
+.room-card.traveler-room {
+  background: rgba(20,50,100,0.2);
+  border-color: #2a4878;
+}
+.room-card.traveler-room:hover { border-color: #3a6298; }
+
+.room-num {
+  font-size: 10px;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.room-traveler-tag {
+  font-size: 9px;
+  background: rgba(58,100,180,0.3);
+  border: 1px solid #3a5888;
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: #7ab4e8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.room-guest {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.room-card.traveler-room .room-guest { color: #a0c4e8; }
+
+.room-guest-sub {
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.room-card.traveler-room .room-guest-sub { color: #5a80a8; }
+
+.room-vacant-label {
+  font-size: 12px;
+  color: #444;
+  font-style: italic;
+}
+
+/* ── NPC Info Popup ── */
+.npc-info-popup {
+  background: #1c1008;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.85);
+  font-family: var(--font);
+  color: var(--text);
+  max-width: 270px;
+  box-sizing: border-box;
+  animation: fadeInUp 0.15s ease-out both;
+  position: fixed;
+  z-index: 600;
+}
+
+.npc-popup-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+.npc-popup-close:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+
+.npc-popup-name {
+  font-family: 'IM Fell English', 'Garamond', serif;
+  font-size: 15px;
+  color: var(--accent);
+  margin-bottom: 4px;
+  padding-right: 20px;
+}
+
+.npc-popup-sub {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.npc-popup-desc {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.55;
+  margin: 0 0 8px;
+}
+
+.npc-popup-notes {
+  font-size: 11px;
+  font-style: italic;
+  color: #ffbb55;
+  border-left: 2px solid #ffbb55;
+  padding-left: 8px;
+  margin-top: 6px;
 }
 
 /* ── Player view (no DM panels — center map + about side by side) ── */

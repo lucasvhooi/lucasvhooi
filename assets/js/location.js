@@ -12,6 +12,14 @@ if (!locationId) {
   document.getElementById("loc-title").textContent = "Location not found";
 }
 
+// Remember this location so the Map tab can return here
+if (locationId) sessionStorage.setItem("lastLocationId", locationId);
+
+// "Back to Map" clears the saved location so map.html shows the actual map
+document.getElementById("back-to-map")?.addEventListener("click", () => {
+  sessionStorage.removeItem("lastLocationId");
+});
+
 if (!isAdmin) document.body.classList.add("player-view");
 
 // Firebase refs
@@ -31,6 +39,8 @@ let editingSubId        = null;
 let editingNpcId        = null;
 let isDraggingBuilding  = false;
 let dragSrcId           = null;
+let isDayTime           = true;
+let currentTavernMarker = null;
 
 // ── DOM Refs ──────────────────────────────────────────────────────────────────
 const locTitle        = document.getElementById("loc-title");
@@ -123,15 +133,22 @@ function renderMapImage() {
 
 // ── Sub-markers ───────────────────────────────────────────────────────────────
 const TYPE_COLORS = {
-  Forge:  "#FF7043",
-  Shop:   "#66BB6A",
-  Tavern: "#FFA726",
-  House:  "#78909C",
-  Temple: "#CE93D8",
-  Guard:  "#42A5F5",
-  Market: "#FFEE58",
-  Other:  "#BDBDBD"
+  Forge:   "#FF7043",
+  Shop:    "#66BB6A",
+  Tavern:  "#FFA726",
+  House:   "#78909C",
+  Temple:  "#CE93D8",
+  Guard:   "#42A5F5",
+  Market:  "#FFEE58",
+  Library: "#A1887F",
+  Other:   "#BDBDBD"
 };
+
+function markerDisplayType(marker) {
+  return (marker.type === "Other" && marker.customType)
+    ? marker.customType
+    : (marker.type || "Other");
+}
 
 function renderSubMarkers() {
   locMarkerLayer.innerHTML = "";
@@ -157,9 +174,8 @@ function renderSubMarkers() {
     tooltip.className = "loc-marker-tooltip";
     tooltip.innerHTML = `
       <div class="tooltip-name">${marker.name}</div>
-      <div class="tooltip-type">${marker.type || "Other"}</div>
+      <div class="tooltip-type">${markerDisplayType(marker)}${marker.shopSubtype ? ` · ${marker.shopSubtype}` : ""}</div>
       ${ownerNpc ? `<div class="tooltip-owner">&#128100; ${ownerNpc.name}</div>` : ""}
-      ${marker.notes && isAdmin ? `<div class="tooltip-notes">${marker.notes}</div>` : ""}
       <button class="tooltip-view-btn">View</button>
     `;
     tooltip.querySelector(".tooltip-view-btn").addEventListener("click", e => {
@@ -184,6 +200,7 @@ function renderSubMarkers() {
       delBtn.textContent = "Delete";
       delBtn.addEventListener("click", e => {
         e.stopPropagation();
+        if (!confirm(`Delete "${marker.name}"? This cannot be undone.`)) return;
         remove(ref(db, `locations/${locationId}/subMarkers/${marker.id}`));
       });
 
@@ -255,15 +272,104 @@ locMapContainer.addEventListener("touchend", e => {
 });
 
 // ── Sub-marker Modal ──────────────────────────────────────────────────────────
-const locMarkerModal = document.getElementById("loc-marker-modal");
-const lmTitle        = document.getElementById("lm-title");
-const lmName         = document.getElementById("lm-name");
-const lmType         = document.getElementById("lm-type");
-const lmOwner        = document.getElementById("lm-owner");
-const lmNotes        = document.getElementById("lm-notes");
-const lmError        = document.getElementById("lm-error");
-const lmSave         = document.getElementById("lm-save");
-const lmCancel       = document.getElementById("lm-cancel");
+const locMarkerModal   = document.getElementById("loc-marker-modal");
+const lmTitle          = document.getElementById("lm-title");
+const lmName           = document.getElementById("lm-name");
+const lmType           = document.getElementById("lm-type");
+const lmCustomTypeRow  = document.getElementById("lm-custom-type-row");
+const lmCustomType     = document.getElementById("lm-custom-type");
+const lmSubtypeRow     = document.getElementById("lm-subtype-row");
+const lmSubtype        = document.getElementById("lm-subtype");
+const lmInvTagsRow     = document.getElementById("lm-inv-tags-row");
+const lmInvTags        = document.getElementById("lm-inv-tags");
+const lmInvTagBtns     = document.getElementById("lm-inv-tag-btns");
+const lmTavernSection  = document.getElementById("lm-tavern-section");
+const lmTavernTables   = document.getElementById("lm-tavern-tables");
+const lmRoomCount      = document.getElementById("lm-room-count");
+const lmTavernWealthBtns = document.getElementById("lm-tavern-wealth-btns");
+const lmServantsList   = document.getElementById("lm-servants-list");
+let selectedTavernWealth = "Middle Class";
+const lmOwner          = document.getElementById("lm-owner");
+const lmNotes          = document.getElementById("lm-notes");
+const lmError          = document.getElementById("lm-error");
+const lmSave           = document.getElementById("lm-save");
+const lmCancel         = document.getElementById("lm-cancel");
+
+const RARITY_TAG_SET = new Set(["common", "uncommon", "rare", "very rare", "legendary"]);
+
+function getAllInventoryTags() {
+  const tagSet = new Set();
+  globalItems.forEach(item =>
+    parseTags(item.tags)
+      .filter(t => !RARITY_TAG_SET.has(t))
+      .forEach(t => tagSet.add(t))
+  );
+  return [...tagSet].sort();
+}
+
+function renderInvTagButtons() {
+  const selected = new Set(parseTags(lmInvTags.value));
+  lmInvTagBtns.innerHTML = "";
+  getAllInventoryTags().forEach(tag => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "inv-tag-btn" + (selected.has(tag) ? " active" : "");
+    btn.textContent = tag;
+    btn.addEventListener("click", () => {
+      const cur = new Set(parseTags(lmInvTags.value));
+      if (cur.has(tag)) { cur.delete(tag); } else { cur.add(tag); }
+      lmInvTags.value = [...cur].join(", ");
+      renderInvTagButtons();
+    });
+    lmInvTagBtns.appendChild(btn);
+  });
+}
+
+function updateMarkerTypeFields() {
+  const t = lmType.value;
+  lmCustomTypeRow.style.display  = (t === "Other")  ? "" : "none";
+  lmSubtypeRow.style.display     = (t === "Shop" || t === "Market") ? "" : "none";
+  lmTavernSection.style.display  = (t === "Tavern") ? "" : "none";
+  lmInvTagsRow.style.display     = (t !== "House" && t !== "Tavern") ? "" : "none";
+  if (t === "Tavern") populateServantsSection();
+  renderInvTagButtons();
+}
+
+function syncTavernWealthBtns() {
+  lmTavernWealthBtns.querySelectorAll(".wealth-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.wealth === selectedTavernWealth);
+  });
+}
+
+lmTavernWealthBtns.querySelectorAll(".wealth-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    selectedTavernWealth = btn.dataset.wealth;
+    syncTavernWealthBtns();
+  });
+});
+
+function populateServantsSection(existingServants = []) {
+  const servantSet = new Set(existingServants);
+  lmServantsList.innerHTML = "";
+  if (npcs.length === 0) {
+    lmServantsList.innerHTML = '<p class="empty-hint" style="margin:4px 0;font-size:12px">No NPCs in this location yet.</p>';
+    return;
+  }
+  const sorted = [...npcs].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  sorted.forEach((npc, i) => {
+    const item = document.createElement("label");
+    item.className = "servant-item";
+    item.innerHTML = `
+      <input type="checkbox" class="servant-checkbox" value="${npc.id}" ${servantSet.has(npc.id) ? "checked" : ""} />
+      <span>#${String(i + 1).padStart(3, "0")} ${npc.name}${npc.role ? ` — ${npc.role}` : ""}</span>
+    `;
+    lmServantsList.appendChild(item);
+  });
+}
+
+function getSelectedServants() {
+  return [...lmServantsList.querySelectorAll(".servant-checkbox:checked")].map(cb => cb.value);
+}
 
 function populateOwnerSelect(selectedId) {
   lmOwner.innerHTML = `<option value="">— None —</option>`;
@@ -280,21 +386,36 @@ function populateOwnerSelect(selectedId) {
 function openSubMarkerModal(id) {
   editingSubId = id;
   lmError.textContent = "";
+  const m = id ? subMarkers.find(s => s.id === id) : null;
 
-  if (id) {
-    const m = subMarkers.find(m => m.id === id);
-    lmTitle.textContent = "Edit Marker";
-    lmName.value  = m.name  || "";
-    lmType.value  = m.type  || "Forge";
-    lmNotes.value = m.notes || "";
+  if (m) {
+    lmTitle.textContent  = "Edit Marker";
+    lmName.value         = m.name          || "";
+    lmType.value         = m.type          || "Forge";
+    lmCustomType.value   = m.customType    || "";
+    lmSubtype.value      = m.shopSubtype   || "";
+    lmInvTags.value      = m.inventoryTags || "";
+    lmNotes.value        = m.notes         || "";
+    selectedTavernWealth = m.tavernWealth  || "Middle Class";
+    lmTavernTables.value = m.tavernTables  || 6;
+    lmRoomCount.value    = m.roomCount     ?? 4;
     populateOwnerSelect(m.ownerId || "");
   } else {
-    lmTitle.textContent = "Place Marker";
-    lmName.value = lmNotes.value = "";
+    lmTitle.textContent  = "Place Marker";
+    lmName.value = lmNotes.value = lmCustomType.value = lmSubtype.value = lmInvTags.value = "";
     lmType.value = "Forge";
+    selectedTavernWealth = "Middle Class";
+    lmTavernTables.value = 6;
+    lmRoomCount.value    = 4;
     populateOwnerSelect("");
   }
 
+  updateMarkerTypeFields();
+  // If editing a tavern, re-populate servants with the saved list (overrides the empty call above)
+  if (m?.type === "Tavern") {
+    populateServantsSection(m.servants || []);
+    syncTavernWealthBtns();
+  }
   locMarkerModal.classList.add("open");
   lmName.focus();
 }
@@ -318,24 +439,82 @@ lmSave.addEventListener("click", () => {
   const name = lmName.value.trim();
   if (!name) { lmError.textContent = "Name is required."; return; }
 
-  const id       = editingSubId || generateId();
-  const existing = editingSubId ? subMarkers.find(m => m.id === editingSubId) : null;
+  const id             = editingSubId || generateId();
+  const existing       = editingSubId ? subMarkers.find(m => m.id === editingSubId) : null;
+  const prevOwnerId    = existing?.ownerId || null;
+  const newOwnerId     = lmOwner.value || null;
+  const isTavern       = lmType.value === "Tavern";
+  const newServants    = isTavern ? getSelectedServants() : [];
+  const prevServants   = existing?.servants || [];
 
   set(ref(db, `locations/${locationId}/subMarkers/${id}`), {
     id,
     name,
-    type:       lmType.value,
-    ownerId:    lmOwner.value || null,
-    notes:      lmNotes.value.trim() || null,
-    x:          existing ? existing.x : pendingCoords.x,
-    y:          existing ? existing.y : pendingCoords.y,
-    order:      existing ? (existing.order !== undefined ? existing.order : subMarkers.length) : subMarkers.length,
-    discovered: existing?.discovered || false
+    type:               lmType.value,
+    customType:         (lmType.value === "Other" && lmCustomType.value.trim()) ? lmCustomType.value.trim() : null,
+    shopSubtype:        ((lmType.value === "Shop" || lmType.value === "Market") && lmSubtype.value.trim()) ? lmSubtype.value.trim() : null,
+    inventoryTags:      lmInvTags.value.trim() || null,
+    tavernTables:       isTavern ? (parseInt(lmTavernTables.value, 10) || 6)  : null,
+    roomCount:          isTavern ? (parseInt(lmRoomCount.value,    10) || 0)  : null,
+    tavernWealth:       isTavern ? selectedTavernWealth : null,
+    servants:           (isTavern && newServants.length > 0) ? newServants : null,
+    // Preserve generated data across edits
+    generatedInventory: existing?.generatedInventory || null,
+    seating:            (isTavern && existing?.seating) ? existing.seating : null,
+    ownerId:            newOwnerId,
+    notes:              lmNotes.value.trim() || null,
+    x:                  existing ? existing.x : pendingCoords.x,
+    y:                  existing ? existing.y : pendingCoords.y,
+    order:              existing ? (existing.order !== undefined ? existing.order : subMarkers.length) : subMarkers.length,
+    discovered:         existing?.discovered || false
   });
+
+  // Auto-update NPC roles based on ownership changes
+  if (newOwnerId !== prevOwnerId) {
+    if (newOwnerId) {
+      set(ref(db, `locations/${locationId}/npcs/${newOwnerId}/role`), `Owner ${name}`);
+    }
+    if (prevOwnerId) {
+      const prevNpc    = npcs.find(n => n.id === prevOwnerId);
+      const randomRole = pickProfession(prevNpc?.race || null);
+      set(ref(db, `locations/${locationId}/npcs/${prevOwnerId}/role`), randomRole);
+    }
+  } else if (newOwnerId && existing && name !== existing.name) {
+    set(ref(db, `locations/${locationId}/npcs/${newOwnerId}/role`), `Owner ${name}`);
+  }
+
+  // Auto-update servant roles
+  const prevServantSet = new Set(prevServants);
+  const newServantSet  = new Set(newServants);
+
+  // Newly added servants get "Waiter at [name]"
+  newServantSet.forEach(npcId => {
+    if (!prevServantSet.has(npcId)) {
+      set(ref(db, `locations/${locationId}/npcs/${npcId}/role`), `Waiter at ${name}`);
+    }
+  });
+
+  // Removed servants (or type changed away from Tavern) revert to random profession
+  prevServantSet.forEach(npcId => {
+    if (!newServantSet.has(npcId)) {
+      const npc = npcs.find(n => n.id === npcId);
+      set(ref(db, `locations/${locationId}/npcs/${npcId}/role`), pickProfession(npc?.race || null));
+    }
+  });
+
+  // If tavern was renamed, update all retained servants' roles
+  if (isTavern && existing && name !== existing.name) {
+    newServantSet.forEach(npcId => {
+      if (prevServantSet.has(npcId)) {
+        set(ref(db, `locations/${locationId}/npcs/${npcId}/role`), `Waiter at ${name}`);
+      }
+    });
+  }
 
   closeSubMarkerModal();
 });
 
+lmType.addEventListener("change", updateMarkerTypeFields);
 lmCancel.addEventListener("click", closeSubMarkerModal);
 locMarkerModal.addEventListener("click", e => { if (e.target === locMarkerModal) closeSubMarkerModal(); });
 
@@ -371,7 +550,7 @@ function renderBuildings() {
       <div class="building-dot" style="background:${color}"></div>
       <div class="building-info">
         <div class="building-name">${marker.name}</div>
-        <div class="building-type">${marker.type || "Other"}${bOwner ? ` · ${bOwner.name}` : ""}</div>
+        <div class="building-type">${markerDisplayType(marker)}${marker.shopSubtype ? ` · ${marker.shopSubtype}` : ""}${bOwner ? ` · ${bOwner.name}` : ""}</div>
         ${marker.notes ? `<div class="building-notes">${marker.notes}</div>` : ""}
       </div>
       <div class="building-card-actions">
@@ -466,7 +645,22 @@ function renderNpcs() {
     return;
   }
 
-  const sorted = [...npcs].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  let sorted = [...npcs].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+  if (npcSearchQuery) {
+    const q = npcSearchQuery.toLowerCase();
+    sorted = sorted.filter(n =>
+      (n.name        || "").toLowerCase().includes(q) ||
+      (n.race        || "").toLowerCase().includes(q) ||
+      (n.role        || "").toLowerCase().includes(q) ||
+      (n.description || "").toLowerCase().includes(q)
+    );
+  }
+
+  if (sorted.length === 0 && npcs.length > 0) {
+    locNpcList.innerHTML = `<p class="empty-hint">No NPCs match your search.</p>`;
+    return;
+  }
 
   sorted.forEach((npc, index) => {
     const card = document.createElement("div");
@@ -570,6 +764,29 @@ lnCancel.addEventListener("click", closeNpcModal);
 locNpcModal.addEventListener("click", e => { if (e.target === locNpcModal) closeNpcModal(); });
 
 document.getElementById("loc-add-npc-btn").addEventListener("click", () => openNpcModal(null));
+
+// ── NPC Generator Toggle ──────────────────────────────────────────────────────
+const npcGeneratorPanel = document.getElementById("npc-generator-panel");
+const toggleGenBtn      = document.getElementById("loc-toggle-gen-btn");
+let generatorOpen = false;
+
+if (toggleGenBtn && npcGeneratorPanel) {
+  toggleGenBtn.addEventListener("click", () => {
+    generatorOpen = !generatorOpen;
+    npcGeneratorPanel.style.display = generatorOpen ? "" : "none";
+    toggleGenBtn.textContent = generatorOpen ? "Generator ▼" : "Generator ▶";
+  });
+}
+
+// ── NPC Search ────────────────────────────────────────────────────────────────
+let npcSearchQuery = "";
+const npcSearchInput = document.getElementById("npc-search");
+if (npcSearchInput) {
+  npcSearchInput.addEventListener("input", e => {
+    npcSearchQuery = e.target.value;
+    renderNpcs();
+  });
+}
 
 // ── Description Edit ──────────────────────────────────────────────────────────
 const locDescModal = document.getElementById("loc-desc-modal");
@@ -810,15 +1027,28 @@ if (genClearBtn) {
 }
 
 // ── Shop Modal ────────────────────────────────────────────────────────────────
-const shopModal      = document.getElementById("shop-modal");
-const shopClose      = document.getElementById("shop-close");
-const shName         = document.getElementById("sh-name");
-const shMeta         = document.getElementById("sh-meta");
-const shOwner        = document.getElementById("sh-owner");
-const shInventory    = document.getElementById("sh-inventory");
-const shTypeDot      = document.getElementById("sh-type-dot");
-const shRarityFilter = document.getElementById("sh-rarity-filter");
-const shGenerateBtn  = document.getElementById("sh-generate-btn");
+const shopModal           = document.getElementById("shop-modal");
+const shopClose           = document.getElementById("shop-close");
+const shName              = document.getElementById("sh-name");
+const shMeta              = document.getElementById("sh-meta");
+const shOwner             = document.getElementById("sh-owner");
+const shInventory         = document.getElementById("sh-inventory");
+const shInventorySection  = document.getElementById("sh-inventory-section");
+const shTypeDot           = document.getElementById("sh-type-dot");
+const shRarityFilter      = document.getElementById("sh-rarity-filter");
+const shGenerateBtn       = document.getElementById("sh-generate-btn");
+const shTavernSection     = document.getElementById("sh-tavern-section");
+const shTavernMeta        = document.getElementById("sh-tavern-meta");
+const shTavernServants    = document.getElementById("sh-tavern-servants");
+const shTavernGenBtn      = document.getElementById("sh-tavern-gen-btn");
+const shTavernSeating     = document.getElementById("sh-tavern-seating");
+const shTavernMenu        = document.getElementById("sh-tavern-menu");
+const shTavernRooms       = document.getElementById("sh-tavern-rooms");
+const shRoomsStatus       = document.getElementById("sh-rooms-status");
+const shRoomsGrid         = document.getElementById("sh-rooms-grid");
+const shopModalBox        = shopModal.querySelector(".shop-modal-box");
+
+const INVENTORY_TYPES = new Set(["Shop", "Market", "Forge"]);
 
 let shopRarityFilter = "all";
 
@@ -830,6 +1060,7 @@ const SHOP_TYPE_TAGS = {
   "Temple":  ["potion", "healing", "protection", "holy"],
   "Guard":   ["weapon", "melee", "ranged", "armor", "shield", "ammunition"],
   "Market":  ["adventuring", "food", "tool", "light"],
+  "Library": ["book", "scroll", "map", "arcane", "lore"],
   "House":   [],
   "Other":   []
 };
@@ -852,6 +1083,221 @@ const RARITY_COLORS = {
   "legendary":   "#ff9800"
 };
 
+// ── Tavern Menus — race-themed, split drinks / foods ─────────────────────────
+const RACE_MENUS = {
+  Human: {
+    drinks: [
+      { name: "Ale",               basePriceCp:  4 },
+      { name: "Dark Stout",        basePriceCp:  6 },
+      { name: "Common Wine",       basePriceCp: 10 },
+      { name: "Fine Wine",         basePriceCp: 30 },
+      { name: "Mead",              basePriceCp:  5 },
+      { name: "Spiced Cider",      basePriceCp:  5 },
+      { name: "Watered Wine",      basePriceCp:  3 },
+    ],
+    foods: [
+      { name: "Hearty Stew",       basePriceCp:  6 },
+      { name: "Bread & Cheese",    basePriceCp:  3 },
+      { name: "Roasted Chicken",   basePriceCp: 12 },
+      { name: "Meat Pie",          basePriceCp: 10 },
+      { name: "Vegetable Soup",    basePriceCp:  4 },
+      { name: "Smoked Sausage",    basePriceCp:  8 },
+      { name: "Traveler's Meal",   basePriceCp:  8 },
+      { name: "Porridge & Honey",  basePriceCp:  3 },
+      { name: "Salted Pork Strips",basePriceCp:  5 },
+      { name: "Potato & Herb Mash",basePriceCp:  4 },
+    ],
+  },
+  Elf: {
+    drinks: [
+      { name: "Elven Moonwine",       basePriceCp: 25 },
+      { name: "Silverleaf Tea",       basePriceCp:  8 },
+      { name: "Forest Bloom Spirits", basePriceCp: 18 },
+      { name: "Dewdrop Nectar",       basePriceCp: 14 },
+      { name: "Starwater",            basePriceCp:  6 },
+      { name: "Pale Elderflower Wine",basePriceCp: 20 },
+      { name: "Dawnmist Cordial",     basePriceCp: 10 },
+    ],
+    foods: [
+      { name: "Honeyed Fruit Platter",  basePriceCp: 12 },
+      { name: "Moonleaf Salad",         basePriceCp:  8 },
+      { name: "Roasted Venison",        basePriceCp: 18 },
+      { name: "Elderflower Bread",      basePriceCp:  4 },
+      { name: "Herb-Glazed Quail",      basePriceCp: 20 },
+      { name: "Crystallized Berries",   basePriceCp:  6 },
+      { name: "Acorn Cake",             basePriceCp:  5 },
+      { name: "Roasted Root Medley",    basePriceCp:  7 },
+      { name: "Willow-Smoked Trout",    basePriceCp: 15 },
+      { name: "Sweetgrass Flatbread",   basePriceCp:  4 },
+    ],
+  },
+  Dwarf: {
+    drinks: [
+      { name: "Dark Mountain Stout",  basePriceCp:  7 },
+      { name: "Rockfire Whisky",      basePriceCp: 15 },
+      { name: "Cave Moss Ale",        basePriceCp:  5 },
+      { name: "Iron Brew",            basePriceCp:  6 },
+      { name: "Molten Gold Mead",     basePriceCp: 12 },
+      { name: "Tunnel-Aged Porter",   basePriceCp:  8 },
+      { name: "Stonewort Beer",       basePriceCp:  4 },
+      { name: "Ancestor's Reserve",   basePriceCp: 25 },
+    ],
+    foods: [
+      { name: "Stone-Bread Loaf",       basePriceCp:  3 },
+      { name: "Grilled Cave Mushrooms", basePriceCp:  6 },
+      { name: "Roasted Boar",           basePriceCp: 18 },
+      { name: "Iron Pot Stew",          basePriceCp:  8 },
+      { name: "Smoked Tunnel Fish",     basePriceCp: 10 },
+      { name: "Pickled Beet Wedge",     basePriceCp:  3 },
+      { name: "Salted Hardtack",        basePriceCp:  2 },
+      { name: "Deep-Fried Root Cakes",  basePriceCp:  5 },
+      { name: "Braised Mountain Goat",  basePriceCp: 15 },
+      { name: "Miners' Cheese Board",   basePriceCp:  7 },
+    ],
+  },
+  Halfling: {
+    drinks: [
+      { name: "Green Leaf Tea",      basePriceCp:  4 },
+      { name: "Pipeweed Cider",      basePriceCp:  6 },
+      { name: "Meadow Wine",         basePriceCp:  8 },
+      { name: "Warm Spiced Cider",   basePriceCp:  5 },
+      { name: "Strawberry Cordial",  basePriceCp:  7 },
+      { name: "Cream Stout",         basePriceCp:  6 },
+      { name: "Honeybee Mead",       basePriceCp:  9 },
+    ],
+    foods: [
+      { name: "Mushroom Pasty",         basePriceCp:  8 },
+      { name: "Hearty Breakfast Plate", basePriceCp: 12 },
+      { name: "Honey Cake",             basePriceCp:  5 },
+      { name: "Baked Potato & Herbs",   basePriceCp:  6 },
+      { name: "Second Breakfast Plate", basePriceCp: 10 },
+      { name: "Seed Bread",             basePriceCp:  3 },
+      { name: "Jam Tart",               basePriceCp:  4 },
+      { name: "Fried Egg & Bacon",      basePriceCp:  9 },
+      { name: "Hobbit's Cheese Toast",  basePriceCp:  5 },
+      { name: "Vegetable Pot Pie",      basePriceCp:  8 },
+    ],
+  },
+  Gnome: {
+    drinks: [
+      { name: "Fizzing Ginger Brew",     basePriceCp:  8 },
+      { name: "Sparkling Cogsworth Ale", basePriceCp: 10 },
+      { name: "Electric Blue Concoction",basePriceCp: 15 },
+      { name: "Glowing Amber Tonic",     basePriceCp: 12 },
+      { name: "Bubbly Mischief",         basePriceCp:  7 },
+      { name: "Tinker's Reserve Whisky", basePriceCp: 18 },
+      { name: "Fizzy Root Extract",      basePriceCp:  5 },
+    ],
+    foods: [
+      { name: "Crystallized Beetle Biscuit",basePriceCp: 6 },
+      { name: "Spiced Pumpkin Pie",         basePriceCp: 8 },
+      { name: "Alchemical Candy",           basePriceCp: 5 },
+      { name: "Gear-Shaped Gingerbread",    basePriceCp: 4 },
+      { name: "Mushroom & Cream Tart",      basePriceCp: 9 },
+      { name: "Smoked Radish Medley",       basePriceCp: 6 },
+      { name: "Compressed Nutloaf",         basePriceCp: 5 },
+      { name: "Inventor's Mystery Stew",    basePriceCp: 7 },
+    ],
+  },
+  Orc: {
+    drinks: [
+      { name: "Bloodfire Grog",      basePriceCp:  6 },
+      { name: "Iron Gut Ale",        basePriceCp:  4 },
+      { name: "Black Tar Beer",      basePriceCp:  3 },
+      { name: "Warchief's Reserve",  basePriceCp: 20 },
+      { name: "Boar Bone Broth",     basePriceCp:  4 },
+      { name: "Battlefield Rot-gut", basePriceCp:  2 },
+      { name: "Fermented Tusk Milk", basePriceCp:  3 },
+    ],
+    foods: [
+      { name: "Charred Boar Haunch", basePriceCp: 14 },
+      { name: "Bone Broth Bowl",     basePriceCp:  4 },
+      { name: "Grilled Warg Meat",   basePriceCp: 12 },
+      { name: "Salted Meat Strip",   basePriceCp:  5 },
+      { name: "War Bread",           basePriceCp:  2 },
+      { name: "Marrow Cracker",      basePriceCp:  4 },
+      { name: "Tusk Root Stew",      basePriceCp:  7 },
+      { name: "Scorched Beast Ribs", basePriceCp: 10 },
+      { name: "Twice-Boiled Offal",  basePriceCp:  3 },
+    ],
+  },
+  Tiefling: {
+    drinks: [
+      { name: "Brimstone Whisky",    basePriceCp: 18 },
+      { name: "Hellfire Brandy",     basePriceCp: 22 },
+      { name: "Shadow Wine",         basePriceCp: 15 },
+      { name: "Infernal Spiced Rum", basePriceCp: 12 },
+      { name: "Ember Gin",           basePriceCp: 14 },
+      { name: "Smoldering Cider",    basePriceCp:  8 },
+      { name: "Ash-Black Stout",     basePriceCp:  6 },
+    ],
+    foods: [
+      { name: "Devil's Tongue Soup",    basePriceCp: 10 },
+      { name: "Charred Pepper Skewer",  basePriceCp:  8 },
+      { name: "Fire-Roasted Lamb",      basePriceCp: 16 },
+      { name: "Sulfur Salt Bread",      basePriceCp:  4 },
+      { name: "Scorched Corn Flatbread",basePriceCp:  3 },
+      { name: "Cinder-Spiced Stew",     basePriceCp:  9 },
+      { name: "Seared Blood Sausage",   basePriceCp:  7 },
+      { name: "Hellpepper Skewers",     basePriceCp:  6 },
+    ],
+  },
+  Dragonborn: {
+    drinks: [
+      { name: "Dragonscale Stout",     basePriceCp:  8 },
+      { name: "Ember Cider",           basePriceCp:  7 },
+      { name: "Blazing Mead",          basePriceCp: 12 },
+      { name: "Scale-Polished Spirits",basePriceCp: 20 },
+      { name: "Volcanic Red Wine",     basePriceCp: 18 },
+      { name: "Smoldering Amber Ale",  basePriceCp:  6 },
+    ],
+    foods: [
+      { name: "Flame-Seared Steak",    basePriceCp: 18 },
+      { name: "Dragon Pepper Stew",    basePriceCp: 10 },
+      { name: "Scorched Bone Marrow",  basePriceCp:  8 },
+      { name: "Fire-Kissed Flatbread", basePriceCp:  4 },
+      { name: "Charred Egg on Spit",   basePriceCp:  5 },
+      { name: "Ember-Smoked Ribs",     basePriceCp: 16 },
+      { name: "Ash-Roasted Root",      basePriceCp:  5 },
+      { name: "Spit-Roasted Serpent",  basePriceCp: 12 },
+    ],
+  },
+  Goblin: {
+    drinks: [
+      { name: "Swamp Brew",          basePriceCp:  2 },
+      { name: "Rotten Apple Cider",  basePriceCp:  2 },
+      { name: "Mudwater Special",    basePriceCp:  1 },
+      { name: "Fermented Bog Juice", basePriceCp:  2 },
+      { name: "Mystery Grog",        basePriceCp:  3 },
+    ],
+    foods: [
+      { name: "Rat-on-a-Stick",      basePriceCp:  3 },
+      { name: "Mystery Stew",        basePriceCp:  2 },
+      { name: "Mushroom Skewer",     basePriceCp:  3 },
+      { name: "Boiled Whatever",     basePriceCp:  1 },
+      { name: "Scorched Crust Bread",basePriceCp:  2 },
+      { name: "Pickled Bug Snack",   basePriceCp:  2 },
+      { name: "Slimy Cave Surprise", basePriceCp:  1 },
+    ],
+  },
+};
+
+const TAVERN_WEALTH_MULT = { "Poor": 0.55, "Middle Class": 1.0, "Rich": 2.6 };
+
+function resolveRaceMenu(race) {
+  if (!race) return "Human";
+  const r = race.toLowerCase();
+  if (r.includes("elf") || r === "drow")         return "Elf";
+  if (r.includes("dwarf"))                        return "Dwarf";
+  if (r.includes("halfling"))                     return "Halfling";
+  if (r.includes("gnome"))                        return "Gnome";
+  if (r.includes("orc"))                          return "Orc";
+  if (r.includes("tiefling"))                     return "Tiefling";
+  if (r.includes("dragonborn"))                   return "Dragonborn";
+  if (r.includes("goblin"))                       return "Goblin";
+  return "Human";
+}
+
 // Deterministic price multiplier per shop+item combo (0.85 – 1.15)
 function hashCode(str) {
   let h = 0;
@@ -864,11 +1310,11 @@ function hashCode(str) {
 function shopPrice(basePrice, shopId, itemId) {
   const h = hashCode(shopId + itemId);
   const mult = 0.85 + (h % 10000) / 10000 * 0.30;
-  const p = basePrice * mult;
+  const p = Math.max(basePrice * mult, 0.01); // always at least 1 cp
   if (p >= 100) return Math.round(p);
   if (p >= 10)  return Math.round(p * 2) / 2;
   if (p >= 1)   return Math.round(p * 10) / 10;
-  return Math.round(p * 100) / 100;
+  return Math.max(Math.round(p * 100) / 100, 0.01);
 }
 
 // Pick rarity based on weighted distribution
@@ -893,7 +1339,7 @@ async function generateShopInventory(marker) {
   const poolByRarity = {};
   for (const item of pool) {
     const tags = parseTags(item.tags);
-    const rarity = getRarityFromTags(tags);
+    const rarity = getItemRarity(item);
     if (!poolByRarity[rarity]) poolByRarity[rarity] = [];
     poolByRarity[rarity].push(item);
   }
@@ -925,9 +1371,11 @@ async function generateShopInventory(marker) {
   );
 }
 
-// Items eligible for this shop based on its type tags
+// Items eligible for this shop based on its type tags (custom tags override defaults)
 function getShopPool(marker) {
-  const typeTags = SHOP_TYPE_TAGS[marker.type] || [];
+  const typeTags = (marker.inventoryTags && parseTags(marker.inventoryTags).length > 0)
+    ? parseTags(marker.inventoryTags)
+    : (SHOP_TYPE_TAGS[marker.type] || []);
   if (typeTags.length === 0) return [];
   return globalItems.filter(item => parseTags(item.tags).some(t => typeTags.includes(t)));
 }
@@ -936,35 +1384,20 @@ function getShopItems(marker) {
   const generatedIds = marker.generatedInventory || {};
   const manualIds    = marker.inventory || {};
 
-  // If a generated inventory exists, use it; otherwise fall back to full type pool
-  const hasSeed = Object.keys(generatedIds).length > 0;
-  let items;
+  const hasSeed   = Object.keys(generatedIds).length > 0;
+  const hasManual = Object.keys(manualIds).length > 0;
 
-  if (hasSeed) {
-    const allIds = new Set([...Object.keys(generatedIds), ...Object.keys(manualIds)]);
-    items = globalItems.filter(i => allIds.has(i.id));
-  } else {
-    const typeTags = SHOP_TYPE_TAGS[marker.type] || [];
-    items = typeTags.length > 0
-      ? globalItems.filter(item => parseTags(item.tags).some(t => typeTags.includes(t)))
-      : [];
+  // Return empty until inventory is explicitly generated or manually set
+  if (!hasSeed && !hasManual) return [];
 
-    // Merge any manually added extras
-    const autoIds = new Set(items.map(i => i.id));
-    Object.keys(manualIds).forEach(id => {
-      if (!autoIds.has(id)) {
-        const item = globalItems.find(i => i.id === id);
-        if (item) items.push(item);
-      }
-    });
-  }
-
-  return items;
+  const allIds = new Set([...Object.keys(generatedIds), ...Object.keys(manualIds)]);
+  return globalItems.filter(i => allIds.has(i.id));
 }
 
-function getRarityFromTags(tags) {
-  const rarities = ["legendary", "very rare", "rare", "uncommon", "common"];
-  for (const r of rarities) {
+function getItemRarity(item) {
+  if (item.rarity) return item.rarity;
+  const tags = parseTags(item.tags);
+  for (const r of ["legendary", "very rare", "rare", "uncommon", "common"]) {
     if (tags.includes(r)) return r;
   }
   return "common";
@@ -981,16 +1414,27 @@ function renderShopInventory(marker) {
   }
 
   if (items.length === 0) {
-    shInventory.innerHTML = `<p class="shop-empty">${globalItems.length === 0 ? 'No items in the database yet. Add items on the Items page.' : 'No items match this filter.'}</p>`;
+    const hasInventory = Object.keys(marker.generatedInventory || {}).length > 0 || Object.keys(marker.inventory || {}).length > 0;
+    let msg;
+    if (!hasInventory) {
+      msg = isAdmin
+        ? 'No inventory yet. Press "⚡ Generate Inventory" to stock this place.'
+        : 'Nothing for sale here yet.';
+    } else {
+      msg = 'No items match this filter.';
+    }
+    shInventory.innerHTML = `<p class="shop-empty">${msg}</p>`;
     return;
   }
 
   items.sort((a, b) => a.name.localeCompare(b.name));
 
+  const RARITY_KW = new Set(["common","uncommon","rare","very rare","legendary"]);
+
   items.forEach(item => {
     const price = shopPrice(item.price, marker.id, item.id);
-    const tags  = parseTags(item.tags);
-    const rarity = getRarityFromTags(tags);
+    const tags  = parseTags(item.tags).filter(t => !RARITY_KW.has(t));
+    const rarity = getItemRarity(item);
     const rarityColor = RARITY_COLORS[rarity] || "#9e9e9e";
 
     const row = document.createElement("div");
@@ -1000,7 +1444,7 @@ function renderShopInventory(marker) {
         <div class="shop-item-rarity-dot rarity-${rarity.replace(" ", "-")}" style="background-color: ${rarityColor}" title="${rarity}"></div>
         <div class="shop-item-name">${item.name}</div>
       </div>
-      ${tags.length ? `<div class="shop-item-tags">${tags.map(t => `<span class="item-tag">${t}</span>`).join("")}</div>` : ""}
+      ${tags.length ? `<div class="shop-item-tags">${tags.map(t => { const rc = {"common":"rarity-tag-common","uncommon":"rarity-tag-uncommon","rare":"rarity-tag-rare","very rare":"rarity-tag-very-rare","legendary":"rarity-tag-legendary"}[t]; return `<span class="item-tag${rc ? " " + rc : ""}">${t}</span>`; }).join("")}</div>` : ""}
       ${item.description ? `<div class="shop-item-desc">${item.description}</div>` : ""}
       <div class="shop-item-price">${formatGold(price)}</div>
     `;
@@ -1014,11 +1458,489 @@ function renderShopInventory(marker) {
   });
 }
 
+// ── Tavern Generation & Rendering ─────────────────────────────────────────────
+async function generateTavernSeating(marker, dayTime = true) {
+  const tableCount    = marker.tavernTables || 6;
+  const BAR_SEATS     = 4;
+  // Night: busier — more bar occupancy, more seats per table, more travelers
+  const barFillRate   = dayTime ? 0.45 : 0.82;
+  const travelerPct   = dayTime ? 0.05 : 0.09;
+  const maxSeatsTable = dayTime ? 3    : 4;
+
+  // Exclude owner + servants from patron pool
+  const excluded = new Set([
+    ...(marker.servants || []),
+    ...(marker.ownerId ? [marker.ownerId] : [])
+  ]);
+  const localPool = [...npcs].filter(n => !excluded.has(n.id));
+  for (let i = localPool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [localPool[i], localPool[j]] = [localPool[j], localPool[i]];
+  }
+
+  const totalSlots    = BAR_SEATS + tableCount * maxSeatsTable;
+  const travelerCount = Math.max(1, Math.round(totalSlots * travelerPct));
+  const localCount    = Math.min(localPool.length, totalSlots - travelerCount);
+
+  // Bar
+  let localIdx = 0;
+  const barSlots = [];
+  for (let i = 0; i < BAR_SEATS; i++) {
+    if (localIdx < localCount && Math.random() < barFillRate) {
+      barSlots.push({ npcId: localPool[localIdx++].id });
+    } else if (Math.random() < travelerPct * 4) {
+      barSlots.push({ traveler: generateOneNpc() });
+    } else {
+      barSlots.push(null);
+    }
+  }
+
+  // Tables
+  const tableSlots = [];
+  for (let t = 0; t < tableCount; t++) {
+    const minSeats   = dayTime ? 0 : 1;
+    const seatsCount = minSeats + Math.floor(Math.random() * maxSeatsTable);
+    const seats = [];
+    for (let s = 0; s < seatsCount; s++) {
+      if (localIdx < localCount) {
+        seats.push({ npcId: localPool[localIdx++].id });
+      } else if (Math.random() < travelerPct * 2) {
+        seats.push({ traveler: generateOneNpc() });
+      }
+    }
+    if (seats.length > 0) tableSlots.push(seats);
+  }
+
+  // ── Room occupancy ────────────────────────────────────────────────────────
+  const roomCount = marker.roomCount || 0;
+  const rooms = [];
+  if (roomCount > 0) {
+    // Collect all placed patrons, keeping travelers and locals separate
+    const allPlaced  = [...barSlots.filter(s => s !== null), ...tableSlots.flat()];
+    const travelers  = allPlaced.filter(s => s.traveler);
+    const locals     = allPlaced.filter(s => s.npcId);
+
+    // Shuffle locals so we pick random ones, not always the first
+    for (let i = locals.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [locals[i], locals[j]] = [locals[j], locals[i]];
+    }
+
+    // Target occupancy: day 20-45 %, night 55-90 %
+    const minOcc = dayTime ? 0.20 : 0.55;
+    const maxOcc = dayTime ? 0.45 : 0.90;
+    const targetGuests = Math.round(roomCount * (minOcc + Math.random() * (maxOcc - minOcc)));
+
+    // Shuffle both pools independently
+    for (let i = travelers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [travelers[i], travelers[j]] = [travelers[j], travelers[i]];
+    }
+
+    const guestPool = [];
+
+    // 1. Locals who stayed too late and rented a room (bulk of occupancy)
+    for (const local of locals) {
+      if (guestPool.length >= targetGuests) break;
+      guestPool.push(local);
+    }
+
+    // 2. Travelers from the tavern always need a room (far from home)
+    for (const t of travelers) {
+      if (guestPool.length >= targetGuests) break;
+      guestPool.push(t);
+    }
+
+    // 3. Extra bed-only travelers only if locals + seated travelers didn't fill the target
+    const maxBedOnly = Math.max(0, Math.ceil(targetGuests * 0.35));
+    let bedOnlyAdded = 0;
+    while (guestPool.length < targetGuests && bedOnlyAdded < maxBedOnly) {
+      guestPool.push({ traveler: generateOneNpc() });
+      bedOnlyAdded++;
+    }
+
+    // Shuffle final pool so room numbers are mixed (not always locals first)
+    for (let i = guestPool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [guestPool[i], guestPool[j]] = [guestPool[j], guestPool[i]];
+    }
+
+    for (let i = 0; i < roomCount; i++) {
+      rooms.push(i < guestPool.length ? guestPool[i] : null);
+    }
+  }
+
+  const seating = { bar: barSlots, tables: tableSlots, rooms };
+  await set(ref(db, `locations/${locationId}/subMarkers/${marker.id}/seating`), seating);
+  return seating;
+}
+
+function showNpcPopup(npc, isLocal, anchor) {
+  document.querySelectorAll(".npc-info-popup").forEach(p => p.remove());
+
+  const popup = document.createElement("div");
+  popup.className = "npc-info-popup";
+
+  const sub = [npc.race, !isLocal ? "Traveler" : null, npc.role, npc.age ? `Age ${npc.age}` : null]
+    .filter(Boolean).join(" · ");
+
+  popup.innerHTML = `
+    <button class="npc-popup-close">&times;</button>
+    <div class="npc-popup-name">${npc.name}</div>
+    ${sub ? `<div class="npc-popup-sub">${sub}</div>` : ""}
+    ${npc.description ? `<p class="npc-popup-desc">${npc.description}</p>` : ""}
+    ${npc.notes && isAdmin ? `<div class="npc-popup-notes">&#128274; ${npc.notes}</div>` : ""}
+  `;
+
+  document.body.appendChild(popup);
+
+  const aRect = anchor.getBoundingClientRect();
+  const pw    = 270;
+  let left    = Math.min(aRect.left, window.innerWidth - pw - 12);
+  left = Math.max(left, 8);
+  popup.style.cssText = `position:fixed;left:${left}px;top:${aRect.bottom + 8}px;width:${pw}px;z-index:600;`;
+
+  requestAnimationFrame(() => {
+    const pr = popup.getBoundingClientRect();
+    if (pr.bottom > window.innerHeight - 12) {
+      popup.style.top = Math.max(8, aRect.top - pr.height - 8) + "px";
+    }
+  });
+
+  popup.querySelector(".npc-popup-close").addEventListener("click", e => {
+    e.stopPropagation();
+    popup.remove();
+  });
+  const close = ev => {
+    if (!popup.contains(ev.target)) { popup.remove(); document.removeEventListener("click", close); }
+  };
+  setTimeout(() => document.addEventListener("click", close), 0);
+}
+
+function renderNpcChip(seat) {
+  if (!seat) return null;
+  const div = document.createElement("div");
+  div.style.cursor = "pointer";
+  div.title = "Click for details";
+
+  let npcData = null;
+  let isLocal = false;
+
+  if (seat.npcId) {
+    const npc = npcs.find(n => n.id === seat.npcId);
+    if (!npc) return null;
+    // Exclude tavern staff (servants/waiters and owner) — they are working, not seated as patrons
+    const excluded = new Set([
+      ...(currentTavernMarker?.servants || []),
+      ...(currentTavernMarker?.ownerId ? [currentTavernMarker.ownerId] : [])
+    ]);
+    if (excluded.has(seat.npcId)) return null;
+    npcData = npc;
+    isLocal = true;
+    div.className = "npc-chip local";
+    div.innerHTML = `
+      <span class="npc-chip-icon">&#128100;</span>
+      <span class="npc-chip-name">${npc.name}</span>
+      <span class="npc-chip-role">${[npc.race, npc.role].filter(Boolean).join(" · ")}</span>
+    `;
+  } else if (seat.traveler) {
+    npcData = seat.traveler;
+    div.className = "npc-chip traveler";
+    div.innerHTML = `
+      <div class="npc-chip-header-row">
+        <span class="npc-chip-name">${seat.traveler.name}</span>
+        <span class="npc-chip-traveler-tag">Traveler</span>
+      </div>
+      <span class="npc-chip-role">${[seat.traveler.race, seat.traveler.role].filter(Boolean).join(" · ")}</span>
+    `;
+  }
+
+  if (npcData) {
+    div.addEventListener("click", e => { e.stopPropagation(); showNpcPopup(npcData, isLocal, div); });
+  }
+  return div;
+}
+
+function renderSeating(marker) {
+  shTavernSeating.innerHTML = "";
+  const seating = marker.seating;
+
+  if (!seating) {
+    shTavernSeating.innerHTML = isAdmin
+      ? `<p class="shop-empty">No patrons yet. Press "&#9889; Generate Patrons" to fill the tavern.</p>`
+      : `<p class="shop-empty">The tavern is quiet.</p>`;
+    return;
+  }
+
+  const container = document.createElement("div");
+
+  // Bar
+  const filledBarSlots = (seating.bar || []).filter(s => s !== null);
+  if (filledBarSlots.length > 0) {
+    const barDiv = document.createElement("div");
+    barDiv.className = "tavern-bar";
+    barDiv.innerHTML = `<div class="tavern-bar-title">&#127867; Bar</div>`;
+    const barSeats = document.createElement("div");
+    barSeats.className = "tavern-bar-seats";
+    filledBarSlots.forEach(slot => {
+      const chip = renderNpcChip(slot);
+      if (chip) barSeats.appendChild(chip);
+    });
+    barDiv.appendChild(barSeats);
+    container.appendChild(barDiv);
+  }
+
+  // Tables
+  const tables = seating.tables || [];
+  if (tables.length > 0) {
+    const tablesTitle = document.createElement("div");
+    tablesTitle.className = "tavern-bar-title";
+    tablesTitle.style.marginTop = "10px";
+    tablesTitle.innerHTML = "&#127869; Tables";
+    container.appendChild(tablesTitle);
+
+    const grid = document.createElement("div");
+    grid.className = "tavern-tables-grid";
+
+    tables.forEach((tableSeats, idx) => {
+      if (!tableSeats || tableSeats.length === 0) return;
+      const card = document.createElement("div");
+      card.className = "tavern-table-card";
+      card.innerHTML = `<div class="tavern-table-label">Table ${idx + 1}</div>`;
+      const seatCol = document.createElement("div");
+      seatCol.className = "tavern-table-seats";
+      tableSeats.forEach(seat => {
+        const chip = renderNpcChip(seat);
+        if (chip) seatCol.appendChild(chip);
+      });
+      if (seatCol.children.length > 0) {
+        card.appendChild(seatCol);
+        grid.appendChild(card);
+      }
+    });
+
+    if (grid.children.length > 0) container.appendChild(grid);
+  }
+
+  if (container.children.length === 0) {
+    shTavernSeating.innerHTML = isAdmin
+      ? `<p class="shop-empty">No patrons yet. Press "&#9889; Generate Patrons".</p>`
+      : `<p class="shop-empty">The tavern is quiet.</p>`;
+  } else {
+    shTavernSeating.appendChild(container);
+  }
+}
+
+function getRoomPrice(marker, rooms) {
+  const baseGp = { "Poor": 0.5, "Middle Class": 1.0, "Rich": 3.0 }[marker.tavernWealth || "Middle Class"] ?? 1.0;
+  const total    = marker.roomCount || 0;
+  if (total === 0) return baseGp;
+  const occupied  = rooms.filter(r => r !== null).length;
+  const occupancy = occupied / total;
+  const surge = occupancy >= 0.9 ? 1.7 : occupancy >= 0.7 ? 1.4 : occupancy >= 0.5 ? 1.2 : 1.0;
+  return Math.round(baseGp * surge * 100) / 100;
+}
+
+function renderRooms(marker) {
+  const roomCount = marker.roomCount || 0;
+  if (roomCount === 0) { shTavernRooms.style.display = "none"; return; }
+
+  const rooms    = marker.seating?.rooms || [];
+  const occupied = rooms.filter(r => r !== null).length;
+  const price    = getRoomPrice(marker, rooms);
+  const occupancy = roomCount > 0 ? Math.round((occupied / roomCount) * 100) : 0;
+
+  const surgeLabel = occupancy >= 90 ? " · High demand!" : occupancy >= 70 ? " · Busy" : "";
+  shTavernRooms.style.display = "";
+  shRoomsStatus.innerHTML = `${formatGold(price)}/night · ${occupied}/${roomCount} occupied${surgeLabel}`;
+  shRoomsStatus.className = "rooms-status-badge" + (occupancy >= 90 ? " surge" : occupancy >= 70 ? " busy" : "");
+
+  shRoomsGrid.innerHTML = "";
+  for (let i = 0; i < roomCount; i++) {
+    const room = rooms[i] ?? null;
+    const card = document.createElement("div");
+
+    if (room?.npcId) {
+      const npc = npcs.find(n => n.id === room.npcId);
+      card.className = "room-card occupied";
+      card.innerHTML = `
+        <div class="room-num">Room ${i + 1}</div>
+        <div class="room-guest">&#128100; ${npc ? npc.name : "Unknown"}</div>
+        ${npc ? `<div class="room-guest-sub">${[npc.race, npc.role].filter(Boolean).join(" · ")}</div>` : ""}
+      `;
+    } else if (room?.traveler) {
+      const t = room.traveler;
+      card.className = "room-card occupied traveler-room";
+      card.innerHTML = `
+        <div class="room-num">Room ${i + 1} <span class="room-traveler-tag">Traveler</span></div>
+        <div class="room-guest">&#127939; ${t.name}</div>
+        <div class="room-guest-sub">${[t.race, t.role].filter(Boolean).join(" · ")}</div>
+      `;
+    } else {
+      card.className = "room-card vacant";
+      card.innerHTML = `
+        <div class="room-num">Room ${i + 1}</div>
+        <div class="room-vacant-label">&#10003; Vacant</div>
+      `;
+    }
+
+    card.addEventListener("click", e => {
+      if ((room?.npcId || room?.traveler)) {
+        e.stopPropagation();
+        const npcData = room.npcId ? npcs.find(n => n.id === room.npcId) : room.traveler;
+        if (npcData) showNpcPopup(npcData, !!room.npcId, card);
+      }
+    });
+
+    shRoomsGrid.appendChild(card);
+  }
+}
+
+function renderMenuSection(items, wealth) {
+  const mult = TAVERN_WEALTH_MULT[wealth] || 1.0;
+  return items.map(item => {
+    const priceGp = (item.basePriceCp * mult) / 100;
+    return `<div class="tavern-menu-item">
+      <span class="tavern-menu-name">${item.name}</span>
+      <span class="tavern-menu-price">${formatGold(priceGp)}</span>
+    </div>`;
+  }).join("");
+}
+
+function renderTavernView(marker) {
+  const wealth      = marker.tavernWealth || "Middle Class";
+  const wealthClass = wealth === "Poor" ? "poor" : wealth === "Rich" ? "rich" : "middle";
+
+  // Meta row
+  const timeLabel = isDayTime ? "&#9728; Day" : "&#9790; Night";
+  shTavernMeta.innerHTML = `
+    <span class="tavern-wealth-badge ${wealthClass}">${wealth}</span>
+    <span class="tavern-tables-badge">&#127869; ${marker.tavernTables || 6} tables</span>
+    <span class="tavern-time-badge ${isDayTime ? "day" : "night"}">${timeLabel}</span>
+  `;
+
+  // Staff
+  const servantNpcs = (marker.servants || []).map(id => npcs.find(n => n.id === id)).filter(Boolean);
+  if (servantNpcs.length > 0) {
+    shTavernServants.style.display = "";
+    shTavernServants.innerHTML = `<div class="tavern-servants-title">Staff on Duty</div>`;
+    const staffRow = document.createElement("div");
+    staffRow.className = "tavern-staff-cards";
+    servantNpcs.forEach(n => {
+      const card = document.createElement("div");
+      card.className = "tavern-staff-card";
+      card.innerHTML = `
+        <div class="staff-card-icon">&#128100;</div>
+        <div class="staff-card-info">
+          <div class="staff-card-name">${n.name}</div>
+          <div class="staff-card-role">${n.role || "Staff"}${n.race ? ` · ${n.race}` : ""}</div>
+        </div>
+      `;
+      staffRow.appendChild(card);
+    });
+    shTavernServants.appendChild(staffRow);
+  } else {
+    shTavernServants.innerHTML = "";
+    shTavernServants.style.display = "none";
+  }
+
+  // Actions: day/night toggle + generate button
+  const actionsDiv = shTavernSection.querySelector(".sh-tavern-actions");
+  actionsDiv.innerHTML = "";
+
+  const toggleWrap = document.createElement("div");
+  toggleWrap.className = "daynight-toggle";
+
+  const dayBtn = document.createElement("button");
+  dayBtn.className = "daynight-btn" + (isDayTime ? " active" : "");
+  dayBtn.innerHTML = "&#9728; Day";
+
+  const nightBtn = document.createElement("button");
+  nightBtn.className = "daynight-btn" + (!isDayTime ? " active" : "");
+  nightBtn.innerHTML = "&#9790; Night";
+
+  dayBtn.onclick = () => {
+    if (isDayTime) return;
+    isDayTime = true;
+    dayBtn.classList.add("active");
+    nightBtn.classList.remove("active");
+    shopModalBox.classList.remove("night-mode");
+    renderTavernView(currentTavernMarker);
+  };
+  nightBtn.onclick = () => {
+    if (!isDayTime) return;
+    isDayTime = false;
+    nightBtn.classList.add("active");
+    dayBtn.classList.remove("active");
+    shopModalBox.classList.add("night-mode");
+    renderTavernView(currentTavernMarker);
+  };
+
+  toggleWrap.appendChild(dayBtn);
+  toggleWrap.appendChild(nightBtn);
+  actionsDiv.appendChild(toggleWrap);
+
+  if (isAdmin) {
+    shTavernGenBtn.style.display = "inline-block";
+    shTavernGenBtn.innerHTML = "&#9889; Generate Patrons";
+    shTavernGenBtn.onclick = async () => {
+      shTavernGenBtn.disabled  = true;
+      shTavernGenBtn.innerHTML = "Generating&#8230;";
+      const seating = await generateTavernSeating(currentTavernMarker, isDayTime);
+      const updated = { ...currentTavernMarker, seating };
+      renderSeating(updated);
+      renderRooms(updated);
+      shTavernGenBtn.disabled  = false;
+      shTavernGenBtn.innerHTML = "&#9889; Generate Patrons";
+    };
+    actionsDiv.appendChild(shTavernGenBtn);
+  } else {
+    shTavernGenBtn.style.display = "none";
+  }
+
+  // Seating
+  renderSeating(marker);
+
+  // Rooms
+  renderRooms(marker);
+
+  // Menu — race-themed, split into Drinks and Foods
+  const raceKey  = resolveRaceMenu(markerData?.mainRace || null);
+  const menu     = RACE_MENUS[raceKey] || RACE_MENUS.Human;
+  shTavernMenu.innerHTML = `
+    <div class="tavern-menu-category">
+      <div class="tavern-menu-cat-title">&#127867; Drinks</div>
+      <div class="tavern-menu-grid">${renderMenuSection(menu.drinks, wealth)}</div>
+    </div>
+    <div class="tavern-menu-category">
+      <div class="tavern-menu-cat-title">&#127869; Food</div>
+      <div class="tavern-menu-grid">${renderMenuSection(menu.foods, wealth)}</div>
+    </div>
+  `;
+  if (raceKey !== "Human") {
+    const label = document.createElement("div");
+    label.className = "tavern-menu-race-label";
+    label.textContent = `${raceKey} cuisine`;
+    shTavernMenu.prepend(label);
+  }
+}
+
 function openShopModal(marker) {
+  // DM edit button
+  const shEditBtn = document.getElementById("sh-edit-btn");
+  if (shEditBtn) {
+    if (isAdmin) {
+      shEditBtn.style.display = "inline-flex";
+      shEditBtn.onclick = () => { closeShopModal(); openSubMarkerModal(marker.id); };
+    } else {
+      shEditBtn.style.display = "none";
+    }
+  }
+
   // Header
   shTypeDot.style.background = TYPE_COLORS[marker.type] || "#BDBDBD";
   shName.textContent = marker.name;
-  shMeta.innerHTML   = `<span class="shop-type-badge">${marker.type || "Other"}</span>`;
+  shMeta.innerHTML   = `<span class="shop-type-badge">${markerDisplayType(marker)}${marker.shopSubtype ? ` · ${marker.shopSubtype}` : ""}</span>`;
 
   // Owner
   const owner = marker.ownerId ? npcs.find(n => n.id === marker.ownerId) : null;
@@ -1037,37 +1959,52 @@ function openShopModal(marker) {
     shOwner.innerHTML = "";
   }
 
-  // Rarity filter
-  shopRarityFilter = "all";
-  shRarityFilter.querySelectorAll(".rarity-btn").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.rarity === "all");
-    btn.onclick = () => {
-      shRarityFilter.querySelectorAll(".rarity-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      shopRarityFilter = btn.dataset.rarity;
-      renderShopInventory(marker);
-    };
-  });
-
-  // Generate inventory button (DM only, only for shop types with a pool)
-  if (isAdmin && (SHOP_TYPE_TAGS[marker.type] || []).length > 0) {
-    shGenerateBtn.style.display = "inline-block";
-    shGenerateBtn.onclick = async () => {
-      shGenerateBtn.disabled = true;
-      shGenerateBtn.textContent = "Generating…";
-      await generateShopInventory(marker);
-      // Firebase onValue will update marker; re-read from subMarkers
-      const updated = subMarkers.find(m => m.id === marker.id) || marker;
-      renderShopInventory(updated);
-      shGenerateBtn.disabled = false;
-      shGenerateBtn.textContent = "⚡ Generate Inventory";
-    };
+  // Tavern section
+  const isTavern = marker.type === "Tavern";
+  shTavernSection.style.display = isTavern ? "" : "none";
+  if (isTavern) {
+    currentTavernMarker = marker;
+    shopModalBox.classList.toggle("night-mode", !isDayTime);
+    renderTavernView(marker);
   } else {
-    shGenerateBtn.style.display = "none";
+    shopModalBox.classList.remove("night-mode");
   }
 
-  // Inventory
-  renderShopInventory(marker);
+  // Inventory section only for Shop, Market, Forge
+  const hasInventoryUI = INVENTORY_TYPES.has(marker.type);
+  shInventorySection.style.display = hasInventoryUI ? "" : "none";
+
+  if (hasInventoryUI) {
+    // Rarity filter
+    shopRarityFilter = "all";
+    shRarityFilter.querySelectorAll(".rarity-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.rarity === "all");
+      btn.onclick = () => {
+        shRarityFilter.querySelectorAll(".rarity-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        shopRarityFilter = btn.dataset.rarity;
+        renderShopInventory(marker);
+      };
+    });
+
+    // Generate inventory button (DM only)
+    if (isAdmin && getShopPool(marker).length > 0) {
+      shGenerateBtn.style.display = "inline-block";
+      shGenerateBtn.onclick = async () => {
+        shGenerateBtn.disabled = true;
+        shGenerateBtn.textContent = "Generating…";
+        await generateShopInventory(marker);
+        const updated = subMarkers.find(m => m.id === marker.id) || marker;
+        renderShopInventory(updated);
+        shGenerateBtn.disabled = false;
+        shGenerateBtn.textContent = "⚡ Generate Inventory";
+      };
+    } else {
+      shGenerateBtn.style.display = "none";
+    }
+
+    renderShopInventory(marker);
+  }
 
   shopModal.classList.add("open");
 }

@@ -4,6 +4,12 @@ import { ref, set, remove, onValue }              from "https://www.gstatic.com/
 
 const markersRef = ref(db, "markers");
 
+// ── Remember last location — redirect if user came back from a location ───────
+const _savedLoc = sessionStorage.getItem("lastLocationId");
+if (_savedLoc) {
+  window.location.replace("location.html?id=" + _savedLoc);
+}
+
 // ── Transform State ──────────────────────────────────────────────────────────
 let scale = 1;
 let minScale = 1;
@@ -17,6 +23,15 @@ const markerLayer  = document.getElementById("marker-layer");
 
 mapImage.draggable = false;
 mapImage.addEventListener("dragstart", (e) => e.preventDefault());
+
+// Cache container rect to avoid layout thrashing in touch hot-path
+let _cachedRect = { left: 0, top: 0, width: 0, height: 0 };
+function _updateCachedRect() {
+  _cachedRect = mapContainer.getBoundingClientRect();
+}
+window.addEventListener("resize", _updateCachedRect, { passive: true });
+// Will be updated once on first layout
+requestAnimationFrame(_updateCachedRect);
 
 function updateTransform() {
   // translate3d forces GPU compositing layer
@@ -37,7 +52,8 @@ function scheduleTransform() {
 }
 
 function fitMapToContainer() {
-  const containerRect = mapContainer.getBoundingClientRect();
+  _updateCachedRect();
+  const containerRect = _cachedRect;
   if (!mapImage.naturalWidth || !mapImage.naturalHeight) return;
 
   mapWrapper.style.width  = `${mapImage.naturalWidth}px`;
@@ -68,12 +84,11 @@ if (mapImage.complete) {
 window.addEventListener("resize", fitMapToContainer);
 
 function clampToBounds() {
-  const containerRect = mapContainer.getBoundingClientRect();
-  const scaledWidth   = mapImage.naturalWidth  * scale;
-  const scaledHeight  = mapImage.naturalHeight * scale;
+  const scaledWidth  = mapImage.naturalWidth  * scale;
+  const scaledHeight = mapImage.naturalHeight * scale;
 
-  const minX = Math.min(0, containerRect.width  - scaledWidth);
-  const minY = Math.min(0, containerRect.height - scaledHeight);
+  const minX = Math.min(0, _cachedRect.width  - scaledWidth);
+  const minY = Math.min(0, _cachedRect.height - scaledHeight);
 
   originX = Math.min(0, Math.max(minX, originX));
   originY = Math.min(0, Math.max(minY, originY));
@@ -86,9 +101,8 @@ mapContainer.addEventListener("wheel", function(e) {
   let newScale = scale * (1 - e.deltaY * zoomIntensity);
   newScale = Math.min(Math.max(newScale, minScale), 5);
 
-  const rect   = mapContainer.getBoundingClientRect();
-  const mouseX = e.clientX - rect.left;
-  const mouseY = e.clientY - rect.top;
+  const mouseX = e.clientX - _cachedRect.left;
+  const mouseY = e.clientY - _cachedRect.top;
 
   originX -= (mouseX - originX) * (newScale / scale - 1);
   originY -= (mouseY - originY) * (newScale / scale - 1);
@@ -130,9 +144,8 @@ mapContainer.addEventListener("pointerup", function(e) {
 
   // Place marker on clean click (no drag) in placing mode
   if (placingMode && !didDrag && isAdmin && e.pointerType === "mouse") {
-    const rect   = mapContainer.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
+    const clickX = e.clientX - _cachedRect.left;
+    const clickY = e.clientY - _cachedRect.top;
     pendingCoords   = screenToPct(clickX, clickY);
     pendingCoords.x = Math.max(0, Math.min(100, pendingCoords.x));
     pendingCoords.y = Math.max(0, Math.min(100, pendingCoords.y));
@@ -179,9 +192,8 @@ if (isTouchDevice) {
       let newScale = initialScale * (newDistance / initialDistance);
       newScale = Math.min(Math.max(newScale, minScale), 5);
 
-      const rect = mapContainer.getBoundingClientRect();
-      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
-      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - _cachedRect.left;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - _cachedRect.top;
       originX -= (midX - originX) * (newScale / scale - 1);
       originY -= (midY - originY) * (newScale / scale - 1);
 
@@ -240,7 +252,7 @@ function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
 
-// Convert screen coords → image-percentage coords
+// Convert screen coords (relative to container) → image-percentage coords
 function screenToPct(screenX, screenY) {
   const imageX = (screenX - originX) / scale;
   const imageY = (screenY - originY) / scale;
@@ -328,8 +340,9 @@ function renderMarkers() {
       el.appendChild(controls);
     }
 
-    // Click / tap → open location detail page
+    // Click / tap → open location detail page (save id so Map tab returns here)
     el.addEventListener("click", () => {
+      sessionStorage.setItem("lastLocationId", marker.id);
       window.location.href = `location.html?id=${marker.id}`;
     });
 
@@ -487,38 +500,6 @@ mName.addEventListener("keydown", (e) => {
   if (e.key === "Enter") mSave.click();
 });
 
-// ── Export Modal ──────────────────────────────────────────────────────────────
-const exportModal     = document.getElementById("export-modal");
-const exportText      = document.getElementById("export-text");
-const btnExport       = document.getElementById("btn-export");
-const btnCopyExport   = document.getElementById("btn-copy-export");
-const btnExportClose  = document.getElementById("btn-export-close");
-
-if (btnExport) {
-  btnExport.addEventListener("click", () => {
-    exportText.value = JSON.stringify(markers, null, 2);
-    exportModal.classList.add("open");
-  });
-}
-
-if (btnCopyExport) {
-  btnCopyExport.addEventListener("click", () => {
-    navigator.clipboard.writeText(exportText.value).then(() => {
-      btnCopyExport.textContent = "Copied!";
-      setTimeout(() => { btnCopyExport.textContent = "Copy to Clipboard"; }, 2000);
-    });
-  });
-}
-
-if (btnExportClose) {
-  btnExportClose.addEventListener("click", () => {
-    exportModal.classList.remove("open");
-  });
-}
-
-exportModal.addEventListener("click", (e) => {
-  if (e.target === exportModal) exportModal.classList.remove("open");
-});
 
 // ── Show DM Toolbar ───────────────────────────────────────────────────────────
 if (isAdmin && dmToolbar) {

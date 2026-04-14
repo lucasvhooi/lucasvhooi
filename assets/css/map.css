@@ -82,7 +82,8 @@ body.map-page {
   box-shadow: 0 0 12px rgba(0,0,0,0.9);
 }
 
-/* Active marker floats above all neighbours so its tooltip is never obscured */
+/* Hovered/active marker floats above all neighbours so its tooltip is never obscured */
+.map-marker:hover  { z-index: 100 !important; }
 .map-marker.active { z-index: 100 !important; }
 
 /* Explored / unexplored colors */

@@ -13,15 +13,16 @@
       <li><a href="homepage.html">Home</a></li>
       <li><a href="missions.html">Missions</a></li>
       <li><a href="exploration.html">Exploration</a></li>
-      <li><a href="locations.html">Locations</a></li>
       <li class="nav-dm-only"><a href="items.html">Items</a></li>
       <li><a href="map.html">Map</a></li>
+      <li><a href="lore.html">Lore</a></li>
+      <li class="nav-dm-only"><a href="combat.html">Combat</a></li>
     </ul>
   </nav>
 
   <!-- Hero -->
   <header class="loc-hero">
-    <a href="map.html" class="back-link">&#8592; Back to Map</a>
+    <a href="map.html" class="back-link" id="back-to-map">&#8592; Back to Map</a>
     <h1 class="loc-title" id="loc-title">Loading&hellip;</h1>
     <div class="loc-stats" id="loc-stats"></div>
   </header>
@@ -82,10 +83,13 @@
       <section class="loc-section anim-4" id="sec-npcs" style="display:none">
         <div class="sec-header-row">
           <h2 class="sec-heading">NPCs <span class="dm-badge">DM Only</span></h2>
-          <button id="loc-add-npc-btn" class="dm-btn dm-btn-sm">+ Add NPC</button>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button id="loc-toggle-gen-btn" class="dm-btn dm-btn-sm dm-btn-secondary">Generator ▶</button>
+            <button id="loc-add-npc-btn" class="dm-btn dm-btn-sm">+ Add NPC</button>
+          </div>
         </div>
 
-        <div class="npc-generator-panel">
+        <div class="npc-generator-panel" id="npc-generator-panel" style="display:none">
           <div class="generator-controls">
             <span class="generator-label">Generate</span>
             <input type="number" id="gen-count" value="20" min="1" max="500" class="gen-count-input" />
@@ -95,6 +99,10 @@
           </div>
           <p id="gen-hint" class="gen-hint">Uses this location's Main Race &amp; population for weighted generation.</p>
           <p id="gen-status" class="gen-status"></p>
+        </div>
+
+        <div class="npc-search-row">
+          <input type="text" id="npc-search" class="npc-search-input" placeholder="Search NPCs…" />
         </div>
 
         <div id="loc-npc-list" class="npc-list"></div>
@@ -122,10 +130,51 @@
             <option value="Temple">Temple / Shrine</option>
             <option value="Guard">Guard Post</option>
             <option value="Market">Market Stall</option>
+            <option value="Library">Library / Bookstore</option>
             <option value="Other">Other</option>
           </select>
         </label>
       </div>
+      <div class="form-row" id="lm-custom-type-row" style="display:none">
+        <label>Custom Type Name
+          <input type="text" id="lm-custom-type" placeholder="e.g. Bakery, Alchemist, Stable…" />
+        </label>
+      </div>
+      <div class="form-row" id="lm-subtype-row" style="display:none">
+        <label>Shop Speciality <span class="dm-hint">(optional)</span>
+          <input type="text" id="lm-subtype" placeholder="e.g. Clothing Shop, Potion Store…" />
+        </label>
+      </div>
+      <div class="form-row" id="lm-inv-tags-row" style="display:none">
+        <label>Inventory Tags <span class="dm-hint">(click to toggle)</span></label>
+        <div class="inv-tag-grid" id="lm-inv-tag-btns"></div>
+        <input type="hidden" id="lm-inv-tags" />
+      </div>
+
+      <!-- Tavern-specific fields -->
+      <div id="lm-tavern-section" style="display:none">
+        <div class="form-row three-col">
+          <label>Tables
+            <input type="number" id="lm-tavern-tables" value="6" min="1" max="30" />
+          </label>
+          <label>Rooms
+            <input type="number" id="lm-room-count" value="4" min="0" max="50" />
+          </label>
+          <div>
+            <div style="font-size:12px;color:#aaa;margin-bottom:5px;">Wealth</div>
+            <div class="wealth-selector" id="lm-tavern-wealth-btns">
+              <button type="button" class="wealth-btn" data-wealth="Poor">Poor</button>
+              <button type="button" class="wealth-btn" data-wealth="Middle Class">Middle</button>
+              <button type="button" class="wealth-btn" data-wealth="Rich">Rich</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Servants <span class="dm-hint">(role auto-set to Waiter)</span></label>
+          <div class="servants-list" id="lm-servants-list"></div>
+        </div>
+      </div>
+
       <div class="form-row">
         <label>Owner <span class="dm-hint">(NPC)</span>
           <select id="lm-owner"></select>
@@ -188,6 +237,7 @@
   <div id="shop-modal" class="modal-overlay">
     <div class="modal-box shop-modal-box">
       <button id="shop-close" class="shop-close-btn">&times;</button>
+      <button id="sh-edit-btn" class="shop-edit-btn" style="display:none">&#9998; Edit</button>
 
       <div class="shop-header">
         <div class="shop-type-dot" id="sh-type-dot"></div>
@@ -199,8 +249,29 @@
 
       <div id="sh-owner" class="shop-owner-row"></div>
 
+      <!-- Tavern section -->
+      <div id="sh-tavern-section" style="display:none">
+        <div id="sh-tavern-meta" class="tavern-meta-row"></div>
+        <div id="sh-tavern-servants" class="tavern-servants-row"></div>
+        <div class="sh-tavern-actions">
+          <button id="sh-tavern-gen-btn" class="dm-btn dm-btn-sm" style="display:none">&#9889; Generate Patrons</button>
+        </div>
+        <div id="sh-tavern-seating" class="tavern-seating"></div>
+        <div class="tavern-menu-section">
+          <h3 class="shop-section-title">Menu</h3>
+          <div id="sh-tavern-menu"></div>
+        </div>
+        <div id="sh-tavern-rooms" class="tavern-rooms-section" style="display:none">
+          <div class="tavern-rooms-header">
+            <h3 class="shop-section-title">&#127981; Rooms</h3>
+            <span id="sh-rooms-status" class="rooms-status-badge"></span>
+          </div>
+          <div id="sh-rooms-grid" class="tavern-rooms-grid"></div>
+        </div>
+      </div>
+
       <!-- Inventory -->
-      <div class="shop-section">
+      <div class="shop-section" id="sh-inventory-section">
         <div class="shop-section-header">
           <h3 class="shop-section-title">Inventory</h3>
           <div class="sh-header-actions">

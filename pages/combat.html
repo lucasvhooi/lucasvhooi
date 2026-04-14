@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Combat — DnD Campaign</title>
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/combat.css" />
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="homepage.html">Home</a></li>
+      <li><a href="missions.html">Missions</a></li>
+      <li><a href="exploration.html">Exploration</a></li>
+      <li class="nav-dm-only"><a href="items.html">Items</a></li>
+      <li><a href="map.html">Map</a></li>
+      <li><a href="lore.html">Lore</a></li>
+      <li class="nav-dm-only"><a href="combat.html">Combat</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero bar -->
+  <header class="combat-hero">
+    <div class="hero-left">
+      <h1 class="combat-title">&#9876; Combat</h1>
+      <div class="round-counter">Round <span id="round-num">1</span></div>
+    </div>
+    <div class="hero-center" id="turn-banner">
+      <span class="turn-label">&#8212; Not in combat &#8212;</span>
+    </div>
+    <div class="hero-right">
+      <button id="btn-prev"  class="hero-nav-btn" disabled title="Previous Turn">&#9664;</button>
+      <button id="btn-next"  class="hero-nav-btn" disabled title="Next Turn (Space)">&#9654;</button>
+      <button id="btn-start" class="hero-start-btn">&#9876; Start Combat</button>
+      <button id="btn-end"   class="hero-end-btn" style="display:none">&#10005; End Combat</button>
+    </div>
+  </header>
+
+  <!-- ── Two-column layout: initiative + log ── -->
+  <div class="combat-layout">
+
+    <!-- Left: initiative list -->
+    <aside class="overlay-panel overlay-left">
+      <div class="overlay-header">
+        <span class="overlay-title">Initiative</span>
+        <div class="list-actions">
+          <button id="btn-sort"  class="ctrl-btn ctrl-btn-secondary">&#8645;</button>
+          <button id="btn-clear" class="ctrl-btn ctrl-btn-danger">&#10005;</button>
+          <button id="btn-add"   class="ctrl-btn ctrl-btn-primary">+ Add</button>
+        </div>
+      </div>
+      <div id="combatant-list" class="combatant-list"></div>
+    </aside>
+
+    <!-- Right: combat log -->
+    <aside class="overlay-panel overlay-right">
+      <div class="overlay-header">
+        <span class="overlay-title">Combat Log</span>
+        <button id="btn-clear-log" class="ctrl-btn ctrl-btn-secondary">&#10005;</button>
+      </div>
+      <div id="combat-log" class="combat-log">
+        <p class="log-empty">Combat log will appear here.</p>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- ── Attack bar (fixed bottom — click a card to start) ── -->
+  <div id="field-attack-bar" class="field-attack-bar" style="display:none">
+    <span class="attack-bar-attacker" id="attack-attacker-name">—</span>
+    <span class="attack-bar-arrow">&#9658;</span>
+    <span class="attack-bar-target" id="attack-target-name">Select a target from the list</span>
+    <div class="attack-dmg-group" id="attack-dmg-group" style="display:none">
+      <input type="number" id="attack-dmg-input" placeholder="DMG" min="0" />
+      <button id="attack-deal-btn" class="ctrl-btn ctrl-btn-danger">&#9876; Deal</button>
+      <button id="attack-heal-btn" class="ctrl-btn" style="background:#154a1a;color:#a5d6a7;border:1px solid #2a7a30">&#10022; Heal</button>
+    </div>
+    <button id="attack-cancel-btn" class="ctrl-btn ctrl-btn-secondary">&#10005; Cancel</button>
+  </div>
+
+  <!-- ══════════════════ MODALS (position:fixed, always on top) ══════════════ -->
+
+  <!-- Add / Edit Combatant -->
+  <div id="combatant-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2 id="cm-title">Add Combatant</h2>
+      <div class="form-row">
+        <label>Name <span class="req">*</span>
+          <input type="text" id="cm-name" placeholder="e.g. Gandalf" />
+        </label>
+      </div>
+      <div class="form-row">
+        <span class="field-label">Type</span>
+        <div class="type-selector" id="cm-type-btns">
+          <button type="button" class="type-btn active" data-type="player">Player</button>
+          <button type="button" class="type-btn"        data-type="enemy">Enemy</button>
+          <button type="button" class="type-btn"        data-type="ally">Ally</button>
+          <button type="button" class="type-btn"        data-type="npc">NPC</button>
+        </div>
+      </div>
+      <div class="form-row" id="cm-preset-row">
+        <span class="field-label">Monster Preset <span class="field-hint">optional — auto-fills stats</span></span>
+        <input type="text" id="cm-preset-search" placeholder="Search monsters… e.g. Goblin" autocomplete="off" />
+        <div id="cm-preset-list" class="preset-list"></div>
+        <div id="cm-preset-selected" class="preset-selected-badge" style="display:none"></div>
+      </div>
+      <div class="form-row">
+        <label id="cm-init-label">Initiative rolled
+          <div class="init-group">
+            <input type="number" id="cm-initiative" placeholder="e.g. 14" min="-5" max="50" />
+            <button type="button" id="cm-roll-init" class="roll-btn">d20</button>
+          </div>
+        </label>
+      </div>
+      <div id="cm-non-player-rows">
+        <div class="form-row two-col">
+          <label>Current HP
+            <input type="number" id="cm-hp" placeholder="e.g. 10" min="0" max="9999" />
+          </label>
+          <label>Max HP <span class="req">*</span>
+            <input type="number" id="cm-maxhp" placeholder="e.g. 10" min="1" max="9999" />
+          </label>
+        </div>
+        <div class="form-row two-col">
+          <label>Armor Class
+            <input type="number" id="cm-ac" placeholder="10" min="0" max="30" />
+          </label>
+          <label>Count <span class="field-hint">A, B, C…</span>
+            <input type="number" id="cm-count" value="1" min="1" max="26" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Notes <span class="field-hint">optional</span>
+            <input type="text" id="cm-notes" placeholder="e.g. Fire resist, flying, rage…" />
+          </label>
+        </div>
+      </div>
+      <div id="cm-error" class="modal-error"></div>
+      <div class="modal-actions">
+        <button id="cm-save"   class="dm-btn">Add</button>
+        <button id="cm-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HP Adjust -->
+  <div id="hp-adjust-overlay" class="hp-adjust-overlay" style="display:none">
+    <input type="number" id="hp-adjust-input" placeholder="Amount" min="0" />
+    <button id="hp-damage-btn" class="hp-adj-btn dmg">&#9876; Damage</button>
+    <button id="hp-heal-btn"   class="hp-adj-btn heal">&#10022; Heal</button>
+    <button id="hp-close-btn"  class="hp-adj-close">&#10005;</button>
+  </div>
+
+  <!-- Condition Picker -->
+  <div id="condition-picker" class="condition-picker" style="display:none">
+    <div class="cond-picker-header">
+      <span class="cond-picker-title">Conditions</span>
+      <label class="cond-rounds-label">
+        <span>Rounds:</span>
+        <input type="number" id="cond-rounds-input" placeholder="&#8734;" min="1" max="99" class="cond-rounds-input" />
+      </label>
+    </div>
+    <div id="condition-grid" class="condition-grid"></div>
+  </div>
+
+  <script src="../assets/js/combat.js"></script>
+  <script src="../assets/js/base.js"></script>
+</body>
+</html>

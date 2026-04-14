@@ -13,9 +13,10 @@
       <li><a href="homepage.html">Home</a></li>
       <li><a href="missions.html">Missions</a></li>
       <li><a href="exploration.html">Exploration</a></li>
-      <li><a href="locations.html">Locations</a></li>
       <li class="nav-dm-only"><a href="items.html">Items</a></li>
       <li><a href="map.html">Map</a></li>
+      <li><a href="lore.html">Lore</a></li>
+      <li class="nav-dm-only"><a href="combat.html">Combat</a></li>
     </ul>
   </nav>
 
@@ -53,10 +54,20 @@
           <input type="number" id="im-price" placeholder="e.g. 50" min="0" step="0.01" />
         </label>
         <label>Tags
-          <input type="text" id="im-tags" placeholder="potion, healing, common" />
+          <input type="text" id="im-tags" placeholder="potion, healing, weapon…" />
         </label>
       </div>
-      <p class="form-hint">Tags are comma-separated and used to stock shops. e.g. <em>weapon, armor, potion, food, magic</em></p>
+      <p class="form-hint">Tags are comma-separated and used to stock shops. e.g. <em>weapon, armor, potion, food, book</em></p>
+      <div class="form-row">
+        <label>Rarity</label>
+        <div class="rarity-selector" id="im-rarity-selector">
+          <button type="button" class="rarity-sel-btn" data-rarity="common">Common</button>
+          <button type="button" class="rarity-sel-btn" data-rarity="uncommon">Uncommon</button>
+          <button type="button" class="rarity-sel-btn" data-rarity="rare">Rare</button>
+          <button type="button" class="rarity-sel-btn" data-rarity="very rare">Very Rare</button>
+          <button type="button" class="rarity-sel-btn" data-rarity="legendary">Legendary</button>
+        </div>
+      </div>
       <div id="im-error" class="modal-error"></div>
       <div class="modal-actions">
         <button id="im-save" class="dm-btn">Save Item</button>

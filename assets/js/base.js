@@ -14,7 +14,7 @@
   // Show DM-only nav items for admins (hidden by default in CSS)
   if (isAdmin) {
     document.querySelectorAll("nav li.nav-dm-only").forEach(li => {
-      li.style.display = "";
+      li.style.display = "block";
     });
   }
 })();

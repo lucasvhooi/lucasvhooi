@@ -13,8 +13,10 @@
       <li><a href="homepage.html">Home</a></li>
       <li><a href="missions.html">Missions</a></li>
       <li><a href="exploration.html">Exploration</a></li>
-      <li><a href="items.html">Items</a></li>
+      <li class="nav-dm-only"><a href="items.html">Items</a></li>
       <li><a href="map.html">Map</a></li>
+      <li><a href="lore.html">Lore</a></li>
+      <li class="nav-dm-only"><a href="combat.html">Combat</a></li>
     </ul>
   </nav>
 
@@ -28,7 +30,6 @@
     <div id="dm-toolbar">
       <span class="dm-label">DM Tools</span>
       <button id="btn-place-marker" class="dm-btn">Place Marker</button>
-      <button id="btn-export" class="dm-btn dm-btn-secondary">Export Markers</button>
     </div>
   </div>
 
@@ -103,20 +104,8 @@
     </div>
   </div>
 
-  <!-- Export Modal -->
-  <div id="export-modal" class="modal-overlay">
-    <div class="modal-box">
-      <h2>Export Markers</h2>
-      <p class="export-info">Copy this and save it as <code>assets/data/markers.json</code> in your repo so players on other devices also see the markers.</p>
-      <textarea id="export-text" readonly></textarea>
-      <div class="modal-actions">
-        <button id="btn-copy-export" class="dm-btn">Copy to Clipboard</button>
-        <button id="btn-export-close" class="dm-btn dm-btn-secondary">Close</button>
-      </div>
-    </div>
-  </div>
 
-  <script type="module" src="../assets/js/map.js"></script>
+<script type="module" src="../assets/js/map.js"></script>
   <script src="../assets/js/base.js"></script>
 </body>
 </html>

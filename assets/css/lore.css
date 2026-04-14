@@ -1,0 +1,894 @@
+/* ── Hero ──────────────────────────────────────────────────────────────────── */
+.lore-hero {
+  padding: 40px 24px 20px;
+  text-align: center;
+  border-bottom: 1px solid #3a2510;
+  background: linear-gradient(180deg, #1c0e03 0%, #1a1a1a 100%);
+}
+
+.lore-title {
+  font-size: 36px;
+  color: var(--accent);
+  margin: 0 0 6px;
+  letter-spacing: 0.08em;
+}
+
+.lore-subtitle {
+  font-size: 14px;
+  color: #888;
+  margin: 0 0 20px;
+  font-style: italic;
+}
+
+.lore-filter-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.lore-tab {
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 6px 18px;
+  background: transparent;
+  border: 1px solid #554433;
+  border-radius: 20px;
+  color: #aaa;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.lore-tab:hover {
+  background: #3e2b1b;
+  color: var(--text);
+}
+
+.lore-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #1a0a00;
+  font-weight: bold;
+}
+
+/* ── Toolbar ───────────────────────────────────────────────────────────────── */
+.lore-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 24px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Grid ──────────────────────────────────────────────────────────────────── */
+.lore-main {
+  padding: 20px 24px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.lore-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: flex-start;
+}
+
+.lore-empty {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  margin-top: 60px;
+  font-size: 16px;
+}
+
+/* ── Book Card ─────────────────────────────────────────────────────────────── */
+.lore-card {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+
+.lore-card:hover {
+  transform: translateY(-4px);
+}
+
+.lore-card-book {
+  width: 120px;
+}
+
+.book-cover {
+  display: flex;
+  height: 170px;
+  border-radius: 3px 6px 6px 3px;
+  box-shadow: -4px 4px 12px rgba(0,0,0,0.7), inset -2px 0 4px rgba(0,0,0,0.3);
+  overflow: hidden;
+  position: relative;
+}
+
+.book-spine {
+  width: 22px;
+  flex-shrink: 0;
+  background: var(--cover-color, #8b4513);
+  filter: brightness(0.6);
+  border-right: 1px solid rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.book-spine-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 9px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.1em;
+  overflow: hidden;
+  max-height: 130px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-front {
+  flex: 1;
+  background: var(--cover-color, #8b4513);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 8px;
+  gap: 6px;
+}
+
+.book-front-title {
+  font-size: 12px;
+  font-weight: bold;
+  color: rgba(255,255,255,0.9);
+  text-align: center;
+  line-height: 1.3;
+  word-break: break-word;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+.book-front-divider {
+  width: 50%;
+  height: 1px;
+  background: rgba(255,255,255,0.3);
+}
+
+.book-front-writer {
+  font-size: 10px;
+  color: rgba(255,255,255,0.65);
+  text-align: center;
+  font-style: italic;
+  word-break: break-word;
+}
+
+.book-label {
+  text-align: center;
+  font-size: 11px;
+  color: #888;
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+}
+
+/* ── Scroll Card ───────────────────────────────────────────────────────────── */
+.lore-card-scroll {
+  width: 110px;
+}
+
+.scroll-cover {
+  height: 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.scroll-roll {
+  width: 100%;
+  height: 22px;
+  background: linear-gradient(180deg, #7a5c30 0%, #5a3e1e 50%, #7a5c30 100%);
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+  flex-shrink: 0;
+}
+
+.scroll-roll.top { border-radius: 6px 6px 4px 4px; }
+.scroll-roll.bottom { border-radius: 4px 4px 6px 6px; }
+
+.scroll-body {
+  flex: 1;
+  width: calc(100% - 12px);
+  background: linear-gradient(180deg, #f5e6c8 0%, #ede0b8 50%, #f5e6c8 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 8px;
+  gap: 4px;
+}
+
+.scroll-body-title {
+  font-size: 11px;
+  font-weight: bold;
+  color: #3a2510;
+  text-align: center;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.scroll-body-writer {
+  font-size: 10px;
+  color: #6b4c2a;
+  font-style: italic;
+  text-align: center;
+}
+
+.scroll-label {
+  text-align: center;
+  font-size: 11px;
+  color: #888;
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 110px;
+}
+
+/* ── DM overlay badge (visibility toggle) ──────────────────────────────────── */
+.lore-card-dm-bar {
+  position: absolute;
+  bottom: 28px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.lore-card:hover .lore-card-dm-bar {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.lore-visibility-btn {
+  font-size: 10px;
+  padding: 2px 8px;
+  background: rgba(20,10,5,0.9);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  color: var(--accent);
+  cursor: pointer;
+  font-family: var(--font);
+  white-space: nowrap;
+}
+
+.lore-visibility-btn:hover {
+  background: var(--accent);
+  color: #1a0a00;
+}
+
+/* Dimmed = hidden from players */
+.lore-card.hidden-item .book-cover,
+.lore-card.hidden-item .scroll-cover {
+  opacity: 0.45;
+  filter: grayscale(0.5);
+}
+
+.lore-card.hidden-item .book-label,
+.lore-card.hidden-item .scroll-label {
+  color: #555;
+}
+
+/* ── Edit button on card (DM hover) ────────────────────────────────────────── */
+.lore-card-edit-btn,
+.lore-card-delete-btn {
+  position: absolute;
+  right: 4px;
+  font-size: 12px;
+  padding: 2px 6px;
+  background: rgba(20,10,5,0.9);
+  border: 1px solid #554433;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font);
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 10;
+}
+
+.lore-card-edit-btn {
+  top: 4px;
+  color: var(--accent);
+}
+
+.lore-card-delete-btn {
+  top: 28px;
+  color: #E57373;
+  border-color: #554433;
+}
+
+.lore-card-delete-btn:hover {
+  background: #3b1515;
+  border-color: #E57373;
+}
+
+.lore-card:hover .lore-card-edit-btn,
+.lore-card:hover .lore-card-delete-btn {
+  opacity: 1;
+}
+
+/* ── Modal — edit lore ─────────────────────────────────────────────────────── */
+.lore-edit-box {
+  width: min(1560px, 90vw) !important;
+  max-width: 90vw !important;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Inputs must fill their grid cell, not overflow it */
+.lore-edit-box .form-row input,
+.lore-edit-box .form-row textarea,
+.lore-edit-box .form-row select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.lore-edit-box::-webkit-scrollbar { width: 6px; }
+.lore-edit-box::-webkit-scrollbar-track { background: transparent; }
+.lore-edit-box::-webkit-scrollbar-thumb { background: #3a2510; border-radius: 3px; }
+.lore-edit-box::-webkit-scrollbar-thumb:hover { background: #5a3820; }
+
+/* Shared modal primitives (mirror location.css) */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-box {
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 24px 28px;
+  width: 420px;
+  max-width: 95vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+  font-family: var(--font);
+  color: var(--text);
+}
+
+.modal-box h2 {
+  margin: 0 0 18px;
+  color: var(--accent);
+  font-size: 20px;
+  text-align: center;
+}
+
+.form-row {
+  margin-bottom: 14px;
+}
+
+.form-row label {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: #aaa;
+  gap: 5px;
+}
+
+.form-row.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-row input,
+.form-row select,
+.form-row textarea {
+  background: #2a1810;
+  border: 1px solid #554433;
+  border-radius: 5px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-row input:focus,
+.form-row select:focus,
+.form-row textarea:focus {
+  border-color: var(--accent);
+}
+
+.form-row textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.req { color: #E57373; }
+.dm-hint { font-size: 11px; color: #888; font-style: italic; }
+
+.modal-error {
+  font-size: 13px;
+  color: #E57373;
+  min-height: 18px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.dm-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 5px 14px;
+  background: var(--accent);
+  color: #1a0a00;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.dm-btn:hover { background: #ffe08a; }
+
+.dm-btn-secondary {
+  background: #3e2b1b;
+  color: var(--text);
+  border: 1px solid #555;
+}
+
+.dm-btn-secondary:hover { background: #5a3e28; }
+
+.dm-btn-sm {
+  font-size: 12px;
+  padding: 3px 10px;
+}
+
+/* ── Type selector ─────────────────────────────────────────────────────────── */
+.lore-type-selector {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.lore-type-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 6px 18px;
+  background: #3e2b1b;
+  border: 1px solid #554433;
+  border-radius: 5px;
+  color: #aaa;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.lore-type-btn:hover { background: #5a3e28; color: var(--text); }
+
+.lore-type-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #1a0a00;
+  font-weight: bold;
+}
+
+/* ── Color swatches ────────────────────────────────────────────────────────── */
+.color-swatch-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.color-swatch:hover { transform: scale(1.15); }
+
+.color-swatch.selected {
+  border-color: #fff;
+  transform: scale(1.2);
+}
+
+/* ── Pages editor ──────────────────────────────────────────────────────────── */
+.lm-pages-section {
+  margin-bottom: 14px;
+}
+
+.pages-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.pages-section-label {
+  font-size: 13px;
+  color: #aaa;
+}
+
+.lm-pages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.lm-pages-list::-webkit-scrollbar { width: 4px; }
+.lm-pages-list::-webkit-scrollbar-track { background: transparent; }
+.lm-pages-list::-webkit-scrollbar-thumb { background: #3a2510; border-radius: 2px; }
+
+.page-editor {
+  background: #2a1810;
+  border: 1px solid #443322;
+  border-radius: 6px;
+  padding: 10px 12px;
+  position: relative;
+}
+
+.page-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.page-editor-num {
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page-delete-btn {
+  font-size: 12px;
+  padding: 1px 6px;
+  background: #3b1515;
+  border: 1px solid #554433;
+  border-radius: 3px;
+  color: #E57373;
+  cursor: pointer;
+  font-family: var(--font);
+}
+
+.page-delete-btn:hover { background: #5a2020; }
+
+.page-editor input,
+.page-editor textarea {
+  width: 100%;
+  background: #1e1008;
+  border: 1px solid #443322;
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 6px 8px;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.page-editor input:focus,
+.page-editor textarea:focus { border-color: var(--accent); }
+
+.page-editor textarea {
+  resize: vertical;
+  min-height: 80px;
+  margin-top: 6px;
+}
+
+/* ── Reader modal — shared ─────────────────────────────────────────────────── */
+.reader-box {
+  width: 700px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.reader-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: rgba(20,10,5,0.85);
+  border: 1px solid #554433;
+  border-radius: 50%;
+  color: #aaa;
+  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  line-height: 1;
+}
+
+.reader-close-btn:hover { color: var(--text); border-color: var(--accent); }
+
+/* ── Book reader ───────────────────────────────────────────────────────────── */
+#reader-book {
+  display: flex;
+  gap: 0;
+  height: 520px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.9);
+}
+
+.reader-book-cover {
+  display: flex;
+  flex-shrink: 0;
+  width: 180px;
+  background: var(--cover-color, #8b4513);
+}
+
+.reader-cover-spine {
+  width: 28px;
+  background: var(--cover-color, #8b4513);
+  filter: brightness(0.55);
+  border-right: 2px solid rgba(0,0,0,0.4);
+  flex-shrink: 0;
+}
+
+.reader-cover-front {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 16px;
+  gap: 10px;
+  border-right: 2px solid rgba(0,0,0,0.3);
+}
+
+.reader-cover-title {
+  font-size: 15px;
+  font-weight: bold;
+  color: rgba(255,255,255,0.9);
+  text-align: center;
+  line-height: 1.4;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+}
+
+.reader-cover-writer {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  font-style: italic;
+  text-align: center;
+}
+
+.reader-page-area {
+  flex: 1;
+  background: #f5e6c8;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.reader-page {
+  flex: 1;
+  padding: 32px 36px 16px;
+  overflow-y: auto;
+  background: linear-gradient(to right, #ede0b8 0%, #f5e6c8 8%, #f5e6c8 92%, #ede0b8 100%);
+}
+
+.reader-page::-webkit-scrollbar { width: 5px; }
+.reader-page::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
+.reader-page::-webkit-scrollbar-thumb { background: #b8996a; border-radius: 3px; }
+
+.reader-page-title {
+  font-size: 18px;
+  color: #3a2510;
+  margin: 0 0 16px;
+  font-style: italic;
+  border-bottom: 1px solid rgba(58,37,16,0.2);
+  padding-bottom: 8px;
+}
+
+.reader-page-content {
+  font-size: 14px;
+  color: #3a2510;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  font-family: 'Georgia', serif;
+}
+
+.reader-page-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: rgba(0,0,0,0.06);
+  border-top: 1px solid rgba(58,37,16,0.15);
+  flex-shrink: 0;
+}
+
+.reader-nav-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 5px 14px;
+  background: rgba(58,37,16,0.12);
+  border: 1px solid rgba(58,37,16,0.25);
+  border-radius: 4px;
+  color: #3a2510;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.reader-nav-btn:hover { background: rgba(58,37,16,0.22); }
+.reader-nav-btn:disabled { opacity: 0.35; cursor: default; }
+
+.reader-page-num {
+  font-size: 12px;
+  color: #7a5c30;
+  font-style: italic;
+}
+
+/* ── Scroll reader ─────────────────────────────────────────────────────────── */
+#reader-scroll {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.reader-scroll-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 480px;
+  max-width: 100%;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.8));
+}
+
+.reader-scroll-roll {
+  width: 100%;
+  height: 30px;
+  background: linear-gradient(180deg, #7a5c30 0%, #5a3e1e 50%, #7a5c30 100%);
+  border-radius: 8px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+}
+
+.reader-scroll-roll.top { border-radius: 8px 8px 4px 4px; z-index: 1; }
+.reader-scroll-roll.bottom { border-radius: 4px 4px 8px 8px; z-index: 1; }
+
+.reader-scroll-body {
+  width: calc(100% - 20px);
+  background: linear-gradient(180deg, #f0deb0 0%, #ede0b8 30%, #ede0b8 70%, #f0deb0 100%);
+  padding: 24px 32px;
+  min-height: 200px;
+  max-height: 440px;
+  overflow-y: auto;
+}
+
+.reader-scroll-body::-webkit-scrollbar { width: 5px; }
+.reader-scroll-body::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
+.reader-scroll-body::-webkit-scrollbar-thumb { background: #b8996a; border-radius: 3px; }
+
+.reader-scroll-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #3a2510;
+  text-align: center;
+  margin-bottom: 4px;
+  font-style: italic;
+}
+
+.reader-scroll-writer {
+  font-size: 12px;
+  color: #7a5c30;
+  text-align: center;
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
+.reader-scroll-content {
+  font-size: 14px;
+  color: #3a2510;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  font-family: 'Georgia', serif;
+}
+
+/* ── Mobile ────────────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .lore-grid {
+    gap: 16px;
+    justify-content: center;
+  }
+
+  .modal-overlay {
+    align-items: flex-end;
+  }
+
+  .modal-box {
+    width: 100%;
+    max-width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 14px 14px 0 0;
+    padding: 20px 18px 32px;
+  }
+
+  .lore-edit-box {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .reader-box {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 14px 14px 0 0;
+  }
+
+  #reader-book {
+    flex-direction: column;
+    height: 85vh;
+  }
+
+  .reader-book-cover {
+    width: 100%;
+    height: 100px;
+    flex-direction: row;
+  }
+
+  .reader-cover-spine {
+    width: 20px;
+    height: 100%;
+  }
+
+  .reader-cover-front {
+    flex-direction: row;
+    gap: 12px;
+    padding: 12px 16px;
+    border-right: none;
+    border-bottom: 2px solid rgba(0,0,0,0.3);
+  }
+
+  .reader-cover-title { font-size: 14px; text-align: left; }
+  .reader-cover-writer { font-size: 11px; text-align: left; }
+
+  .reader-scroll-wrap { width: 100%; }
+  .reader-scroll-body { max-height: 60vh; padding: 16px 20px; }
+}

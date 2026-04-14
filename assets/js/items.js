@@ -3,11 +3,33 @@ import { ref, set, remove, onValue }  from "https://www.gstatic.com/firebasejs/1
 import { parseTags, formatGold }       from "./item-utils.js";
 
 const isAdmin  = localStorage.getItem("isAdmin") === "true";
+
+const RARITY_KEYWORDS = new Set(["common", "uncommon", "rare", "very rare", "legendary"]);
+
+const RARITY_COLORS = {
+  "common":    "#9e9e9e",
+  "uncommon":  "#4caf50",
+  "rare":      "#2196f3",
+  "very rare": "#9c27b0",
+  "legendary": "#ff9800"
+};
+
+// Returns item's rarity — uses stored field first, falls back to tags for old data
+function getItemRarity(item) {
+  if (item.rarity) return item.rarity;
+  const tags = parseTags(item.tags);
+  for (const r of ["legendary", "very rare", "rare", "uncommon", "common"]) {
+    if (tags.includes(r)) return r;
+  }
+  return "common";
+}
+
 const itemsRef = ref(db, "items");
 
 let items       = [];
 let activeTag   = null;
 let searchQuery = "";
+let selectedRarity = "common"; // current selection in the modal
 
 // ── DOM Refs ──────────────────────────────────────────────────────────────────
 const itemsGrid   = document.getElementById("items-grid");
@@ -15,20 +37,35 @@ const itemsSearch = document.getElementById("items-search");
 const tagFilter   = document.getElementById("tag-filter");
 const addItemBtn  = document.getElementById("add-item-btn");
 
-const itemModal = document.getElementById("item-modal");
-const imTitle   = document.getElementById("im-title");
-const imName    = document.getElementById("im-name");
-const imDesc    = document.getElementById("im-desc");
-const imPrice   = document.getElementById("im-price");
-const imTags    = document.getElementById("im-tags");
-const imError   = document.getElementById("im-error");
-const imSave    = document.getElementById("im-save");
-const imCancel  = document.getElementById("im-cancel");
+const itemModal        = document.getElementById("item-modal");
+const imTitle          = document.getElementById("im-title");
+const imName           = document.getElementById("im-name");
+const imDesc           = document.getElementById("im-desc");
+const imPrice          = document.getElementById("im-price");
+const imTags           = document.getElementById("im-tags");
+const imRaritySelector = document.getElementById("im-rarity-selector");
+const imError          = document.getElementById("im-error");
+const imSave           = document.getElementById("im-save");
+const imCancel         = document.getElementById("im-cancel");
 
 let editingItemId = null;
 
 if (isAdmin) {
   addItemBtn.style.display = "inline-block";
+}
+
+// ── Rarity selector ───────────────────────────────────────────────────────────
+imRaritySelector.querySelectorAll(".rarity-sel-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    selectedRarity = btn.dataset.rarity;
+    syncRarityButtons();
+  });
+});
+
+function syncRarityButtons() {
+  imRaritySelector.querySelectorAll(".rarity-sel-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.rarity === selectedRarity);
+  });
 }
 
 // ── Firebase ──────────────────────────────────────────────────────────────────
@@ -41,7 +78,11 @@ onValue(itemsRef, snapshot => {
 
 function getAllTags() {
   const set = new Set();
-  items.forEach(item => parseTags(item.tags).forEach(t => set.add(t)));
+  items.forEach(item =>
+    parseTags(item.tags)
+      .filter(t => !RARITY_KEYWORDS.has(t))
+      .forEach(t => set.add(t))
+  );
   return [...set].sort();
 }
 
@@ -96,10 +137,14 @@ function renderItems() {
     const card = document.createElement("div");
     card.className = "item-card";
 
-    const tags = parseTags(item.tags);
+    const rarity      = getItemRarity(item);
+    const rarityColor = RARITY_COLORS[rarity] || "#9e9e9e";
+    // Filter rarity keywords out of displayed tags
+    const tags = parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t));
 
     card.innerHTML = `
       <div class="item-header">
+        <div class="item-rarity-dot" style="background:${rarityColor}" title="${rarity}"></div>
         <div class="item-name">${item.name}</div>
         <div class="item-price-badge">${formatGold(item.price)}</div>
       </div>
@@ -113,9 +158,8 @@ function renderItems() {
       ` : ""}
     `;
 
-    // Click card to expand/collapse description
     card.addEventListener("click", e => {
-      if (e.target.closest(".item-actions")) return; // don't toggle on edit/delete
+      if (e.target.closest(".item-actions")) return;
       card.classList.toggle("expanded");
     });
 
@@ -141,18 +185,22 @@ function openItemModal(id) {
   imError.textContent = "";
 
   if (id) {
-    const item    = items.find(i => i.id === id);
+    const item = items.find(i => i.id === id);
     imTitle.textContent = "Edit Item";
     imName.value  = item.name        || "";
     imDesc.value  = item.description || "";
     imPrice.value = item.price       ?? "";
-    imTags.value  = item.tags        || "";
+    // Show tags without any rarity keywords (they're now stored separately)
+    imTags.value  = parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t)).join(", ");
+    selectedRarity = getItemRarity(item);
   } else {
     imTitle.textContent = "Add Item";
     imName.value = imDesc.value = imTags.value = "";
     imPrice.value = "";
+    selectedRarity = "common";
   }
 
+  syncRarityButtons();
   itemModal.classList.add("open");
   imName.focus();
 }
@@ -166,18 +214,22 @@ imSave.addEventListener("click", () => {
   const name  = imName.value.trim();
   const price = parseFloat(imPrice.value);
   if (!name)              { imError.textContent = "Name is required."; return; }
-  if (isNaN(price) || price < 0) { imError.textContent = "Enter a valid price in gold pieces (e.g. 50)."; return; }
+  if (isNaN(price) || price <= 0) { imError.textContent = "Enter a valid price greater than 0 (e.g. 0.01 for 1 cp)."; return; }
 
   const existing = editingItemId ? items.find(i => i.id === editingItemId) : null;
   const id = editingItemId || generateId();
+
+  // Strip any leftover rarity keywords from the tags field
+  const cleanTags = parseTags(imTags.value).filter(t => !RARITY_KEYWORDS.has(t)).join(", ") || null;
 
   set(ref(db, `items/${id}`), {
     id,
     name,
     description: imDesc.value.trim() || null,
     price,
-    tags:        imTags.value.trim() || null,
-    createdAt:   existing?.createdAt || Date.now()
+    rarity:    selectedRarity,
+    tags:      cleanTags,
+    createdAt: existing?.createdAt || Date.now()
   });
 
   closeItemModal();
