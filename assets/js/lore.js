@@ -1,5 +1,6 @@
 import { db }                          from "./firebase.js";
 import { ref, set, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+import { openGivePanel }              from "./give-to-player.js";
 
 const isAdmin = localStorage.getItem("isAdmin") === "true";
 
@@ -135,6 +136,28 @@ function buildCard(item) {
       if (confirm(`Delete "${item.title}"?`)) remove(ref(db, `lore/${item.id}`));
     });
     wrap.appendChild(delBtn);
+
+    // Give to player button
+    const giveBtn = document.createElement("button");
+    giveBtn.className = "lore-card-give-btn";
+    giveBtn.innerHTML = "+";
+    giveBtn.addEventListener("click", e => {
+      e.stopPropagation();
+      openGivePanel(e.currentTarget, {
+        name:        item.title,
+        type:        item.type,
+        description: item.writer ? `Written by ${item.writer}` : null,
+        quantity:    1,
+        value:       null,
+        // Books: pass full pages array so inventory reader can turn pages
+        pages:       item.type === "book" ? (item.pages || []) : undefined,
+        // Scrolls: plain text content
+        content:     item.type === "scroll" ? (item.content || null) : null,
+        writer:      item.writer || null,
+        coverColor:  item.coverColor || null,
+      });
+    });
+    wrap.appendChild(giveBtn);
 
     // Library badge
     if (item.availableInLibrary) {

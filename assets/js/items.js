@@ -1,6 +1,7 @@
 import { db }                          from "./firebase.js";
 import { ref, set, remove, onValue }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { parseTags, formatGold, getDisplayTags } from "./item-utils.js";
+import { openGivePanel }              from "./give-to-player.js";
 
 const isAdmin  = localStorage.getItem("isAdmin") === "true";
 
@@ -149,6 +150,7 @@ function renderItems() {
         <div class="item-actions">
           <button class="dm-btn dm-btn-sm item-edit-btn">Edit</button>
           <button class="marker-delete-btn dm-btn dm-btn-sm item-del-btn">Delete</button>
+          <button class="give-btn item-give-btn">Give to Player</button>
         </div>
       ` : ""}
     `;
@@ -167,6 +169,17 @@ function renderItems() {
         e.stopPropagation();
         if (!confirm(`Delete "${item.name}"? This cannot be undone.`)) return;
         remove(ref(db, `items/${item.id}`));
+      });
+      card.querySelector(".item-give-btn").addEventListener("click", e => {
+        e.stopPropagation();
+        openGivePanel(e.currentTarget, {
+          name:        item.name,
+          type:        "misc",
+          description: item.description || null,
+          quantity:    1,
+          value:       item.price ? formatGold(item.price) : null,
+          content:     null,
+        });
       });
     }
 

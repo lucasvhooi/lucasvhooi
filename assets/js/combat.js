@@ -1828,10 +1828,54 @@ function renderLootPanel() {
         const priceStr = item.price != null ? `${item.price}gp` : "";
         row.innerHTML = `
           <span class="loot-item-name">${escHtml(item.name)}</span>
-          <span style="display:flex;gap:4px;align-items:center;flex-shrink:0">
+          <span class="loot-item-meta">
             ${priceStr ? `<span class="loot-item-price">${priceStr}</span>` : ""}
             <span class="loot-rarity-badge" style="color:${rarityColor};border-color:${rarityColor}20">${item.rarity}</span>
-          </span>`;
+            <button class="loot-give-btn" title="Give to player">+</button>
+          </span>
+          <div class="loot-give-dropdown" style="display:none"></div>`;
+        // Give button
+        const giveBtn = row.querySelector(".loot-give-btn");
+        const dropdown = row.querySelector(".loot-give-dropdown");
+        giveBtn.addEventListener("click", e => {
+          e.stopPropagation();
+          const isOpen = dropdown.style.display !== "none";
+          // Close all other dropdowns
+          document.querySelectorAll(".loot-give-dropdown").forEach(d => d.style.display = "none");
+          if (isOpen) return;
+          const users = Object.values(window._allUsers || {})
+            .sort((a, b) => (a.username || "").localeCompare(b.username || ""));
+          if (!users.length) {
+            dropdown.innerHTML = `<span class="loot-give-empty">No players found</span>`;
+          } else {
+            dropdown.innerHTML = users.map(u =>
+              `<button class="loot-give-player" data-id="${escHtml(u.id)}" style="--pc:${u.color || '#888'}">
+                <span class="loot-give-dot"></span>
+                <span>${escHtml(u.username)}</span>
+              </button>`).join("");
+            dropdown.querySelectorAll(".loot-give-player").forEach(btn => {
+              btn.addEventListener("click", async ev => {
+                ev.stopPropagation();
+                btn.disabled = true;
+                try {
+                  await window._giveItemToPlayer(btn.dataset.id, {
+                    name:        item.name,
+                    type:        item.type || "misc",
+                    description: item.description || null,
+                    quantity:    1,
+                    value:       item.price != null ? item.price : null,
+                  });
+                  dropdown.innerHTML = `<span class="loot-give-ok">&#10003; Sent to ${escHtml((window._allUsers || {})[btn.dataset.id]?.username || "player")}</span>`;
+                  setTimeout(() => { dropdown.style.display = "none"; }, 1400);
+                } catch(err) {
+                  btn.disabled = false;
+                  dropdown.innerHTML += `<span class="loot-give-empty">Error — try again</span>`;
+                }
+              });
+            });
+          }
+          dropdown.style.display = "block";
+        });
         drop.appendChild(row);
       });
     }
@@ -1845,6 +1889,10 @@ btnClearLoot.addEventListener("click", () => {
   state.lootLog = lootLog;
   save();
   renderLootPanel();
+});
+
+document.addEventListener("click", () => {
+  document.querySelectorAll(".loot-give-dropdown").forEach(d => d.style.display = "none");
 });
 
 // ── Hook loot drop into HP damage ─────────────────────────────────────────────

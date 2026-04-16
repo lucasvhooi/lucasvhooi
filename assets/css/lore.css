@@ -54,7 +54,7 @@
 .lore-toolbar {
   display: flex;
   justify-content: flex-end;
-  padding: 16px 24px 0;
+  padding: 16px 24px 16px;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
@@ -321,8 +321,34 @@
   border-color: #E57373;
 }
 
+.lore-card-give-btn {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(60,160,60,0.85);
+  border: 1px solid rgba(100,210,100,0.6);
+  color: #fff;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+  z-index: 10;
+}
+.lore-card-give-btn:hover {
+  background: rgba(60,180,60,1);
+}
+
 .lore-card:hover .lore-card-edit-btn,
-.lore-card:hover .lore-card-delete-btn {
+.lore-card:hover .lore-card-delete-btn,
+.lore-card:hover .lore-card-give-btn {
   opacity: 1;
 }
 
@@ -646,7 +672,7 @@
 .reader-close-btn:hover { color: var(--text); border-color: var(--accent); }
 
 /* ── Book reader ───────────────────────────────────────────────────────────── */
-#reader-book {
+#reader-book, #inv-reader-book {
   display: flex;
   gap: 0;
   height: 520px;
@@ -765,7 +791,7 @@
 }
 
 /* ── Scroll reader ─────────────────────────────────────────────────────────── */
-#reader-scroll {
+#reader-scroll, #inv-reader-scroll {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -946,7 +972,7 @@
     border-radius: 14px 14px 0 0;
   }
 
-  #reader-book {
+  #reader-book, #inv-reader-book {
     flex-direction: column;
     height: 85vh;
   }

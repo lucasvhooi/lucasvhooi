@@ -1394,17 +1394,24 @@ body {
 .loot-item-row {
   font-size: 11px;
   color: #bbb;
-  padding: 2px 0;
-  display: flex;
-  justify-content: space-between;
-  gap: 6px;
+  padding: 3px 0;
   border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.loot-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: space-between;
+  min-width: 0;
 }
 
 .loot-item-name {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }
 
 .loot-item-price {
@@ -1421,6 +1428,72 @@ body {
   border: 1px solid;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.loot-give-btn {
+  background: none;
+  border: 1px solid #3a5a2a;
+  border-radius: 4px;
+  color: #8bc87a;
+  font-size: 11px;
+  padding: 1px 5px;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1.4;
+  transition: background 0.12s;
+}
+.loot-give-btn:hover { background: rgba(100,180,80,0.15); }
+
+.loot-give-dropdown {
+  margin-top: 4px;
+  background: #1a1a14;
+  border: 1px solid #3a3020;
+  border-radius: 5px;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.loot-give-player {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 6px 10px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  color: #ccc;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+}
+.loot-give-player:last-child { border-bottom: none; }
+.loot-give-player:hover { background: rgba(200,164,92,0.12); }
+.loot-give-player:disabled { opacity: 0.45; cursor: default; }
+
+.loot-give-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pc, #888);
+  flex-shrink: 0;
+}
+
+.loot-give-ok {
+  display: block;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #8bc87a;
+  font-style: italic;
+}
+
+.loot-give-empty {
+  display: block;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: #666;
+  font-style: italic;
 }
 
 .loot-nothing {

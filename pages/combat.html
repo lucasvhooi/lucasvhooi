@@ -11,13 +11,13 @@
   <nav>
     <img src="../Images/EssolisLogo.webp" alt="Essolis Logo" class="nav-logo">
     <ul>
-      <li><a href="homepage.html">Home</a></li>
       <li><a href="missions.html">Missions</a></li>
       <li><a href="exploration.html">Exploration</a></li>
       <li class="nav-dm-only"><a href="items.html">Items</a></li>
       <li><a href="map.html">Map</a></li>
       <li><a href="lore.html">Lore</a></li>
       <li class="nav-dm-only"><a href="combat.html">Combat</a></li>
+      <li><a href="inventory.html">Inventory</a></li>
     </ul>
   </nav>
 
@@ -388,7 +388,7 @@
   <!-- Firebase bridge: items + enemy templates -->
   <script type="module">
     import { db } from "../assets/js/firebase.js";
-    import { ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { ref, set, remove, push, onValue } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     // Items (for loot generation)
     window._combatItems = [];
@@ -396,6 +396,30 @@
     onValue(ref(db, "items"), snap => {
       window._combatItems = snap.val() ? Object.values(snap.val()) : [];
     });
+
+    // Players (for loot give)
+    window._allUsers = {};
+    onValue(ref(db, "users"), snap => {
+      window._allUsers = snap.val() || {};
+      window._onUsersLoaded?.();
+    });
+
+    // Give item to player inventory
+    window._giveItemToPlayer = async (playerId, itemData) => {
+      const session = JSON.parse(localStorage.getItem("playerSession") || "{}");
+      const newRef = push(ref(db, `inventory/${playerId}`));
+      await set(newRef, {
+        id:          newRef.key,
+        name:        itemData.name        || "Item",
+        type:        itemData.type        || "misc",
+        description: itemData.description || null,
+        quantity:    itemData.quantity    || 1,
+        value:       itemData.value != null ? itemData.value + " gp" : null,
+        content:     null,
+        givenBy:     session.id           || "admin",
+        timestamp:   Date.now(),
+      });
+    };
 
     // System flags (seeding version)
     window._systemFlags = undefined; // undefined = not yet loaded

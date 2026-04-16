@@ -262,7 +262,8 @@
   display: flex;
   gap: 6px;
   justify-content: flex-end;
-  margin-top: 4px;
+  margin-top: auto;
+  padding-top: 10px;
 }
 
 /* ── Modal (shared structure with location) ── */

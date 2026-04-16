@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const inputHash = await sha256(passwordInput.value);
     if (inputHash === storedHash) {
       localStorage.setItem("isAdmin", "true");
-      window.location.href = "pages/homepage.html";
+      window.location.href = "pages/inventory.html";
     } else {
       errorMessage.textContent = "Incorrect admin password.";
     }
@@ -38,6 +38,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   playerButton.addEventListener("click", (e) => {
     e.preventDefault();
     localStorage.setItem("isAdmin", "false");
-    window.location.href = "pages/homepage.html";
+    window.location.href = "pages/inventory.html";
   });
 });

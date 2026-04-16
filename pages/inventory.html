@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory — DnD Campaign</title>
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/lore.css">
+  <link rel="stylesheet" href="../assets/css/inventory.css">
+</head>
+<body>
+  <nav>
+    <img src="../Images/EssolisLogo.webp" alt="Essolis Logo" class="nav-logo">
+    <ul>
+      <li><a href="missions.html">Missions</a></li>
+      <li><a href="exploration.html">Exploration</a></li>
+      <li class="nav-dm-only"><a href="items.html">Items</a></li>
+      <li><a href="map.html">Map</a></li>
+      <li><a href="lore.html">Lore</a></li>
+      <li class="nav-dm-only"><a href="combat.html">Combat</a></li>
+      <li><a href="inventory.html">Inventory</a></li>
+    </ul>
+  </nav>
+
+  <header class="inv-hero">
+    <!-- Admin-only buttons — shown via JS -->
+    <button class="manage-btn" id="manage-btn" style="display:none">&#9881; Players</button>
+    <button class="inv-add-btn" id="add-btn" style="display:none">+ Add Item</button>
+
+    <h1 class="inv-hero-title" id="inv-hero-title">Inventory</h1>
+    <p class="inv-hero-sub" id="inv-hero-sub">Loading…</p>
+
+    <!-- Admin: player selector -->
+    <div class="inv-player-selector" id="player-selector" style="display:none">
+      <label for="player-select">Viewing:</label>
+      <select class="inv-player-select" id="player-select"></select>
+    </div>
+
+    <div class="inv-filter-tabs" id="filter-tabs">
+      <button class="inv-tab active" data-filter="all">All</button>
+      <button class="inv-tab" data-filter="weapon">⚔ Weapons</button>
+      <button class="inv-tab" data-filter="armor">🛡 Armor</button>
+      <button class="inv-tab" data-filter="potion">⚗ Potions</button>
+      <button class="inv-tab" data-filter="book">📖 Books</button>
+      <button class="inv-tab" data-filter="scroll">📜 Scrolls</button>
+      <button class="inv-tab" data-filter="misc">◈ Misc</button>
+    </div>
+  </header>
+
+  <main class="inv-main">
+    <div class="inv-grid" id="inv-grid"></div>
+  </main>
+
+  <!-- ── Add Item Modal ──────────────────────────────────────────────────────── -->
+  <div class="inv-overlay" id="add-modal">
+    <div class="inv-modal inv-modal-lg">
+      <div class="inv-modal-header">
+        <h2 class="inv-modal-title">Add Item to Inventory</h2>
+        <button class="inv-modal-close" data-close="add-modal">&#10005;</button>
+      </div>
+      <div class="inv-modal-body">
+        <div class="inv-form-row">
+          <label class="inv-form-label">Item Name <span style="color:#e05050">*</span></label>
+          <input class="inv-form-input" id="ai-name" placeholder="e.g. Sword of Flames…" />
+        </div>
+        <div class="inv-form-row-2">
+          <div class="inv-form-row" style="margin:0">
+            <label class="inv-form-label">Type</label>
+            <select class="inv-form-select" id="ai-type">
+              <option value="weapon">⚔ Weapon</option>
+              <option value="armor">🛡 Armor</option>
+              <option value="potion">⚗ Potion</option>
+              <option value="book">📖 Book</option>
+              <option value="scroll">📜 Scroll</option>
+              <option value="misc" selected>◈ Misc</option>
+            </select>
+          </div>
+          <div class="inv-form-row" style="margin:0">
+            <label class="inv-form-label">Quantity</label>
+            <input class="inv-form-input" id="ai-qty" type="number" min="1" value="1" />
+          </div>
+        </div>
+        <div class="inv-form-row">
+          <label class="inv-form-label">Value (e.g. 50gp)</label>
+          <input class="inv-form-input" id="ai-value" placeholder="50 gp…" />
+        </div>
+        <div class="inv-form-row">
+          <label class="inv-form-label">Description</label>
+          <textarea class="inv-form-textarea" id="ai-desc" placeholder="What is this item…" rows="3"></textarea>
+        </div>
+        <!-- Book / Scroll content — shown only for those types -->
+        <div class="inv-form-row" id="ai-content-row" style="display:none">
+          <label class="inv-form-label" id="ai-content-label">Content (readable text)</label>
+          <textarea class="inv-form-textarea" id="ai-content" placeholder="The full text of the book or scroll…" rows="6"></textarea>
+        </div>
+        <!-- Admin: give to which player -->
+        <div class="inv-form-row" id="ai-target-row">
+          <label class="inv-form-label">Give to Player</label>
+          <select class="inv-form-select" id="ai-target"></select>
+        </div>
+        <div class="inv-form-error" id="ai-error"></div>
+      </div>
+      <div class="inv-modal-footer">
+        <button class="btn-ghost" data-close="add-modal">Cancel</button>
+        <button class="btn-primary" id="ai-save">Add Item</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Reader modal (book + scroll) — same UI as Lore page ──────────────── -->
+  <div id="inv-reader" class="modal-overlay">
+    <div class="modal-box reader-box" id="inv-reader-box">
+      <button id="inv-reader-close" class="reader-close-btn">&times;</button>
+
+      <!-- Book reader -->
+      <div id="inv-reader-book" style="display:none">
+        <div class="reader-book-cover" id="inv-reader-cover">
+          <div class="reader-cover-spine"  id="inv-reader-spine"></div>
+          <div class="reader-cover-front">
+            <div class="reader-cover-title"  id="inv-reader-cover-title"></div>
+            <div class="reader-cover-writer" id="inv-reader-cover-writer"></div>
+          </div>
+        </div>
+        <div class="reader-page-area">
+          <div class="reader-page" id="inv-reader-page">
+            <h3  class="reader-page-title"   id="inv-reader-page-title"></h3>
+            <div class="reader-page-content" id="inv-reader-page-content"></div>
+          </div>
+          <div class="reader-page-nav">
+            <button id="inv-reader-prev" class="reader-nav-btn">&#8592; Prev</button>
+            <span   id="inv-reader-page-num" class="reader-page-num"></span>
+            <button id="inv-reader-next" class="reader-nav-btn">Next &#8594;</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scroll reader -->
+      <div id="inv-reader-scroll" style="display:none">
+        <div class="reader-scroll-wrap">
+          <div class="reader-scroll-roll top"></div>
+          <div class="reader-scroll-body">
+            <div class="reader-scroll-title"   id="inv-reader-scroll-title"></div>
+            <div class="reader-scroll-writer"  id="inv-reader-scroll-writer"></div>
+            <div class="reader-scroll-content" id="inv-reader-scroll-content"></div>
+          </div>
+          <div class="reader-scroll-roll bottom"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Send Modal ─────────────────────────────────────────────────────────── -->
+  <div class="inv-overlay" id="send-modal">
+    <div class="inv-modal">
+      <div class="inv-modal-header">
+        <h2 class="inv-modal-title">Send Item</h2>
+        <button class="inv-modal-close" data-close="send-modal">&#10005;</button>
+      </div>
+      <div class="inv-modal-body">
+        <p style="color:#aaa;font-size:13px;margin:0 0 14px">
+          Sending: <strong id="send-item-name" style="color:var(--text)"></strong>
+        </p>
+        <p style="font-size:12px;color:#666;margin:0 0 10px;text-transform:uppercase;letter-spacing:.06em">Choose recipient:</p>
+        <div class="inv-player-list" id="send-player-list"></div>
+        <div class="inv-form-error" id="send-error"></div>
+      </div>
+      <div class="inv-modal-footer">
+        <button class="btn-ghost" data-close="send-modal">Cancel</button>
+        <button class="btn-primary" id="send-confirm">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Manage Players Modal (admin) ──────────────────────────────────────── -->
+  <div class="inv-overlay" id="manage-modal">
+    <div class="inv-modal inv-modal-lg">
+      <div class="inv-modal-header">
+        <h2 class="inv-modal-title">&#9881; Manage Players</h2>
+        <button class="inv-modal-close" data-close="manage-modal">&#10005;</button>
+      </div>
+      <div class="inv-modal-body">
+        <div id="player-list-el"></div>
+
+        <div class="add-player-form">
+          <h4>Create New Account</h4>
+          <div class="inv-form-row-2">
+            <div class="inv-form-row" style="margin:0">
+              <label class="inv-form-label">Username</label>
+              <input class="inv-form-input" id="np-user" placeholder="Adventurer name…" />
+            </div>
+            <div class="inv-form-row" style="margin:0">
+              <label class="inv-form-label">Password</label>
+              <input class="inv-form-input" id="np-pass" type="password" placeholder="Secret passphrase…" />
+            </div>
+          </div>
+          <div class="inv-form-row" style="margin-top:12px">
+            <label class="inv-form-label">Role</label>
+            <select class="inv-form-select" id="np-role">
+              <option value="player">Player</option>
+              <option value="admin">Admin (DM)</option>
+            </select>
+          </div>
+          <div class="inv-form-row">
+            <label class="inv-form-label">Player Colour</label>
+            <div class="color-field">
+              <input type="color" id="np-color" value="#c8a45c" />
+              <input class="inv-form-input" type="text" id="np-color-hex" value="#c8a45c" placeholder="#c8a45c" />
+            </div>
+          </div>
+          <div class="inv-form-error" id="np-error"></div>
+          <div style="margin-top:10px; text-align:right">
+            <button class="btn-primary" id="np-save">Create Account</button>
+          </div>
+        </div>
+      </div>
+      <div class="inv-modal-footer">
+        <button class="btn-ghost" data-close="manage-modal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../assets/js/inventory.js"></script>
+  <script src="../assets/js/base.js"></script>
+</body>
+</html>
