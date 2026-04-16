@@ -3,7 +3,8 @@
     "allow": [
       "Bash(head -836 \"C:/Users/lhooi/Documents/Github Projects/lucasvhooi/assets/js/combat.js\")",
       "Read(//tmp/**)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(python3 -c ' *)"
     ]
   }
 }

@@ -149,6 +149,32 @@
     </div>
   </div>
 
+  <!-- ── Remove Item Modal ─────────────────────────────────────────────────── -->
+  <div class="inv-overlay" id="remove-modal">
+    <div class="inv-modal">
+      <div class="inv-modal-header">
+        <h2 class="inv-modal-title">Remove Item</h2>
+        <button class="inv-modal-close" data-close="remove-modal">&#10005;</button>
+      </div>
+      <div class="inv-modal-body">
+        <p id="remove-item-label" style="color:#aaa;font-size:14px;margin:0 0 16px"></p>
+        <div id="remove-qty-row" style="display:none">
+          <label class="inv-form-label">How many to remove?</label>
+          <div class="remove-qty-stepper">
+            <button class="remove-qty-btn" id="remove-qty-minus">&#8722;</button>
+            <input class="remove-qty-input" id="remove-qty-input" type="number" min="1" value="1" />
+            <button class="remove-qty-btn" id="remove-qty-plus">+</button>
+            <button class="remove-qty-all" id="remove-qty-all">All</button>
+          </div>
+        </div>
+      </div>
+      <div class="inv-modal-footer">
+        <button class="btn-ghost" data-close="remove-modal">Cancel</button>
+        <button class="btn-danger" id="remove-confirm">Remove</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Send Modal ─────────────────────────────────────────────────────────── -->
   <div class="inv-overlay" id="send-modal">
     <div class="inv-modal">

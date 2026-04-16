@@ -2,7 +2,7 @@
 import { db }                              from "./firebase.js";
 import { ref, set, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
-const isAdmin    = localStorage.getItem("isAdmin") === "true";
+const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
 const questsRef  = ref(db, "quests");
 const markersRef = ref(db, "markers");
 

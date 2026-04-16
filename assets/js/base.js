@@ -1,5 +1,5 @@
 (function () {
-  const isAdmin = localStorage.getItem("isAdmin") === "true";
+  const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
 
   // Highlight the current page's nav link
   const links   = document.querySelectorAll("nav a");

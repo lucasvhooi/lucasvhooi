@@ -3,7 +3,7 @@ import { ref, set, remove, onValue }  from "https://www.gstatic.com/firebasejs/1
 import { parseTags, formatGold, getDisplayTags } from "./item-utils.js";
 import { openGivePanel }              from "./give-to-player.js";
 
-const isAdmin  = localStorage.getItem("isAdmin") === "true";
+const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
 
 const RARITY_KEYWORDS = new Set(["common", "uncommon", "rare", "very rare", "legendary"]);
 

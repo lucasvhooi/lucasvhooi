@@ -145,21 +145,15 @@ function stackQtyBadge(item) {
 function wireCardActions(wrap, item, ownerId) {
   wrap.querySelector(".btn-read")?.addEventListener("click", e => { e.stopPropagation(); openReadModal(item); });
   wrap.querySelector(".btn-send")?.addEventListener("click", e => { e.stopPropagation(); openSendModal(item, ownerId); });
-  wrap.querySelector(".btn-delete")?.addEventListener("click", e => {
-    e.stopPropagation();
-    const ids = item._stackIds || [item.id];
-    const label = allUsers[ownerId]?.username || "this player";
-    if (confirm(`Remove "${item.name}"${ids.length > 1 ? ` (×${ids.length})` : ""} from ${label}'s inventory?`)) {
-      ids.forEach(id => remove(ref(db, `inventory/${ownerId}/${id}`)));
-    }
-  });
+  wrap.querySelector(".btn-delete")?.addEventListener("click", e => { e.stopPropagation(); openRemoveModal(item, ownerId); });
 }
 
 function invCardActions(item, ownerId) {
+  const canRemove = isAdmin || ownerId === session.id;
   return `<div class="inv-lore-actions">
-    <button class="inv-action-btn btn-read">📖 Read</button>
-    <button class="inv-action-btn btn-send">⇄ Send</button>
-    ${isAdmin ? `<button class="inv-action-btn btn-delete">✕</button>` : ""}
+    <button class="inv-action-btn btn-read">Read</button>
+    <button class="inv-action-btn btn-send">Send</button>
+    ${canRemove ? `<button class="inv-action-btn btn-delete">Remove</button>` : ""}
   </div>`;
 }
 
@@ -244,18 +238,12 @@ function buildGenericCard(item, ownerId) {
       ${giverName ? `<p style="font-size:11px;color:#555;margin:6px 0 0;font-style:italic">Given by ${esc(giverName)}</p>` : ""}
     </div>
     <div class="inv-card-actions">
-      <button class="inv-action-btn btn-send">⇄ Send</button>
-      ${isAdmin ? `<button class="inv-action-btn btn-delete">✕ Remove</button>` : ""}
+      <button class="inv-action-btn btn-send">Send</button>
+      ${(isAdmin || ownerId === session.id) ? `<button class="inv-action-btn btn-delete">Remove</button>` : ""}
     </div>`;
 
   card.querySelector(".btn-send").addEventListener("click", () => openSendModal(item, ownerId));
-  card.querySelector(".btn-delete")?.addEventListener("click", () => {
-    const ids = item._stackIds || [item.id];
-    const label = allUsers[ownerId]?.username || "this player";
-    if (confirm(`Remove "${item.name}"${ids.length > 1 ? ` (×${ids.length})` : ""} from ${label}'s inventory?`)) {
-      ids.forEach(id => remove(ref(db, `inventory/${ownerId}/${id}`)));
-    }
-  });
+  card.querySelector(".btn-delete")?.addEventListener("click", () => openRemoveModal(item, ownerId));
 
   return card;
 }
@@ -466,6 +454,73 @@ document.getElementById("send-confirm").addEventListener("click", async () => {
     await remove(ref(db, `inventory/${sendItemOwner}/${id}`));
   }
   closeModal("send-modal");
+});
+
+// ── Remove modal ─────────────────────────────────────────────────────────────
+let removeItem   = null;
+let removeOwner  = null;
+
+function openRemoveModal(item, ownerId) {
+  removeItem  = item;
+  removeOwner = ownerId;
+
+  const totalQty = item._stackQty || item.quantity || 1;
+  const label    = document.getElementById("remove-item-label");
+  const qtyRow   = document.getElementById("remove-qty-row");
+  const qtyInput = document.getElementById("remove-qty-input");
+
+  label.innerHTML = `Drop <strong style="color:var(--text)">${esc(item.name)}</strong>` +
+    (totalQty > 1 ? ` <span style="color:var(--accent)">×${totalQty}</span>` : "") +
+    " from your inventory?";
+
+  if (totalQty > 1) {
+    qtyInput.max   = totalQty;
+    qtyInput.value = 1;
+    qtyRow.style.display = "block";
+  } else {
+    qtyRow.style.display = "none";
+  }
+  openModal("remove-modal");
+}
+
+document.getElementById("remove-qty-minus").addEventListener("click", () => {
+  const el = document.getElementById("remove-qty-input");
+  el.value = Math.max(1, parseInt(el.value) - 1);
+});
+document.getElementById("remove-qty-plus").addEventListener("click", () => {
+  const el = document.getElementById("remove-qty-input");
+  el.value = Math.min(parseInt(el.max), parseInt(el.value) + 1);
+});
+document.getElementById("remove-qty-all").addEventListener("click", () => {
+  const el = document.getElementById("remove-qty-input");
+  el.value = el.max;
+});
+
+document.getElementById("remove-confirm").addEventListener("click", async () => {
+  if (!removeItem || !removeOwner) return;
+
+  const totalQty = removeItem._stackQty || removeItem.quantity || 1;
+  const qtyInput = document.getElementById("remove-qty-input");
+  const toRemove = totalQty > 1 ? Math.min(totalQty, Math.max(1, parseInt(qtyInput.value) || 1)) : totalQty;
+
+  // Walk through stack IDs and remove/decrement
+  let remaining = toRemove;
+  const ownerItems = allInventory[removeOwner] || {};
+  const ids = removeItem._stackIds || [removeItem.id];
+  for (const id of ids) {
+    if (remaining <= 0) break;
+    const it = ownerItems[id];
+    if (!it) continue;
+    const qty = it.quantity || 1;
+    if (qty <= remaining) {
+      await remove(ref(db, `inventory/${removeOwner}/${id}`));
+      remaining -= qty;
+    } else {
+      await set(ref(db, `inventory/${removeOwner}/${id}/quantity`), qty - remaining);
+      remaining = 0;
+    }
+  }
+  closeModal("remove-modal");
 });
 
 // ── Manage Players modal (admin) ──────────────────────────────────────────────

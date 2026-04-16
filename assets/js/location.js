@@ -6,7 +6,7 @@ import { parseTags, formatGold, getDisplayTags } from "./item-utils.js";
 // ── Setup ─────────────────────────────────────────────────────────────────────
 const params     = new URLSearchParams(window.location.search);
 const locationId = params.get("id");
-const isAdmin    = localStorage.getItem("isAdmin") === "true";
+const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
 
 if (!locationId) {
   document.getElementById("loc-title").textContent = "Location not found";

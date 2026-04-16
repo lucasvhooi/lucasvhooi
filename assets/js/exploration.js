@@ -2,7 +2,7 @@
 let imageData = {};
 
 // Check if the current user is a DM (admin)
-const isAdmin = localStorage.getItem("isAdmin") === "true";
+const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
 
 // Prefix relative asset paths so they resolve correctly from the /pages directory
 function resolveAssetPath(path) {
