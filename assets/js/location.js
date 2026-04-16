@@ -1,7 +1,7 @@
 import { db }                          from "./firebase.js";
 import { ref, set, remove, onValue }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { NPC_NAMES, AGE_RANGES, DEFAULT_PROFESSIONS, RACE_PROFESSIONS, RACE_BASE_WEIGHTS, ELF_SUBTYPE_WEIGHTS, NPC_TRAITS } from "./npc-data.js";
-import { parseTags, formatGold }       from "./item-utils.js";
+import { parseTags, formatGold, getDisplayTags } from "./item-utils.js";
 
 // ── Setup ─────────────────────────────────────────────────────────────────────
 const params     = new URLSearchParams(window.location.search);
@@ -85,6 +85,13 @@ let globalItems = [];
 onValue(ref(db, "items"), snapshot => {
   const data = snapshot.val();
   globalItems = data ? Object.values(data) : [];
+});
+
+// Global lore (for library modal)
+let loreItems = [];
+onValue(ref(db, "lore"), snapshot => {
+  const data = snapshot.val();
+  loreItems = data ? Object.values(data) : [];
 });
 
 // ── Render Hero ───────────────────────────────────────────────────────────────
@@ -295,15 +302,9 @@ const lmError          = document.getElementById("lm-error");
 const lmSave           = document.getElementById("lm-save");
 const lmCancel         = document.getElementById("lm-cancel");
 
-const RARITY_TAG_SET = new Set(["common", "uncommon", "rare", "very rare", "legendary"]);
-
 function getAllInventoryTags() {
   const tagSet = new Set();
-  globalItems.forEach(item =>
-    parseTags(item.tags)
-      .filter(t => !RARITY_TAG_SET.has(t))
-      .forEach(t => tagSet.add(t))
-  );
+  globalItems.forEach(item => getDisplayTags(item.tags).forEach(t => tagSet.add(t)));
   return [...tagSet].sort();
 }
 
@@ -1429,11 +1430,9 @@ function renderShopInventory(marker) {
 
   items.sort((a, b) => a.name.localeCompare(b.name));
 
-  const RARITY_KW = new Set(["common","uncommon","rare","very rare","legendary"]);
-
   items.forEach(item => {
     const price = shopPrice(item.price, marker.id, item.id);
-    const tags  = parseTags(item.tags).filter(t => !RARITY_KW.has(t));
+    const tags  = getDisplayTags(item.tags);
     const rarity = getItemRarity(item);
     const rarityColor = RARITY_COLORS[rarity] || "#9e9e9e";
 
@@ -1970,6 +1969,11 @@ function openShopModal(marker) {
     shopModalBox.classList.remove("night-mode");
   }
 
+  // Library section
+  const isLibrary = marker.type === "Library";
+  document.getElementById("sh-library-section").style.display = isLibrary ? "" : "none";
+  if (isLibrary) renderLibrarySection();
+
   // Inventory section only for Shop, Market, Forge
   const hasInventoryUI = INVENTORY_TYPES.has(marker.type);
   shInventorySection.style.display = hasInventoryUI ? "" : "none";
@@ -2012,6 +2016,187 @@ function openShopModal(marker) {
 function closeShopModal() {
   shopModal.classList.remove("open");
 }
+
+// ── Library Section ───────────────────────────────────────────────────────────
+let libFilter = "all";
+
+function renderLibrarySection() {
+  const grid      = document.getElementById("sh-library-grid");
+  const countEl   = document.getElementById("sh-library-count");
+  const emptyEl   = document.getElementById("sh-library-empty");
+  const filterTabs = document.getElementById("lib-filter-tabs");
+
+  // Wire up filter tabs (only once by checking dataset flag)
+  if (!filterTabs.dataset.wired) {
+    filterTabs.dataset.wired = "1";
+    filterTabs.querySelectorAll(".lib-tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        filterTabs.querySelectorAll(".lib-tab").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        libFilter = btn.dataset.filter;
+        renderLibrarySection();
+      });
+    });
+  }
+
+  const available = loreItems.filter(item => item.availableInLibrary);
+  const filtered  = libFilter === "all" ? available : available.filter(i => i.type === libFilter);
+
+  const books   = available.filter(i => i.type === "book").length;
+  const scrolls = available.filter(i => i.type === "scroll").length;
+  const parts   = [];
+  if (books)   parts.push(`${books} book${books   !== 1 ? "s" : ""}`);
+  if (scrolls) parts.push(`${scrolls} scroll${scrolls !== 1 ? "s" : ""}`);
+  countEl.textContent = parts.length ? parts.join(" · ") : "";
+
+  grid.innerHTML = "";
+
+  if (filtered.length === 0) {
+    emptyEl.style.display = "block";
+    return;
+  }
+  emptyEl.style.display = "none";
+
+  filtered.forEach(item => {
+    const card = document.createElement("div");
+    card.className = `lib-card lib-card-${item.type}${item.discovered ? " lib-card-revealed" : ""}`;
+    card.title = item.title + (item.writer ? ` — ${item.writer}` : "");
+
+    const revealedBadge = item.discovered
+      ? `<div class="lib-revealed-overlay" title="Revealed to party">✓</div>`
+      : "";
+
+    if (item.type === "book") {
+      const color = item.coverColor || "#8b4513";
+      card.innerHTML = `
+        <div class="lib-book-cover" style="--cover-color:${color}">
+          <div class="lib-book-spine"></div>
+          <div class="lib-book-front">
+            <div class="lib-book-title">${escLoc(item.title || "")}</div>
+            ${item.writer ? `<div class="lib-book-writer">${escLoc(item.writer)}</div>` : ""}
+          </div>
+        </div>
+        ${revealedBadge}
+        <div class="lib-card-label">${escLoc(item.title || "")}</div>
+      `;
+    } else {
+      card.innerHTML = `
+        <div class="lib-scroll-cover">
+          <div class="lib-scroll-roll top"></div>
+          <div class="lib-scroll-body">
+            <div class="lib-scroll-title">${escLoc(item.title || "")}</div>
+            ${item.writer ? `<div class="lib-scroll-writer">${escLoc(item.writer)}</div>` : ""}
+          </div>
+          <div class="lib-scroll-roll bottom"></div>
+        </div>
+        ${revealedBadge}
+        <div class="lib-card-label">${escLoc(item.title || "")}</div>
+      `;
+    }
+
+    // Click on the visual part opens the reader
+    const visual = card.querySelector(".lib-book-cover, .lib-scroll-cover");
+    if (visual) visual.addEventListener("click", () => openLibraryReader(item));
+
+    // Admin: reveal/unreveal button
+    if (isAdmin) {
+      const revealBtn = document.createElement("button");
+      revealBtn.className = item.discovered
+        ? "lib-reveal-btn lib-reveal-btn-done"
+        : "lib-reveal-btn";
+      revealBtn.textContent = item.discovered ? "✓ In Lore" : "＋ Reveal";
+      revealBtn.title = item.discovered
+        ? "Click to hide from party's lore journal"
+        : "Mark as discovered — party will see this in their Lore tab";
+      revealBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        const newDiscovered = !item.discovered;
+        set(ref(db, `lore/${item.id}/discovered`), newDiscovered);
+        // Update local state immediately for instant visual feedback
+        const localItem = loreItems.find(x => x.id === item.id);
+        if (localItem) localItem.discovered = newDiscovered;
+        renderLibrarySection();
+      });
+      card.appendChild(revealBtn);
+    }
+
+    grid.appendChild(card);
+  });
+}
+
+function escLoc(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// ── Library Reader ────────────────────────────────────────────────────────────
+const libReader        = document.getElementById("lib-reader");
+const libReaderClose   = document.getElementById("lib-reader-close");
+const libReaderBook    = document.getElementById("lib-reader-book");
+const libReaderScroll  = document.getElementById("lib-reader-scroll");
+const libReaderCover   = document.getElementById("lib-reader-cover");
+const libReaderSpine   = document.getElementById("lib-reader-spine");
+const libReaderCoverTitle  = document.getElementById("lib-reader-cover-title");
+const libReaderCoverWriter = document.getElementById("lib-reader-cover-writer");
+const libReaderPageTitle   = document.getElementById("lib-reader-page-title");
+const libReaderPageContent = document.getElementById("lib-reader-page-content");
+const libReaderPageNum     = document.getElementById("lib-reader-page-num");
+const libReaderPrev        = document.getElementById("lib-reader-prev");
+const libReaderNext        = document.getElementById("lib-reader-next");
+const libReaderScrollTitle   = document.getElementById("lib-reader-scroll-title");
+const libReaderScrollWriter  = document.getElementById("lib-reader-scroll-writer");
+const libReaderScrollContent = document.getElementById("lib-reader-scroll-content");
+
+let libReaderPageIndex = 0;
+let libReaderPages     = [];
+
+function openLibraryReader(item) {
+  libReaderBook.style.display   = "none";
+  libReaderScroll.style.display = "none";
+
+  if (item.type === "book") {
+    const color = item.coverColor || "#8b4513";
+    libReaderCover.style.setProperty("--cover-color", color);
+    libReaderSpine.style.setProperty("--cover-color", color);
+    libReaderCoverTitle.textContent  = item.title || "";
+    libReaderCoverWriter.textContent = item.writer ? `by ${item.writer}` : "";
+
+    libReaderPages = item.pages || [];
+    if (libReaderPages.length === 0) libReaderPages = [{ title: "", content: "" }];
+    libReaderPageIndex = 0;
+    renderLibReaderPage();
+    libReaderBook.style.display = "flex";
+  } else {
+    libReaderScrollTitle.textContent   = item.title || "";
+    libReaderScrollWriter.textContent  = item.writer ? `by ${item.writer}` : "";
+    libReaderScrollContent.textContent = item.content || "";
+    libReaderScroll.style.display = "flex";
+  }
+
+  libReader.classList.add("open");
+}
+
+function renderLibReaderPage() {
+  const page = libReaderPages[libReaderPageIndex] || {};
+  libReaderPageTitle.textContent   = page.title || "";
+  libReaderPageContent.textContent = page.content || "";
+  libReaderPageNum.textContent     = `Page ${libReaderPageIndex + 1} of ${libReaderPages.length}`;
+  libReaderPrev.disabled = libReaderPageIndex === 0;
+  libReaderNext.disabled = libReaderPageIndex === libReaderPages.length - 1;
+}
+
+libReaderPrev.addEventListener("click", () => {
+  if (libReaderPageIndex > 0) { libReaderPageIndex--; renderLibReaderPage(); }
+});
+libReaderNext.addEventListener("click", () => {
+  if (libReaderPageIndex < libReaderPages.length - 1) { libReaderPageIndex++; renderLibReaderPage(); }
+});
+
+libReaderClose.addEventListener("click", () => libReader.classList.remove("open"));
+libReader.addEventListener("click", e => { if (e.target === libReader) libReader.classList.remove("open"); });
 
 shopClose.addEventListener("click", closeShopModal);
 shopModal.addEventListener("click", e => { if (e.target === shopModal) closeShopModal(); });

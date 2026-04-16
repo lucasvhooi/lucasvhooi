@@ -6,9 +6,11 @@
   <title>Location — DnD Campaign</title>
   <link rel="stylesheet" href="../assets/css/base.css" />
   <link rel="stylesheet" href="../assets/css/location.css" />
+  <link rel="stylesheet" href="../assets/css/lore.css" />
 </head>
 <body>
   <nav>
+    <img src="../Images/EssolisLogo.webp" alt="Essolis Logo" class="nav-logo">
     <ul>
       <li><a href="homepage.html">Home</a></li>
       <li><a href="missions.html">Missions</a></li>
@@ -270,6 +272,21 @@
         </div>
       </div>
 
+      <!-- Library section -->
+      <div id="sh-library-section" style="display:none">
+        <div class="library-section-header">
+          <h3 class="shop-section-title">&#128218; Collection</h3>
+          <div class="lib-filter-tabs" id="lib-filter-tabs">
+            <button class="lib-tab active" data-filter="all">All</button>
+            <button class="lib-tab" data-filter="book">Books</button>
+            <button class="lib-tab" data-filter="scroll">Scrolls</button>
+          </div>
+        </div>
+        <p id="sh-library-count" class="lib-count-text"></p>
+        <p id="sh-library-empty" class="lib-empty-hint" style="display:none">No books or scrolls are stocked in this library yet.</p>
+        <div id="sh-library-grid" class="lib-shelf-grid"></div>
+      </div>
+
       <!-- Inventory -->
       <div class="shop-section" id="sh-inventory-section">
         <div class="shop-section-header">
@@ -304,6 +321,48 @@
       <div class="modal-actions">
         <button id="ld-save" class="dm-btn">Save</button>
         <button id="ld-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Library reader modal -->
+  <div id="lib-reader" class="modal-overlay">
+    <div class="modal-box reader-box">
+      <button id="lib-reader-close" class="reader-close-btn">&times;</button>
+
+      <!-- Book reader -->
+      <div id="lib-reader-book" style="display:none">
+        <div class="reader-book-cover" id="lib-reader-cover">
+          <div class="reader-cover-spine" id="lib-reader-spine"></div>
+          <div class="reader-cover-front">
+            <div class="reader-cover-title" id="lib-reader-cover-title"></div>
+            <div class="reader-cover-writer" id="lib-reader-cover-writer"></div>
+          </div>
+        </div>
+        <div class="reader-page-area">
+          <div class="reader-page" id="lib-reader-page">
+            <h3 class="reader-page-title" id="lib-reader-page-title"></h3>
+            <div class="reader-page-content" id="lib-reader-page-content"></div>
+          </div>
+          <div class="reader-page-nav">
+            <button id="lib-reader-prev" class="reader-nav-btn">&#8592; Prev</button>
+            <span id="lib-reader-page-num" class="reader-page-num"></span>
+            <button id="lib-reader-next" class="reader-nav-btn">Next &#8594;</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scroll reader -->
+      <div id="lib-reader-scroll" style="display:none">
+        <div class="reader-scroll-wrap">
+          <div class="reader-scroll-roll top"></div>
+          <div class="reader-scroll-body">
+            <div class="reader-scroll-title" id="lib-reader-scroll-title"></div>
+            <div class="reader-scroll-writer" id="lib-reader-scroll-writer"></div>
+            <div class="reader-scroll-content" id="lib-reader-scroll-content"></div>
+          </div>
+          <div class="reader-scroll-roll bottom"></div>
+        </div>
       </div>
     </div>
   </div>

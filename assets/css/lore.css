@@ -830,6 +830,90 @@
   font-family: 'Georgia', serif;
 }
 
+/* ── Available-in-library toggle row ──────────────────────────────────────── */
+.lm-library-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #1e1008;
+  border: 1px solid #443322;
+  border-radius: 7px;
+  padding: 10px 14px;
+}
+
+.lm-library-label-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lm-library-label {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: bold;
+}
+
+/* Toggle switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: #3a2510;
+  border: 1px solid #554433;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 16px;
+  height: 16px;
+  background: #666;
+  border-radius: 50%;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: #3a2000;
+  border-color: var(--accent);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+  background: var(--accent);
+}
+
+/* ── Library badge on lore cards ───────────────────────────────────────────── */
+.lore-library-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  font-size: 13px;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 5;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
+}
+
 /* ── Mobile ────────────────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .lore-grid {

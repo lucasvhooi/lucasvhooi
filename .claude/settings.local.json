@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(head -836 \"C:/Users/lhooi/Documents/Github Projects/lucasvhooi/assets/js/combat.js\")",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "WebSearch"
     ]
   }
 }

@@ -2,7 +2,8 @@
 import { db }                                     from "./firebase.js";
 import { ref, set, remove, onValue }              from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
-const markersRef = ref(db, "markers");
+const markersRef   = ref(db, "markers");
+const countriesRef = ref(db, "countries");
 
 // ── Remember last location — redirect if user came back from a location ───────
 const _savedLoc = sessionStorage.getItem("lastLocationId");
@@ -260,9 +261,17 @@ if (isTouchDevice) {
 // ── Marker System ─────────────────────────────────────────────────────────────
 const isAdmin     = localStorage.getItem("isAdmin") === "true";
 let markers       = [];
+let countries     = [];
 let placingMode   = false;
 let pendingCoords = null;
 let editingId     = null;
+
+// ── Country colours ───────────────────────────────────────────────────────────
+const COUNTRY_COLORS = [
+  "#e74c3c","#e67e22","#f1c40f","#2ecc71","#1abc9c",
+  "#3498db","#9b59b6","#e91e63","#00bcd4","#8bc34a",
+  "#ff5722","#78909c"
+];
 
 function saveMarker(marker) {
   set(ref(db, "markers/" + marker.id), marker);
@@ -429,6 +438,7 @@ function openPlaceModal() {
   mExplored.checked = false;
   mNotes.value      = "";
   modalError.textContent = "";
+  populateCountrySelect("");
   markerModal.classList.add("open");
   mName.focus();
 }
@@ -448,6 +458,7 @@ function openEditModal(id) {
   mExplored.checked       = marker.explored   === true;
   mNotes.value            = marker.notes      || "";
   modalError.textContent  = "";
+  populateCountrySelect(marker.countryId || "");
   markerModal.classList.add("open");
   mName.focus();
 }
@@ -490,7 +501,8 @@ mSave.addEventListener("click", () => {
         mainRace:   mMainRace.value          || null,
         religion:   mReligion.value.trim()   || null,
         explored:   mExplored.checked,
-        notes:      mNotes.value.trim()      || null
+        notes:      mNotes.value.trim()      || null,
+        countryId:  mCountry.value           || null
       });
     }
   } else {
@@ -504,6 +516,7 @@ mSave.addEventListener("click", () => {
       religion:   mReligion.value.trim()   || null,
       explored:   mExplored.checked,
       notes:      mNotes.value.trim()      || null,
+      countryId:  mCountry.value           || null,
       x:          pendingCoords.x,
       y:          pendingCoords.y
     });
@@ -531,9 +544,399 @@ if (isAdmin && dmToolbar) {
 }
 
 // ── Firebase Live Sync ────────────────────────────────────────────────────────
-// Fires immediately on load and again whenever any marker is added/edited/deleted
-onValue(markersRef, (snapshot) => {
+onValue(markersRef, snapshot => {
   const data = snapshot.val();
   markers = data ? Object.values(data) : [];
   renderMarkers();
+  renderLocationList();
 });
+
+const DEFAULT_COUNTRIES = [
+  { name: "Gelonus",         color: "#e74c3c" },
+  { name: "Elysium Coloney", color: "#e67e22" },
+  { name: "Arcadia",         color: "#2ecc71" },
+  { name: "Thule",           color: "#3498db" },
+  { name: "Hermesia",        color: "#9b59b6" },
+  { name: "Elysium",         color: "#1abc9c" },
+  { name: "Noxus",           color: "#e91e63" },
+  { name: "Pythos",          color: "#f1c40f" },
+];
+
+let _countriesSeeded = false;
+
+onValue(countriesRef, snapshot => {
+  const data = snapshot.val();
+  countries = data ? Object.values(data) : [];
+
+  // One-time seed on first load when the list is empty
+  if (!_countriesSeeded && countries.length === 0) {
+    _countriesSeeded = true;
+    DEFAULT_COUNTRIES.forEach(c => {
+      const id = generateId();
+      set(ref(db, `countries/${id}`), { id, name: c.name, color: c.color, description: null });
+    });
+    return; // onValue fires again once the writes land
+  }
+  _countriesSeeded = true;
+
+  // Collapse all countries by default on first load
+  if (!_defaultCollapseApplied) {
+    _defaultCollapseApplied = true;
+    countries.forEach(c => collapsedCountries.add(c.id));
+    collapsedCountries.add("__unassigned__");
+  }
+
+  renderLocationList();
+  populateCountrySelect();
+});
+
+// ── Location Panel ────────────────────────────────────────────────────────────
+const locationPanel  = document.getElementById("location-panel");
+const lpOpenBtn      = document.getElementById("lp-open-btn");
+const lpCloseBtn     = document.getElementById("lp-close-btn");
+const lpBody         = document.getElementById("lp-body");
+const lpSearch       = document.getElementById("lp-search");
+const lpAddCountryBtn = document.getElementById("lp-add-country-btn");
+const lpResizeHandle = document.getElementById("lp-resize-handle");
+
+let lpSearchQuery = "";
+const collapsedCountries = new Set();  // ids of collapsed country sections
+let _defaultCollapseApplied = false;
+
+// Show admin-only panel controls
+if (isAdmin) {
+  lpAddCountryBtn.style.display = "inline-flex";
+}
+
+// Prevent clicks/drags on the button and panel from bubbling into the map's
+// pointerdown handler (which would call setPointerCapture and swallow the click).
+lpOpenBtn.addEventListener("pointerdown",      e => e.stopPropagation());
+locationPanel.addEventListener("pointerdown",  e => e.stopPropagation());
+
+// Prevent scrolling inside the panel from zooming the map.
+locationPanel.addEventListener("wheel", e => e.stopPropagation(), { passive: true });
+
+lpOpenBtn.addEventListener("click", e => {
+  e.stopPropagation();
+  locationPanel.classList.add("open");
+  lpOpenBtn.style.display = "none";
+});
+
+lpCloseBtn.addEventListener("click", () => {
+  locationPanel.classList.remove("open");
+  lpOpenBtn.style.display = "flex";
+});
+
+lpSearch.addEventListener("input", () => {
+  lpSearchQuery = lpSearch.value.trim().toLowerCase();
+  renderLocationList();
+});
+
+// ── Panel resize ──────────────────────────────────────────────────────────────
+let isResizing       = false;
+let resizeStartX     = 0;
+let resizeStartWidth = 0;
+const LP_MIN = 200;
+const LP_MAX = 520;
+
+lpResizeHandle.addEventListener("pointerdown", e => {
+  isResizing       = true;
+  resizeStartX     = e.clientX;
+  resizeStartWidth = locationPanel.offsetWidth;
+  document.body.style.userSelect = "none";
+  lpResizeHandle.setPointerCapture(e.pointerId);
+  e.stopPropagation();
+});
+
+lpResizeHandle.addEventListener("pointermove", e => {
+  if (!isResizing) return;
+  const dx = resizeStartX - e.clientX;
+  const w  = Math.min(LP_MAX, Math.max(LP_MIN, resizeStartWidth + dx));
+  locationPanel.style.width = w + "px";
+});
+
+lpResizeHandle.addEventListener("pointerup",     () => { isResizing = false; document.body.style.userSelect = ""; });
+lpResizeHandle.addEventListener("pointercancel", () => { isResizing = false; document.body.style.userSelect = ""; });
+
+// ── Render location list ──────────────────────────────────────────────────────
+function renderLocationList() {
+  lpBody.innerHTML = "";
+
+  const visibleMarkers = markers.filter(m => {
+    if (!isAdmin && m.explored !== true) return false;
+    if (!lpSearchQuery) return true;
+    return (m.name || "").toLowerCase().includes(lpSearchQuery)
+        || (m.type || "").toLowerCase().includes(lpSearchQuery);
+  });
+
+  if (visibleMarkers.length === 0) {
+    lpBody.innerHTML = `<p class="lp-empty">${lpSearchQuery ? "No matches found." : "No locations added yet."}</p>`;
+    return;
+  }
+
+  // Group by country
+  const groups = [];
+  countries.forEach(c => {
+    const items = visibleMarkers.filter(m => m.countryId === c.id);
+    groups.push({ type: "country", country: c, items });
+  });
+  const unassigned = visibleMarkers.filter(m => !m.countryId || !countries.find(c => c.id === m.countryId));
+  if (unassigned.length > 0) {
+    groups.push({ type: "unassigned", items: unassigned });
+  }
+
+  // If no countries exist at all, render a flat list
+  if (countries.length === 0) {
+    visibleMarkers.forEach(m => lpBody.appendChild(buildLocationItem(m)));
+    return;
+  }
+
+  groups.forEach(group => {
+    if (group.items.length === 0 && lpSearchQuery) return; // hide empty groups when searching
+
+    if (group.type === "country") {
+      lpBody.appendChild(buildCountrySection(group.country, group.items));
+    } else {
+      lpBody.appendChild(buildUnassignedSection(group.items));
+    }
+  });
+}
+
+function buildCountrySection(country, items) {
+  const isCollapsed = collapsedCountries.has(country.id);
+  const section = document.createElement("div");
+  section.className = "lp-country-section";
+
+  const header = document.createElement("div");
+  header.className = "lp-country-header";
+  header.innerHTML = `
+    <div class="lp-country-left">
+      <div class="lp-country-dot" style="background:${country.color || "#888"}"></div>
+      <span class="lp-country-name">${esc(country.name)}</span>
+      <span class="lp-country-count">${items.length}</span>
+    </div>
+    <div class="lp-country-right">
+      ${isAdmin ? `
+        <button class="lp-icon-btn lp-edit-country" title="Edit country" data-id="${country.id}">&#9998;</button>
+        <button class="lp-icon-btn lp-del-country"  title="Delete country" data-id="${country.id}">&#128465;</button>
+      ` : ""}
+      <button class="lp-icon-btn lp-collapse-btn" title="${isCollapsed ? "Expand" : "Collapse"}">${isCollapsed ? "&#9654;" : "&#9660;"}</button>
+    </div>
+  `;
+
+  if (country.description) {
+    const desc = document.createElement("div");
+    desc.className = "lp-country-desc";
+    desc.textContent = country.description;
+    header.appendChild(desc);
+  }
+
+  const itemsWrap = document.createElement("div");
+  itemsWrap.className = "lp-country-items" + (isCollapsed ? " collapsed" : "");
+  items.forEach(m => itemsWrap.appendChild(buildLocationItem(m)));
+
+  // Collapse toggle
+  header.querySelector(".lp-collapse-btn").addEventListener("click", e => {
+    e.stopPropagation();
+    if (collapsedCountries.has(country.id)) {
+      collapsedCountries.delete(country.id);
+    } else {
+      collapsedCountries.add(country.id);
+    }
+    renderLocationList();
+  });
+
+  // Edit country
+  if (isAdmin) {
+    header.querySelector(".lp-edit-country").addEventListener("click", e => {
+      e.stopPropagation();
+      openCountryModal(country.id);
+    });
+    header.querySelector(".lp-del-country").addEventListener("click", e => {
+      e.stopPropagation();
+      if (!confirm(`Delete country "${country.name}"? Markers will become unassigned.`)) return;
+      remove(ref(db, `countries/${country.id}`));
+      // Clear countryId from markers
+      markers.filter(m => m.countryId === country.id).forEach(m => {
+        set(ref(db, `markers/${m.id}/countryId`), null);
+      });
+    });
+  }
+
+  section.appendChild(header);
+  section.appendChild(itemsWrap);
+  return section;
+}
+
+function buildUnassignedSection(items) {
+  const isCollapsed = collapsedCountries.has("__unassigned__");
+  const section = document.createElement("div");
+  section.className = "lp-country-section lp-unassigned-section";
+
+  const header = document.createElement("div");
+  header.className = "lp-country-header";
+  header.innerHTML = `
+    <div class="lp-country-left">
+      <div class="lp-country-dot" style="background:#555"></div>
+      <span class="lp-country-name" style="color:#888">Unassigned</span>
+      <span class="lp-country-count">${items.length}</span>
+    </div>
+    <div class="lp-country-right">
+      <button class="lp-icon-btn lp-collapse-btn">${isCollapsed ? "&#9654;" : "&#9660;"}</button>
+    </div>
+  `;
+
+
+  const itemsWrap = document.createElement("div");
+  itemsWrap.className = "lp-country-items" + (isCollapsed ? " collapsed" : "");
+  items.forEach(m => itemsWrap.appendChild(buildLocationItem(m)));
+
+  header.querySelector(".lp-collapse-btn").addEventListener("click", e => {
+    e.stopPropagation();
+    collapsedCountries.has("__unassigned__")
+      ? collapsedCountries.delete("__unassigned__")
+      : collapsedCountries.add("__unassigned__");
+    renderLocationList();
+  });
+
+  section.appendChild(header);
+  section.appendChild(itemsWrap);
+  return section;
+}
+
+function buildLocationItem(marker) {
+  const item = document.createElement("div");
+  item.className = "lp-item";
+
+  const explored = marker.explored === true;
+  item.innerHTML = `
+    <div class="lp-item-dot ${explored ? "lp-dot-explored" : "lp-dot-unexplored"}"></div>
+    <div class="lp-item-info">
+      <span class="lp-item-name">${esc(marker.name)}</span>
+      <span class="lp-item-type">${esc(marker.type || "")}</span>
+    </div>
+    <button class="lp-item-goto" title="Focus on map">&#10148;</button>
+  `;
+
+  item.querySelector(".lp-item-goto").addEventListener("click", e => {
+    e.stopPropagation();
+    focusMarker(marker);
+  });
+
+  item.addEventListener("click", () => {
+    sessionStorage.setItem("lastLocationId", marker.id);
+    window.location.href = `location.html?id=${marker.id}`;
+  });
+
+  return item;
+}
+
+function focusMarker(marker) {
+  _updateCachedRect();
+  const imageX = (marker.x / 100) * mapImage.naturalWidth;
+  const imageY = (marker.y / 100) * mapImage.naturalHeight;
+  originX = _cachedRect.width  / 2 - imageX * scale;
+  originY = _cachedRect.height / 2 - imageY * scale;
+  clampToBounds();
+  updateTransform();
+
+  // Flash the pin
+  const pin = markerLayer.querySelector(`[data-id="${marker.id}"] .marker-pin`);
+  if (pin) {
+    pin.classList.remove("focused");
+    void pin.offsetWidth; // force reflow to restart animation
+    pin.classList.add("focused");
+    setTimeout(() => pin.classList.remove("focused"), 1400);
+  }
+}
+
+function esc(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// ── Country Modal ─────────────────────────────────────────────────────────────
+const countryModal   = document.getElementById("country-modal");
+const cmModalTitle   = document.getElementById("cm-modal-title");
+const cmName         = document.getElementById("cm-name");
+const cmDesc         = document.getElementById("cm-desc");
+const cmColorSwatches = document.getElementById("cm-color-swatches");
+const cmError        = document.getElementById("cm-error");
+const cmSave         = document.getElementById("cm-save");
+const cmCancel       = document.getElementById("cm-cancel");
+
+let editingCountryId  = null;
+let selectedCountryColor = COUNTRY_COLORS[0];
+
+lpAddCountryBtn.addEventListener("click", () => openCountryModal(null));
+
+function openCountryModal(id) {
+  editingCountryId = id;
+  const existing   = id ? countries.find(c => c.id === id) : null;
+  cmModalTitle.textContent     = existing ? "Edit Country" : "Add Country";
+  cmName.value                 = existing ? (existing.name  || "") : "";
+  cmDesc.value                 = existing ? (existing.description || "") : "";
+  selectedCountryColor         = existing ? (existing.color || COUNTRY_COLORS[0]) : COUNTRY_COLORS[0];
+  cmError.textContent          = "";
+  buildCountryColorSwatches();
+  countryModal.classList.add("open");
+  cmName.focus();
+}
+
+function buildCountryColorSwatches() {
+  cmColorSwatches.innerHTML = "";
+  COUNTRY_COLORS.forEach(color => {
+    const sw = document.createElement("div");
+    sw.className = "country-color-swatch" + (color === selectedCountryColor ? " selected" : "");
+    sw.style.background = color;
+    sw.title = color;
+    sw.addEventListener("click", () => {
+      selectedCountryColor = color;
+      cmColorSwatches.querySelectorAll(".country-color-swatch").forEach(s =>
+        s.classList.toggle("selected", s.title === color));
+    });
+    cmColorSwatches.appendChild(sw);
+  });
+}
+
+function closeCountryModal() {
+  countryModal.classList.remove("open");
+  editingCountryId = null;
+}
+
+cmSave.addEventListener("click", () => {
+  const name = cmName.value.trim();
+  if (!name) { cmError.textContent = "Name is required."; return; }
+  const id = editingCountryId || generateId();
+  set(ref(db, `countries/${id}`), {
+    id,
+    name,
+    color:       selectedCountryColor,
+    description: cmDesc.value.trim() || null
+  });
+  closeCountryModal();
+});
+
+cmCancel.addEventListener("click", closeCountryModal);
+countryModal.addEventListener("click", e => { if (e.target === countryModal) closeCountryModal(); });
+
+// ── Country select in marker modal ────────────────────────────────────────────
+const mCountry    = document.getElementById("m-country");
+const mCountryRow = document.getElementById("m-country-row");
+
+if (!isAdmin) mCountryRow.style.display = "none";
+
+function populateCountrySelect(selectedId) {
+  mCountry.innerHTML = `<option value="">— None —</option>`;
+  countries.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value       = c.id;
+    opt.textContent = c.name;
+    opt.style.color = c.color || "";
+    if (c.id === selectedId) opt.selected = true;
+    mCountry.appendChild(opt);
+  });
+}

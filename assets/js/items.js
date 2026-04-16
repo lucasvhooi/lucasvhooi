@@ -1,6 +1,6 @@
 import { db }                          from "./firebase.js";
 import { ref, set, remove, onValue }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
-import { parseTags, formatGold }       from "./item-utils.js";
+import { parseTags, formatGold, getDisplayTags } from "./item-utils.js";
 
 const isAdmin  = localStorage.getItem("isAdmin") === "true";
 
@@ -78,11 +78,7 @@ onValue(itemsRef, snapshot => {
 
 function getAllTags() {
   const set = new Set();
-  items.forEach(item =>
-    parseTags(item.tags)
-      .filter(t => !RARITY_KEYWORDS.has(t))
-      .forEach(t => set.add(t))
-  );
+  items.forEach(item => getDisplayTags(item.tags).forEach(t => set.add(t)));
   return [...set].sort();
 }
 
@@ -123,7 +119,7 @@ function renderItems() {
   }
 
   if (activeTag) {
-    filtered = filtered.filter(i => parseTags(i.tags).includes(activeTag));
+    filtered = filtered.filter(i => getDisplayTags(i.tags).includes(activeTag));
   }
 
   filtered.sort((a, b) => a.name.localeCompare(b.name));
@@ -139,8 +135,7 @@ function renderItems() {
 
     const rarity      = getItemRarity(item);
     const rarityColor = RARITY_COLORS[rarity] || "#9e9e9e";
-    // Filter rarity keywords out of displayed tags
-    const tags = parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t));
+    const tags = getDisplayTags(item.tags);
 
     card.innerHTML = `
       <div class="item-header">

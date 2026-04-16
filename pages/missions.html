@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Missions</title>
+  <title>Quests — DnD Campaign</title>
   <link rel="stylesheet" href="../assets/css/base.css">
   <link rel="stylesheet" href="../assets/css/missions.css">
 </head>
 <body>
   <nav>
+    <img src="../Images/EssolisLogo.webp" alt="Essolis Logo" class="nav-logo">
     <ul>
       <li><a href="homepage.html">Home</a></li>
       <li><a href="missions.html">Missions</a></li>
@@ -20,13 +21,101 @@
     </ul>
   </nav>
 
-  <section>
-    <h1>Missions</h1>
-    <p>Select a location to view its missions:</p>
-    <div class="location-list" id="location-list"></div>
-  </section>
+  <!-- Hero with "+ New Quest" button pinned top-right -->
+  <header class="quest-hero">
+    <button id="quest-add-btn" class="dm-btn quest-hero-add-btn" style="display:none">+ New Quest</button>
+    <h1 class="quest-title">Quests</h1>
+    <p class="quest-subtitle">Missions and adventures across Enora</p>
+    <div class="quest-filter-tabs">
+      <button class="quest-tab active" data-filter="all">All</button>
+      <button class="quest-tab" data-filter="main">Main</button>
+      <button class="quest-tab" data-filter="side">Side</button>
+      <button class="quest-tab" data-filter="active">Active</button>
+      <button class="quest-tab" data-filter="completed">Completed</button>
+    </div>
+  </header>
 
-  <script src="../assets/js/missions.js"></script>
+  <main class="quest-main">
+    <div id="quest-grid" class="quest-grid"></div>
+    <p id="quest-empty" class="quest-empty" style="display:none">No quests found.</p>
+  </main>
+
+  <!-- Quest Editor Modal -->
+  <div id="quest-modal" class="modal-overlay">
+    <div class="modal-box quest-edit-box">
+
+      <!-- Modal header -->
+      <div class="qm-header">
+        <h2 id="qm-title">New Quest</h2>
+        <button class="qm-close-btn" id="qm-cancel" title="Close">&#10005;</button>
+      </div>
+
+      <!-- Meta row 1: Title + Location -->
+      <div class="qm-meta-row">
+        <div class="qm-meta-field qm-meta-title">
+          <label class="qm-label">Title <span class="required">*</span></label>
+          <input type="text" id="qm-name" class="qm-input" placeholder="Quest title…" />
+        </div>
+        <div class="qm-meta-field qm-meta-location">
+          <label class="qm-label">Location</label>
+          <div class="qm-location-wrap">
+            <input type="text" id="qm-location" class="qm-input" placeholder="Search map locations…" autocomplete="off" />
+            <div id="qm-location-drop" class="loc-dropdown" style="display:none"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meta row 2: Type + Status + Visibility -->
+      <div class="qm-meta-row">
+        <div class="qm-meta-field">
+          <label class="qm-label">Type</label>
+          <div class="quest-type-selector" id="qm-type-selector">
+            <button type="button" class="quest-type-btn active" data-type="main">&#9876; Main</button>
+            <button type="button" class="quest-type-btn" data-type="side">&#10022; Side</button>
+          </div>
+        </div>
+        <div class="qm-meta-field">
+          <label class="qm-label">Status</label>
+          <select id="qm-status" class="qm-select">
+            <option value="not_started">Not Started</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div class="qm-meta-field qm-meta-discovered">
+          <label class="qm-label">Visibility</label>
+          <label class="qm-toggle-label">
+            <input type="checkbox" id="qm-discovered" class="qm-toggle-input" />
+            <span class="qm-toggle-track"><span class="qm-toggle-thumb"></span></span>
+            <span class="qm-toggle-text">Visible to players</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Block palette -->
+      <div class="qm-palette">
+        <span class="qm-palette-label">Add block:</span>
+        <button type="button" class="qm-add-block-btn" data-block-type="text"    title="Text paragraph">&#182; Text</button>
+        <button type="button" class="qm-add-block-btn" data-block-type="phase"   title="Quest phase">&#9654; Phase</button>
+        <button type="button" class="qm-add-block-btn" data-block-type="loot"    title="Loot entry">&#127873; Loot</button>
+        <button type="button" class="qm-add-block-btn" data-block-type="boss"    title="Boss / Enemy">&#9760; Boss</button>
+        <button type="button" class="qm-add-block-btn" data-block-type="note"    title="DM Note">&#128196; Note</button>
+        <button type="button" class="qm-add-block-btn" data-block-type="puzzle"  title="Puzzle">&#129513; Puzzle</button>
+        <button type="button" class="qm-add-block-btn" data-block-type="divider" title="Divider">&#8213; Divider</button>
+      </div>
+
+      <!-- 4-column block canvas -->
+      <div id="qm-block-canvas" class="qm-block-canvas"></div>
+
+      <div id="qm-error" class="modal-error"></div>
+      <div class="qm-footer">
+        <button id="qm-save" class="dm-btn qm-save-btn">Save Quest</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module" src="../assets/js/missions.js"></script>
   <script src="../assets/js/base.js"></script>
 </body>
 </html>

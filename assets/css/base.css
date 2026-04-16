@@ -32,11 +32,22 @@ a:hover {
 nav {
   background: linear-gradient(180deg, #2a1505 0%, #1c0e03 100%);
   border-bottom: 1px solid #3a2510;
-  padding: 0 24px;
+  padding: 10px 24px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.6);
   position: sticky;
   top: 0;
   z-index: 100;
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo {
+  height: 50px;
+  width: auto;
+  flex-shrink: 0;
+  margin-right: 8px;
+  display: block;
+  filter: brightness(0) saturate(100%) invert(84%) sepia(63%) saturate(600%) hue-rotate(315deg) brightness(108%);
 }
 
 nav ul {
@@ -47,6 +58,7 @@ nav ul {
   justify-content: center;
   gap: 4px;
   flex-wrap: wrap;
+  flex: 1;
 }
 
 /* Hidden by default; base.js un-hides for admins */

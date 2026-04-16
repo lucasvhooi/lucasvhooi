@@ -9,6 +9,7 @@
 </head>
 <body>
   <nav>
+    <img src="../Images/EssolisLogo.webp" alt="Essolis Logo" class="nav-logo">
     <ul>
       <li><a href="homepage.html">Home</a></li>
       <li><a href="missions.html">Missions</a></li>
@@ -45,6 +46,7 @@
       <div class="overlay-header">
         <span class="overlay-title">Initiative</span>
         <div class="list-actions">
+          <button id="btn-enemy-list" class="ctrl-btn ctrl-btn-secondary">&#9760; Enemies</button>
           <button id="btn-sort"  class="ctrl-btn ctrl-btn-secondary">&#8645;</button>
           <button id="btn-clear" class="ctrl-btn ctrl-btn-danger">&#10005;</button>
           <button id="btn-add"   class="ctrl-btn ctrl-btn-primary">+ Add</button>
@@ -53,7 +55,7 @@
       <div id="combatant-list" class="combatant-list"></div>
     </aside>
 
-    <!-- Right: combat log -->
+    <!-- Middle: combat log -->
     <aside class="overlay-panel overlay-right">
       <div class="overlay-header">
         <span class="overlay-title">Combat Log</span>
@@ -64,9 +66,20 @@
       </div>
     </aside>
 
+    <!-- Right: loot panel -->
+    <aside class="overlay-panel overlay-loot">
+      <div class="overlay-header">
+        <span class="overlay-title">&#128176; Loot</span>
+        <button id="btn-clear-loot" class="ctrl-btn ctrl-btn-secondary">&#10005;</button>
+      </div>
+      <div id="loot-panel" class="loot-panel">
+        <p class="loot-panel-empty">Loot drops when enemies fall.</p>
+      </div>
+    </aside>
+
   </div>
 
-  <!-- ── Attack bar (fixed bottom — click a card to start) ── -->
+  <!-- ── Attack bar (fixed bottom — double-click a card to attack) ── -->
   <div id="field-attack-bar" class="field-attack-bar" style="display:none">
     <span class="attack-bar-attacker" id="attack-attacker-name">—</span>
     <span class="attack-bar-arrow">&#9658;</span>
@@ -135,6 +148,41 @@
             <input type="text" id="cm-notes" placeholder="e.g. Fire resist, flying, rage…" />
           </label>
         </div>
+
+        <!-- Loot table (enemies only) -->
+        <div id="cm-loot-rows" style="display:none">
+          <div class="loot-section-divider">&#128176; Loot Table</div>
+          <div class="form-row two-col">
+            <label>Min Gold (gp)
+              <input type="number" id="cm-loot-gp-min" value="0" min="0" max="9999" />
+            </label>
+            <label>Max Gold (gp)
+              <input type="number" id="cm-loot-gp-max" value="0" min="0" max="9999" />
+            </label>
+          </div>
+          <div class="form-row two-col">
+            <label>Min Items
+              <input type="number" id="cm-loot-items-min" value="0" min="0" max="10" />
+            </label>
+            <label>Max Items
+              <input type="number" id="cm-loot-items-max" value="0" min="0" max="10" />
+            </label>
+          </div>
+          <div class="form-row">
+            <span class="field-label">Item Tags <span class="field-hint">click to toggle — pulls from your Items tab</span></span>
+            <div class="loot-tag-grid" id="cm-loot-tags">
+              <button type="button" class="loot-tag-btn" data-tag="weapon">&#9876; Weapon</button>
+              <button type="button" class="loot-tag-btn" data-tag="armor">&#128737; Armor</button>
+              <button type="button" class="loot-tag-btn" data-tag="potion">&#9879; Potion</button>
+              <button type="button" class="loot-tag-btn" data-tag="magic">&#10024; Magic</button>
+              <button type="button" class="loot-tag-btn" data-tag="tool">&#128296; Tool</button>
+              <button type="button" class="loot-tag-btn" data-tag="food">&#127837; Food</button>
+              <button type="button" class="loot-tag-btn" data-tag="book">&#128218; Book</button>
+              <button type="button" class="loot-tag-btn" data-tag="misc">&#128230; Misc</button>
+            </div>
+          </div>
+        </div>
+
       </div>
       <div id="cm-error" class="modal-error"></div>
       <div class="modal-actions">
@@ -164,6 +212,216 @@
     <div id="condition-grid" class="condition-grid"></div>
   </div>
 
+  <!-- ══════════ Enemy Templates Modal ══════════ -->
+  <div id="enemy-templates-modal" class="modal-overlay enemy-modal-overlay">
+    <div class="enemy-modal-box">
+
+      <!-- Header -->
+      <div class="enemy-modal-header">
+        <span class="enemy-modal-title">&#9760; Enemy Templates</span>
+        <button id="enemy-modal-close" class="enemy-close-btn">&times;</button>
+      </div>
+
+      <div class="enemy-modal-body">
+
+        <!-- Left: template list -->
+        <div class="enemy-list-panel">
+          <div class="enemy-list-toolbar">
+            <input type="text" id="enemy-search" class="enemy-search-input" placeholder="Search…" />
+            <button id="btn-new-enemy" class="ctrl-btn ctrl-btn-primary">+ New</button>
+          </div>
+          <div id="enemy-template-list" class="enemy-template-list"></div>
+        </div>
+
+        <!-- Right: editor -->
+        <div class="enemy-editor-panel" id="enemy-editor-panel">
+          <div class="enemy-editor-empty" id="enemy-editor-empty">
+            <div class="empty-icon">&#9760;</div>
+            <p>Select a template or create a new one.</p>
+          </div>
+
+          <div id="enemy-editor-form" style="display:none">
+
+            <!-- Basic stats -->
+            <div class="editor-section">
+              <div class="editor-section-title">Identity</div>
+              <div class="editor-field-row">
+                <label class="editor-label">Name <span class="req">*</span>
+                  <input type="text" id="et-name" placeholder="e.g. Forest Bandit" />
+                </label>
+              </div>
+              <div class="editor-field-row five-col">
+                <label class="editor-label">Max HP
+                  <input type="number" id="et-hp" placeholder="11" min="1" max="9999" />
+                </label>
+                <label class="editor-label">AC
+                  <input type="number" id="et-ac" placeholder="12" min="0" max="30" />
+                </label>
+                <label class="editor-label">Init Mod
+                  <input type="number" id="et-init-mod" placeholder="+1" min="-5" max="10" />
+                </label>
+                <label class="editor-label">CR
+                  <input type="text" id="et-cr" placeholder="1/4" />
+                </label>
+                <label class="editor-label">Speed
+                  <input type="text" id="et-speed" placeholder="30 ft." />
+                </label>
+              </div>
+              <div class="editor-field-row">
+                <label class="editor-label">Notes
+                  <input type="text" id="et-notes" placeholder="e.g. Fire resist, multiattack…" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Ability Scores -->
+            <div class="editor-section">
+              <div class="editor-section-title">Ability Scores</div>
+              <div class="editor-field-row six-col">
+                <label class="editor-label">STR
+                  <input type="number" id="et-str" class="et-stat-input" placeholder="10" min="1" max="30" />
+                  <span class="et-stat-mod" id="et-str-mod">—</span>
+                </label>
+                <label class="editor-label">DEX
+                  <input type="number" id="et-dex" class="et-stat-input" placeholder="10" min="1" max="30" />
+                  <span class="et-stat-mod" id="et-dex-mod">—</span>
+                </label>
+                <label class="editor-label">CON
+                  <input type="number" id="et-con" class="et-stat-input" placeholder="10" min="1" max="30" />
+                  <span class="et-stat-mod" id="et-con-mod">—</span>
+                </label>
+                <label class="editor-label">INT
+                  <input type="number" id="et-int" class="et-stat-input" placeholder="10" min="1" max="30" />
+                  <span class="et-stat-mod" id="et-int-mod">—</span>
+                </label>
+                <label class="editor-label">WIS
+                  <input type="number" id="et-wis" class="et-stat-input" placeholder="10" min="1" max="30" />
+                  <span class="et-stat-mod" id="et-wis-mod">—</span>
+                </label>
+                <label class="editor-label">CHA
+                  <input type="number" id="et-cha" class="et-stat-input" placeholder="10" min="1" max="30" />
+                  <span class="et-stat-mod" id="et-cha-mod">—</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Attacks -->
+            <div class="editor-section">
+              <div class="editor-section-title-row">
+                <span class="editor-section-title">&#9876; Attacks</span>
+                <button type="button" id="et-add-attack-btn" class="ctrl-btn ctrl-btn-sm">+ Add Attack</button>
+              </div>
+              <div id="et-attacks-list" class="et-attacks-list"></div>
+            </div>
+
+            <!-- Additional info -->
+            <div class="editor-section">
+              <div class="editor-section-title">Additional Info</div>
+              <div class="editor-field-row three-col">
+                <label class="editor-label">Saving Throws
+                  <input type="text" id="et-saves" placeholder="Str +3, Con +2…" />
+                </label>
+                <label class="editor-label">Condition Immunities
+                  <input type="text" id="et-cond-imm" placeholder="Frightened, Charmed…" />
+                </label>
+                <label class="editor-label">Languages
+                  <input type="text" id="et-languages" placeholder="Common, Elvish…" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Loot -->
+            <div class="editor-section">
+              <div class="editor-section-title">&#128176; Loot Table</div>
+              <div class="editor-field-row four-col">
+                <label class="editor-label">Min Gold (gp)
+                  <input type="number" id="et-gp-min" value="0" min="0" max="9999" />
+                </label>
+                <label class="editor-label">Max Gold (gp)
+                  <input type="number" id="et-gp-max" value="0" min="0" max="9999" />
+                </label>
+                <label class="editor-label">Min Items
+                  <input type="number" id="et-items-min" value="0" min="0" max="20" />
+                </label>
+                <label class="editor-label">Max Items
+                  <input type="number" id="et-items-max" value="0" min="0" max="20" />
+                </label>
+              </div>
+
+              <!-- Item picker -->
+              <div class="editor-field-row">
+                <label class="editor-label">Add Item from List</label>
+                <div class="item-picker-wrap">
+                  <input type="text" id="et-item-search" class="item-picker-search" placeholder="Search items…" autocomplete="off" />
+                  <div id="et-item-results" class="item-picker-results" style="display:none"></div>
+                </div>
+              </div>
+
+              <!-- Loot item list -->
+              <div id="et-loot-items" class="et-loot-items">
+                <p class="et-loot-empty" id="et-loot-empty">No items added yet.</p>
+              </div>
+            </div>
+
+            <!-- Footer actions -->
+            <div class="editor-footer">
+              <div class="editor-footer-left">
+                <button id="et-delete-btn" class="ctrl-btn ctrl-btn-danger">&#10005; Delete</button>
+              </div>
+              <div class="editor-footer-right">
+                <button id="et-save-btn" class="ctrl-btn ctrl-btn-primary">&#10003; Save Template</button>
+                <div class="add-to-combat-group">
+                  <input type="number" id="et-spawn-count" value="1" min="1" max="20" class="spawn-count-input" title="Count" />
+                  <button id="et-spawn-btn" class="ctrl-btn" style="background:#1a3a1a;color:#a5d6a7;border:1px solid #2a6a2a">&#9876; Add to Combat</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="et-error" class="modal-error" style="text-align:left;margin-top:6px"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase bridge: items + enemy templates -->
+  <script type="module">
+    import { db } from "../assets/js/firebase.js";
+    import { ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+    // Items (for loot generation)
+    window._combatItems = [];
+    window._saveItem = item => set(ref(db, "items/" + item.id), item);
+    onValue(ref(db, "items"), snap => {
+      window._combatItems = snap.val() ? Object.values(snap.val()) : [];
+    });
+
+    // System flags (seeding version)
+    window._systemFlags = undefined; // undefined = not yet loaded
+    window._setSystemFlag = (key, val) => set(ref(db, "system/" + key), val);
+    onValue(ref(db, "system"), snap => {
+      window._systemFlags = snap.val() || {};
+      window._onSystemFlagsLoaded?.();
+    });
+
+    // Enemy templates
+    window._enemyTemplates       = [];
+    window._enemyTemplatesLoaded = false;
+
+    window._saveEnemyTemplate = tmpl =>
+      set(ref(db, "enemyTemplates/" + tmpl.id), tmpl);
+
+    window._deleteEnemyTemplate = id =>
+      remove(ref(db, "enemyTemplates/" + id));
+
+    onValue(ref(db, "enemyTemplates"), snap => {
+      const data = snap.val();
+      window._enemyTemplates = data ? Object.values(data) : [];
+      window._enemyTemplatesLoaded = true;
+      window._onEnemyTemplatesUpdate?.();
+    });
+  </script>
   <script src="../assets/js/combat.js"></script>
   <script src="../assets/js/base.js"></script>
 </body>
