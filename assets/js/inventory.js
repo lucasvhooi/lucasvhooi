@@ -86,8 +86,10 @@ function renderGrid() {
     : [];
 
   const filtered = activeFilter === "all"
-    ? items
-    : items.filter(it => it.type === activeFilter);
+    ? items.filter(it => it.type !== "book" && it.type !== "scroll")
+    : activeFilter === "books-scrolls"
+      ? items.filter(it => it.type === "book" || it.type === "scroll")
+      : items.filter(it => it.type === activeFilter);
 
   // Stack identical items (same name + type)
   const stackMap = {};
@@ -103,7 +105,12 @@ function renderGrid() {
   const visible = Object.values(stackMap);
 
   if (visible.length === 0) {
-    invGrid.innerHTML = `<p class="inv-empty">${items.length === 0 ? "No items yet. Ask your DM for loot!" : "No items in this category."}</p>`;
+    const baseItems = items.filter(it => it.type !== "book" && it.type !== "scroll");
+    const loreItems = items.filter(it => it.type === "book" || it.type === "scroll");
+    let msg = "No items in this category.";
+    if (activeFilter === "all" && baseItems.length === 0)       msg = "No items yet. Ask your DM for loot!";
+    if (activeFilter === "books-scrolls" && loreItems.length === 0) msg = "No books or scrolls yet.";
+    invGrid.innerHTML = `<p class="inv-empty">${msg}</p>`;
     return;
   }
 
@@ -232,6 +239,8 @@ function buildGenericCard(item, ownerId) {
   const rarity      = item.rarity || null;
   const rarityColor = rarity ? (RARITY_COLORS[rarity] || "#9e9e9e") : null;
 
+  if (rarityColor) card.style.setProperty("--rc", rarityColor);
+
   card.innerHTML = `
     <div class="inv-card-body">
       <div class="inv-card-top">
@@ -241,7 +250,7 @@ function buildGenericCard(item, ownerId) {
           <div class="inv-badges">
             <span class="inv-type-badge inv-badge-${item.type || "misc"}">${TYPE_LABEL[item.type] || "Misc"}</span>
             ${stackQtyBadge(item)}
-            ${rarityColor ? `<span class="inv-rarity-dot" style="background:${rarityColor}" title="${esc(rarity)}"></span><span class="inv-rarity-label" style="color:${rarityColor}">${esc(rarity)}</span>` : ""}
+            ${rarity ? `<span class="inv-rarity-label" style="color:${rarityColor}">${esc(rarity)}</span>` : ""}
           </div>
         </div>
       </div>

@@ -139,8 +139,9 @@
 
 /* ── Item Card ── */
 .item-card {
-  background: var(--panel);
-  border: 1px solid #3a2510;
+  --rc: #3a2510;
+  background: color-mix(in srgb, var(--rc) 22%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--rc) 65%, #1a1a1a);
   border-radius: 10px;
   padding: 16px 18px;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -151,7 +152,7 @@
   cursor: pointer;
 }
 .item-card:hover {
-  border-color: #554433;
+  border-color: color-mix(in srgb, var(--rc) 70%, #1a1a1a);
   box-shadow: 0 2px 14px rgba(0,0,0,0.4);
 }
 
@@ -163,13 +164,6 @@
   margin-bottom: 8px;
 }
 
-.item-rarity-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  box-shadow: 0 0 4px rgba(0,0,0,0.5);
-}
 
 .item-name {
   font-family: 'IM Fell English', 'Garamond', serif;

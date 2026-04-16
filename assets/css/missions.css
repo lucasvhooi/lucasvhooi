@@ -727,7 +727,7 @@
   .qm-ghost-cell { grid-column: span 1 !important; }
   .quest-edit-box { width: 100vw; max-height: 100vh; border-radius: 0; }
   .qc-actions { flex-direction: row; padding: 0 10px 10px; }
-  .quest-hero-add-btn { position: static; display: block !important; margin: 0 auto 12px; }
+  .quest-hero-add-btn { position: static; margin: 0 auto 12px; }
   .qm-meta-row { padding: 10px 14px 0; gap: 10px; }
   .qm-palette { padding: 10px 12px 8px; }
   .qm-header { padding-left: 14px; padding-right: 14px; }

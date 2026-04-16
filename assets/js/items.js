@@ -138,9 +138,10 @@ function renderItems() {
     const rarityColor = RARITY_COLORS[rarity] || "#9e9e9e";
     const tags = getDisplayTags(item.tags);
 
+    card.style.setProperty("--rc", rarityColor);
+
     card.innerHTML = `
       <div class="item-header">
-        <div class="item-rarity-dot" style="background:${rarityColor}" title="${rarity}"></div>
         <div class="item-name">${item.name}</div>
         <div class="item-price-badge">${formatGold(item.price)}</div>
       </div>

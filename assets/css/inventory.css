@@ -97,6 +97,22 @@
 .inv-tab:hover { border-color: var(--accent); color: var(--accent); }
 .inv-tab.active { background: rgba(255,204,102,0.1); border-color: var(--accent); color: var(--accent); }
 
+/* Books & Scrolls tab — separated with a left gap */
+.inv-tab-lore {
+  margin-left: 10px;
+  border-left: 1px solid #3a2510;
+  position: relative;
+}
+.inv-tab-lore::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 20%;
+  height: 60%;
+  width: 1px;
+  background: #3a2510;
+}
+
 /* ── Main grid ──────────────────────────────────────────────────────────────── */
 .inv-main {
   width: 95%;
@@ -123,8 +139,9 @@
 
 /* ── Regular item card ──────────────────────────────────────────────────────── */
 .inv-card {
-  background: linear-gradient(160deg, #221508 0%, #1a1008 100%);
-  border: 1px solid #3a2510;
+  --rc: #3a2510;
+  background: color-mix(in srgb, var(--rc) 22%, #1a1008);
+  border: 1px solid color-mix(in srgb, var(--rc) 65%, #1a1a1a);
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -134,22 +151,10 @@
   flex: 1 1 220px;
   max-width: 340px;
 }
-.inv-card:hover { border-color: #6a4a2a; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
-
-/* Left accent bar per type */
-.inv-card::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  border-radius: 12px 0 0 12px;
+.inv-card:hover {
+  border-color: color-mix(in srgb, var(--rc) 70%, #1a1a1a);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
 }
-.inv-card[data-type="weapon"]::before  { background: #e05050; }
-.inv-card[data-type="armor"]::before   { background: #5080e0; }
-.inv-card[data-type="potion"]::before  { background: #50c050; }
-.inv-card[data-type="scroll"]::before  { background: #c8a45c; }
-.inv-card[data-type="book"]::before    { background: #9c5fff; }
-.inv-card[data-type="misc"]::before    { background: #888; }
 
 .inv-card-body {
   padding: 14px 16px 10px 20px;
@@ -211,14 +216,6 @@
   border-radius: 10px;
   color: var(--accent);
   padding: 1px 7px;
-}
-
-.inv-rarity-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  display: inline-block;
 }
 
 .inv-rarity-label {
@@ -675,10 +672,9 @@
   .inv-hero-title { font-size: 1.5rem; }
   .inv-hero-sub { font-size: 13px; margin-bottom: 10px; }
 
-  /* Admin buttons: stack naturally */
+  /* Admin buttons: stack naturally (display controlled by JS) */
   .inv-add-btn, .manage-btn {
     position: static;
-    display: flex !important;
     width: auto;
     margin: 0 4px 8px;
     justify-content: center;

@@ -257,20 +257,39 @@ nav.nav-open .nav-hamburger span:nth-child(3) { transform: translateY(-7px) rota
 .nav-backdrop.open { display: block; }
 
 @media (max-width: 768px) {
+  /* Hide the nav bar entirely — no banner, no logo */
   nav {
-    padding: 0 14px;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 99;
+    height: 0;
+    padding: 0;
+    border-bottom: none;
+    box-shadow: none;
+    background: none;
+    overflow: visible;
+    position: static;
   }
 
+  .nav-logo {
+    display: none;
+  }
+
+  /* Floating hamburger button — fixed top-right */
   .nav-hamburger {
     display: flex;
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 200;
+    background: rgba(28, 12, 3, 0.88);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid #5a3510;
+    border-radius: 8px;
+    padding: 8px 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.55);
   }
 
+  /* Right-side drawer */
   nav ul {
-    /* Right-side drawer */
     position: fixed;
     top: 0;
     right: 0;
@@ -283,11 +302,10 @@ nav.nav-open .nav-hamburger span:nth-child(3) { transform: translateY(-7px) rota
     background: linear-gradient(180deg, #2a1505 0%, #1c0e03 100%);
     border-left: 1px solid #3a2510;
     box-shadow: -4px 0 24px rgba(0,0,0,0.7);
-    z-index: 99;
+    z-index: 199;
     transform: translateX(100%);
     transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
     overflow-y: auto;
-    /* always in the flow as flex, just off-screen */
     display: flex;
   }
 
@@ -319,9 +337,5 @@ nav.nav-open .nav-hamburger span:nth-child(3) { transform: translateY(-7px) rota
   nav a:hover,
   nav a.active {
     background: rgba(200,164,92,0.1);
-  }
-
-  .nav-logo {
-    height: 42px;
   }
 }
