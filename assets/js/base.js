@@ -58,19 +58,33 @@
     burger.innerHTML = "<span></span><span></span><span></span>";
     nav.appendChild(burger);
 
+    // Backdrop element (sits behind the drawer)
+    const backdrop = document.createElement("div");
+    backdrop.className = "nav-backdrop";
+    document.body.appendChild(backdrop);
+
+    function openNav() {
+      nav.classList.add("nav-open");
+      backdrop.classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+    function closeNav() {
+      nav.classList.remove("nav-open");
+      backdrop.classList.remove("open");
+      document.body.style.overflow = "";
+    }
+
     burger.addEventListener("click", e => {
       e.stopPropagation();
-      nav.classList.toggle("nav-open");
+      nav.classList.contains("nav-open") ? closeNav() : openNav();
     });
 
     // Close when clicking a nav link
     nav.querySelectorAll("a").forEach(a => {
-      a.addEventListener("click", () => nav.classList.remove("nav-open"));
+      a.addEventListener("click", () => closeNav());
     });
 
-    // Close when clicking outside
-    document.addEventListener("click", e => {
-      if (!nav.contains(e.target)) nav.classList.remove("nav-open");
-    });
+    // Close when clicking the backdrop
+    backdrop.addEventListener("click", () => closeNav());
   }
 })();
