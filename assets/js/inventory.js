@@ -213,6 +213,15 @@ function buildScrollCard(item, ownerId) {
   return wrap;
 }
 
+// Rarity colours (matches items.js)
+const RARITY_COLORS = {
+  "common":    "#9e9e9e",
+  "uncommon":  "#4caf50",
+  "rare":      "#2196f3",
+  "very rare": "#9c27b0",
+  "legendary": "#ff9800",
+};
+
 // Standard item card for weapons / armor / potions / misc
 function buildGenericCard(item, ownerId) {
   const card = document.createElement("div");
@@ -220,6 +229,8 @@ function buildGenericCard(item, ownerId) {
   card.dataset.type = item.type || "misc";
 
   const giverName = item.givenBy && allUsers[item.givenBy] ? allUsers[item.givenBy].username : (item.givenBy === "admin" ? "DM" : null);
+  const rarity      = item.rarity || null;
+  const rarityColor = rarity ? (RARITY_COLORS[rarity] || "#9e9e9e") : null;
 
   card.innerHTML = `
     <div class="inv-card-body">
@@ -230,7 +241,7 @@ function buildGenericCard(item, ownerId) {
           <div class="inv-badges">
             <span class="inv-type-badge inv-badge-${item.type || "misc"}">${TYPE_LABEL[item.type] || "Misc"}</span>
             ${stackQtyBadge(item)}
-            ${item.value ? `<span class="inv-value">${esc(item.value)}</span>` : ""}
+            ${rarityColor ? `<span class="inv-rarity-dot" style="background:${rarityColor}" title="${esc(rarity)}"></span><span class="inv-rarity-label" style="color:${rarityColor}">${esc(rarity)}</span>` : ""}
           </div>
         </div>
       </div>

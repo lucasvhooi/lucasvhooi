@@ -98,6 +98,7 @@ async function giveToInventory(playerId, itemData) {
     quantity:    itemData.quantity    || 1,
     value:       itemData.value       || null,
     content:     itemData.content     || null,
+    rarity:      itemData.rarity      || null,
     givenBy:     session.id           || "admin",
     timestamp:   Date.now(),
   };

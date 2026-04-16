@@ -213,10 +213,19 @@
   padding: 1px 7px;
 }
 
-.inv-value {
-  font-size: 12px;
-  color: #c8a45c;
-  font-style: italic;
+.inv-rarity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.inv-rarity-label {
+  font-size: 11px;
+  text-transform: capitalize;
+  letter-spacing: 0.04em;
+  font-family: sans-serif;
 }
 
 .inv-desc {

@@ -179,6 +179,7 @@ function renderItems() {
           quantity:    1,
           value:       item.price ? formatGold(item.price) : null,
           content:     null,
+          rarity:      getItemRarity(item),
         });
       });
     }
