@@ -1,22 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DnD Campaign Login</title>
-  <link rel="stylesheet" href="assets/css/base.css" />
-  <link rel="stylesheet" href="assets/css/login.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — DnD Campaign</title>
+  <link rel="stylesheet" href="assets/css/base.css">
+  <style>
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+
+    .login-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    .login-card {
+      background: linear-gradient(160deg, #221508 0%, #181008 100%);
+      border: 1px solid #3a2510;
+      border-radius: 16px;
+      padding: 40px 36px 32px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+    }
+
+    .login-logo {
+      display: block;
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 18px;
+      filter: brightness(0) saturate(100%) invert(84%) sepia(63%) saturate(600%) hue-rotate(315deg) brightness(108%);
+    }
+
+    .login-title {
+      font-family: 'IM Fell English', 'Garamond', serif;
+      font-size: 1.7rem;
+      color: var(--accent);
+      text-align: center;
+      margin: 0 0 6px;
+      letter-spacing: 0.05em;
+    }
+
+    .login-sub {
+      text-align: center;
+      color: #888;
+      font-size: 13px;
+      font-style: italic;
+      margin: 0 0 28px;
+    }
+
+    .login-field {
+      margin-bottom: 16px;
+    }
+
+    .login-label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 6px;
+    }
+
+    .login-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid #3a2510;
+      border-radius: 8px;
+      padding: 11px 14px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: var(--font);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .login-input:focus { border-color: var(--accent); }
+
+    .login-btn {
+      width: 100%;
+      margin-top: 8px;
+      background: linear-gradient(135deg, #4a2c0a 0%, #6b3e10 100%);
+      border: 1px solid #c8a45c;
+      border-radius: 8px;
+      color: var(--accent);
+      font-family: 'IM Fell English', 'Garamond', serif;
+      font-size: 16px;
+      letter-spacing: 0.08em;
+      padding: 13px;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .login-btn:hover {
+      background: linear-gradient(135deg, #5a380f 0%, #7a4a18 100%);
+      box-shadow: 0 0 16px rgba(200,164,92,0.25);
+    }
+
+    .login-error {
+      background: rgba(200,50,50,0.12);
+      border: 1px solid rgba(200,50,50,0.3);
+      border-radius: 6px;
+      color: #e07070;
+      font-size: 13px;
+      padding: 9px 12px;
+      margin-top: 14px;
+      display: none;
+    }
+    .login-error.show { display: block; }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="login-container">
-    <h1>Login</h1>
-    <input type="password" id="admin-password" placeholder="Admin Password" />
-    <div class="actions">
-      <button id="admin-login">Login as DM</button>
-      <button id="player-login">Login as Player</button>
+  <div class="login-wrap">
+    <div class="login-card">
+      <img src="Images/EssolisLogo.webp" alt="Essolis" class="login-logo">
+      <h1 class="login-title">Enter the Realm</h1>
+      <p class="login-sub">The Legends of Essolis</p>
+
+      <div class="login-field">
+        <label class="login-label" for="login-user">Username</label>
+        <input class="login-input" id="login-user" type="text" placeholder="Your adventurer name…" autocomplete="username" />
+      </div>
+      <div class="login-field">
+        <label class="login-label" for="login-pass">Password</label>
+        <input class="login-input" id="login-pass" type="password" placeholder="Secret passphrase…" autocomplete="current-password" />
+      </div>
+
+      <button class="login-btn" id="login-btn">&#9876; Enter the Realm</button>
+      <div class="login-error" id="login-error"></div>
     </div>
-    <div class="error-message" id="error-message"></div>
   </div>
-  <script src="assets/js/login.js"></script>
+
+  <script type="module">
+    import { db }                    from "./assets/js/firebase.js";
+    import { ref, get }              from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { hashPassword, saveSession, getSession } from "./assets/js/auth.js";
+
+    // If already logged in, skip
+    if (getSession()) window.location.href = "pages/inventory.html";
+
+    const btn   = document.getElementById("login-btn");
+    const err   = document.getElementById("login-error");
+    const uInp  = document.getElementById("login-user");
+    const pInp  = document.getElementById("login-pass");
+
+    async function doLogin() {
+      err.classList.remove("show");
+      const username = uInp.value.trim();
+      const password = pInp.value;
+      if (!username || !password) { showErr("Please enter both username and password."); return; }
+
+      btn.disabled = true;
+      btn.textContent = "Checking…";
+      try {
+        const hash = await hashPassword(password);
+        const snap = await get(ref(db, "users"));
+        const data = snap.val();
+        if (!data) { showErr("No accounts found. Ask your DM."); return; }
+
+        const user = Object.values(data).find(u =>
+          u.username?.toLowerCase() === username.toLowerCase() && u.passwordHash === hash
+        );
+        if (!user) { showErr("Wrong username or password."); return; }
+
+        saveSession({ id: user.id, username: user.username, role: user.role || "player", color: user.color || "#c8a45c" });
+        window.location.href = "pages/inventory.html";
+      } catch(e) {
+        showErr("Connection error. Please try again.");
+        console.error(e);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = "&#9876; Enter the Realm";
+      }
+    }
+
+    function showErr(msg) { err.textContent = msg; err.classList.add("show"); }
+
+    btn.addEventListener("click", doLogin);
+    [uInp, pInp].forEach(el => el.addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); }));
+  </script>
 </body>
 </html>

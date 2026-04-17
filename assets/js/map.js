@@ -108,9 +108,26 @@ function clampToBounds() {
   originY = Math.min(0, Math.max(minY, originY));
 }
 
+// ── Zoom quality ─────────────────────────────────────────────────────────────
+// Switch to nearest-neighbour during active zoom to avoid expensive resampling
+// on every frame. Quality is restored 150 ms after the last zoom event.
+let _imgQualityTimer = 0;
+function _setFastRendering() {
+  mapImage.style.imageRendering = 'pixelated';
+}
+function _restoreRendering() {
+  mapImage.style.imageRendering = '';
+}
+function _scheduleRenderingRestore() {
+  clearTimeout(_imgQualityTimer);
+  _imgQualityTimer = setTimeout(_restoreRendering, 150);
+}
+
 // ── Zoom ─────────────────────────────────────────────────────────────────────
 mapContainer.addEventListener("wheel", function(e) {
   e.preventDefault();
+  _setFastRendering();
+  _scheduleRenderingRestore();
   const zoomIntensity = 0.001;
   let newScale = scale * (1 - e.deltaY * zoomIntensity);
   newScale = Math.min(Math.max(newScale, minScale), 5);
@@ -191,12 +208,14 @@ if (isTouchDevice) {
   }
 
   mapContainer.addEventListener("touchstart", function(e) {
+    _updateCachedRect();
     // Disable marker hit-testing during gesture to avoid hover recalcs
     markerLayer.style.pointerEvents = "none";
     if (e.touches.length === 2) {
       isPinching = true;
       initialDistance = getDistance(e.touches[0], e.touches[1]);
       initialScale = scale;
+      _setFastRendering();
     } else if (e.touches.length === 1) {
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
@@ -229,6 +248,7 @@ if (isTouchDevice) {
   }, { passive: false });
 
   function onTouchDone() {
+    _restoreRendering();
     markerLayer.style.pointerEvents = "";
     flushCounterScale();
   }

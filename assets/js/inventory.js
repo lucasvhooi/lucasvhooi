@@ -284,6 +284,21 @@ if (isAdmin) {
   manageBtn.style.display = "inline-flex";
 }
 
+// ── Rarity selector (add-item modal) ─────────────────────────────────────────
+let selectedRarity = null;
+document.querySelectorAll("#ai-rarity-selector .rarity-sel-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (selectedRarity === btn.dataset.rarity) {
+      selectedRarity = null;
+    } else {
+      selectedRarity = btn.dataset.rarity;
+    }
+    document.querySelectorAll("#ai-rarity-selector .rarity-sel-btn").forEach(b => {
+      b.classList.toggle("active", b.dataset.rarity === selectedRarity);
+    });
+  });
+});
+
 addBtn.addEventListener("click", () => {
   document.getElementById("ai-name").value   = "";
   document.getElementById("ai-type").value   = "misc";
@@ -292,6 +307,8 @@ addBtn.addEventListener("click", () => {
   document.getElementById("ai-desc").value   = "";
   document.getElementById("ai-content").value= "";
   document.getElementById("ai-error").classList.remove("show");
+  selectedRarity = null;
+  document.querySelectorAll("#ai-rarity-selector .rarity-sel-btn").forEach(b => b.classList.remove("active"));
   toggleContentField();
   // Pre-select currently viewed player
   const aiTarget = document.getElementById("ai-target");
@@ -329,6 +346,7 @@ document.getElementById("ai-save").addEventListener("click", async () => {
     value:       value || null,
     description: desc || null,
     content:     content || null,
+    rarity:      selectedRarity || null,
     givenBy:     session.id,
     timestamp:   Date.now(),
   });
