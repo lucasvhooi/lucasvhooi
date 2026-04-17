@@ -123,13 +123,13 @@ function buildCard(item) {
   if (isAdmin) {
     // Edit button
     const editBtn = document.createElement("button");
-    editBtn.className = "lore-card-edit-btn";
+    editBtn.className = "dm-btn dm-btn-sm lore-card-edit-btn";
     editBtn.textContent = "Edit";
     editBtn.addEventListener("click", e => { e.stopPropagation(); openEditModal(item); });
     wrap.appendChild(editBtn);
 
     const delBtn = document.createElement("button");
-    delBtn.className = "lore-card-delete-btn";
+    delBtn.className = "marker-delete-btn dm-btn dm-btn-sm lore-card-delete-btn";
     delBtn.textContent = "Delete";
     delBtn.addEventListener("click", e => {
       e.stopPropagation();

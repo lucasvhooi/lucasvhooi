@@ -208,6 +208,7 @@ if (isTouchDevice) {
   }
 
   mapContainer.addEventListener("touchstart", function(e) {
+    if (e.target.closest('#location-panel')) return;
     _updateCachedRect();
     // Disable marker hit-testing during gesture to avoid hover recalcs
     markerLayer.style.pointerEvents = "none";
@@ -223,6 +224,7 @@ if (isTouchDevice) {
   }, { passive: true });
 
   mapContainer.addEventListener("touchmove", function(e) {
+    if (e.target.closest('#location-panel')) return;
     e.preventDefault();
     if (isPinching && e.touches.length === 2) {
       const newDistance = getDistance(e.touches[0], e.touches[1]);

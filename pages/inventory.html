@@ -30,6 +30,10 @@
     <h1 class="inv-hero-title" id="inv-hero-title">Inventory</h1>
     <p class="inv-hero-sub" id="inv-hero-sub">Loading…</p>
 
+    <div class="inv-attunement-bar" id="inv-attunement-bar" style="display:none">
+      <span class="inv-attunement-slots" id="inv-attunement-slots">0 / 3 Attunement Slots</span>
+    </div>
+
     <!-- Admin: player selector -->
     <div class="inv-player-selector" id="player-selector" style="display:none">
       <label for="player-select">Viewing:</label>
@@ -58,10 +62,15 @@
         <button class="inv-modal-close" data-close="add-modal">&#10005;</button>
       </div>
       <div class="inv-modal-body">
-        <div class="inv-form-row">
-          <label class="inv-form-label">Item Name <span style="color:#e05050">*</span></label>
-          <input class="inv-form-input" id="ai-name" placeholder="e.g. Sword of Flames…" />
+        <!-- Item search -->
+        <div class="inv-form-row ai-search-wrap">
+          <label class="inv-form-label">Search Item <span style="color:#e05050">*</span></label>
+          <input class="inv-form-input" id="ai-search" placeholder="Type to search items from the shop…" autocomplete="off" />
+          <div class="ai-drop" id="ai-drop"></div>
         </div>
+        <!-- Selected item preview -->
+        <div class="ai-selected-preview" id="ai-selected-preview" style="display:none"></div>
+        <!-- Type + Qty -->
         <div class="inv-form-row-2">
           <div class="inv-form-row" style="margin:0">
             <label class="inv-form-label">Type</label>
@@ -78,29 +87,6 @@
             <label class="inv-form-label">Quantity</label>
             <input class="inv-form-input" id="ai-qty" type="number" min="1" value="1" />
           </div>
-        </div>
-        <div class="inv-form-row">
-          <label class="inv-form-label">Value (e.g. 50gp)</label>
-          <input class="inv-form-input" id="ai-value" placeholder="50 gp…" />
-        </div>
-        <div class="inv-form-row">
-          <label class="inv-form-label">Rarity</label>
-          <div class="rarity-selector" id="ai-rarity-selector">
-            <button type="button" class="rarity-sel-btn" data-rarity="common">Common</button>
-            <button type="button" class="rarity-sel-btn" data-rarity="uncommon">Uncommon</button>
-            <button type="button" class="rarity-sel-btn" data-rarity="rare">Rare</button>
-            <button type="button" class="rarity-sel-btn" data-rarity="very rare">Very Rare</button>
-            <button type="button" class="rarity-sel-btn" data-rarity="legendary">Legendary</button>
-          </div>
-        </div>
-        <div class="inv-form-row">
-          <label class="inv-form-label">Description</label>
-          <textarea class="inv-form-textarea" id="ai-desc" placeholder="What is this item…" rows="3"></textarea>
-        </div>
-        <!-- Book / Scroll content — shown only for those types -->
-        <div class="inv-form-row" id="ai-content-row" style="display:none">
-          <label class="inv-form-label" id="ai-content-label">Content (readable text)</label>
-          <textarea class="inv-form-textarea" id="ai-content" placeholder="The full text of the book or scroll…" rows="6"></textarea>
         </div>
         <!-- Admin: give to which player -->
         <div class="inv-form-row" id="ai-target-row">

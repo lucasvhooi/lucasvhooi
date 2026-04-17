@@ -11,9 +11,15 @@ const isAdmin     = session.role === "admin";
 const usersRef    = ref(db, "users");
 const inventoryRef = ref(db, "inventory");
 
+let allItemsDb = [];
+onValue(ref(db, "items"), snap => { allItemsDb = snap.val() ? Object.values(snap.val()) : []; });
+
+let selectedItemDb = null;
+
 // ── State ─────────────────────────────────────────────────────────────────────
 let allUsers     = {};   // { id: { id, username, color, role } }
 let allInventory = {};   // { userId: { itemId: item } }
+let allAttunements = {};
 let viewingId    = session.id;  // which player's inventory to show
 let activeFilter = "all";
 let sendItemId   = null;
@@ -39,6 +45,11 @@ onValue(usersRef, snap => {
 
 onValue(inventoryRef, snap => {
   allInventory = snap.val() || {};
+  renderGrid();
+});
+
+onValue(ref(db, "attunements"), snap => {
+  allAttunements = snap.val() || {};
   renderGrid();
 });
 
@@ -81,6 +92,14 @@ function renderGrid() {
   }
   heroTitle.style.color = ownerColor || "var(--accent)";
 
+  const userAttunes = allAttunements[viewingId] || {};
+  const attunedCount = Object.keys(userAttunes).length;
+  const attBar = document.getElementById("inv-attunement-bar");
+  const attSlots = document.getElementById("inv-attunement-slots");
+  attBar.style.display = "block";
+  attSlots.textContent = `${attunedCount} / 3 Attunement Slots`;
+  attSlots.style.color = attunedCount === 3 ? "#e57373" : attunedCount >= 2 ? "#ff9800" : "var(--accent)";
+
   const items = allInventory[viewingId]
     ? Object.values(allInventory[viewingId])
     : [];
@@ -102,7 +121,9 @@ function renderGrid() {
       stackMap[key]._stackIds.push(it.id);
     }
   });
-  const visible = Object.values(stackMap);
+  const RARITY_ORDER = { legendary: 0, "very rare": 1, rare: 2, uncommon: 3, common: 4 };
+  const visible = Object.values(stackMap)
+    .sort((a, b) => (RARITY_ORDER[a.rarity] ?? 5) - (RARITY_ORDER[b.rarity] ?? 5));
 
   if (visible.length === 0) {
     const baseItems = items.filter(it => it.type !== "book" && it.type !== "scroll");
@@ -241,12 +262,19 @@ function buildGenericCard(item, ownerId) {
 
   if (rarityColor) card.style.setProperty("--rc", rarityColor);
 
+  const attKey = (item.name || "").toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const userAttunes = allAttunements[ownerId] || {};
+  const isAttuned = attKey in userAttunes;
+  if (isAttuned) card.classList.add("inv-card-attuned");
+  const attunedCount = Object.keys(userAttunes).length;
+  const canAttune = isAdmin || ownerId === session.id;
+
   card.innerHTML = `
     <div class="inv-card-body">
       <div class="inv-card-top">
         <span class="inv-type-icon">${TYPE_ICON[item.type] || "◈"}</span>
         <div class="inv-name-wrap">
-          <h3 class="inv-item-name">${esc(item.name || "Unknown Item")}</h3>
+          <h3 class="inv-item-name">${esc(item.name || "Unknown Item")}${isAttuned ? `<span class="inv-attuned-badge">✦ Attuned</span>` : ""}</h3>
           <div class="inv-badges">
             <span class="inv-type-badge inv-badge-${item.type || "misc"}">${TYPE_LABEL[item.type] || "Misc"}</span>
             ${stackQtyBadge(item)}
@@ -255,15 +283,44 @@ function buildGenericCard(item, ownerId) {
         </div>
       </div>
       ${item.description ? `<p class="inv-desc">${esc(item.description)}</p>` : ""}
+      ${item.tags ? `<div class="inv-tags">${item.tags.split(",").map(t => `<span class="inv-tag">${esc(t.trim())}</span>`).join("")}</div>` : ""}
       ${giverName ? `<p style="font-size:11px;color:#555;margin:6px 0 0;font-style:italic">Given by ${esc(giverName)}</p>` : ""}
     </div>
     <div class="inv-card-actions">
       <button class="inv-action-btn btn-send">Send</button>
+      ${canAttune && !isAttuned ? `<button class="inv-action-btn btn-attune">Attune</button>` : ""}
+      ${canAttune && isAttuned ? `<button class="inv-action-btn btn-unattuned">★ Attuned</button>` : ""}
       ${(isAdmin || ownerId === session.id) ? `<button class="inv-action-btn btn-delete">Remove</button>` : ""}
     </div>`;
 
+  card.addEventListener("click", e => {
+    if (e.target.closest(".inv-card-actions")) return;
+    card.classList.toggle("expanded");
+  });
   card.querySelector(".btn-send").addEventListener("click", () => openSendModal(item, ownerId));
   card.querySelector(".btn-delete")?.addEventListener("click", () => openRemoveModal(item, ownerId));
+
+  if (canAttune) {
+    const attBtn = card.querySelector(".btn-attune");
+    const unattBtn = card.querySelector(".btn-unattuned");
+    if (attBtn) {
+      attBtn.addEventListener("click", async () => {
+        const count = Object.keys(allAttunements[ownerId] || {}).length;
+        if (count >= 3) {
+          attBtn.textContent = "Slots full!";
+          attBtn.style.color = "#e57373";
+          setTimeout(() => { attBtn.textContent = "Attune"; attBtn.style.color = ""; }, 2000);
+          return;
+        }
+        await set(ref(db, `attunements/${ownerId}/${attKey}`), { name: item.name, type: item.type, rarity: item.rarity || null, timestamp: Date.now() });
+      });
+    }
+    if (unattBtn) {
+      unattBtn.addEventListener("click", async () => {
+        await remove(ref(db, `attunements/${ownerId}/${attKey}`));
+      });
+    }
+  }
 
   return card;
 }
@@ -284,74 +341,111 @@ if (isAdmin) {
   manageBtn.style.display = "inline-flex";
 }
 
-// ── Rarity selector (add-item modal) ─────────────────────────────────────────
-let selectedRarity = null;
-document.querySelectorAll("#ai-rarity-selector .rarity-sel-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    if (selectedRarity === btn.dataset.rarity) {
-      selectedRarity = null;
-    } else {
-      selectedRarity = btn.dataset.rarity;
-    }
-    document.querySelectorAll("#ai-rarity-selector .rarity-sel-btn").forEach(b => {
-      b.classList.toggle("active", b.dataset.rarity === selectedRarity);
-    });
-  });
-});
-
 addBtn.addEventListener("click", () => {
-  document.getElementById("ai-name").value   = "";
-  document.getElementById("ai-type").value   = "misc";
-  document.getElementById("ai-qty").value    = "1";
-  document.getElementById("ai-value").value  = "";
-  document.getElementById("ai-desc").value   = "";
-  document.getElementById("ai-content").value= "";
+  selectedItemDb = null;
+  const srch = document.getElementById("ai-search");
+  if (srch) srch.value = "";
+  document.getElementById("ai-drop").style.display = "none";
+  document.getElementById("ai-selected-preview").style.display = "none";
+  document.getElementById("ai-type").value = "misc";  // reset; updated by selectItemFromDb
+  document.getElementById("ai-qty").value = "1";
   document.getElementById("ai-error").classList.remove("show");
-  selectedRarity = null;
-  document.querySelectorAll("#ai-rarity-selector .rarity-sel-btn").forEach(b => b.classList.remove("active"));
-  toggleContentField();
-  // Pre-select currently viewed player
   const aiTarget = document.getElementById("ai-target");
   if (aiTarget.querySelector(`option[value="${viewingId}"]`)) aiTarget.value = viewingId;
   openModal("add-modal");
+  setTimeout(() => srch?.focus(), 50);
 });
 
-document.getElementById("ai-type").addEventListener("change", toggleContentField);
-function toggleContentField() {
-  const t = document.getElementById("ai-type").value;
-  const row = document.getElementById("ai-content-row");
-  const lbl = document.getElementById("ai-content-label");
-  row.style.display = (t === "book" || t === "scroll") ? "block" : "none";
-  lbl.textContent = t === "scroll" ? "Scroll text (readable)" : "Book content (readable)";
+// Item search in add modal
+const aiSearchInput = document.getElementById("ai-search");
+const aiDrop = document.getElementById("ai-drop");
+
+// Move dropdown to body so it's never clipped by modal overflow
+document.body.appendChild(aiDrop);
+
+function _positionDrop() {
+  const r = aiSearchInput.getBoundingClientRect();
+  aiDrop.style.top   = (r.bottom + window.scrollY + 4) + "px";
+  aiDrop.style.left  = r.left + "px";
+  aiDrop.style.width = r.width + "px";
+}
+
+function _showDrop(html) {
+  aiDrop.innerHTML = html;
+  _positionDrop();
+  aiDrop.style.display = "block";
+  aiDrop.querySelectorAll(".ai-drop-item").forEach(row => {
+    row.addEventListener("mousedown", e => {
+      e.preventDefault();
+      const item = allItemsDb.find(i => i.id === row.dataset.id);
+      if (item) selectItemFromDb(item);
+    });
+  });
+}
+
+aiSearchInput.addEventListener("input", () => {
+  const q = aiSearchInput.value.trim().toLowerCase();
+  if (!q) { aiDrop.style.display = "none"; return; }
+  const hits = allItemsDb
+    .filter(it => (it.name || "").toLowerCase().includes(q) || (it.description || "").toLowerCase().includes(q))
+    .slice(0, 10);
+  if (!hits.length) {
+    _showDrop(`<div class="ai-drop-empty">No items found</div>`);
+    return;
+  }
+  _showDrop(hits.map(it => `
+    <div class="ai-drop-item" data-id="${esc(it.id)}">
+      <span class="ai-drop-name">${esc(it.name)}</span>
+      ${it.rarity ? `<span class="ai-drop-rarity" style="color:${RARITY_COLORS[it.rarity] || '#9e9e9e'}">${esc(it.rarity)}</span>` : ""}
+    </div>`).join(""));
+});
+
+aiSearchInput.addEventListener("blur",   () => setTimeout(() => { aiDrop.style.display = "none"; }, 150));
+aiSearchInput.addEventListener("focus",  () => { if (aiSearchInput.value.trim()) aiSearchInput.dispatchEvent(new Event("input")); });
+window.addEventListener("scroll",        () => { if (aiDrop.style.display !== "none") _positionDrop(); }, { passive: true });
+window.addEventListener("resize",        () => { if (aiDrop.style.display !== "none") _positionDrop(); }, { passive: true });
+
+function selectItemFromDb(item) {
+  selectedItemDb = item;
+  aiSearchInput.value = item.name;
+  aiDrop.style.display = "none";
+  document.getElementById("ai-type").value = inferTypeFromTags(item.tags);
+  const preview = document.getElementById("ai-selected-preview");
+  const rc = RARITY_COLORS[item.rarity] || null;
+  preview.innerHTML = `
+    <div class="ai-preview-card${rc ? " ai-preview-rarity-tinted" : ""}" ${rc ? `style="border-color:${rc}40"` : ""}>
+      <div class="ai-preview-name">${esc(item.name)}</div>
+      ${rc ? `<span class="ai-preview-rarity" style="color:${rc}">${esc(item.rarity)}</span>` : ""}
+      ${item.description ? `<p class="ai-preview-desc">${esc(item.description)}</p>` : ""}
+    </div>`;
+  preview.style.display = "block";
 }
 
 document.getElementById("ai-save").addEventListener("click", async () => {
-  const name   = document.getElementById("ai-name").value.trim();
-  const type   = document.getElementById("ai-type").value;
-  const qty    = Math.max(1, parseInt(document.getElementById("ai-qty").value, 10) || 1);
-  const value  = document.getElementById("ai-value").value.trim();
-  const desc   = document.getElementById("ai-desc").value.trim();
-  const content= document.getElementById("ai-content").value.trim();
-  const target = document.getElementById("ai-target").value;
   const errEl  = document.getElementById("ai-error");
+  const target = document.getElementById("ai-target").value;
+  const qty    = Math.max(1, parseInt(document.getElementById("ai-qty").value, 10) || 1);
+  const type   = document.getElementById("ai-type").value;
 
-  if (!name) { errEl.textContent = "Item name is required."; errEl.classList.add("show"); return; }
+  if (!selectedItemDb) { errEl.textContent = "Please search and select an item."; errEl.classList.add("show"); return; }
   if (!target) { errEl.textContent = "Select a player."; errEl.classList.add("show"); return; }
   errEl.classList.remove("show");
 
   const itemRef = push(ref(db, `inventory/${target}`));
   await set(itemRef, {
     id:          itemRef.key,
-    name, type, quantity: qty,
-    value:       value || null,
-    description: desc || null,
-    content:     content || null,
-    rarity:      selectedRarity || null,
+    name:        selectedItemDb.name,
+    type,
+    quantity:    qty,
+    value:       selectedItemDb.price ? String(selectedItemDb.price) + " gp" : null,
+    description: selectedItemDb.description || null,
+    content:     null,
+    rarity:      selectedItemDb.rarity || null,
+    tags:        selectedItemDb.tags || null,
     givenBy:     session.id,
     timestamp:   Date.now(),
   });
   closeModal("add-modal");
-  // Switch view to the recipient
   if (isAdmin && target !== viewingId) {
     viewingId = target;
     if (playerSelect.querySelector(`option[value="${target}"]`)) playerSelect.value = target;
@@ -590,6 +684,7 @@ function renderPlayerList() {
       if (confirm(`Remove account "${name}"? This also deletes their inventory.`)) {
         remove(ref(db, `users/${uid}`));
         remove(ref(db, `inventory/${uid}`));
+        remove(ref(db, `attunements/${uid}`));
       }
     });
   });
@@ -646,7 +741,20 @@ document.addEventListener("keydown", e => {
 });
 
 // ── Admin: show add-item target row only for admin ────────────────────────────
-document.getElementById("ai-target-row").style.display = isAdmin ? "block" : "none";
+if (document.getElementById("ai-target-row")) {
+  document.getElementById("ai-target-row").style.display = isAdmin ? "block" : "none";
+}
+
+function inferTypeFromTags(tags) {
+  if (!tags) return "misc";
+  const list = tags.toLowerCase().split(",").map(t => t.trim());
+  if (list.includes("weapon"))  return "weapon";
+  if (list.includes("armor"))   return "armor";
+  if (list.includes("potion"))  return "potion";
+  if (list.includes("book"))    return "book";
+  if (list.includes("scroll"))  return "scroll";
+  return "misc";
+}
 
 // ── Utility ───────────────────────────────────────────────────────────────────
 function esc(str) {

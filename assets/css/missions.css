@@ -576,6 +576,16 @@
 .blk-span-btn:hover { color: #888; border-color: #3a2510; }
 .blk-span-btn.active { background: rgba(255,204,102,0.12); border-color: rgba(255,204,102,0.4); color: var(--accent); }
 
+/* Row-span size buttons */
+.blk-rowspan-btn {
+  width: 24px; height: 20px; background: none; border: 1px solid #1a2a1a; color: #444;
+  border-radius: 3px; cursor: pointer; font-size: 10px; font-family: var(--font);
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.15s, background 0.15s, border-color 0.15s; padding: 0;
+}
+.blk-rowspan-btn:hover { color: #888; border-color: #1a3a1a; }
+.blk-rowspan-btn.active { background: rgba(102,204,102,0.1); border-color: rgba(102,204,102,0.4); color: #7cbb7c; }
+
 /* Drag handle — only this element initiates drag */
 .blk-drag-handle {
   color: #444; font-size: 13px; cursor: grab; padding: 2px 4px;
@@ -628,9 +638,10 @@
 .boss-drop-meta { margin-left: auto; font-size: 11px; color: #666; letter-spacing: 0.03em; }
 
 .blk-divider-preview {
-  height: 1px;
-  background: linear-gradient(to right, transparent, #3a2510, transparent);
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--accent), transparent);
   margin: 10px 10px;
+  opacity: 0.7;
 }
 
 /* ── Footer — sticky so Save is always visible while scrolling ─────────────── */

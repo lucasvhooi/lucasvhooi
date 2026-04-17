@@ -43,11 +43,12 @@ const imTitle          = document.getElementById("im-title");
 const imName           = document.getElementById("im-name");
 const imDesc           = document.getElementById("im-desc");
 const imPrice          = document.getElementById("im-price");
-const imTags           = document.getElementById("im-tags");
 const imRaritySelector = document.getElementById("im-rarity-selector");
 const imError          = document.getElementById("im-error");
 const imSave           = document.getElementById("im-save");
 const imCancel         = document.getElementById("im-cancel");
+
+let selectedTags = new Set();
 
 let editingItemId = null;
 
@@ -66,6 +67,46 @@ imRaritySelector.querySelectorAll(".rarity-sel-btn").forEach(btn => {
 function syncRarityButtons() {
   imRaritySelector.querySelectorAll(".rarity-sel-btn").forEach(btn => {
     btn.classList.toggle("active", btn.dataset.rarity === selectedRarity);
+  });
+}
+
+// ── Tag picker ────────────────────────────────────────────────────────────────
+function renderTagPicker() {
+  const allTags = getAllTags().filter(t => !RARITY_KEYWORDS.has(t));
+  const chips = document.getElementById("im-tag-chips");
+  if (!chips) return;
+  chips.innerHTML = allTags.length
+    ? allTags.map(t => `<button type="button" class="im-tag-chip${selectedTags.has(t) ? " active" : ""}" data-tag="${t.replace(/"/g,'&quot;')}">${t.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</button>`).join("")
+    : '<span class="im-tag-empty">No tags yet</span>';
+  chips.querySelectorAll(".im-tag-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const t = chip.dataset.tag;
+      if (selectedTags.has(t)) selectedTags.delete(t); else selectedTags.add(t);
+      chip.classList.toggle("active", selectedTags.has(t));
+    });
+  });
+}
+
+const imTagAddBtn   = document.getElementById("im-tag-add-btn");
+const imTagNewInput = document.getElementById("im-tag-new-input");
+if (imTagAddBtn) {
+  imTagAddBtn.addEventListener("click", () => {
+    const show = imTagNewInput.style.display === "none";
+    imTagNewInput.style.display = show ? "inline-block" : "none";
+    if (show) imTagNewInput.focus();
+  });
+}
+if (imTagNewInput) {
+  imTagNewInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const t = imTagNewInput.value.trim().toLowerCase();
+      if (t && !RARITY_KEYWORDS.has(t)) selectedTags.add(t);
+      imTagNewInput.value = "";
+      imTagNewInput.style.display = "none";
+      renderTagPicker();
+    }
+    if (e.key === "Escape") { imTagNewInput.style.display = "none"; }
   });
 }
 
@@ -110,6 +151,10 @@ function renderItems() {
 
   let filtered = [...items];
 
+  if (!isAdmin) {
+    filtered = filtered.filter(i => i.shopAvailable !== false);
+  }
+
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     filtered = filtered.filter(i =>
@@ -141,6 +186,7 @@ function renderItems() {
     card.style.setProperty("--rc", rarityColor);
 
     card.innerHTML = `
+      ${isAdmin ? `<button class="lore-card-give-btn item-give-btn">+</button>` : ""}
       <div class="item-header">
         <div class="item-name">${item.name}</div>
         <div class="item-price-badge">${formatGold(item.price)}</div>
@@ -151,7 +197,6 @@ function renderItems() {
         <div class="item-actions">
           <button class="dm-btn dm-btn-sm item-edit-btn">Edit</button>
           <button class="marker-delete-btn dm-btn dm-btn-sm item-del-btn">Delete</button>
-          <button class="give-btn item-give-btn">Give to Player</button>
         </div>
       ` : ""}
     `;
@@ -175,12 +220,13 @@ function renderItems() {
         e.stopPropagation();
         openGivePanel(e.currentTarget, {
           name:        item.name,
-          type:        "misc",
+          type:        inferTypeFromTags(item.tags),
           description: item.description || null,
           quantity:    1,
           value:       item.price ? formatGold(item.price) : null,
           content:     null,
           rarity:      getItemRarity(item),
+          tags:        item.tags || null,
         });
       });
     }
@@ -200,17 +246,20 @@ function openItemModal(id) {
     imName.value  = item.name        || "";
     imDesc.value  = item.description || "";
     imPrice.value = item.price       ?? "";
-    // Show tags without any rarity keywords (they're now stored separately)
-    imTags.value  = parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t)).join(", ");
     selectedRarity = getItemRarity(item);
+    selectedTags = new Set(parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t)));
+    document.getElementById("im-shop-available").checked = item.shopAvailable !== false;
   } else {
     imTitle.textContent = "Add Item";
-    imName.value = imDesc.value = imTags.value = "";
+    imName.value = imDesc.value = "";
     imPrice.value = "";
     selectedRarity = "common";
+    selectedTags = new Set();
+    document.getElementById("im-shop-available").checked = true;
   }
 
   syncRarityButtons();
+  renderTagPicker();
   itemModal.classList.add("open");
   imName.focus();
 }
@@ -229,17 +278,17 @@ imSave.addEventListener("click", () => {
   const existing = editingItemId ? items.find(i => i.id === editingItemId) : null;
   const id = editingItemId || generateId();
 
-  // Strip any leftover rarity keywords from the tags field
-  const cleanTags = parseTags(imTags.value).filter(t => !RARITY_KEYWORDS.has(t)).join(", ") || null;
+  const cleanTags = Array.from(selectedTags).filter(t => !RARITY_KEYWORDS.has(t)).join(", ") || null;
 
   set(ref(db, `items/${id}`), {
     id,
     name,
-    description: imDesc.value.trim() || null,
+    description:   imDesc.value.trim() || null,
     price,
-    rarity:    selectedRarity,
-    tags:      cleanTags,
-    createdAt: existing?.createdAt || Date.now()
+    rarity:        selectedRarity,
+    tags:          cleanTags,
+    shopAvailable: document.getElementById("im-shop-available").checked,
+    createdAt:     existing?.createdAt || Date.now()
   });
 
   closeItemModal();
@@ -256,4 +305,15 @@ itemsSearch.addEventListener("input", e => { searchQuery = e.target.value; rende
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+function inferTypeFromTags(tags) {
+  if (!tags) return "misc";
+  const list = tags.toLowerCase().split(",").map(t => t.trim());
+  if (list.includes("weapon"))           return "weapon";
+  if (list.includes("armor"))            return "armor";
+  if (list.includes("potion"))           return "potion";
+  if (list.includes("book"))             return "book";
+  if (list.includes("scroll"))           return "scroll";
+  return "misc";
 }

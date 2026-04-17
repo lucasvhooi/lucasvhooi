@@ -242,7 +242,7 @@ function buildCard(q) {
 
   // Card grid: use explicit row/col placement so the layout matches the editor
   autoPlaceBlocks(blocks);
-  const maxBlockRow = blocks.reduce((m, b) => Math.max(m, b.row || 1), 0);
+  const maxBlockRow = blocks.reduce((m, b) => Math.max(m, (b.row || 1) + (b.rowSpan || 1) - 1), 0);
 
   card.innerHTML = `
     <div class="qc-accent-bar"></div>
@@ -368,10 +368,10 @@ function reorderQuests(srcId, targetId) {
 }
 
 function renderBlockInCard(b) {
-  const span = b.span || 1;
-  // Use explicit placement if available so card layout matches editor
+  const span    = b.span    || 1;
+  const rowSpan = b.rowSpan || 1;
   const colStyle = b.col ? `grid-column:${b.col}/span ${span};` : `grid-column:span ${span};`;
-  const rowStyle = b.row ? `grid-row:${b.row};` : "";
+  const rowStyle = b.row ? `grid-row:${b.row}/span ${rowSpan};` : "";
   const spanStyle = colStyle + rowStyle;
   const titleStyle = b.titleColor ? `color:${esc(b.titleColor)}` : "";
   const titleHtml = b.blockTitle
@@ -497,37 +497,48 @@ function syncTypeBtns() {
   });
 }
 
+// ── Block defaults (module scope for palette drag) ────────────────────────────
+const BLOCK_DEFAULTS = {
+  text:    { type: "text",    content: "",     blockTitle: "", titleColor: "", span: 2, rowSpan: 1 },
+  phase:   { type: "phase",   title: "",   description: "", blockTitle: "", titleColor: "", span: 1, rowSpan: 1 },
+  loot:    { type: "loot",    name: "",    description: "", value: "", blockTitle: "", titleColor: "", span: 1, rowSpan: 1 },
+  boss:    { type: "boss",    name: "",    ac: "", hp: "", cr: "", notes: "", blockTitle: "", titleColor: "", span: 2, rowSpan: 1 },
+  note:    { type: "note",    content: "", blockTitle: "", titleColor: "", span: 2, rowSpan: 1 },
+  puzzle:  { type: "puzzle",  title: "",   description: "", hint: "", solution: "", blockTitle: "", titleColor: "", span: 2, rowSpan: 1 },
+  divider: { type: "divider", span: 4, rowSpan: 1 },
+};
+
 // ── Block palette ─────────────────────────────────────────────────────────────
 document.querySelectorAll(".qm-add-block-btn").forEach(btn => {
   btn.addEventListener("click", () => {
-    const defaults = {
-      text:    { type: "text",    content: "",     blockTitle: "", titleColor: "", span: 2 },
-      phase:   { type: "phase",   title: "",   description: "", blockTitle: "", titleColor: "", span: 1 },
-      loot:    { type: "loot",    name: "",    description: "", value: "", blockTitle: "", titleColor: "", span: 1 },
-      boss:    { type: "boss",    name: "",    ac: "", hp: "", cr: "", notes: "", blockTitle: "", titleColor: "", span: 2 },
-      note:    { type: "note",    content: "", blockTitle: "", titleColor: "", span: 2 },
-      puzzle:  { type: "puzzle",  title: "",   description: "", hint: "", solution: "", blockTitle: "", titleColor: "", span: 2 },
-      divider: { type: "divider", span: 4 },
-    };
-    currentBlocks.push({ ...defaults[btn.dataset.blockType] });
+    currentBlocks.push({ ...BLOCK_DEFAULTS[btn.dataset.blockType] });
     buildBlocksEditor();
     setTimeout(() => qmBlockCanvas.querySelector(".qm-block:last-of-type")?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
   });
+  btn.draggable = true;
+  btn.addEventListener("dragstart", e => {
+    dragPaletteType = btn.dataset.blockType;
+    dragSrcIndex = null;
+    e.dataTransfer.effectAllowed = "copy";
+    e.dataTransfer.setData("text/plain", btn.dataset.blockType);
+  });
+  btn.addEventListener("dragend", () => { dragPaletteType = null; });
 });
 
 // ── Block drag state ──────────────────────────────────────────────────────────
 let dragSrcIndex = null;
+let dragPaletteType = null;
 
 function clearDragHighlights() {
   qmBlockCanvas.querySelectorAll(".drag-over").forEach(el => el.classList.remove("drag-over"));
 }
 
-// Drop target: moves the dragged block to an explicit grid cell (row, col)
+// Drop target: moves an existing block or places a new palette block at (row, col)
 function attachDropTarget(el, targetRow, targetCol) {
   el.addEventListener("dragover", e => {
-    if (dragSrcIndex === null) return;
+    if (dragSrcIndex === null && dragPaletteType === null) return;
     e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
+    e.dataTransfer.dropEffect = dragPaletteType ? "copy" : "move";
     clearDragHighlights();
     el.classList.add("drag-over");
   });
@@ -541,9 +552,14 @@ function attachDropTarget(el, targetRow, targetCol) {
       const b = currentBlocks[dragSrcIndex];
       b.row = targetRow;
       b.col = targetCol;
-      // Clamp span so block doesn't extend past column 4
       if (b.col + (b.span || 1) - 1 > 4) b.span = 5 - b.col;
       dragSrcIndex = null;
+      buildBlocksEditor();
+    } else if (dragPaletteType !== null) {
+      const newBlock = { ...BLOCK_DEFAULTS[dragPaletteType], row: targetRow, col: targetCol };
+      if (newBlock.col + (newBlock.span || 1) - 1 > 4) newBlock.span = 5 - newBlock.col;
+      currentBlocks.push(newBlock);
+      dragPaletteType = null;
       buildBlocksEditor();
     }
   });
@@ -551,20 +567,20 @@ function attachDropTarget(el, targetRow, targetCol) {
 
 // ── Auto-place blocks that have no explicit row/col ───────────────────────────
 function autoPlaceBlocks(blocks) {
-  // Build occupancy from already-placed blocks
   const occupied = new Set();
   blocks.forEach(b => {
     if (!b.row || !b.col) return;
-    const span = Math.min(b.span || 1, 4);
-    for (let c = b.col; c < b.col + span; c++) occupied.add(`${b.row},${c}`);
+    const span    = Math.min(b.span    || 1, 4);
+    const rowSpan = b.rowSpan || 1;
+    for (let r = b.row; r < b.row + rowSpan; r++)
+      for (let c = b.col; c < b.col + span; c++) occupied.add(`${r},${c}`);
   });
 
   let curRow = 1, curCol = 1;
 
   blocks.forEach(b => {
-    if (b.row && b.col) return; // already placed
+    if (b.row && b.col) return;
     const span = Math.min(b.span || 1, 4);
-    // Find next fitting position
     while (true) {
       if (curCol + span - 1 > 4) { curRow++; curCol = 1; }
       let fits = true;
@@ -575,7 +591,9 @@ function autoPlaceBlocks(blocks) {
       curCol++;
     }
     b.row = curRow; b.col = curCol;
-    for (let c = curCol; c < curCol + span; c++) occupied.add(`${curRow},${c}`);
+    const rowSpan = b.rowSpan || 1;
+    for (let r = b.row; r < b.row + rowSpan; r++)
+      for (let c = curCol; c < curCol + span; c++) occupied.add(`${r},${c}`);
     curCol += span;
     if (curCol > 4) { curRow++; curCol = 1; }
   });
@@ -588,7 +606,7 @@ function buildBlocksEditor() {
   autoPlaceBlocks(currentBlocks);
 
   // Determine grid size: at least 6 rows, 2 extra below the last block
-  const maxRow = currentBlocks.reduce((m, b) => Math.max(m, b.row || 1), 0);
+  const maxRow = currentBlocks.reduce((m, b) => Math.max(m, (b.row || 1) + (b.rowSpan || 1) - 1), 0);
   const numRows = Math.max(6, maxRow + 2);
   qmBlockCanvas.style.gridTemplateRows = `repeat(${numRows}, auto)`;
 
@@ -603,8 +621,10 @@ function buildBlocksEditor() {
   // Build occupancy map for ghost rendering
   const occupied = new Set();
   currentBlocks.forEach(b => {
-    const span = Math.min(b.span || 1, 4);
-    for (let c = b.col; c < b.col + span; c++) occupied.add(`${b.row},${c}`);
+    const span    = Math.min(b.span    || 1, 4);
+    const rowSpan = b.rowSpan || 1;
+    for (let r = b.row; r < b.row + rowSpan; r++)
+      for (let c = b.col; c < b.col + span; c++) occupied.add(`${r},${c}`);
   });
 
   // Render ghost (drop-target) cells for every unoccupied position
@@ -625,7 +645,7 @@ function buildBlocksEditor() {
     const wrap = document.createElement("div");
     wrap.className = `qm-block qm-block-${block.type}`;
     wrap.dataset.index = i;
-    wrap.style.gridRow = block.row;
+    wrap.style.gridRow = `${block.row} / span ${block.rowSpan || 1}`;
     wrap.style.gridColumn = `${block.col} / span ${block.span || 1}`;
     wrap.innerHTML = buildBlockEditorHtml(block, i);
 
@@ -652,8 +672,13 @@ function buildBlocksEditor() {
       btn.addEventListener("click", () => {
         const newSpan = Number(btn.dataset.span);
         currentBlocks[i].span = newSpan;
-        // Clamp col if span would exceed grid width
         if (currentBlocks[i].col + newSpan - 1 > 4) currentBlocks[i].col = Math.max(1, 5 - newSpan);
+        buildBlocksEditor();
+      });
+    });
+    wrap.querySelectorAll(".blk-rowspan-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        currentBlocks[i].rowSpan = Number(btn.dataset.rowspan);
         buildBlocksEditor();
       });
     });
@@ -735,11 +760,19 @@ function spanBtns(current) {
   ).join("");
 }
 
+function rowSpanBtns(current) {
+  return [1, 2, 3].map(s =>
+    `<button type="button" class="blk-rowspan-btn${current === s ? " active" : ""}" data-rowspan="${s}" title="${s} row${s > 1 ? "s" : ""}">${s}↕</button>`
+  ).join("");
+}
+
 function buildBlockEditorHtml(b, i) {
-  const span = b.span || 1;
+  const span    = b.span    || 1;
+  const rowSpan = b.rowSpan || 1;
   const controls = `
     <div class="blk-controls">
       <div class="blk-span-group">${spanBtns(span)}</div>
+      <div class="blk-span-group">${rowSpanBtns(rowSpan)}</div>
       <div class="blk-drag-handle" title="Drag to reorder">⠿⠿</div>
       <button type="button" class="blk-ctrl blk-del" title="Remove">&#10005;</button>
     </div>`;

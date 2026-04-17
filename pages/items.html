@@ -50,15 +50,19 @@
           <textarea id="im-desc" rows="3" placeholder="What does this item do or look like?"></textarea>
         </label>
       </div>
-      <div class="form-row two-col">
+      <div class="form-row">
         <label>Base Price (gp) <span class="req">*</span>
           <input type="number" id="im-price" placeholder="e.g. 50" min="0" step="0.01" />
         </label>
-        <label>Tags
-          <input type="text" id="im-tags" placeholder="potion, healing, weapon…" />
-        </label>
       </div>
-      <p class="form-hint">Tags are comma-separated and used to stock shops. e.g. <em>weapon, armor, potion, food, book</em></p>
+      <div class="form-row">
+        <label>Tags</label>
+        <div class="im-tag-picker-row">
+          <div class="im-tag-chips" id="im-tag-chips"></div>
+          <button type="button" id="im-tag-add-btn" class="im-tag-add-btn">+ New Tag</button>
+        </div>
+        <input type="text" id="im-tag-new-input" class="im-tag-new-input" placeholder="New tag name…" style="display:none" />
+      </div>
       <div class="form-row">
         <label>Rarity</label>
         <div class="rarity-selector" id="im-rarity-selector">
@@ -68,6 +72,13 @@
           <button type="button" class="rarity-sel-btn" data-rarity="very rare">Very Rare</button>
           <button type="button" class="rarity-sel-btn" data-rarity="legendary">Legendary</button>
         </div>
+      </div>
+      <div class="form-row">
+        <label class="checkbox-label">
+          <input type="checkbox" id="im-shop-available" checked />
+          <span class="checkbox-box"></span>
+          Available in shop (players can buy this item)
+        </label>
       </div>
       <div id="im-error" class="modal-error"></div>
       <div class="modal-actions">
