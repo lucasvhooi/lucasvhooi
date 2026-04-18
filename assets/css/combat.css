@@ -241,9 +241,10 @@ body {
 .combatant-card.is-target .card-name { color: #e57373; }
 
 .combatant-card.active {
-  background: var(--type-color) !important;
+  background: var(--type-active-bg, rgba(255,255,255,0.08)) !important;
   border-color: var(--type-color) !important;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.6);
+  border-left-width: 4px !important;
+  box-shadow: 0 0 0 1px var(--type-color), 0 2px 16px rgba(0,0,0,0.6);
   animation: slideIn 0.25s ease-out;
 }
 .combatant-card.active.is-attacker {
@@ -272,26 +273,26 @@ body {
 .combatant-card.active.is-attack-mode .card-btn { background: rgba(239,83,80,0.1); border-color: rgba(239,83,80,0.25); color: #ef9a9a; }
 .combatant-card.active.is-attack-mode .card-btn:hover { background: rgba(239,83,80,0.25); }
 .combatant-card.active.is-attack-mode .condition-pill { color: inherit !important; border-color: rgba(239,83,80,0.4) !important; background: rgba(239,83,80,0.1); }
-.combatant-card.active .card-name { color: #1a0a00 !important; font-weight: bold; }
+.combatant-card.active .card-name { color: var(--text) !important; font-weight: bold; }
 .combatant-card.active .card-initiative {
-  border-color: rgba(0,0,0,0.3) !important;
-  background: rgba(0,0,0,0.15) !important;
-  color: #1a0a00 !important;
+  border-color: var(--type-color) !important;
+  background: rgba(0,0,0,0.25) !important;
+  color: var(--type-color) !important;
 }
-.combatant-card.active .card-type-badge { color: rgba(26,10,0,0.8) !important; border-color: rgba(0,0,0,0.2) !important; }
-.combatant-card.active .card-active-badge { background: rgba(0,0,0,0.2); color: #1a0a00; }
-.combatant-card.active .card-notes { color: rgba(26,10,0,0.65) !important; }
-.combatant-card.active .card-hp-text { color: rgba(26,10,0,0.75) !important; }
-.combatant-card.active .hp-sep { color: rgba(26,10,0,0.4); }
-.combatant-card.active .card-ac { color: rgba(26,10,0,0.7) !important; }
-.combatant-card.active .hp-bar-wrap { background: rgba(0,0,0,0.18); }
+.combatant-card.active .card-type-badge { color: var(--type-color) !important; }
+.combatant-card.active .card-active-badge { background: var(--type-color); color: #1a0a00; }
+.combatant-card.active .card-notes { color: #999 !important; }
+.combatant-card.active .card-hp-text { color: #ccc !important; }
+.combatant-card.active .hp-sep { color: #555; }
+.combatant-card.active .card-ac { color: #ccc !important; }
+.combatant-card.active .hp-bar-wrap { background: rgba(0,0,0,0.25); }
 .combatant-card.active .card-btn {
-  background: rgba(0,0,0,0.12);
-  border-color: rgba(0,0,0,0.2);
-  color: rgba(26,10,0,0.8);
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.12);
+  color: #999;
 }
-.combatant-card.active .card-btn:hover { background: rgba(0,0,0,0.25); color: #1a0a00; }
-.combatant-card.active .condition-pill { color: #1a0a00 !important; border-color: rgba(0,0,0,0.3) !important; background: rgba(0,0,0,0.12); }
+.combatant-card.active .card-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+.combatant-card.active .condition-pill { color: inherit !important; }
 
 .combatant-card.dead {
   opacity: 0.4;
@@ -336,7 +337,7 @@ body {
 
 .card-name {
   font-family: 'IM Fell English', 'Garamond', serif;
-  font-size: 14px;
+  font-size: 17px;
   color: var(--text);
   flex: 1;
   min-width: 0;
@@ -428,8 +429,8 @@ body {
 }
 
 .condition-pill {
-  font-size: 10px;
-  padding: 1px 7px;
+  font-size: 12px;
+  padding: 3px 10px;
   border-radius: 10px;
   border: 1px solid;
   font-family: sans-serif;
@@ -448,8 +449,8 @@ body {
 
 .card-btn {
   font-family: var(--font);
-  font-size: 10px;
-  padding: 3px 8px;
+  font-size: 12px;
+  padding: 5px 10px;
   border-radius: 4px;
   border: 1px solid #3a2510;
   background: rgba(255,255,255,0.03);
@@ -457,7 +458,7 @@ body {
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
   white-space: nowrap;
-  min-width: 44px;
+  min-width: 52px;
   text-align: center;
 }
 .card-btn:hover     { background: rgba(255,255,255,0.09); color: var(--text); border-color: #666; }
@@ -1577,12 +1578,12 @@ body {
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.07);
   border-radius: 4px;
-  padding: 2px 6px;
-  min-width: 34px;
+  padding: 4px 8px;
+  min-width: 40px;
 }
-.card-stat-name { font-size: 8px; color: #555; letter-spacing: 0.07em; text-transform: uppercase; }
-.card-stat-val  { font-size: 11px; color: #bbb; font-weight: bold; line-height: 1.2; }
-.card-stat-mod  { font-size: 9px; color: #888; }
+.card-stat-name { font-size: 10px; color: #666; letter-spacing: 0.07em; text-transform: uppercase; }
+.card-stat-val  { font-size: 14px; color: #bbb; font-weight: bold; line-height: 1.2; }
+.card-stat-mod  { font-size: 11px; color: #888; }
 
 /* ── Card: attacks ───────────────────────────────────────────────────────────── */
 .card-attacks { margin: 4px 0; display: flex; flex-direction: column; gap: 2px; }

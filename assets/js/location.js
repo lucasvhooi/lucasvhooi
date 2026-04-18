@@ -2,6 +2,7 @@ import { db }                          from "./firebase.js";
 import { ref, set, remove, onValue }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { NPC_NAMES, AGE_RANGES, DEFAULT_PROFESSIONS, RACE_PROFESSIONS, RACE_BASE_WEIGHTS, ELF_SUBTYPE_WEIGHTS, NPC_TRAITS } from "./npc-data.js";
 import { parseTags, formatGold, getDisplayTags } from "./item-utils.js";
+import { openGivePanel } from "./give-to-player.js";
 
 // ── Setup ─────────────────────────────────────────────────────────────────────
 const params     = new URLSearchParams(window.location.search);
@@ -1436,22 +1437,42 @@ function renderShopInventory(marker) {
     const rarity = getItemRarity(item);
     const rarityColor = RARITY_COLORS[rarity] || "#9e9e9e";
 
+    const rarityClass = rarity ? "rarity-" + rarity.replace(" ", "-") : "";
     const row = document.createElement("div");
-    row.className = "shop-item-row";
+    row.className = `shop-item-row${rarityClass ? " " + rarityClass : ""}`;
     row.innerHTML = `
       <div class="shop-item-header">
-        <div class="shop-item-rarity-dot rarity-${rarity.replace(" ", "-")}" style="background-color: ${rarityColor}" title="${rarity}"></div>
+        <div class="shop-item-rarity-dot ${rarityClass}" style="background-color: ${rarityColor}" title="${rarity}"></div>
         <div class="shop-item-name">${item.name}</div>
       </div>
       ${tags.length ? `<div class="shop-item-tags">${tags.map(t => { const rc = {"common":"rarity-tag-common","uncommon":"rarity-tag-uncommon","rare":"rarity-tag-rare","very rare":"rarity-tag-very-rare","legendary":"rarity-tag-legendary"}[t]; return `<span class="item-tag${rc ? " " + rc : ""}">${t}</span>`; }).join("")}</div>` : ""}
       ${item.description ? `<div class="shop-item-desc">${item.description}</div>` : ""}
       <div class="shop-item-price">${formatGold(price)}</div>
+      ${isAdmin ? `<button class="shop-give-btn" title="Give to player">+</button>` : ""}
     `;
 
-    // Click to toggle description
-    row.addEventListener("click", () => {
+    // Click to toggle description (but not on the give button)
+    row.addEventListener("click", e => {
+      if (e.target.closest(".shop-give-btn")) return;
       row.classList.toggle("description-visible");
     });
+
+    if (isAdmin) {
+      const giveBtn = row.querySelector(".shop-give-btn");
+      giveBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        openGivePanel(giveBtn, {
+          name:        item.name,
+          type:        item.type || "misc",
+          description: item.description || null,
+          quantity:    1,
+          value:       item.price ? String(item.price) : null,
+          rarity:      item.rarity || null,
+          tags:        item.tags || null,
+          id:          item.id,
+        });
+      });
+    }
 
     shInventory.appendChild(row);
   });
@@ -1956,6 +1977,17 @@ function openShopModal(marker) {
     `;
   } else {
     shOwner.innerHTML = "";
+  }
+
+  // Building notes/description
+  const shNotes = document.getElementById("sh-notes");
+  if (shNotes) {
+    if (marker.notes) {
+      shNotes.textContent = marker.notes;
+      shNotes.style.display = "";
+    } else {
+      shNotes.style.display = "none";
+    }
   }
 
   // Tavern section

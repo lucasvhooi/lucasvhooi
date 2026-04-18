@@ -131,10 +131,10 @@ const MONSTER_PRESETS = [
 
 // ── Type colours ──────────────────────────────────────────────────────────────
 const TYPE_COLORS = {
-  player: { border: "#ffcc66", bg: "rgba(255,204,102,0.05)", badge: "#c9a030", badgeBg: "rgba(255,204,102,0.14)" },
-  enemy:  { border: "#e57373", bg: "rgba(229,115,115,0.05)", badge: "#ef5350", badgeBg: "rgba(229,115,115,0.14)" },
-  ally:   { border: "#81c784", bg: "rgba(129,199,132,0.05)", badge: "#66bb6a", badgeBg: "rgba(129,199,132,0.14)" },
-  npc:    { border: "#64b5f6", bg: "rgba(100,181,246,0.05)", badge: "#42a5f5", badgeBg: "rgba(100,181,246,0.14)" },
+  player: { border: "#ffcc66", bg: "rgba(255,204,102,0.05)", activeBg: "rgba(80,55,0,0.45)",   badge: "#c9a030", badgeBg: "rgba(255,204,102,0.14)" },
+  enemy:  { border: "#e57373", bg: "rgba(229,115,115,0.05)", activeBg: "rgba(60,8,8,0.6)",      badge: "#ef5350", badgeBg: "rgba(229,115,115,0.14)" },
+  ally:   { border: "#81c784", bg: "rgba(129,199,132,0.05)", activeBg: "rgba(0,40,10,0.45)",    badge: "#66bb6a", badgeBg: "rgba(129,199,132,0.14)" },
+  npc:    { border: "#64b5f6", bg: "rgba(100,181,246,0.05)", activeBg: "rgba(0,25,60,0.45)",    badge: "#42a5f5", badgeBg: "rgba(100,181,246,0.14)" },
 };
 
 // ── Attack state (card-based) ─────────────────────────────────────────────────
@@ -274,8 +274,10 @@ function buildCard(c, idx) {
   const isAttackReady = isAttacker && attackMode;
   const div = document.createElement("div");
   div.className = `combatant-card${isActive ? " active" : ""}${isDead ? " dead" : ""}${isAttacker ? " is-attacker" : ""}${isTarget ? " is-target" : ""}${isAttackReady ? " is-attack-mode" : ""}`;
-  div.style.setProperty("--type-color", col.border);
-  div.style.setProperty("--type-bg",    col.bg);
+  div.dataset.id = c.id;
+  div.style.setProperty("--type-color",     col.border);
+  div.style.setProperty("--type-bg",        col.bg);
+  div.style.setProperty("--type-active-bg", col.activeBg || "rgba(255,255,255,0.08)");
 
   // Extra template fields (only shown if present)
   const s = c.stats;
@@ -968,9 +970,8 @@ function onCardClick(id) {
 
 // Lightweight class-only update — avoids full DOM rebuild on simple selection change
 function patchCardClasses() {
-  const cards = combatantList.querySelectorAll(".combatant-card");
-  state.combatants.forEach((c, idx) => {
-    const card = cards[idx];
+  state.combatants.forEach(c => {
+    const card = listEl.querySelector(`.combatant-card[data-id="${c.id}"]`);
     if (!card) return;
     const isAttacker    = attackState.attackerId === c.id;
     const isTarget      = attackState.targetId   === c.id;

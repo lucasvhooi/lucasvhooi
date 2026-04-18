@@ -104,7 +104,18 @@ function renderGrid() {
     ? Object.values(allInventory[viewingId])
     : []).map(it => ({
       ...it,
-      _etype: (it.type === "misc" && it.tags) ? inferTypeFromTags(it.tags) : (it.type || "misc"),
+      _etype: (() => {
+        const raw = it.type || "misc";
+        // "book" / "scroll" type only routes to the lore tab when the item
+        // carries actual lore content (pages, writer, or content fields).
+        // Shop items typed as scroll/book have none of these — treat as misc.
+        if (raw === "book" || raw === "scroll") {
+          return (it.pages != null || it.writer != null || it.content != null)
+            ? raw : "misc";
+        }
+        if (raw === "misc" && it.tags) return inferTypeFromTags(it.tags);
+        return raw;
+      })(),
     }));
 
   const filtered = activeFilter === "all"
@@ -126,7 +137,12 @@ function renderGrid() {
   });
   const RARITY_ORDER = { legendary: 0, "very rare": 1, rare: 2, uncommon: 3, common: 4 };
   const visible = Object.values(stackMap)
-    .sort((a, b) => (RARITY_ORDER[a.rarity] ?? 5) - (RARITY_ORDER[b.rarity] ?? 5));
+    .sort((a, b) => {
+      const aAttuned = a._stackIds.some(id => userAttunes[id]) ? 0 : 1;
+      const bAttuned = b._stackIds.some(id => userAttunes[id]) ? 0 : 1;
+      if (aAttuned !== bAttuned) return aAttuned - bAttuned;
+      return (RARITY_ORDER[a.rarity] ?? 5) - (RARITY_ORDER[b.rarity] ?? 5);
+    });
 
   if (visible.length === 0) {
     const baseItems = items.filter(it => it._etype !== "book" && it._etype !== "scroll");
@@ -797,8 +813,9 @@ function inferTypeFromTags(tags) {
   if (list.includes("weapon"))  return "weapon";
   if (list.includes("armor"))   return "armor";
   if (list.includes("potion"))  return "potion";
-  if (list.includes("book"))    return "book";
-  if (list.includes("scroll"))  return "scroll";
+  // "book" and "scroll" tags are shop-only classification tags and must NOT
+  // promote an item into the lore Books & Scrolls tab. Only items whose
+  // Firebase type field is explicitly "book" or "scroll" (real lore items) belong there.
   return "misc";
 }
 

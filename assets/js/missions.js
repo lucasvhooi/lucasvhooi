@@ -533,36 +533,51 @@ function clearDragHighlights() {
   qmBlockCanvas.querySelectorAll(".drag-over").forEach(el => el.classList.remove("drag-over"));
 }
 
-// Drop target: moves an existing block or places a new palette block at (row, col)
-function attachDropTarget(el, targetRow, targetCol) {
-  el.addEventListener("dragover", e => {
+// Ghost cell drop target for flex-column layout
+function makeGhostCell(colNum, position) {
+  const ghost = document.createElement("div");
+  ghost.className = "qm-ghost-cell";
+
+  ghost.addEventListener("dragover", e => {
     if (dragSrcIndex === null && dragPaletteType === null) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = dragPaletteType ? "copy" : "move";
     clearDragHighlights();
-    el.classList.add("drag-over");
+    ghost.classList.add("drag-over");
   });
-  el.addEventListener("dragleave", e => {
-    if (!el.contains(e.relatedTarget)) el.classList.remove("drag-over");
+  ghost.addEventListener("dragleave", e => {
+    if (!ghost.contains(e.relatedTarget)) ghost.classList.remove("drag-over");
   });
-  el.addEventListener("drop", e => {
+  ghost.addEventListener("drop", e => {
     e.preventDefault();
     clearDragHighlights();
+
     if (dragSrcIndex !== null) {
-      const b = currentBlocks[dragSrcIndex];
-      b.row = targetRow;
-      b.col = targetCol;
-      if (b.col + (b.span || 1) - 1 > 4) b.span = 5 - b.col;
+      const block = currentBlocks[dragSrcIndex];
+      const colBlocks = currentBlocks
+        .filter((b, i) => i !== dragSrcIndex && (b.col || 1) === colNum)
+        .sort((a, b) => (a.row || 1) - (b.row || 1));
+      block.col = colNum;
+      if (block.col + (block.span || 1) - 1 > 4) block.span = 5 - colNum;
+      colBlocks.splice(position, 0, block);
+      colBlocks.forEach((b, idx) => { b.row = idx + 1; });
       dragSrcIndex = null;
       buildBlocksEditor();
     } else if (dragPaletteType !== null) {
-      const newBlock = { ...BLOCK_DEFAULTS[dragPaletteType], row: targetRow, col: targetCol };
-      if (newBlock.col + (newBlock.span || 1) - 1 > 4) newBlock.span = 5 - newBlock.col;
+      const newBlock = { ...BLOCK_DEFAULTS[dragPaletteType], col: colNum };
+      if (newBlock.col + (newBlock.span || 1) - 1 > 4) newBlock.span = 5 - colNum;
+      const colBlocks = currentBlocks
+        .filter(b => (b.col || 1) === colNum)
+        .sort((a, b) => (a.row || 1) - (b.row || 1));
+      colBlocks.splice(position, 0, newBlock);
+      colBlocks.forEach((b, idx) => { b.row = idx + 1; });
       currentBlocks.push(newBlock);
       dragPaletteType = null;
       buildBlocksEditor();
     }
   });
+
+  return ghost;
 }
 
 // ── Auto-place blocks that have no explicit row/col ───────────────────────────
@@ -596,6 +611,38 @@ function autoPlaceBlocks(blocks) {
       for (let c = curCol; c < curCol + span; c++) occupied.add(`${r},${c}`);
     curCol += span;
     if (curCol > 4) { curRow++; curCol = 1; }
+  });
+}
+
+// ── Drop target for grid ghost cells ─────────────────────────────────────────
+function attachDropTarget(ghost, row, col) {
+  ghost.addEventListener("dragover", e => {
+    if (dragSrcIndex === null && dragPaletteType === null) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = dragPaletteType ? "copy" : "move";
+    clearDragHighlights();
+    ghost.classList.add("drag-over");
+  });
+  ghost.addEventListener("dragleave", e => {
+    if (!ghost.contains(e.relatedTarget)) ghost.classList.remove("drag-over");
+  });
+  ghost.addEventListener("drop", e => {
+    e.preventDefault();
+    clearDragHighlights();
+    if (dragSrcIndex !== null) {
+      const block = currentBlocks[dragSrcIndex];
+      block.row = row;
+      block.col = col;
+      if (col + (block.span || 1) - 1 > 4) block.span = 5 - col;
+      dragSrcIndex = null;
+      buildBlocksEditor();
+    } else if (dragPaletteType !== null) {
+      const newBlock = { ...BLOCK_DEFAULTS[dragPaletteType], row, col };
+      if (col + (newBlock.span || 1) - 1 > 4) newBlock.span = 5 - col;
+      currentBlocks.push(newBlock);
+      dragPaletteType = null;
+      buildBlocksEditor();
+    }
   });
 }
 
