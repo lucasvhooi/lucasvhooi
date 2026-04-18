@@ -91,21 +91,23 @@ async function giveToInventory(playerId, itemData) {
   const session = JSON.parse(localStorage.getItem("playerSession") || "{}");
   const newRef  = push(ref(db, `inventory/${playerId}`));
   const payload = {
-    id:          newRef.key,
-    name:        itemData.name        || "Item",
-    type:        itemData.type        || "misc",
-    description: itemData.description || null,
-    quantity:    itemData.quantity    || 1,
-    value:       itemData.value       || null,
-    content:     itemData.content     || null,
-    rarity:      itemData.rarity      || null,
-    tags:        itemData.tags        || null,
-    givenBy:     session.id           || "admin",
-    timestamp:   Date.now(),
+    id:           newRef.key,
+    name:         itemData.name        || "Item",
+    type:         itemData.type        || "misc",
+    description:  itemData.description || null,
+    quantity:     itemData.quantity    || 1,
+    value:        itemData.value       || null,
+    content:      itemData.content     || null,
+    rarity:       itemData.rarity      || null,
+    tags:         itemData.tags        || null,
+    sourceItemId: itemData.id          || null,
+    givenBy:      session.id           || "admin",
+    timestamp:    Date.now(),
   };
   // Preserve book fields so the inventory reader matches lore
-  if (itemData.pages   != null) payload.pages      = itemData.pages;
-  if (itemData.writer  != null) payload.writer      = itemData.writer;
+  if (itemData.pages     != null) payload.pages     = itemData.pages;
+  if (itemData.writer    != null) payload.writer    = itemData.writer;
+  if (itemData.abilities != null) payload.abilities = itemData.abilities;
   // coverColor: always copy even if null so bookColor() doesn't generate a random one
   payload.coverColor = itemData.coverColor || null;
   await set(newRef, payload);

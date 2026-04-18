@@ -443,6 +443,78 @@
   display: block;
 }
 
+/* ── Abilities form ── */
+.im-abilities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.im-ability-entry {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 6px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid #3a2510;
+  border-radius: 6px;
+  padding: 8px;
+}
+.im-ability-name-input {
+  grid-column: 1;
+  grid-row: 1;
+  background: #2a1810;
+  border: 1px solid #554433;
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 5px 8px;
+}
+.im-ability-name-input:focus { border-color: var(--accent); outline: none; }
+.im-ability-desc-input {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  background: #2a1810;
+  border: 1px solid #554433;
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 12px;
+  padding: 5px 8px;
+  resize: vertical;
+  font-family: inherit;
+}
+.im-ability-desc-input:focus { border-color: var(--accent); outline: none; }
+.im-ability-del-btn {
+  grid-column: 2;
+  grid-row: 1;
+  background: transparent;
+  border: 1px solid #6b2020;
+  border-radius: 4px;
+  color: #c04040;
+  font-size: 13px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.im-ability-del-btn:hover { background: rgba(192,64,64,0.15); }
+.im-ability-add-btn {
+  background: transparent;
+  border: 1px dashed #554433;
+  border-radius: 6px;
+  color: var(--accent);
+  font-size: 12px;
+  padding: 5px 12px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s;
+}
+.im-ability-add-btn:hover { background: rgba(255,255,255,0.04); }
+
 @media (max-width: 600px) {
   .items-main { padding: 16px 12px 48px; }
   .items-toolbar { gap: 8px; }

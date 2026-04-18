@@ -100,20 +100,23 @@ function renderGrid() {
   attSlots.textContent = `${attunedCount} / 3 Attunement Slots`;
   attSlots.style.color = attunedCount === 3 ? "#e57373" : attunedCount >= 2 ? "#ff9800" : "var(--accent)";
 
-  const items = allInventory[viewingId]
+  const items = (allInventory[viewingId]
     ? Object.values(allInventory[viewingId])
-    : [];
+    : []).map(it => ({
+      ...it,
+      _etype: (it.type === "misc" && it.tags) ? inferTypeFromTags(it.tags) : (it.type || "misc"),
+    }));
 
   const filtered = activeFilter === "all"
-    ? items.filter(it => it.type !== "book" && it.type !== "scroll")
+    ? items.filter(it => it._etype !== "book" && it._etype !== "scroll")
     : activeFilter === "books-scrolls"
-      ? items.filter(it => it.type === "book" || it.type === "scroll")
-      : items.filter(it => it.type === activeFilter);
+      ? items.filter(it => it._etype === "book" || it._etype === "scroll")
+      : items.filter(it => it._etype === activeFilter);
 
-  // Stack identical items (same name + type)
+  // Stack identical items (same name + effective type)
   const stackMap = {};
   filtered.forEach(it => {
-    const key = (it.type || "misc") + "::" + (it.name || "");
+    const key = (it._etype || "misc") + "::" + (it.name || "");
     if (!stackMap[key]) {
       stackMap[key] = { ...it, _stackQty: it.quantity || 1, _stackIds: [it.id] };
     } else {
@@ -126,8 +129,8 @@ function renderGrid() {
     .sort((a, b) => (RARITY_ORDER[a.rarity] ?? 5) - (RARITY_ORDER[b.rarity] ?? 5));
 
   if (visible.length === 0) {
-    const baseItems = items.filter(it => it.type !== "book" && it.type !== "scroll");
-    const loreItems = items.filter(it => it.type === "book" || it.type === "scroll");
+    const baseItems = items.filter(it => it._etype !== "book" && it._etype !== "scroll");
+    const loreItems = items.filter(it => it._etype === "book" || it._etype === "scroll");
     let msg = "No items in this category.";
     if (activeFilter === "all" && baseItems.length === 0)       msg = "No items yet. Ask your DM for loot!";
     if (activeFilter === "books-scrolls" && loreItems.length === 0) msg = "No books or scrolls yet.";
@@ -160,8 +163,8 @@ function getAuthor(item) {
 }
 
 function buildItemCard(item, ownerId) {
-  if (item.type === "book")   return buildBookCard(item, ownerId);
-  if (item.type === "scroll") return buildScrollCard(item, ownerId);
+  if (item._etype === "book")   return buildBookCard(item, ownerId);
+  if (item._etype === "scroll") return buildScrollCard(item, ownerId);
   return buildGenericCard(item, ownerId);
 }
 
@@ -262,6 +265,8 @@ function buildGenericCard(item, ownerId) {
 
   if (rarityColor) card.style.setProperty("--rc", rarityColor);
 
+  const effectiveType = item._etype || "misc";
+
   const attKey = (item.name || "").toLowerCase().replace(/[^a-z0-9]/g, '_');
   const userAttunes = allAttunements[ownerId] || {};
   const isAttuned = attKey in userAttunes;
@@ -269,14 +274,16 @@ function buildGenericCard(item, ownerId) {
   const attunedCount = Object.keys(userAttunes).length;
   const canAttune = isAdmin || ownerId === session.id;
 
+  const abilities = Array.isArray(item.abilities) ? item.abilities : (item.abilities ? Object.values(item.abilities) : []);
+
   card.innerHTML = `
     <div class="inv-card-body">
       <div class="inv-card-top">
-        <span class="inv-type-icon">${TYPE_ICON[item.type] || "◈"}</span>
+        <span class="inv-type-icon">${TYPE_ICON[effectiveType] || "◈"}</span>
         <div class="inv-name-wrap">
           <h3 class="inv-item-name">${esc(item.name || "Unknown Item")}${isAttuned ? `<span class="inv-attuned-badge">✦ Attuned</span>` : ""}</h3>
           <div class="inv-badges">
-            <span class="inv-type-badge inv-badge-${item.type || "misc"}">${TYPE_LABEL[item.type] || "Misc"}</span>
+            <span class="inv-type-badge inv-badge-${effectiveType}">${TYPE_LABEL[effectiveType] || "Misc"}</span>
             ${stackQtyBadge(item)}
             ${rarity ? `<span class="inv-rarity-label" style="color:${rarityColor}">${esc(rarity)}</span>` : ""}
           </div>
@@ -284,6 +291,13 @@ function buildGenericCard(item, ownerId) {
       </div>
       ${item.description ? `<p class="inv-desc">${esc(item.description)}</p>` : ""}
       ${item.tags ? `<div class="inv-tags">${item.tags.split(",").map(t => `<span class="inv-tag">${esc(t.trim())}</span>`).join("")}</div>` : ""}
+      ${abilities.length ? `
+        <div class="inv-abilities-toggle">▾ ${abilities.length === 1 ? "1 Ability" : abilities.length + " Abilities"}</div>
+        <div class="inv-abilities">${abilities.map(a => `
+          <div class="inv-ability">
+            <span class="inv-ability-name">${esc(a.name)}</span>
+            ${a.description ? `<span class="inv-ability-desc">${esc(a.description)}</span>` : ""}
+          </div>`).join("")}</div>` : ""}
       ${giverName ? `<p style="font-size:11px;color:#555;margin:6px 0 0;font-style:italic">Given by ${esc(giverName)}</p>` : ""}
     </div>
     <div class="inv-card-actions">
@@ -433,17 +447,19 @@ document.getElementById("ai-save").addEventListener("click", async () => {
 
   const itemRef = push(ref(db, `inventory/${target}`));
   await set(itemRef, {
-    id:          itemRef.key,
-    name:        selectedItemDb.name,
+    id:           itemRef.key,
+    name:         selectedItemDb.name,
     type,
-    quantity:    qty,
-    value:       selectedItemDb.price ? String(selectedItemDb.price) + " gp" : null,
-    description: selectedItemDb.description || null,
-    content:     null,
-    rarity:      selectedItemDb.rarity || null,
-    tags:        selectedItemDb.tags || null,
-    givenBy:     session.id,
-    timestamp:   Date.now(),
+    quantity:     qty,
+    value:        selectedItemDb.price ? String(selectedItemDb.price) + " gp" : null,
+    description:  selectedItemDb.description || null,
+    content:      null,
+    rarity:       selectedItemDb.rarity || null,
+    tags:         selectedItemDb.tags || null,
+    abilities:    selectedItemDb.abilities || null,
+    sourceItemId: selectedItemDb.id,
+    givenBy:      session.id,
+    timestamp:    Date.now(),
   });
   closeModal("add-modal");
   if (isAdmin && target !== viewingId) {

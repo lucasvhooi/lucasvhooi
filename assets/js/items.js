@@ -1,5 +1,5 @@
 import { db }                          from "./firebase.js";
-import { ref, set, remove, onValue }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+import { ref, set, remove, onValue, get }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { parseTags, formatGold, getDisplayTags } from "./item-utils.js";
 import { openGivePanel }              from "./give-to-player.js";
 
@@ -219,6 +219,7 @@ function renderItems() {
       card.querySelector(".item-give-btn").addEventListener("click", e => {
         e.stopPropagation();
         openGivePanel(e.currentTarget, {
+          id:          item.id,
           name:        item.name,
           type:        inferTypeFromTags(item.tags),
           description: item.description || null,
@@ -227,6 +228,7 @@ function renderItems() {
           content:     null,
           rarity:      getItemRarity(item),
           tags:        item.tags || null,
+          abilities:   item.abilities || null,
         });
       });
     }
@@ -249,6 +251,8 @@ function openItemModal(id) {
     selectedRarity = getItemRarity(item);
     selectedTags = new Set(parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t)));
     document.getElementById("im-shop-available").checked = item.shopAvailable !== false;
+    selectedAbilities = Array.isArray(item.abilities) ? item.abilities.map(a => ({ ...a }))
+      : item.abilities ? Object.values(item.abilities).map(a => ({ ...a })) : [];
   } else {
     imTitle.textContent = "Add Item";
     imName.value = imDesc.value = "";
@@ -256,10 +260,12 @@ function openItemModal(id) {
     selectedRarity = "common";
     selectedTags = new Set();
     document.getElementById("im-shop-available").checked = true;
+    selectedAbilities = [];
   }
 
   syncRarityButtons();
   renderTagPicker();
+  renderAbilities();
   itemModal.classList.add("open");
   imName.focus();
 }
@@ -269,7 +275,39 @@ function closeItemModal() {
   editingItemId = null;
 }
 
-imSave.addEventListener("click", () => {
+// ── Abilities ─────────────────────────────────────────────────────────────────
+let selectedAbilities = []; // [{name, description}]
+
+function renderAbilities() {
+  const list = document.getElementById("im-abilities-list");
+  if (!list) return;
+  list.innerHTML = selectedAbilities.map((ab, i) => `
+    <div class="im-ability-entry" data-idx="${i}">
+      <input class="im-ability-name-input" type="text" placeholder="Ability name…" value="${ab.name.replace(/"/g, '&quot;')}" data-field="name" data-idx="${i}" />
+      <textarea class="im-ability-desc-input" placeholder="Description…" rows="2" data-field="description" data-idx="${i}">${ab.description || ""}</textarea>
+      <button type="button" class="im-ability-del-btn" data-idx="${i}">✕</button>
+    </div>`).join("");
+  list.querySelectorAll("[data-field]").forEach(el => {
+    el.addEventListener("input", () => {
+      selectedAbilities[el.dataset.idx][el.dataset.field] = el.value;
+    });
+  });
+  list.querySelectorAll(".im-ability-del-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      selectedAbilities.splice(Number(btn.dataset.idx), 1);
+      renderAbilities();
+    });
+  });
+}
+
+document.getElementById("im-ability-add-btn")?.addEventListener("click", () => {
+  selectedAbilities.push({ name: "", description: "" });
+  renderAbilities();
+  const inputs = document.querySelectorAll(".im-ability-name-input");
+  inputs[inputs.length - 1]?.focus();
+});
+
+imSave.addEventListener("click", async () => {
   const name  = imName.value.trim();
   const price = parseFloat(imPrice.value);
   if (!name)              { imError.textContent = "Name is required."; return; }
@@ -280,16 +318,44 @@ imSave.addEventListener("click", () => {
 
   const cleanTags = Array.from(selectedTags).filter(t => !RARITY_KEYWORDS.has(t)).join(", ") || null;
 
-  set(ref(db, `items/${id}`), {
-    id,
-    name,
-    description:   imDesc.value.trim() || null,
-    price,
-    rarity:        selectedRarity,
-    tags:          cleanTags,
-    shopAvailable: document.getElementById("im-shop-available").checked,
-    createdAt:     existing?.createdAt || Date.now()
+  const cleanAbilities = selectedAbilities.filter(a => a.name.trim());
+
+  const description  = imDesc.value.trim() || null;
+  const shopAvailable = document.getElementById("im-shop-available").checked;
+  const abilities    = cleanAbilities.length ? cleanAbilities : null;
+
+  await set(ref(db, `items/${id}`), {
+    id, name, description, price,
+    rarity: selectedRarity,
+    tags:   cleanTags,
+    shopAvailable,
+    abilities,
+    createdAt: existing?.createdAt || Date.now()
   });
+
+  // Sync changes into any inventory copies that came from this item
+  const invSnap = await get(ref(db, "inventory"));
+  if (invSnap.exists()) {
+    const allInv = invSnap.val();
+    for (const [uid, userInv] of Object.entries(allInv)) {
+      for (const [key, invItem] of Object.entries(userInv || {})) {
+        const matchById   = invItem.sourceItemId === id;
+        const matchByName = !invItem.sourceItemId && existing && invItem.name === existing.name;
+        if (matchById || matchByName) {
+          await set(ref(db, `inventory/${uid}/${key}`), {
+            ...invItem,
+            name,
+            description,
+            rarity:       selectedRarity,
+            tags:         cleanTags,
+            abilities,
+            value:        price ? formatGold(price) : null,
+            sourceItemId: id,
+          });
+        }
+      }
+    }
+  }
 
   closeItemModal();
 });
