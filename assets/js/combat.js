@@ -484,14 +484,22 @@ const cmSave          = document.getElementById("cm-save");
 const cmCancel        = document.getElementById("cm-cancel");
 const cmTypeBtns      = document.querySelectorAll(".type-btn");
 const cmRollBtn       = document.getElementById("cm-roll-init");
-const cmNonPlayerRows = document.getElementById("cm-non-player-rows");
-const cmPresetSearch  = document.getElementById("cm-preset-search");
-const cmPresetList    = document.getElementById("cm-preset-list");
-const cmPresetBadge   = document.getElementById("cm-preset-selected");
+const cmNonPlayerRows   = document.getElementById("cm-non-player-rows");
+const cmPresetSearch    = document.getElementById("cm-preset-search");
+const cmPresetList      = document.getElementById("cm-preset-list");
+const cmPresetBadge     = document.getElementById("cm-preset-selected");
+const cmNameRow         = document.getElementById("cm-name-row");
+const cmEnemyTmplRow    = document.getElementById("cm-enemy-tmpl-row");
+const cmEnemyCountRow   = document.getElementById("cm-enemy-count-row");
+const cmEnemyTmplSearch = document.getElementById("cm-enemy-tmpl-search");
+const cmEnemyTmplList   = document.getElementById("cm-enemy-tmpl-list");
+const cmEnemyTmplBadge  = document.getElementById("cm-enemy-tmpl-badge");
+const cmEnemyCountInput = document.getElementById("cm-enemy-count");
 
-let editingIdx    = null;
-let selectedType  = "player";
-let selectedPreset = null;  // { name, ac, hp, initMod, cr }
+let editingIdx        = null;
+let selectedType      = "player";
+let selectedPreset    = null;  // { name, ac, hp, initMod, cr }
+let selectedEnemyTmpl = null;  // picked from enemyTemplates
 
 // ── Type buttons ──────────────────────────────────────────────────────────────
 cmTypeBtns.forEach(btn =>
@@ -530,10 +538,17 @@ function setActiveLootTags(tags) {
 }
 
 function updatePlayerFields() {
-  const isPlayer = selectedType === "player";
-  const isEnemy  = selectedType === "enemy";
-  cmNonPlayerRows.style.display = isPlayer ? "none" : "";
-  cmLootRows.style.display      = isEnemy  ? ""     : "none";
+  const isPlayer    = selectedType === "player";
+  const isEnemy     = selectedType === "enemy";
+  const isAddEnemy  = isEnemy && editingIdx === null;
+
+  // Simplified add-enemy mode: template search + initiative + count only
+  cmNameRow.style.display        = isAddEnemy ? "none" : "";
+  cmEnemyTmplRow.style.display   = isAddEnemy ? ""     : "none";
+  cmEnemyCountRow.style.display  = isAddEnemy ? ""     : "none";
+  cmNonPlayerRows.style.display  = isAddEnemy || isPlayer ? "none" : "";
+  document.getElementById("cm-preset-row").style.display = isAddEnemy ? "none" : (isPlayer ? "none" : "");
+  cmLootRows.style.display       = isEnemy && !isAddEnemy ? "" : "none";
   cmInitLabel.firstChild.textContent = isPlayer ? "Initiative rolled" : "Initiative";
 }
 
@@ -568,6 +583,38 @@ cmPresetSearch.addEventListener("blur", () => {
   setTimeout(() => { cmPresetList.style.display = "none"; }, 150);
 });
 
+// ── Enemy template search (simplified add-enemy mode) ─────────────────────────
+cmEnemyTmplSearch.addEventListener("input", () => {
+  const q = cmEnemyTmplSearch.value.trim().toLowerCase();
+  const matches = q
+    ? enemyTemplates.filter(t => t.name.toLowerCase().includes(q)).slice(0, 12)
+    : enemyTemplates.slice(0, 12);
+  if (!matches.length) { cmEnemyTmplList.innerHTML = `<div class="preset-item" style="color:#666;font-style:italic">No templates found</div>`; cmEnemyTmplList.style.display = "block"; return; }
+  cmEnemyTmplList.innerHTML = "";
+  matches.forEach(t => {
+    const item = document.createElement("div");
+    item.className = "preset-item";
+    item.innerHTML = `<span class="preset-name">${escHtml(t.name)}</span>
+      <span class="preset-meta">${t.cr ? "CR " + t.cr + " · " : ""}HP ${t.hp ?? "?"} · AC ${t.ac ?? "?"}</span>`;
+    item.addEventListener("mousedown", e => { e.preventDefault(); applyEnemyTemplate(t); });
+    cmEnemyTmplList.appendChild(item);
+  });
+  cmEnemyTmplList.style.display = "block";
+});
+cmEnemyTmplSearch.addEventListener("focus",  () => cmEnemyTmplSearch.dispatchEvent(new Event("input")));
+cmEnemyTmplSearch.addEventListener("blur",   () => setTimeout(() => { cmEnemyTmplList.style.display = "none"; }, 150));
+
+function applyEnemyTemplate(tmpl) {
+  selectedEnemyTmpl = tmpl;
+  cmEnemyTmplSearch.value = tmpl.name;
+  cmEnemyTmplList.style.display = "none";
+  const initMod = tmpl.initMod ?? 0;
+  cmInit.value = roll(20) + initMod;
+  cmEnemyTmplBadge.textContent = `${tmpl.name}${tmpl.cr ? " · CR " + tmpl.cr : ""} · HP ${tmpl.hp ?? "?"} · AC ${tmpl.ac ?? "?"}`;
+  cmEnemyTmplBadge.style.display = "block";
+  cmInit.focus();
+}
+
 function applyPreset(preset) {
   selectedPreset = preset;
   cmPresetSearch.value = preset.name;
@@ -591,12 +638,17 @@ function applyPreset(preset) {
 document.getElementById("btn-add").addEventListener("click", () => openModal(null));
 
 function openModal(idx) {
-  editingIdx     = idx;
-  selectedPreset = null;
+  editingIdx        = idx;
+  selectedPreset    = null;
+  selectedEnemyTmpl = null;
   cmError.textContent = "";
   cmPresetBadge.style.display = "none";
   cmPresetSearch.value = "";
   cmPresetList.style.display = "none";
+  cmEnemyTmplSearch.value = "";
+  cmEnemyTmplList.style.display = "none";
+  cmEnemyTmplBadge.style.display = "none";
+  cmEnemyCountInput.value = 1;
 
   if (idx !== null && idx !== undefined) {
     const c = state.combatants[idx];
@@ -620,7 +672,7 @@ function openModal(idx) {
     cmTitle.textContent = "Add Combatant";
     cmName.value = cmAc.value = cmHp.value = cmMaxHp.value = cmInit.value = cmNotes.value = "";
     cmCountInput.value = 1;
-    selectedType = "player";
+    selectedType = "enemy";   // default to enemy since that's the common case
     cmSave.textContent = "Add";
     // Reset loot fields
     cmLootGpMin.value = cmLootGpMax.value = cmLootItemsMin.value = cmLootItemsMax.value = "0";
@@ -630,7 +682,7 @@ function openModal(idx) {
   syncTypeBtns();
   updatePlayerFields();
   combatantModal.classList.add("open");
-  setTimeout(() => cmName.focus(), 60);
+  setTimeout(() => (editingIdx === null && selectedType === "enemy" ? cmEnemyTmplSearch : cmName).focus(), 60);
 }
 
 function closeModal() { combatantModal.classList.remove("open"); editingIdx = null; }
@@ -640,10 +692,49 @@ cmName.addEventListener("keydown", e => { if (e.key === "Enter") cmSave.click();
 
 // ── Save modal ────────────────────────────────────────────────────────────────
 cmSave.addEventListener("click", () => {
-  const name  = cmName.value.trim();
-  const isPlayer = selectedType === "player";
+  const isPlayer   = selectedType === "player";
+  const isAddEnemy = selectedType === "enemy" && editingIdx === null;
   cmError.textContent = "";
 
+  // Simplified add-enemy path
+  if (isAddEnemy) {
+    if (!selectedEnemyTmpl) { cmError.textContent = "Select an enemy template."; return; }
+    const initVal = parseInt(cmInit.value, 10);
+    if (isNaN(initVal)) { cmError.textContent = "Enter an initiative value."; return; }
+    const count = Math.max(1, Math.min(26, parseInt(cmEnemyCountInput.value, 10) || 1));
+    const t = selectedEnemyTmpl;
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for (let i = 0; i < count; i++) {
+      const suffix = count > 1 ? " " + letters[i] : "";
+      const initForThis = count > 1 ? roll(20) + (t.initMod ?? 0) : initVal;
+      state.combatants.push({
+        id:         genId(),
+        name:       t.name + suffix,
+        type:       "enemy",
+        initiative: initForThis,
+        hp:         t.hp ?? 0,
+        maxHp:      t.hp ?? 0,
+        ac:         t.ac ?? 10,
+        conditions: [],
+        notes:      t.notes   || null,
+        templateId: t.id,
+        loot:       t.loot    ?? null,
+        stats:      t.stats   || null,
+        attacks:    Array.isArray(t.attacks) ? t.attacks : (t.attacks ? Object.values(t.attacks) : null),
+        speed:      t.speed   || null,
+        saves:      t.saves   || null,
+        condImm:    t.condImm || null,
+        languages:  t.languages || null,
+      });
+    }
+    const label = count > 1 ? `${t.name} ×${count}` : t.name;
+    addLog(`+  ${label} added.`, "info");
+    closeModal();
+    render();
+    return;
+  }
+
+  const name  = cmName.value.trim();
   if (!name) { cmError.textContent = "Name is required."; return; }
 
   // Players only need initiative, no HP required

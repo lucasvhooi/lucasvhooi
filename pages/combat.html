@@ -100,7 +100,7 @@
   <div id="combatant-modal" class="modal-overlay">
     <div class="modal-box">
       <h2 id="cm-title">Add Combatant</h2>
-      <div class="form-row">
+      <div class="form-row" id="cm-name-row">
         <label>Name <span class="req">*</span>
           <input type="text" id="cm-name" placeholder="e.g. Gandalf" />
         </label>
@@ -113,6 +113,18 @@
           <button type="button" class="type-btn"        data-type="ally">Ally</button>
           <button type="button" class="type-btn"        data-type="npc">NPC</button>
         </div>
+      </div>
+      <!-- Simplified enemy add: template search only -->
+      <div class="form-row" id="cm-enemy-tmpl-row" style="display:none">
+        <span class="field-label">Enemy Template <span class="req">*</span></span>
+        <input type="text" id="cm-enemy-tmpl-search" placeholder="Search your enemy templates…" autocomplete="off" />
+        <div id="cm-enemy-tmpl-list" class="preset-list"></div>
+        <div id="cm-enemy-tmpl-badge" class="preset-selected-badge" style="display:none"></div>
+      </div>
+      <div class="form-row" id="cm-enemy-count-row" style="display:none">
+        <label>Count <span class="field-hint">adds A, B, C…</span>
+          <input type="number" id="cm-enemy-count" value="1" min="1" max="26" />
+        </label>
       </div>
       <div class="form-row" id="cm-preset-row">
         <span class="field-label">Monster Preset <span class="field-hint">optional — auto-fills stats</span></span>
