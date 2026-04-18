@@ -4,7 +4,8 @@
       "Bash(head -836 \"C:/Users/lhooi/Documents/Github Projects/lucasvhooi/assets/js/combat.js\")",
       "Read(//tmp/**)",
       "WebSearch",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(python3 *)"
     ]
   }
 }

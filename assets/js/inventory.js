@@ -139,7 +139,12 @@ function renderGrid() {
   }
 
   invGrid.innerHTML = "";
-  visible.forEach(item => invGrid.appendChild(buildItemCard(item, viewingId)));
+  visible.forEach(item => {
+    const card = buildItemCard(item, viewingId);
+    invGrid.appendChild(card);
+    const nameEl = card.querySelector(".inv-item-name");
+    if (nameEl) fitText(nameEl);
+  });
 }
 
 // ── Item card ─────────────────────────────────────────────────────────────────
@@ -759,6 +764,14 @@ document.addEventListener("keydown", e => {
 // ── Admin: show add-item target row only for admin ────────────────────────────
 if (document.getElementById("ai-target-row")) {
   document.getElementById("ai-target-row").style.display = isAdmin ? "block" : "none";
+}
+
+function fitText(el) {
+  let size = parseFloat(getComputedStyle(el).fontSize) || 16;
+  while (el.scrollWidth > el.clientWidth && size > 9) {
+    size -= 0.5;
+    el.style.fontSize = size + "px";
+  }
 }
 
 function inferTypeFromTags(tags) {
