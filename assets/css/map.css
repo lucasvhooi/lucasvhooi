@@ -833,6 +833,13 @@ body.map-page {
     max-width: 240px;
     font-size: 14px;
   }
+  .tooltip-tap-hint {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--accent);
+    opacity: 0.8;
+    font-style: italic;
+  }
 
   /* Tooltip above — flip to below if near top edge */
   .marker-tooltip {

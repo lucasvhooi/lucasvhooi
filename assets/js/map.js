@@ -264,6 +264,13 @@ if (isTouchDevice) {
       onTouchDone();
     }
 
+    // Tap on empty map area — dismiss any active marker info
+    if (!placingMode && !isPinching && e.changedTouches.length === 1) {
+      if (!e.target.closest(".map-marker")) {
+        document.querySelectorAll(".map-marker.active").forEach(m => m.classList.remove("active"));
+      }
+    }
+
     // Tap to place marker (DM on mobile)
     if (placingMode && isAdmin && !isPinching && e.changedTouches.length === 1) {
       const touch = e.changedTouches[0];
@@ -363,6 +370,9 @@ function renderMarkers() {
     if (isAdmin && marker.notes) {
       html += `<div class="tooltip-notes">${marker.notes}</div>`;
     }
+    if (window.matchMedia("(pointer: coarse)").matches) {
+      html += `<div class="tooltip-tap-hint">Tap again to open →</div>`;
+    }
     tooltip.innerHTML = html;
 
     el.appendChild(pin);
@@ -395,10 +405,24 @@ function renderMarkers() {
       el.appendChild(controls);
     }
 
-    // Click / tap → open location detail page (save id so Map tab returns here)
+    // Click / tap → navigate to location page
+    // On mobile: first tap shows info tooltip, second tap navigates
     el.addEventListener("click", () => {
-      sessionStorage.setItem("lastLocationId", marker.id);
-      window.location.href = `location.html?id=${marker.id}`;
+      const isMobile = window.matchMedia("(pointer: coarse)").matches;
+      if (isMobile) {
+        if (el.classList.contains("active")) {
+          // Second tap — navigate
+          sessionStorage.setItem("lastLocationId", marker.id);
+          window.location.href = `location.html?id=${marker.id}`;
+        } else {
+          // First tap — show info, deactivate any other open marker
+          document.querySelectorAll(".map-marker.active").forEach(m => m.classList.remove("active"));
+          el.classList.add("active");
+        }
+      } else {
+        sessionStorage.setItem("lastLocationId", marker.id);
+        window.location.href = `location.html?id=${marker.id}`;
+      }
     });
 
     markerLayer.appendChild(el);

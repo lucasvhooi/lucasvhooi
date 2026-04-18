@@ -344,6 +344,23 @@ function buildGenericCard(item, ownerId) {
   return card;
 }
 
+// ── Compact view toggle (mobile) ─────────────────────────────────────────────
+let compactView = localStorage.getItem("inv-compact") === "1";
+const viewToggleBtn = document.getElementById("inv-view-toggle");
+
+function applyCompactView() {
+  invGrid.classList.toggle("compact", compactView);
+  viewToggleBtn.classList.toggle("active", compactView);
+  viewToggleBtn.title = compactView ? "Switch to detailed view" : "Switch to compact view";
+}
+applyCompactView();
+
+viewToggleBtn.addEventListener("click", () => {
+  compactView = !compactView;
+  localStorage.setItem("inv-compact", compactView ? "1" : "0");
+  applyCompactView();
+});
+
 // ── Filter tabs ───────────────────────────────────────────────────────────────
 document.querySelectorAll(".inv-tab").forEach(tab => {
   tab.addEventListener("click", () => {
