@@ -370,13 +370,13 @@ body {
 }
 
 .card-notes {
-  font-size: 11px;
-  color: #777;
+  font-size: 12px;
+  color: #888;
   font-style: italic;
   margin-bottom: 5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.45;
 }
 
 /* ── HP row ── */
@@ -582,7 +582,7 @@ body {
 .field-label  { font-size: 12px; color: #aaa; display: block; margin-bottom: 6px; }
 .field-hint   { font-size: 11px; color: #555; font-style: italic; margin-left: 4px; }
 
-.form-row input, .form-row select {
+.form-row input, .form-row select, .form-row textarea {
   box-sizing: border-box;
   width: 100%;
   background: #2a1810;
@@ -595,7 +595,8 @@ body {
   outline: none;
   transition: border-color 0.2s;
 }
-.form-row input:focus, .form-row select:focus { border-color: var(--accent); }
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus { border-color: var(--accent); }
+.form-row textarea { resize: vertical; line-height: 1.4; }
 
 /* ── Type selector ── */
 .type-selector {
@@ -1073,7 +1074,8 @@ body {
   gap: 4px;
 }
 
-.editor-label input {
+.editor-label input,
+.editor-label textarea {
   box-sizing: border-box;
   width: 100%;
   background: #1e1008;
@@ -1085,8 +1087,11 @@ body {
   padding: 6px 9px;
   outline: none;
   transition: border-color 0.2s;
+  resize: vertical;
+  line-height: 1.4;
 }
-.editor-label input:focus { border-color: var(--accent); }
+.editor-label input:focus,
+.editor-label textarea:focus { border-color: var(--accent); }
 
 /* ── Item picker ── */
 .item-picker-wrap {
@@ -1586,34 +1591,41 @@ body {
 .card-stat-mod  { font-size: 11px; color: #888; }
 
 /* ── Card: attacks ───────────────────────────────────────────────────────────── */
-.card-attacks { margin: 4px 0; display: flex; flex-direction: column; gap: 2px; }
+.card-attacks { margin: 6px 0; display: flex; flex-direction: column; gap: 5px; }
 .card-attack-row {
   display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 13px;
+}
+.card-atk-header {
+  display: flex;
   align-items: baseline;
-  gap: 5px;
-  font-size: 11px;
+  gap: 6px;
 }
 .card-atk-name { color: #e57373; font-weight: bold; flex-shrink: 0; }
-.card-atk-hit  { color: var(--accent); font-size: 10px; }
-.card-atk-dmg  { color: #bbb; }
+.card-atk-hit  { color: var(--accent); font-size: 12px; }
+.card-atk-dmg  { color: #ccc; font-size: 12px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
 
 /* ── Card: extra info rows ───────────────────────────────────────────────────── */
 .card-extra-row {
   display: flex;
   align-items: baseline;
-  gap: 5px;
-  font-size: 10px;
-  color: #888;
-  line-height: 1.4;
+  gap: 6px;
+  font-size: 12px;
+  color: #aaa;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 .card-extra-label {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: bold;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: #555;
+  color: #666;
   flex-shrink: 0;
-  min-width: 42px;
+  min-width: 46px;
 }
 
 /* ── Editor: new grid sizes ──────────────────────────────────────────────────── */
@@ -1653,13 +1665,21 @@ body {
 .et-attacks-empty { font-size: 11px; color: #555; font-style: italic; margin: 0; }
 
 .et-attack-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.et-atk-top-row {
   display: grid;
-  grid-template-columns: 1fr 70px 1fr auto;
+  grid-template-columns: 1fr 70px auto;
   gap: 6px;
   align-items: center;
-  margin-bottom: 6px;
 }
-.et-attack-row input {
+.et-attack-row input,
+.et-attack-row textarea {
   box-sizing: border-box;
   background: #1e1008;
   border: 1px solid #443322;
@@ -1671,7 +1691,13 @@ body {
   outline: none;
   width: 100%;
 }
-.et-attack-row input:focus { border-color: var(--accent); }
+.et-attack-row textarea {
+  resize: vertical;
+  line-height: 1.4;
+  min-height: 44px;
+}
+.et-attack-row input:focus,
+.et-attack-row textarea:focus { border-color: var(--accent); }
 .et-atk-del-btn {
   background: none; border: 1px solid transparent; color: #444; border-radius: 4px;
   cursor: pointer; font-size: 13px; padding: 3px 6px; transition: color 0.15s, border-color 0.15s;

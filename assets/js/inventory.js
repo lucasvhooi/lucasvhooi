@@ -136,10 +136,11 @@ function renderGrid() {
     }
   });
   const RARITY_ORDER = { legendary: 0, "very rare": 1, rare: 2, uncommon: 3, common: 4 };
+  const attKey = name => (name || "").toLowerCase().replace(/[^a-z0-9]/g, '_');
   const visible = Object.values(stackMap)
     .sort((a, b) => {
-      const aAttuned = a._stackIds.some(id => userAttunes[id]) ? 0 : 1;
-      const bAttuned = b._stackIds.some(id => userAttunes[id]) ? 0 : 1;
+      const aAttuned = attKey(a.name) in userAttunes ? 0 : 1;
+      const bAttuned = attKey(b.name) in userAttunes ? 0 : 1;
       if (aAttuned !== bAttuned) return aAttuned - bAttuned;
       return (RARITY_ORDER[a.rarity] ?? 5) - (RARITY_ORDER[b.rarity] ?? 5);
     });
@@ -310,28 +311,26 @@ function buildGenericCard(item, ownerId) {
           </div>
         </div>
       </div>
-      ${item.description ? `<p class="inv-desc">${esc(item.description)}</p>` : ""}
-      ${item.tags ? `<div class="inv-tags">${item.tags.split(",").map(t => `<span class="inv-tag">${esc(t.trim())}</span>`).join("")}</div>` : ""}
-      ${abilities.length ? `
-        <div class="inv-abilities-toggle">▾ ${abilities.length === 1 ? "1 Ability" : abilities.length + " Abilities"}</div>
-        <div class="inv-abilities">${abilities.map(a => `
-          <div class="inv-ability">
-            <span class="inv-ability-name">${esc(a.name)}</span>
-            ${a.description ? `<span class="inv-ability-desc">${esc(a.description)}</span>` : ""}
-          </div>`).join("")}</div>` : ""}
-      ${giverName ? `<p style="font-size:11px;color:#555;margin:6px 0 0;font-style:italic">Given by ${esc(giverName)}</p>` : ""}
-    </div>
-    <div class="inv-card-actions">
-      <button class="inv-action-btn btn-send">Send</button>
-      ${canAttune && !isAttuned ? `<button class="inv-action-btn btn-attune">Attune</button>` : ""}
-      ${canAttune && isAttuned ? `<button class="inv-action-btn btn-unattuned">★ Attuned</button>` : ""}
-      ${(isAdmin || ownerId === session.id) ? `<button class="inv-action-btn btn-delete">Remove</button>` : ""}
+      <div class="inv-card-details">
+        ${item.description ? `<p class="inv-desc">${esc(item.description)}</p>` : ""}
+        ${item.tags ? `<div class="inv-tags">${item.tags.split(",").map(t => `<span class="inv-tag">${esc(t.trim())}</span>`).join("")}</div>` : ""}
+        ${abilities.length ? `
+          <div class="inv-abilities-toggle">▾ ${abilities.length === 1 ? "1 Ability" : abilities.length + " Abilities"}</div>
+          <div class="inv-abilities">${abilities.map(a => `
+            <div class="inv-ability">
+              <span class="inv-ability-name">${esc(a.name)}</span>
+              ${a.description ? `<span class="inv-ability-desc">${esc(a.description)}</span>` : ""}
+            </div>`).join("")}</div>` : ""}
+        ${giverName ? `<p style="font-size:11px;color:#555;margin:6px 0 0;font-style:italic">Given by ${esc(giverName)}</p>` : ""}
+        <div class="inv-card-actions">
+          <button class="inv-action-btn btn-send">Send</button>
+          ${canAttune && !isAttuned ? `<button class="inv-action-btn btn-attune">Attune</button>` : ""}
+          ${canAttune && isAttuned ? `<button class="inv-action-btn btn-unattuned">★ Attuned</button>` : ""}
+          ${(isAdmin || ownerId === session.id) ? `<button class="inv-action-btn btn-delete">Remove</button>` : ""}
+        </div>
+      </div>
     </div>`;
 
-  card.addEventListener("click", e => {
-    if (e.target.closest(".inv-card-actions")) return;
-    card.classList.toggle("expanded");
-  });
   card.querySelector(".btn-send").addEventListener("click", () => openSendModal(item, ownerId));
   card.querySelector(".btn-delete")?.addEventListener("click", () => openRemoveModal(item, ownerId));
 
@@ -375,6 +374,19 @@ viewToggleBtn.addEventListener("click", () => {
   compactView = !compactView;
   localStorage.setItem("inv-compact", compactView ? "1" : "0");
   applyCompactView();
+});
+
+// Click-to-expand cards (compact: collapses others; desktop: abilities toggle)
+invGrid.addEventListener("click", e => {
+  const card = e.target.closest(".inv-card");
+  if (!card) return;
+  if (e.target.closest("button, a, input")) return;
+  if (compactView) {
+    invGrid.querySelectorAll(".inv-card.expanded").forEach(c => {
+      if (c !== card) c.classList.remove("expanded");
+    });
+  }
+  card.classList.toggle("expanded");
 });
 
 // ── Filter tabs ───────────────────────────────────────────────────────────────

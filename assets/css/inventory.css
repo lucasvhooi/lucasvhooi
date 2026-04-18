@@ -253,12 +253,14 @@
   overflow: visible;
 }
 
+/* ── Card details wrapper (animated in compact mode) ─────────────────────── */
+.inv-card-details { /* no special style on desktop — just a passthrough wrapper */ }
+
 /* ── Card actions ───────────────────────────────────────────────────────────── */
 .inv-card-actions {
   display: flex;
   gap: 6px;
-  padding: 8px 16px 12px 20px;
-  border-top: 1px solid rgba(255,255,255,0.04);
+  padding: 10px 0 4px;
   flex-wrap: wrap;
 }
 
@@ -713,6 +715,10 @@
   padding: 4px 6px;
 }
 
+/* View toggle — hidden on desktop, revealed inside the mobile media query below */
+.inv-view-toggle { display: none; }
+.inv-grid-toolbar { display: none; }
+
 /* ── Responsive ─────────────────────────────────────────────────────────────── */
 @media (max-width: 700px) {
   /* Hero */
@@ -808,105 +814,121 @@
   .inv-form-select,
   .inv-form-textarea { font-size: 16px; padding: 12px 14px; } /* 16px prevents iOS zoom */
 
-  /* ── View toggle button (mobile only) ── */
+  /* ── Toolbar row above the grid ── */
+  .inv-grid-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 0 10px;
+    margin-top: -6px;
+  }
+
+  /* ── View toggle button ── */
   .inv-view-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
-    position: fixed;
-    bottom: 24px;
-    right: 18px;
-    z-index: 200;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
+    gap: 4px;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 18px;
     border: 1.5px solid #554433;
     background: #1e1208;
     color: var(--accent);
-    font-size: 24px;
+    font-size: 14px;
+    font-family: var(--font);
     cursor: pointer;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.6);
-    transition: background 0.2s, box-shadow 0.2s, border-color 0.2s, transform 0.2s;
-    transform: scale(1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    transition: background 0.2s, box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+    white-space: nowrap;
   }
-  .inv-view-toggle:active { transform: scale(0.88); }
+  .inv-view-toggle:active { transform: scale(0.93); }
   .inv-view-toggle.active {
-    background: rgba(255,204,102,0.18);
+    background: rgba(255,204,102,0.15);
     border-color: var(--accent);
-    box-shadow: 0 4px 18px rgba(255,204,102,0.3);
+    box-shadow: 0 4px 18px rgba(255,204,102,0.28);
   }
-  .inv-view-toggle .toggle-icon {
-    display: inline-block;
-    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .inv-view-toggle.active .toggle-icon {
-    transform: rotate(90deg) scale(1.15);
-  }
+  .toggle-icon-grid { font-size: 18px; line-height: 1; }
+  .toggle-icon-list { font-size: 16px; line-height: 1; }
+  /* Show grid icon when in normal mode, list icon when compact */
+  .inv-view-toggle .toggle-icon-list { display: none; }
+  .inv-view-toggle.active .toggle-icon-grid { display: none; }
+  .inv-view-toggle.active .toggle-icon-list { display: inline; }
 
-  /* ── Compact 2-column grid ── */
+  /* ── Compact 3-column grid ── */
   .inv-grid.compact {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 8px;
   }
+
+  /* Compact collapsed card — small tile */
   .inv-grid.compact .inv-card {
     cursor: pointer;
     min-height: unset;
-    animation: compactIn 0.22s ease-out both;
-  }
-  @keyframes compactIn {
-    from { opacity: 0; transform: scale(0.92); }
-    to   { opacity: 1; transform: scale(1); }
+    overflow: hidden;
+    transition: box-shadow 0.2s, border-color 0.2s;
   }
   .inv-grid.compact .inv-card-body {
-    padding: 10px 10px 8px 12px;
+    padding: 8px 8px 6px 10px;
   }
   .inv-grid.compact .inv-card-top {
-    gap: 6px;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 0;
   }
-  .inv-grid.compact .inv-type-icon {
-    font-size: 18px;
-  }
-  .inv-grid.compact .inv-item-name {
-    font-size: 13px;
-    margin: 0;
-  }
-  .inv-grid.compact .inv-badges,
-  .inv-grid.compact .inv-desc,
-  .inv-grid.compact .inv-tags,
-  .inv-grid.compact .inv-abilities,
-  .inv-grid.compact .inv-abilities-toggle,
-  .inv-grid.compact .inv-card-actions,
-  .inv-grid.compact [style*="font-size:11px"] {
-    display: none !important;
-  }
-  /* Keep the attuned badge visible in compact mode */
-  .inv-grid.compact .inv-attuned-badge {
-    display: none;
-  }
-  /* Rarity accent line at bottom of compact card */
-  .inv-grid.compact .inv-card::after {
+  .inv-grid.compact .inv-type-icon { font-size: 16px; }
+  .inv-grid.compact .inv-item-name { font-size: 11px; margin: 0; line-height: 1.3; }
+
+  /* Rarity accent strip at bottom of collapsed tile */
+  .inv-grid.compact .inv-card:not(.expanded)::after {
     content: '';
     display: block;
     height: 3px;
     background: var(--rc, #554433);
-    border-radius: 0 0 4px 4px;
-    margin-top: 6px;
+    border-radius: 0 0 6px 6px;
   }
-  /* Expanded compact card shows actions */
-  .inv-grid.compact .inv-card.expanded .inv-card-actions {
-    display: flex !important;
+
+  /* ── Smooth slide: hide details in collapsed state ── */
+  .inv-grid.compact .inv-card-details {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity    0.3s ease;
   }
-  .inv-grid.compact .inv-card.expanded .inv-badges {
-    display: flex !important;
+
+  /* ── Expanded compact card (click to open) ── */
+  .inv-grid.compact .inv-card.expanded {
+    grid-column: 1 / -1;
+  }
+  .inv-grid.compact .inv-card.expanded .inv-card-body {
+    padding: 14px 16px 6px 20px;
+  }
+  .inv-grid.compact .inv-card.expanded .inv-card-top {
+    margin-bottom: 8px;
+  }
+  .inv-grid.compact .inv-card.expanded .inv-type-icon { font-size: 22px; }
+  .inv-grid.compact .inv-card.expanded .inv-item-name { font-size: 15px; margin: 0 0 4px; }
+  .inv-grid.compact .inv-card.expanded .inv-card-details {
+    max-height: 800px;
+    opacity: 1;
+    padding: 0 20px 12px;
+  }
+
+  /* cards entering compact mode pop in */
+  @keyframes compactIn {
+    from { opacity: 0; transform: scale(0.88); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .inv-grid.compact .inv-card:not(.expanded) {
+    animation: compactIn 0.2s ease-out both;
   }
 }
 
-/* View toggle — hidden on desktop, shown inside mobile media query */
-.inv-view-toggle { display: none; }
 
 /* ── Attunement ── */
 .inv-attunement-bar {
   margin: 8px 0 4px;
+  margin-bottom: 10px;
   font-size: 13px;
   font-family: var(--font);
 }

@@ -172,6 +172,9 @@ function genId() { return Date.now().toString(36) + Math.random().toString(36).s
 function escHtml(s) {
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
+function escHtmlNl(s) {
+  return escHtml(s ?? "").replace(/\n/g, "<br>");
+}
 function roll(sides) { return Math.floor(Math.random() * sides) + 1; }
 
 // ── Log ───────────────────────────────────────────────────────────────────────
@@ -288,13 +291,20 @@ function buildCard(c, idx) {
     </div>` : "";
   const attacksHtml = (c.attacks && c.attacks.length) ? `
     <div class="card-attacks">
-      ${c.attacks.map(a => `<div class="card-attack-row"><span class="card-atk-name">${escHtml(a.name)}</span><span class="card-atk-hit">${escHtml(a.hit)}</span><span class="card-atk-dmg">${escHtml(a.damage)}</span></div>`).join("")}
+      ${c.attacks.map(a => `
+        <div class="card-attack-row">
+          <div class="card-atk-header">
+            <span class="card-atk-name">${escHtml(a.name)}</span>
+            ${a.hit ? `<span class="card-atk-hit">${escHtml(a.hit)}</span>` : ""}
+          </div>
+          ${a.damage ? `<span class="card-atk-dmg">${escHtmlNl(a.damage)}</span>` : ""}
+        </div>`).join("")}
     </div>` : "";
   const extraHtml = [
-    c.speed       ? `<div class="card-extra-row"><span class="card-extra-label">Speed</span>${escHtml(c.speed)}</div>` : "",
-    c.saves       ? `<div class="card-extra-row"><span class="card-extra-label">Saves</span>${escHtml(c.saves)}</div>` : "",
-    c.condImm     ? `<div class="card-extra-row"><span class="card-extra-label">Immune</span>${escHtml(c.condImm)}</div>` : "",
-    c.languages   ? `<div class="card-extra-row"><span class="card-extra-label">Lang</span>${escHtml(c.languages)}</div>` : "",
+    c.speed       ? `<div class="card-extra-row"><span class="card-extra-label">Speed</span>${escHtmlNl(c.speed)}</div>` : "",
+    c.saves       ? `<div class="card-extra-row"><span class="card-extra-label">Saves</span>${escHtmlNl(c.saves)}</div>` : "",
+    c.condImm     ? `<div class="card-extra-row"><span class="card-extra-label">Immune</span>${escHtmlNl(c.condImm)}</div>` : "",
+    c.languages   ? `<div class="card-extra-row"><span class="card-extra-label">Lang</span>${escHtmlNl(c.languages)}</div>` : "",
   ].join("");
 
   div.innerHTML = `
@@ -307,7 +317,7 @@ function buildCard(c, idx) {
         <span class="card-type-badge" style="color:${col.badge};background:${col.badgeBg}">${c.type.toUpperCase()}</span>
         ${isActive ? `<span class="card-active-badge">&#9654; Turn</span>` : ""}
       </div>
-      ${c.notes ? `<div class="card-notes">${escHtml(c.notes)}</div>` : ""}
+      ${c.notes ? `<div class="card-notes">${escHtmlNl(c.notes)}</div>` : ""}
       ${!isPlayer && c.maxHp > 0 ? `
         <div class="card-hp-row">
           <div class="hp-bar-wrap">
@@ -1435,10 +1445,12 @@ function renderAttackRows() {
     const row = document.createElement("div");
     row.className = "et-attack-row";
     row.innerHTML = `
-      <input class="et-atk-name"   type="text" placeholder="Attack name…"   value="${escHtml(atk.name)}"   />
-      <input class="et-atk-hit"    type="text" placeholder="+5"              value="${escHtml(atk.hit)}"    />
-      <input class="et-atk-damage" type="text" placeholder="1d8+3 piercing"  value="${escHtml(atk.damage)}" />
-      <button type="button" class="et-atk-del-btn" title="Remove">&#10005;</button>`;
+      <div class="et-atk-top-row">
+        <input class="et-atk-name"   type="text" placeholder="Attack name…" value="${escHtml(atk.name)}" />
+        <input class="et-atk-hit"    type="text" placeholder="+5"           value="${escHtml(atk.hit)}"  />
+        <button type="button" class="et-atk-del-btn" title="Remove">&#10005;</button>
+      </div>
+      <textarea class="et-atk-damage" placeholder="1d8+3 piercing&#10;On hit: …" rows="2">${escHtml(atk.damage)}</textarea>`;
     row.querySelector(".et-atk-name").addEventListener("input",   e => { etAttacks[i].name   = e.target.value; });
     row.querySelector(".et-atk-hit").addEventListener("input",    e => { etAttacks[i].hit    = e.target.value; });
     row.querySelector(".et-atk-damage").addEventListener("input", e => { etAttacks[i].damage = e.target.value; });

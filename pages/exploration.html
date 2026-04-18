@@ -6,7 +6,6 @@
   <title>Exploration — DnD Campaign</title>
   <link rel="icon" type="image/webp" href="../Images/EssolisLogoWeb.webp" />
   <meta property="og:image" content="../Images/EssolisLogoWeb.webp" />
-  <link href="https://fonts.googleapis.com/css2?family=Garamond&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/base.css">
   <link rel="stylesheet" href="../assets/css/exploration.css">
 </head>
@@ -24,17 +23,24 @@
     </ul>
   </nav>
 
-  <section>
-    <h1>Exploration</h1>
-    <p>Select a category to view what has been explored:</p>
-    <input type="text" id="searchBar" placeholder="Search by tags..." oninput="searchAllImages()">
-    <div class="category-buttons"></div>
-    <div class="image-gallery"></div>
-  </section>
+  <header class="expl-hero">
+    <h1 class="expl-hero-title">Exploration</h1>
+    <p class="expl-hero-sub">Discoveries and encounters across Enora</p>
+    <div class="expl-controls">
+      <input class="expl-search" type="text" id="searchBar" placeholder="&#128269; Search by tags…" oninput="searchAllImages()" autocomplete="off" />
+      <div class="category-buttons" id="category-buttons"></div>
+    </div>
+  </header>
 
+  <main class="expl-main">
+    <div class="image-gallery" id="image-gallery"></div>
+    <p class="expl-empty" id="expl-empty" style="display:none">Nothing discovered here yet.</p>
+  </main>
+
+  <!-- Popup lightbox -->
   <div class="popup" id="popup">
     <div class="popup-content">
-      <span class="close-button" id="closePopup">✖</span>
+      <button class="expl-popup-close" id="closePopup">&#10005;</button>
       <div class="popup-body"></div>
     </div>
   </div>
