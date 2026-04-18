@@ -881,9 +881,9 @@ body {
   border: 1px solid rgba(80,50,20,0.6);
   border-radius: 12px;
   width: 100%;
-  max-width: 960px;
+  max-width: 1360px;
   margin: auto;
-  max-height: calc(100vh - 40px);
+  max-height: calc(90vh - 40px);
   display: flex;
   flex-direction: column;
   box-shadow: 0 16px 60px rgba(0,0,0,0.9);
