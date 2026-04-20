@@ -1,6 +1,7 @@
 'use strict';
 import { db }                              from "./firebase.js";
 import { ref, set, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+import { formatGold }                      from "./item-utils.js";
 
 const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
 const questsRef  = ref(db, "quests");
@@ -90,11 +91,86 @@ const MONSTER_PRESETS = [
 ];
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let quests        = [];
-let markerNames   = [];
-let activeFilter  = "all";
-let editingId     = null;
-let currentBlocks = [];
+let quests          = [];
+let markerNames     = [];
+let activeFilter    = "all";
+let editingId         = null;
+let currentBlocks     = [];
+let currentCellColors = {};   // "row,col" -> "#hexcolor"
+let firebaseTemplates = [];   // enemy templates from Firebase
+let allItems          = [];   // items from Firebase items tab
+let allLoreItems      = [];   // lore items from Firebase lore tab
+let allCharacters     = [];   // characters from Firebase characters tab
+
+// ── Cell color selection state ────────────────────────────────────────────────
+let isPaintMode     = false;
+let isColorSelecting = false;
+let selAnchor       = null;   // {row, col}
+let selCursor       = null;   // {row, col}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function getSelRect() {
+  if (!selAnchor || !selCursor) return null;
+  return {
+    r1: Math.min(selAnchor.row, selCursor.row), r2: Math.max(selAnchor.row, selCursor.row),
+    c1: Math.min(selAnchor.col, selCursor.col), c2: Math.max(selAnchor.col, selCursor.col),
+  };
+}
+
+function getSelectedKeys() {
+  const rect = getSelRect();
+  if (!rect) return new Set();
+  const s = new Set();
+  for (let r = rect.r1; r <= rect.r2; r++)
+    for (let c = rect.c1; c <= rect.c2; c++) s.add(`${r},${c}`);
+  return s;
+}
+
+function updateColorSelection() {
+  const sel = getSelectedKeys();
+  qmBlockCanvas.querySelectorAll("[data-row][data-col]").forEach(el => {
+    el.classList.toggle("cell-sel", sel.has(`${el.dataset.row},${el.dataset.col}`));
+  });
+  const count = document.getElementById("qm-color-sel-count");
+  if (count) count.textContent = sel.size ? `${sel.size} cell${sel.size > 1 ? "s" : ""} selected` : "";
+}
+
+function applyColorToSelection(color) {
+  const sel = getSelectedKeys();
+  sel.forEach(key => { if (color) currentCellColors[key] = color; else delete currentCellColors[key]; });
+  selAnchor = selCursor = null;
+  buildBlocksEditor();
+}
+
+function cellColorForBlock(block) {
+  return currentCellColors[`${block.row},${block.col}`] || null;
+}
+
+onValue(ref(db, "enemyTemplates"), snap => {
+  const data = snap.val();
+  firebaseTemplates = data ? Object.values(data) : [];
+});
+
+onValue(ref(db, "items"), snap => {
+  const data = snap.val();
+  allItems = data ? Object.values(data) : [];
+});
+
+onValue(ref(db, "lore"), snap => {
+  const data = snap.val();
+  allLoreItems = data ? Object.values(data) : [];
+});
+
+onValue(ref(db, "characters"), snap => {
+  const data = snap.val();
+  allCharacters = data ? Object.values(data) : [];
+});
 
 // ── DOM Refs ──────────────────────────────────────────────────────────────────
 const questGrid      = document.getElementById("quest-grid");
@@ -110,9 +186,55 @@ const qmError        = document.getElementById("qm-error");
 const qmSave         = document.getElementById("qm-save");
 const qmCancel       = document.getElementById("qm-cancel");
 const qmBlockCanvas  = document.getElementById("qm-block-canvas");
-const qmTypeSelector = document.getElementById("qm-type-selector");
+const qmTypeSelector   = document.getElementById("qm-type-selector");
+const qmPaintBtn       = document.getElementById("qm-paint-btn");
+const qmColorToolbar   = document.getElementById("qm-color-toolbar");
+const qmColorSelCount  = document.getElementById("qm-color-sel-count");
 
 let selectedType = "main";
+
+// ── Paint mode toggle ─────────────────────────────────────────────────────────
+qmPaintBtn.addEventListener("click", () => {
+  isPaintMode = !isPaintMode;
+  qmPaintBtn.classList.toggle("active", isPaintMode);
+  qmColorToolbar.style.display = isPaintMode ? "flex" : "none";
+  if (!isPaintMode) { selAnchor = selCursor = null; updateColorSelection(); }
+});
+
+// ── Canvas drag-select for cell coloring ──────────────────────────────────────
+qmBlockCanvas.addEventListener("mousedown", e => {
+  if (!isPaintMode) return;
+  const el = e.target.closest("[data-row][data-col]");
+  if (!el) return;
+  if (e.target.closest("input,textarea,button,select,[contenteditable],.blk-drag-handle")) return;
+  if (e.button !== 0) return;
+  isColorSelecting = true;
+  selAnchor = { row: +el.dataset.row, col: +el.dataset.col };
+  selCursor = { ...selAnchor };
+  updateColorSelection();
+  e.preventDefault();
+});
+
+qmBlockCanvas.addEventListener("mouseover", e => {
+  if (!isColorSelecting) return;
+  const el = e.target.closest("[data-row][data-col]");
+  if (!el) return;
+  selCursor = { row: +el.dataset.row, col: +el.dataset.col };
+  updateColorSelection();
+});
+
+document.addEventListener("mouseup", () => {
+  if (!isColorSelecting) return;
+  isColorSelecting = false;
+});
+
+// ── Color swatches ────────────────────────────────────────────────────────────
+qmColorToolbar.querySelectorAll(".qm-color-swatch").forEach(btn => {
+  btn.addEventListener("click", () => applyColorToSelection(btn.dataset.color || ""));
+});
+
+const qmColorPick = document.getElementById("qm-color-pick");
+qmColorPick.addEventListener("input", () => applyColorToSelection(qmColorPick.value));
 
 // ── Firebase: quests ──────────────────────────────────────────────────────────
 onValue(questsRef, snapshot => {
@@ -227,6 +349,117 @@ function renderGrid() {
 const STATUS_LABEL = { active: "Active", not_started: "Not Started", completed: "Completed" };
 const STATUS_CLASS = { active: "status-active", not_started: "status-pending", completed: "status-done" };
 
+// Builds a grid HTML string that exactly mirrors the editor layout (explicit row/col, ghost cells, dynamic row heights)
+function buildCardGrid(blocks, cellColors) {
+  if (!blocks.length) return "";
+  cellColors = cellColors || {};
+  autoPlaceBlocks(blocks);
+  const maxRow = blocks.reduce((m, b) => Math.max(m, (b.row || 1) + (b.rowSpan || 1) - 1), 0);
+  if (!maxRow) return "";
+
+  // Dynamic row heights: divider-only rows are compact
+  const rowTypes = {};
+  blocks.forEach(b => {
+    for (let r = b.row; r < b.row + (b.rowSpan || 1); r++) {
+      if (!rowTypes[r]) rowTypes[r] = [];
+      rowTypes[r].push(b.type);
+    }
+  });
+  const rowHeights = Array.from({ length: maxRow }, (_, i) => {
+    const types = rowTypes[i + 1] || [];
+    return (types.length > 0 && types.every(t => t === "divider")) ? "40px" : "minmax(120px, auto)";
+  }).join(" ");
+
+  // Occupied cells
+  const occupied = new Set();
+  blocks.forEach(b => {
+    const span = Math.min(b.span || 1, 4);
+    for (let r = b.row; r < b.row + (b.rowSpan || 1); r++)
+      for (let c = b.col; c < b.col + span; c++)
+        occupied.add(`${r},${c}`);
+  });
+
+  // Ghost cells for every unoccupied position
+  let ghostHtml = "";
+  for (let r = 1; r <= maxRow; r++)
+    for (let c = 1; c <= 4; c++) {
+      if (!occupied.has(`${r},${c}`)) {
+        const cc = cellColors[`${r},${c}`];
+        const bgStyle = cc ? `background:${hexToRgba(cc, 0.35)};border-color:${hexToRgba(cc, 0.8)};` : "";
+        ghostHtml += `<div class="qc-ghost-cell" style="grid-row:${r};grid-column:${c};${bgStyle}"></div>`;
+      }
+    }
+
+  // Block cells (autoPlaceBlocks already set row/col)
+  const blockHtml = blocks.map(b => renderBlockInCard(b, cellColors)).filter(Boolean).join("");
+
+  return `<div class="qc-grid" style="grid-template-rows:${rowHeights}">${ghostHtml}${blockHtml}</div>`;
+}
+
+function buildCardChapters(blocks, cellColors) {
+  if (!blocks.length) return "";
+  cellColors = cellColors || {};
+  autoPlaceBlocks(blocks);
+  const sorted = [...blocks].sort((a, b) => (a.row - b.row) || (a.col - b.col));
+
+  const chapters = [];
+  let current = { divider: null, blocks: [] };
+  for (const b of sorted) {
+    if (b.type === "divider") {
+      chapters.push(current);
+      current = { divider: b, blocks: [] };
+    } else {
+      current.blocks.push(b);
+    }
+  }
+  chapters.push(current);
+
+  return chapters.map(ch => {
+    const gridHtml = buildChapterGrid(ch.blocks, cellColors);
+    if (!ch.divider && !gridHtml) return "";
+    const header = ch.divider ? `
+      <div class="qc-chapter-header" data-open="true">
+        <span class="qc-chapter-arrow">▼</span>
+        <span class="qc-chapter-line"></span>
+        ${ch.divider.title ? `<span class="qc-chapter-title">${esc(ch.divider.title)}</span>` : ""}
+        <span class="qc-chapter-line"></span>
+      </div>` : "";
+    return `<div class="qc-chapter">${header}<div class="qc-chapter-body">${gridHtml}</div></div>`;
+  }).join("");
+}
+
+function buildChapterGrid(blocks, cellColors) {
+  if (!blocks.length) return "";
+  const minRow = blocks.reduce((m, b) => Math.min(m, b.row || 1), Infinity);
+  const offset = minRow - 1;
+  const normalizedColors = {};
+  Object.entries(cellColors || {}).forEach(([key, val]) => {
+    const [r, c] = key.split(",").map(Number);
+    const nr = r - offset;
+    if (nr >= 1) normalizedColors[`${nr},${c}`] = val;
+  });
+  const nb = blocks.map(b => ({ ...b, row: (b.row || 1) - offset }));
+  const maxRow = nb.reduce((m, b) => Math.max(m, (b.row || 1) + (b.rowSpan || 1) - 1), 0);
+  const rowTypes = {};
+  nb.forEach(b => { for (let r = b.row; r < b.row + (b.rowSpan || 1); r++) { if (!rowTypes[r]) rowTypes[r] = []; rowTypes[r].push(b.type); } });
+  const rowHeights = Array.from({ length: maxRow }, (_, i) => {
+    const types = rowTypes[i + 1] || [];
+    return (types.length > 0 && types.every(t => t === "divider")) ? "40px" : "minmax(120px, auto)";
+  }).join(" ");
+  const occupied = new Set();
+  nb.forEach(b => { const s = Math.min(b.span || 1, 4); for (let r = b.row; r < b.row + (b.rowSpan || 1); r++) for (let c = b.col; c < b.col + s; c++) occupied.add(`${r},${c}`); });
+  let ghostHtml = "";
+  for (let r = 1; r <= maxRow; r++) for (let c = 1; c <= 4; c++) {
+    if (!occupied.has(`${r},${c}`)) {
+      const cc = normalizedColors[`${r},${c}`];
+      const bgStyle = cc ? `background:${hexToRgba(cc, 0.35)};border-color:${hexToRgba(cc, 0.8)};` : "";
+      ghostHtml += `<div class="qc-ghost-cell" style="grid-row:${r};grid-column:${c};${bgStyle}"></div>`;
+    }
+  }
+  const blockHtml = nb.map(b => renderBlockInCard(b, normalizedColors)).filter(Boolean).join("");
+  return `<div class="qc-grid" style="grid-template-rows:${rowHeights}">${ghostHtml}${blockHtml}</div>`;
+}
+
 function buildCard(q) {
   const state = loadPageState();
   const openQuests = new Set(state.openQuests || []);
@@ -235,14 +468,8 @@ function buildCard(q) {
   const card = document.createElement("div");
   card.className = `quest-card quest-${q.type || "main"}${q.status === "completed" ? " quest-completed" : ""}${startOpen ? "" : " qc-folded"}`;
   card.dataset.questId = q.id;
-  const blocks = q.blocks || [];
-
-  // Build the grid canvas for card view — explicit placement matches editor layout
-  const gridCells = blocks.map(b => renderBlockInCard(b)).filter(Boolean).join("");
-
-  // Card grid: use explicit row/col placement so the layout matches the editor
-  autoPlaceBlocks(blocks);
-  const maxBlockRow = blocks.reduce((m, b) => Math.max(m, (b.row || 1) + (b.rowSpan || 1) - 1), 0);
+  const blocks = q.blocks ? q.blocks.map(b => ({ ...b })) : [];
+  const cardGridHtml = buildCardChapters(blocks, q.cellColors || {});
 
   card.innerHTML = `
     <div class="qc-accent-bar"></div>
@@ -250,16 +477,18 @@ function buildCard(q) {
       <div class="qc-header-row">
         ${isAdmin ? `<div class="qc-drag-handle" title="Drag to reorder quests">&#8942;&#8942;</div>` : ""}
         <button class="qc-fold-btn" title="Collapse/Expand">${startOpen ? "&#9660;" : "&#9654;"}</button>
+        <div class="qc-title-row">
+          <h3 class="qc-title">${esc(q.title || "")}</h3>
+          ${q.location ? `<div class="qc-location">&#128205; ${esc(q.location)}</div>` : ""}
+        </div>
         <div class="qc-top-row">
           <span class="qc-type-badge">${q.type === "main" ? "Main Quest" : "Side Quest"}</span>
           <span class="qc-status ${STATUS_CLASS[q.status] || ""}">${STATUS_LABEL[q.status] || "Unknown"}</span>
           ${isAdmin && !q.discovered ? `<span class="qc-hidden-badge">&#128065; DM Only</span>` : ""}
         </div>
-        <h3 class="qc-title">${esc(q.title || "")}</h3>
-        ${q.location ? `<div class="qc-location">&#128205; ${esc(q.location)}</div>` : ""}
       </div>
       <div class="qc-content">
-        ${gridCells ? `<div class="qc-grid" style="grid-template-rows:repeat(${maxBlockRow},auto)">${gridCells}</div>` : ""}
+        ${cardGridHtml}
       </div>
     </div>
     ${isAdmin ? `
@@ -281,6 +510,16 @@ function buildCard(q) {
     const openSet = new Set(st.openQuests || []);
     if (folded) openSet.delete(q.id); else openSet.add(q.id);
     savePageState({ openQuests: [...openSet] });
+  });
+
+  // Chapter collapse/expand
+  card.querySelectorAll(".qc-chapter-header").forEach(header => {
+    header.addEventListener("click", () => {
+      const open = header.dataset.open === "true";
+      header.dataset.open = String(!open);
+      header.querySelector(".qc-chapter-arrow").textContent = open ? "▶" : "▼";
+      header.nextElementSibling.style.display = open ? "none" : "";
+    });
   });
 
   // Phase expand inside card
@@ -367,21 +606,32 @@ function reorderQuests(srcId, targetId) {
   ids.forEach((id, i) => set(ref(db, `quests/${id}/order`), i));
 }
 
-function renderBlockInCard(b) {
+function renderBlockInCard(b, cellColors) {
+  cellColors = cellColors || {};
   const span    = b.span    || 1;
   const rowSpan = b.rowSpan || 1;
   const colStyle = b.col ? `grid-column:${b.col}/span ${span};` : `grid-column:span ${span};`;
   const rowStyle = b.row ? `grid-row:${b.row}/span ${rowSpan};` : "";
-  const spanStyle = colStyle + rowStyle;
+  const cc = cellColors[`${b.row},${b.col}`];
+  const ccStyle = cc
+    ? `background:${hexToRgba(cc, 0.28)};border-left-color:${cc};`
+    : "";
+  const spanStyle = colStyle + rowStyle + ccStyle;
   const titleStyle = b.titleColor ? `color:${esc(b.titleColor)}` : "";
   const titleHtml = b.blockTitle
     ? `<div class="qcb-block-title" style="${titleStyle}">${esc(b.blockTitle)}</div>`
     : "";
 
+  const cellTxtStyle = [
+    b.textAlign  ? `text-align:${b.textAlign}`   : "",
+    b.fontWeight && b.fontWeight !== "normal"  ? `font-weight:${b.fontWeight}` : "",
+    b.fontStyle  && b.fontStyle  !== "normal"  ? `font-style:${b.fontStyle}`   : "",
+  ].filter(Boolean).join(";");
+
   switch (b.type) {
     case "text":
       if (!b.content) return "";
-      return `<div class="qcb-cell qcb-cell-text" style="${spanStyle}">${titleHtml}<p class="qcb-text">${esc(b.content)}</p></div>`;
+      return `<div class="qcb-cell qcb-cell-text" style="${spanStyle}">${titleHtml}<div class="qcb-text" style="${cellTxtStyle}">${contentToHtml(b.content)}</div></div>`;
 
     case "phase":
       return `<div class="qcb-cell qcb-cell-phase" style="${spanStyle}">${titleHtml}
@@ -390,49 +640,96 @@ function renderBlockInCard(b) {
           <span class="phase-label">${esc(b.title || "Phase")}</span>
         </button>
         <div class="qc-phase-body" style="display:none">
-          ${b.description ? `<p class="qcb-phase-desc">${esc(b.description)}</p>` : ""}
+          ${b.description ? `<p class="qcb-phase-desc" style="${cellTxtStyle}">${escBr(b.description)}</p>` : ""}
         </div>
       </div>`;
 
-    case "loot":
-      if (!b.name) return "";
+    case "loot": {
+      const lootItems = b.items?.length ? b.items
+        : (b.name ? [{ name: b.name, value: b.value || "", description: b.description || "" }] : []);
+      if (!lootItems.length) return "";
       return `<div class="qcb-cell qcb-cell-loot" style="${spanStyle}">${titleHtml}
-        <div class="qcb-loot">
-          <span class="qcb-loot-icon">&#127873;</span>
-          <span class="qcb-loot-name">${esc(b.name)}</span>
-          ${b.value ? `<span class="qcb-loot-value">${esc(b.value)}</span>` : ""}
-          ${b.description ? `<span class="qcb-loot-desc">${esc(b.description)}</span>` : ""}
-        </div>
+        ${lootItems.map(it => `
+          <div class="qcb-loot" style="${cellTxtStyle}">
+            <span class="qcb-loot-icon">&#127873;</span>
+            <span class="qcb-loot-name">${esc(it.name)}</span>
+            ${it.value ? `<span class="qcb-loot-value">${esc(it.value)}</span>` : ""}
+            ${it.description ? `<span class="qcb-loot-desc">${escBr(it.description)}</span>` : ""}
+          </div>`).join("")}
       </div>`;
+    }
 
-    case "boss":
-      if (!b.name) return "";
+    case "boss": {
+      const enemies = b.enemies?.length ? b.enemies
+        : (b.name ? [{ name: b.name, ac: b.ac || "", hp: b.hp || "", cr: b.cr || "", notes: b.notes || "" }] : []);
+      if (!enemies.length) return "";
       return `<div class="qcb-cell qcb-cell-boss" style="${spanStyle}">${titleHtml}
-        <div class="qcb-boss-header">
-          <span class="qcb-boss-icon">&#9760;</span>
-          <span class="qcb-boss-name">${esc(b.name)}</span>
-          ${b.cr ? `<span class="qcb-boss-stat">CR ${esc(b.cr)}</span>` : ""}
-          ${b.ac ? `<span class="qcb-boss-stat">AC ${esc(b.ac)}</span>` : ""}
-          ${b.hp ? `<span class="qcb-boss-stat">HP ${esc(b.hp)}</span>` : ""}
-        </div>
-        ${b.notes ? `<p class="qcb-boss-notes">${esc(b.notes)}</p>` : ""}
+        ${enemies.map(en => `
+          <div class="qcb-boss">
+            <div class="qcb-boss-header">
+              <span class="qcb-boss-icon">&#9760;</span>
+              <span class="qcb-boss-name">${esc(en.name)}</span>
+              ${en.cr ? `<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>` : ""}
+              ${en.ac ? `<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>` : ""}
+              ${en.hp ? `<span class="qcb-boss-stat">HP ${esc(en.hp)}</span>` : ""}
+            </div>
+            ${en.notes ? `<p class="qcb-boss-notes" style="${cellTxtStyle}">${escBr(en.notes)}</p>` : ""}
+          </div>`).join("")}
       </div>`;
+    }
 
     case "note":
       if (!isAdmin || !b.content) return "";
-      return `<div class="qcb-cell qcb-cell-note" style="${spanStyle}">${titleHtml}<div class="qcb-note">&#128196; ${esc(b.content)}</div></div>`;
+      return `<div class="qcb-cell qcb-cell-note" style="${spanStyle}">${titleHtml}<div class="qcb-note" style="${cellTxtStyle}">&#128196; ${escBr(b.content)}</div></div>`;
 
     case "puzzle":
       if (!b.description && !b.title) return "";
       return `<div class="qcb-cell qcb-cell-puzzle" style="${spanStyle}">${titleHtml}
         <div class="qcb-puzzle-header"><span class="qcb-puzzle-icon">&#129513;</span><span class="qcb-puzzle-name">${esc(b.title || "Puzzle")}</span></div>
-        ${b.description ? `<p class="qcb-puzzle-desc">${esc(b.description)}</p>` : ""}
+        ${b.description ? `<p class="qcb-puzzle-desc" style="${cellTxtStyle}">${escBr(b.description)}</p>` : ""}
         ${b.hint ? `<div class="qcb-puzzle-hint">&#128161; ${esc(b.hint)}</div>` : ""}
         ${isAdmin && b.solution ? `<div class="qcb-puzzle-solution">&#128273; ${esc(b.solution)}</div>` : ""}
       </div>`;
 
     case "divider":
-      return `<div class="qcb-cell" style="${spanStyle}"><div class="qcb-divider"></div></div>`;
+      return `<div class="qcb-divider-cell" style="${spanStyle}">${
+        b.title
+          ? `<div class="qcb-divider qcb-divider--titled"><span class="qcb-divider-title">${esc(b.title)}</span></div>`
+          : `<div class="qcb-divider"></div>`
+      }</div>`;
+
+    case "character": {
+      const chars = b.characters || [];
+      if (!chars.length) return "";
+      return `<div class="qcb-cell qcb-cell-character" style="${spanStyle}">${titleHtml}
+        ${chars.map(ch => `
+          <div class="qcb-character">
+            ${ch.picture
+              ? `<img class="qcb-char-pic" src="${esc(ch.picture)}" alt="${esc(ch.name)}" />`
+              : `<div class="qcb-char-pic qcb-char-pic-ph">&#128100;</div>`}
+            <div class="qcb-char-info">
+              <div class="qcb-char-name">${esc(ch.name)}</div>
+              ${ch.profession ? `<div class="qcb-char-meta">${esc(ch.profession)}</div>` : ""}
+              ${(ch.race || ch.age) ? `<div class="qcb-char-sub">${[ch.race, ch.age ? `Age ${esc(ch.age)}` : ""].filter(Boolean).join(" · ")}</div>` : ""}
+            </div>
+          </div>`).join("")}
+      </div>`;
+    }
+
+    case "loreref": {
+      const loreItems = b.items || [];
+      if (!loreItems.length) return "";
+      return `<div class="qcb-cell qcb-cell-loreref" style="${spanStyle}">${titleHtml}
+        ${loreItems.map(it => `
+          <div class="qcb-loreref">
+            <span class="qcb-loreref-icon">${it.type === "scroll" ? "📜" : "📖"}</span>
+            <div class="qcb-loreref-info">
+              <span class="qcb-loreref-title">${esc(it.title || "")}</span>
+              ${it.writer ? `<span class="qcb-loreref-writer">by ${esc(it.writer)}</span>` : ""}
+            </div>
+          </div>`).join("")}
+      </div>`;
+    }
 
     default:
       return "";
@@ -443,8 +740,19 @@ function renderBlockInCard(b) {
 function openModal(q) {
   editingId    = q ? q.id : null;
   selectedType = q ? (q.type || "main") : "main";
+  currentCellColors = q?.cellColors ? { ...q.cellColors } : {};
   if (q && q.blocks) {
-    currentBlocks = q.blocks.map(b => ({ ...b }));
+    currentBlocks = q.blocks.map(b => {
+      if (b.type === "loot" && !b.items) {
+        const { name, value, description, ...rest } = b;
+        return { ...rest, items: name ? [{ name: name || "", value: value || "", description: description || "" }] : [] };
+      }
+      if (b.type === "boss" && !b.enemies) {
+        const { name, ac, hp, cr, notes, ...rest } = b;
+        return { ...rest, enemies: name ? [{ name: name || "", ac: String(ac || ""), hp: String(hp || ""), cr: String(cr || ""), notes: notes || "" }] : [] };
+      }
+      return { ...b };
+    });
   } else if (q && q.phases) {
     currentBlocks = q.phases.map(p => ({ type: "phase", title: p.title || "", description: p.description || "", span: 1 }));
   } else {
@@ -464,7 +772,8 @@ function openModal(q) {
 
 function closeModal() {
   questModal.classList.remove("open");
-  editingId = null; currentBlocks = [];
+  editingId = null; currentBlocks = []; currentCellColors = {};
+  selAnchor = selCursor = null; isColorSelecting = false;
   hideDrop(qmLocationDrop);
 }
 
@@ -481,6 +790,7 @@ qmSave.addEventListener("click", async () => {
     location:   qmLocationInp.value.trim() || null,
     status:     qmStatus.value,
     blocks:     currentBlocks.length > 0 ? currentBlocks : null,
+    cellColors: Object.keys(currentCellColors).length ? { ...currentCellColors } : null,
     discovered: qmDiscovered.checked,
   };
   await set(ref(db, `quests/${payload.id}`), payload);
@@ -499,13 +809,15 @@ function syncTypeBtns() {
 
 // ── Block defaults (module scope for palette drag) ────────────────────────────
 const BLOCK_DEFAULTS = {
-  text:    { type: "text",    content: "",     blockTitle: "", titleColor: "", span: 2, rowSpan: 1 },
-  phase:   { type: "phase",   title: "",   description: "", blockTitle: "", titleColor: "", span: 1, rowSpan: 1 },
-  loot:    { type: "loot",    name: "",    description: "", value: "", blockTitle: "", titleColor: "", span: 1, rowSpan: 1 },
-  boss:    { type: "boss",    name: "",    ac: "", hp: "", cr: "", notes: "", blockTitle: "", titleColor: "", span: 2, rowSpan: 1 },
-  note:    { type: "note",    content: "", blockTitle: "", titleColor: "", span: 2, rowSpan: 1 },
-  puzzle:  { type: "puzzle",  title: "",   description: "", hint: "", solution: "", blockTitle: "", titleColor: "", span: 2, rowSpan: 1 },
-  divider: { type: "divider", span: 4, rowSpan: 1 },
+  text:    { type: "text",    content: "",     blockTitle: "", titleColor: "", span: 1, rowSpan: 1, textAlign: "left" },
+  phase:   { type: "phase",   title: "",   description: "", blockTitle: "", titleColor: "", span: 1, rowSpan: 1, textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
+  loot:    { type: "loot",    items: [],   blockTitle: "", titleColor: "", span: 1, rowSpan: 1, textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
+  boss:    { type: "boss",    enemies: [], blockTitle: "", titleColor: "", span: 1, rowSpan: 1, textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
+  note:    { type: "note",    content: "", blockTitle: "", titleColor: "", span: 1, rowSpan: 1, textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
+  puzzle:  { type: "puzzle",  title: "",   description: "", hint: "", solution: "", blockTitle: "", titleColor: "", span: 1, rowSpan: 1, textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
+  divider:   { type: "divider",   title: "", span: 4, rowSpan: 1 },
+  character: { type: "character", characters: [], blockTitle: "", titleColor: "", span: 1, rowSpan: 1 },
+  loreref:   { type: "loreref",   items: [],      blockTitle: "", titleColor: "", span: 1, rowSpan: 1 },
 };
 
 // ── Block palette ─────────────────────────────────────────────────────────────
@@ -521,8 +833,9 @@ document.querySelectorAll(".qm-add-block-btn").forEach(btn => {
     dragSrcIndex = null;
     e.dataTransfer.effectAllowed = "copy";
     e.dataTransfer.setData("text/plain", btn.dataset.blockType);
+    qmBlockCanvas.classList.add("qm-drag-active");
   });
-  btn.addEventListener("dragend", () => { dragPaletteType = null; });
+  btn.addEventListener("dragend", () => { dragPaletteType = null; qmBlockCanvas.classList.remove("qm-drag-active"); });
 });
 
 // ── Block drag state ──────────────────────────────────────────────────────────
@@ -578,6 +891,30 @@ function makeGhostCell(colNum, position) {
   });
 
   return ghost;
+}
+
+// ── Resolve overlapping blocks after a rowSpan change ────────────────────────
+function resolveOverlaps() {
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (let i = 0; i < currentBlocks.length; i++) {
+      for (let j = 0; j < currentBlocks.length; j++) {
+        if (i === j) continue;
+        const a = currentBlocks[i];
+        const b = currentBlocks[j];
+        const aC1 = a.col || 1, aC2 = aC1 + (a.span || 1) - 1;
+        const bC1 = b.col || 1, bC2 = bC1 + (b.span || 1) - 1;
+        if (aC2 < bC1 || bC2 < aC1) continue;           // no column overlap
+        const aR1 = a.row || 1, aR2 = aR1 + (a.rowSpan || 1) - 1;
+        const bR1 = b.row || 1, bR2 = bR1 + (b.rowSpan || 1) - 1;
+        if (aR2 < bR1 || bR2 < aR1) continue;           // no row overlap
+        // a and b overlap — push whichever starts later below the other
+        if (aR1 <= bR1) { b.row = aR2 + 1; changed = true; }
+        else            { a.row = bR2 + 1; changed = true; }
+      }
+    }
+  }
 }
 
 // ── Auto-place blocks that have no explicit row/col ───────────────────────────
@@ -651,11 +988,24 @@ function buildBlocksEditor() {
   qmBlockCanvas.innerHTML = "";
 
   autoPlaceBlocks(currentBlocks);
+  resolveOverlaps();
 
-  // Determine grid size: at least 6 rows, 2 extra below the last block
   const maxRow = currentBlocks.reduce((m, b) => Math.max(m, (b.row || 1) + (b.rowSpan || 1) - 1), 0);
   const numRows = Math.max(6, maxRow + 2);
-  qmBlockCanvas.style.gridTemplateRows = `repeat(${numRows}, auto)`;
+
+  // Give divider-only rows a compact height; all others get 220px
+  const editorRowTypes = {};
+  currentBlocks.forEach(b => {
+    for (let r = b.row || 1; r < (b.row || 1) + (b.rowSpan || 1); r++) {
+      if (!editorRowTypes[r]) editorRowTypes[r] = [];
+      editorRowTypes[r].push(b.type);
+    }
+  });
+  const editorRowHeights = Array.from({ length: numRows }, (_, i) => {
+    const types = editorRowTypes[i + 1] || [];
+    return (types.length > 0 && types.every(t => t === "divider")) ? "90px" : "220px";
+  }).join(" ");
+  qmBlockCanvas.style.gridTemplateRows = editorRowHeights;
 
   if (currentBlocks.length === 0) {
     const empty = document.createElement("div");
@@ -665,9 +1015,10 @@ function buildBlocksEditor() {
     qmBlockCanvas.appendChild(empty);
   }
 
-  // Build occupancy map for ghost rendering
+  // Build occupancy map — exclude the block being dragged so its cells show as drop targets
   const occupied = new Set();
-  currentBlocks.forEach(b => {
+  currentBlocks.forEach((b, idx) => {
+    if (idx === dragSrcIndex) return;
     const span    = Math.min(b.span    || 1, 4);
     const rowSpan = b.rowSpan || 1;
     for (let r = b.row; r < b.row + rowSpan; r++)
@@ -682,9 +1033,78 @@ function buildBlocksEditor() {
       ghost.className = "qm-ghost-cell";
       ghost.style.gridRow = r;
       ghost.style.gridColumn = c;
+      ghost.dataset.row = r;
+      ghost.dataset.col = c;
+      const cc = currentCellColors[`${r},${c}`];
+      if (cc) { ghost.style.background = hexToRgba(cc, 0.32); ghost.style.borderColor = hexToRgba(cc, 0.8); }
       attachDropTarget(ghost, r, c);
       qmBlockCanvas.appendChild(ghost);
     }
+  }
+
+  // Row-insert zones — span full width, sit at the top of each row, only active during drag
+  for (let r = 1; r <= numRows; r++) {
+    const zone = document.createElement("div");
+    zone.className = "qm-row-insert-zone";
+    zone.style.cssText = `grid-row:${r};grid-column:1/span 4;align-self:start;z-index:8;`;
+    zone.dataset.insertBefore = r;
+    zone.addEventListener("dragover", e => {
+      if (dragSrcIndex === null && dragPaletteType === null) return;
+      e.preventDefault(); e.stopPropagation();
+      e.dataTransfer.dropEffect = dragPaletteType ? "copy" : "move";
+      clearDragHighlights();
+      zone.classList.add("drag-over");
+    });
+    zone.addEventListener("dragleave", e => {
+      if (!zone.contains(e.relatedTarget)) zone.classList.remove("drag-over");
+    });
+    zone.addEventListener("drop", e => {
+      e.preventDefault(); e.stopPropagation();
+      clearDragHighlights();
+      const targetRow = Number(zone.dataset.insertBefore);
+      // Shift every other block at row >= targetRow down by 1
+      currentBlocks.forEach((b, j) => {
+        if (j === dragSrcIndex) return;
+        if ((b.row || 1) >= targetRow) b.row = (b.row || 1) + 1;
+      });
+      if (dragSrcIndex !== null) {
+        const blk = currentBlocks[dragSrcIndex];
+        blk.row = targetRow;
+        dragSrcIndex = null;
+      } else if (dragPaletteType !== null) {
+        currentBlocks.push({ ...BLOCK_DEFAULTS[dragPaletteType], row: targetRow, col: 1 });
+        dragPaletteType = null;
+      }
+      qmBlockCanvas.classList.remove("qm-drag-active");
+      buildBlocksEditor();
+    });
+    qmBlockCanvas.appendChild(zone);
+  }
+
+  // Row-delete buttons — one per occupied row, in column 5
+  for (let r = 1; r <= maxRow; r++) {
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "qm-row-del-btn";
+    delBtn.style.cssText = `grid-row:${r};grid-column:5;align-self:center;justify-self:center;`;
+    delBtn.title = "Delete row";
+    delBtn.innerHTML = "&#10005;";
+    delBtn.addEventListener("click", () => {
+      for (let j = currentBlocks.length - 1; j >= 0; j--) {
+        const b = currentBlocks[j];
+        const bRow = b.row || 1;
+        const bEnd = bRow + (b.rowSpan || 1) - 1;
+        if (bRow === r) {
+          currentBlocks.splice(j, 1);                         // starts here — remove
+        } else if (bRow < r && bEnd >= r) {
+          b.rowSpan = Math.max(1, (b.rowSpan || 1) - 1);     // spans through — shrink
+        } else if (bRow > r) {
+          b.row = bRow - 1;                                   // below — shift up
+        }
+      }
+      buildBlocksEditor();
+    });
+    qmBlockCanvas.appendChild(delBtn);
   }
 
   // Render blocks at their explicit grid positions
@@ -692,8 +1112,12 @@ function buildBlocksEditor() {
     const wrap = document.createElement("div");
     wrap.className = `qm-block qm-block-${block.type}`;
     wrap.dataset.index = i;
+    wrap.dataset.row = block.row;
+    wrap.dataset.col = block.col;
     wrap.style.gridRow = `${block.row} / span ${block.rowSpan || 1}`;
     wrap.style.gridColumn = `${block.col} / span ${block.span || 1}`;
+    const cc = currentCellColors[`${block.row},${block.col}`];
+    if (cc) { wrap.style.background = hexToRgba(cc, 0.25); wrap.style.borderLeftColor = cc; }
     wrap.innerHTML = buildBlockEditorHtml(block, i);
 
     // Handle-only drag source
@@ -704,10 +1128,11 @@ function buildBlocksEditor() {
         dragSrcIndex = i;
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", String(i));
-        requestAnimationFrame(() => wrap.classList.add("dragging"));
+        requestAnimationFrame(() => { wrap.classList.add("dragging"); qmBlockCanvas.classList.add("qm-drag-active"); });
       });
       handle.addEventListener("dragend", () => {
         wrap.classList.remove("dragging");
+        qmBlockCanvas.classList.remove("qm-drag-active");
         clearDragHighlights();
         dragSrcIndex = null;
       });
@@ -725,7 +1150,32 @@ function buildBlocksEditor() {
     });
     wrap.querySelectorAll(".blk-rowspan-btn").forEach(btn => {
       btn.addEventListener("click", () => {
-        currentBlocks[i].rowSpan = Number(btn.dataset.rowspan);
+        const oldRowSpan = currentBlocks[i].rowSpan || 1;
+        const newRowSpan = Number(btn.dataset.rowspan);
+        const delta = newRowSpan - oldRowSpan;
+        currentBlocks[i].rowSpan = newRowSpan;
+
+        if (delta !== 0) {
+          const oldEnd = (currentBlocks[i].row || 1) + oldRowSpan - 1;
+          if (delta > 0) {
+            // Block grew — shift ALL blocks below the old end down by delta (insert-row behaviour)
+            currentBlocks.forEach((other, j) => {
+              if (j === i) return;
+              if ((other.row || 1) > oldEnd) other.row = (other.row || 1) + delta;
+            });
+          } else {
+            // Block shrank — pull blocks below it up by |delta| rows (same columns only)
+            const blk = currentBlocks[i];
+            const bC1 = blk.col || 1, bC2 = bC1 + (blk.span || 1) - 1;
+            currentBlocks.forEach((other, j) => {
+              if (j === i) return;
+              const oC1 = other.col || 1, oC2 = oC1 + (other.span || 1) - 1;
+              if (oC2 < bC1 || bC2 < oC1) return;
+              if ((other.row || 1) > oldEnd) other.row = Math.max(1, (other.row || 1) + delta);
+            });
+          }
+        }
+
         buildBlocksEditor();
       });
     });
@@ -745,21 +1195,95 @@ function buildBlocksEditor() {
     wireInput(wrap, block, "blockTitle",  "[data-f=blockTitle]");
     wireInput(wrap, block, "titleColor",  "[data-f=titleColor]");
 
-    // Boss creature search
-    if (block.type === "boss") {
-      const srch = wrap.querySelector(".boss-search-input");
-      const drop = wrap.querySelector(".boss-search-drop");
+    // Rich text block (contenteditable) — inline formatting
+    const richEl = wrap.querySelector(".blk-rich-text");
+    if (richEl) {
+      richEl.addEventListener("input", () => { block.content = richEl.innerHTML; });
+
+      // Bold / Italic via execCommand (mousedown to keep selection alive)
+      wrap.querySelector(".blk-fmt-bold")?.addEventListener("mousedown", e => {
+        e.preventDefault(); document.execCommand("bold"); richEl.focus();
+      });
+      wrap.querySelector(".blk-fmt-italic")?.addEventListener("mousedown", e => {
+        e.preventDefault(); document.execCommand("italic"); richEl.focus();
+      });
+
+      // Inline text color — save selection before picker opens, restore on change
+      let savedRange = null;
+      const colorWrap = wrap.querySelector(".blk-fmt-colorwrap");
+      const colorPick = wrap.querySelector(".blk-fmt-colorpick");
+      if (colorWrap && colorPick) {
+        colorWrap.addEventListener("mousedown", () => {
+          const sel = window.getSelection();
+          savedRange = sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
+        });
+        colorPick.addEventListener("input", () => {
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          if (savedRange) sel.addRange(savedRange);
+          document.execCommand("foreColor", false, colorPick.value);
+          block.content = richEl.innerHTML;
+          savedRange = sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
+        });
+      }
+    } else {
+      // Non-rich blocks — block-level bold/italic toggle
+      wrap.querySelector(".blk-fmt-bold")?.addEventListener("click", () => {
+        block.fontWeight = block.fontWeight === "bold" ? "normal" : "bold";
+        wrap.querySelector(".blk-fmt-bold").classList.toggle("active", block.fontWeight === "bold");
+        wrap.querySelectorAll(".blk-textarea").forEach(ta => { ta.style.fontWeight = block.fontWeight; });
+      });
+      wrap.querySelector(".blk-fmt-italic")?.addEventListener("click", () => {
+        block.fontStyle = block.fontStyle === "italic" ? "normal" : "italic";
+        wrap.querySelector(".blk-fmt-italic").classList.toggle("active", block.fontStyle === "italic");
+        wrap.querySelectorAll(".blk-textarea").forEach(ta => { ta.style.fontStyle = block.fontStyle; });
+      });
+    }
+
+    // Alignment (all block types with a fmt bar)
+    wrap.querySelectorAll(".blk-align-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        block.textAlign = btn.dataset.align;
+        if (richEl) richEl.style.textAlign = btn.dataset.align;
+        wrap.querySelectorAll(".blk-textarea").forEach(ta => { ta.style.textAlign = btn.dataset.align; });
+        wrap.querySelectorAll(".blk-align-btn").forEach(b => b.classList.toggle("active", b.dataset.align === btn.dataset.align));
+      });
+    });
+
+    // Loot item search
+    if (block.type === "loot") {
+      if (!block.items) block.items = [];
+      const srch = wrap.querySelector(".loot-search-input");
+      const drop = wrap.querySelector(".loot-search-drop");
+      const list = wrap.querySelector(".loot-items-list");
+
+      const refreshList = () => {
+        list.innerHTML = (block.items || []).map((it, idx) => `
+          <div class="loot-item-row" data-idx="${idx}">
+            <span class="loot-item-name">${esc(it.name)}</span>
+            ${it.value ? `<span class="loot-item-value">${esc(it.value)}</span>` : ""}
+            <button type="button" class="loot-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+          </div>`).join("");
+        list.querySelectorAll(".loot-item-del").forEach(btn => {
+          btn.addEventListener("click", () => {
+            block.items.splice(Number(btn.dataset.idx), 1);
+            refreshList();
+          });
+        });
+      };
+      refreshList();
+
       if (srch && drop) {
         srch.addEventListener("input", () => {
           const q = srch.value.trim().toLowerCase();
           if (!q) { hideDrop(drop); return; }
-          const hits = MONSTER_PRESETS.filter(m => m.name.toLowerCase().includes(q)).slice(0, 8);
+          const hits = allItems.filter(m => m.name && m.name.toLowerCase().includes(q)).slice(0, 10);
           if (!hits.length) { hideDrop(drop); return; }
           drop.innerHTML = hits.map(m =>
             `<div class="loc-drop-item" tabindex="0"
-              data-name="${esc(m.name)}" data-ac="${m.ac}" data-hp="${m.hp}" data-cr="${m.cr}">
+              data-name="${esc(m.name)}" data-value="${esc(m.price != null ? formatGold(m.price) : '')}" data-desc="${esc(m.description || '')}">
               <span>${esc(m.name)}</span>
-              <span class="boss-drop-meta">CR ${m.cr} · HP ${m.hp} · AC ${m.ac}</span>
+              ${m.price != null ? `<span class="boss-drop-meta">${formatGold(m.price)}</span>` : ""}
             </div>`
           ).join("");
           drop.style.display = "block";
@@ -768,14 +1292,17 @@ function buildBlocksEditor() {
           if (e.key === "ArrowDown") { e.preventDefault(); drop.querySelector(".loc-drop-item")?.focus(); }
           if (e.key === "Escape")    hideDrop(drop);
         });
+        const addItem = dataset => {
+          block.items.push({ name: dataset.name || "", value: dataset.value || "", description: dataset.desc || "" });
+          srch.value = ""; hideDrop(drop); refreshList();
+        };
         drop.addEventListener("mousedown", e => {
           const item = e.target.closest(".loc-drop-item");
           if (!item) return; e.preventDefault();
-          applyBossPreset(wrap, block, item.dataset);
-          srch.value = ""; hideDrop(drop);
+          addItem(item.dataset);
         });
         drop.addEventListener("keydown", e => {
-          if (e.key === "Enter") { applyBossPreset(wrap, block, document.activeElement.dataset); srch.value = ""; hideDrop(drop); }
+          if (e.key === "Enter") { addItem(document.activeElement.dataset); }
           if (e.key === "ArrowDown") { e.preventDefault(); document.activeElement.nextElementSibling?.focus(); }
           if (e.key === "ArrowUp")   { e.preventDefault(); (document.activeElement.previousElementSibling || srch).focus(); }
           if (e.key === "Escape")    hideDrop(drop);
@@ -784,17 +1311,205 @@ function buildBlocksEditor() {
       }
     }
 
+    // Enemy creature search
+    if (block.type === "boss") {
+      if (!block.enemies) block.enemies = [];
+      const srch = wrap.querySelector(".boss-search-input");
+      const drop = wrap.querySelector(".boss-search-drop");
+      const list = wrap.querySelector(".enemy-items-list");
+
+      const refreshEnemyList = () => {
+        list.innerHTML = (block.enemies || []).map((en, idx) => `
+          <div class="enemy-item-row" data-idx="${idx}">
+            <span class="enemy-item-name">${esc(en.name)}</span>
+            ${en.cr ? `<span class="enemy-item-stat">CR ${esc(en.cr)}</span>` : ""}
+            ${en.ac ? `<span class="enemy-item-stat">AC ${esc(en.ac)}</span>` : ""}
+            ${en.hp ? `<span class="enemy-item-stat">HP ${esc(en.hp)}</span>` : ""}
+            <button type="button" class="enemy-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+          </div>`).join("");
+        list.querySelectorAll(".enemy-item-del").forEach(btn => {
+          btn.addEventListener("click", () => { block.enemies.splice(Number(btn.dataset.idx), 1); refreshEnemyList(); });
+        });
+      };
+      refreshEnemyList();
+
+      if (srch && drop) {
+        srch.addEventListener("input", () => {
+          const q = srch.value.trim().toLowerCase();
+          if (!q) { hideDrop(drop); return; }
+          const seen = new Set();
+          const pool = [...firebaseTemplates, ...MONSTER_PRESETS].filter(m => {
+            if (!m.name) return false;
+            const key = m.name.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          const hits = pool.filter(m => m.name.toLowerCase().includes(q)).slice(0, 10);
+          if (!hits.length) { hideDrop(drop); return; }
+          drop.innerHTML = hits.map(m =>
+            `<div class="loc-drop-item" tabindex="0"
+              data-name="${esc(m.name)}" data-ac="${m.ac || ''}" data-hp="${m.hp || ''}" data-cr="${m.cr || ''}">
+              <span>${esc(m.name)}</span>
+              <span class="boss-drop-meta">${[m.cr ? 'CR '+m.cr : '', m.hp ? 'HP '+m.hp : '', m.ac ? 'AC '+m.ac : ''].filter(Boolean).join(' · ')}</span>
+            </div>`
+          ).join("");
+          drop.style.display = "block";
+        });
+        srch.addEventListener("keydown", e => {
+          if (e.key === "ArrowDown") { e.preventDefault(); drop.querySelector(".loc-drop-item")?.focus(); }
+          if (e.key === "Escape")    hideDrop(drop);
+        });
+        const addEnemy = dataset => {
+          block.enemies.push({ name: dataset.name || "", ac: String(dataset.ac || ""), hp: String(dataset.hp || ""), cr: String(dataset.cr || ""), notes: "" });
+          srch.value = ""; hideDrop(drop); refreshEnemyList();
+        };
+        drop.addEventListener("mousedown", e => {
+          const item = e.target.closest(".loc-drop-item");
+          if (!item) return; e.preventDefault();
+          addEnemy(item.dataset);
+        });
+        drop.addEventListener("keydown", e => {
+          if (e.key === "Enter") { addEnemy(document.activeElement.dataset); }
+          if (e.key === "ArrowDown") { e.preventDefault(); document.activeElement.nextElementSibling?.focus(); }
+          if (e.key === "ArrowUp")   { e.preventDefault(); (document.activeElement.previousElementSibling || srch).focus(); }
+          if (e.key === "Escape")    hideDrop(drop);
+        });
+        srch.addEventListener("blur", () => setTimeout(() => hideDrop(drop), 150));
+      }
+    }
+
+    // Character search
+    if (block.type === "character") {
+      if (!block.characters) block.characters = [];
+      const srch = wrap.querySelector(".char-search-input");
+      const drop = wrap.querySelector(".char-search-drop");
+      const list = wrap.querySelector(".char-items-list");
+
+      const refreshCharList = () => {
+        list.innerHTML = (block.characters || []).map((ch, idx) => `
+          <div class="char-item-row" data-idx="${idx}">
+            ${ch.picture ? `<img class="char-item-pic" src="${esc(ch.picture)}" alt="" />` : `<div class="char-item-pic char-item-pic-ph">&#128100;</div>`}
+            <span class="char-item-name">${esc(ch.name)}</span>
+            ${ch.profession ? `<span class="char-item-meta">${esc(ch.profession)}</span>` : ""}
+            <button type="button" class="char-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+          </div>`).join("");
+        list.querySelectorAll(".char-item-del").forEach(btn => {
+          btn.addEventListener("click", () => { block.characters.splice(Number(btn.dataset.idx), 1); refreshCharList(); });
+        });
+      };
+      refreshCharList();
+
+      if (srch && drop) {
+        srch.addEventListener("input", () => {
+          const q = srch.value.trim().toLowerCase();
+          if (!q) { hideDrop(drop); return; }
+          const hits = allCharacters.filter(c => c.name && c.name.toLowerCase().includes(q)).slice(0, 10);
+          if (!hits.length) { hideDrop(drop); return; }
+          drop.innerHTML = hits.map(c =>
+            `<div class="loc-drop-item" tabindex="0"
+              data-id="${esc(c.id||"")}" data-name="${esc(c.name||"")}"
+              data-profession="${esc(c.profession||"")}" data-race="${esc(c.race||"")}"
+              data-age="${esc(String(c.age||""))}" data-picture="${esc(c.picture||"")}">
+              <span>${esc(c.name)}</span>
+              ${c.profession ? `<span class="boss-drop-meta">${esc(c.profession)}</span>` : ""}
+            </div>`
+          ).join("");
+          drop.style.display = "block";
+        });
+        srch.addEventListener("keydown", e => {
+          if (e.key === "ArrowDown") { e.preventDefault(); drop.querySelector(".loc-drop-item")?.focus(); }
+          if (e.key === "Escape") hideDrop(drop);
+        });
+        const addChar = dataset => {
+          block.characters.push({ id: dataset.id||"", name: dataset.name||"", profession: dataset.profession||"", race: dataset.race||"", age: dataset.age||"", picture: dataset.picture||"" });
+          srch.value = ""; hideDrop(drop); refreshCharList();
+        };
+        drop.addEventListener("mousedown", e => {
+          const item = e.target.closest(".loc-drop-item");
+          if (!item) return; e.preventDefault(); addChar(item.dataset);
+        });
+        drop.addEventListener("keydown", e => {
+          if (e.key === "Enter") { addChar(document.activeElement.dataset); }
+          if (e.key === "ArrowDown") { e.preventDefault(); document.activeElement.nextElementSibling?.focus(); }
+          if (e.key === "ArrowUp")   { e.preventDefault(); (document.activeElement.previousElementSibling || srch).focus(); }
+          if (e.key === "Escape") hideDrop(drop);
+        });
+        srch.addEventListener("blur", () => setTimeout(() => hideDrop(drop), 150));
+      }
+    }
+
+    // Lore item search
+    if (block.type === "loreref") {
+      if (!block.items) block.items = [];
+      const srch = wrap.querySelector(".loreref-search-input");
+      const drop = wrap.querySelector(".loreref-search-drop");
+      const list = wrap.querySelector(".loreref-items-list");
+
+      const refreshLoreList = () => {
+        list.innerHTML = (block.items || []).map((it, idx) => `
+          <div class="loreref-item-row" data-idx="${idx}">
+            <span class="loreref-item-icon">${it.type === "scroll" ? "📜" : "📖"}</span>
+            <span class="loreref-item-name">${esc(it.title||"")}</span>
+            <button type="button" class="loreref-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+          </div>`).join("");
+        list.querySelectorAll(".loreref-item-del").forEach(btn => {
+          btn.addEventListener("click", () => { block.items.splice(Number(btn.dataset.idx), 1); refreshLoreList(); });
+        });
+      };
+      refreshLoreList();
+
+      if (srch && drop) {
+        srch.addEventListener("input", () => {
+          const q = srch.value.trim().toLowerCase();
+          if (!q) { hideDrop(drop); return; }
+          const hits = allLoreItems.filter(it => it.title && it.title.toLowerCase().includes(q)).slice(0, 10);
+          if (!hits.length) { hideDrop(drop); return; }
+          drop.innerHTML = hits.map(it =>
+            `<div class="loc-drop-item" tabindex="0"
+              data-id="${esc(it.id||"")}" data-title="${esc(it.title||"")}"
+              data-type="${esc(it.type||"book")}" data-writer="${esc(it.writer||"")}">
+              <span>${it.type === "scroll" ? "📜" : "📖"} ${esc(it.title)}</span>
+              ${it.writer ? `<span class="boss-drop-meta">${esc(it.writer)}</span>` : ""}
+            </div>`
+          ).join("");
+          drop.style.display = "block";
+        });
+        srch.addEventListener("keydown", e => {
+          if (e.key === "ArrowDown") { e.preventDefault(); drop.querySelector(".loc-drop-item")?.focus(); }
+          if (e.key === "Escape") hideDrop(drop);
+        });
+        const addLore = dataset => {
+          block.items.push({ id: dataset.id||"", title: dataset.title||"", type: dataset.type||"book", writer: dataset.writer||"" });
+          srch.value = ""; hideDrop(drop); refreshLoreList();
+        };
+        drop.addEventListener("mousedown", e => {
+          const item = e.target.closest(".loc-drop-item");
+          if (!item) return; e.preventDefault(); addLore(item.dataset);
+        });
+        drop.addEventListener("keydown", e => {
+          if (e.key === "Enter") { addLore(document.activeElement.dataset); }
+          if (e.key === "ArrowDown") { e.preventDefault(); document.activeElement.nextElementSibling?.focus(); }
+          if (e.key === "ArrowUp")   { e.preventDefault(); (document.activeElement.previousElementSibling || srch).focus(); }
+          if (e.key === "Escape") hideDrop(drop);
+        });
+        srch.addEventListener("blur", () => setTimeout(() => hideDrop(drop), 150));
+      }
+    }
+
     qmBlockCanvas.appendChild(wrap);
+  });
+
+  // Auto-resize all textareas to fit content (no manual drag handle)
+  requestAnimationFrame(() => {
+    qmBlockCanvas.querySelectorAll(".blk-textarea").forEach(ta => {
+      const resize = () => { ta.style.height = "0"; ta.style.height = ta.scrollHeight + "px"; };
+      resize();
+      ta.addEventListener("input", resize);
+    });
   });
 }
 
-function applyBossPreset(wrap, block, data) {
-  block.name = data.name || ""; block.ac = String(data.ac || ""); block.hp = String(data.hp || ""); block.cr = String(data.cr || "");
-  const nameInp = wrap.querySelector("[data-f=name]"); if (nameInp) nameInp.value = block.name;
-  const acInp   = wrap.querySelector("[data-f=ac]");   if (acInp)   acInp.value   = block.ac;
-  const hpInp   = wrap.querySelector("[data-f=hp]");   if (hpInp)   hpInp.value   = block.hp;
-  const crInp   = wrap.querySelector("[data-f=cr]");   if (crInp)   crInp.value   = block.cr;
-}
 
 function wireInput(wrap, block, field, selector) {
   const el = wrap.querySelector(selector);
@@ -811,6 +1526,28 @@ function rowSpanBtns(current) {
   return [1, 2, 3].map(s =>
     `<button type="button" class="blk-rowspan-btn${current === s ? " active" : ""}" data-rowspan="${s}" title="${s} row${s > 1 ? "s" : ""}">${s}↕</button>`
   ).join("");
+}
+
+// Generates the formatting toolbar HTML for a block
+function fmtBar(b, richText = false) {
+  const align  = b.textAlign  || "left";
+  const bold   = b.fontWeight === "bold";
+  const italic = b.fontStyle  === "italic";
+  const colorBtn = richText ? `
+    <label class="blk-fmt-colorwrap" title="Text color">
+      <span class="blk-fmt-colorlabel">A</span>
+      <input type="color" class="blk-fmt-colorpick" value="#ffffff" />
+    </label>
+    <div class="blk-fmt-sep"></div>` : "";
+  return `<div class="blk-fmt-bar">
+    <button type="button" class="blk-fmt-btn blk-fmt-bold${bold  ? " active" : ""}" title="Bold">B</button>
+    <button type="button" class="blk-fmt-btn blk-fmt-italic${italic ? " active" : ""}" title="Italic">I</button>
+    ${colorBtn}
+    <div class="blk-fmt-sep"></div>
+    <button type="button" class="blk-fmt-btn blk-align-btn${align === "left"   ? " active" : ""}" data-align="left"   title="Left">⇤</button>
+    <button type="button" class="blk-fmt-btn blk-align-btn${align === "center" ? " active" : ""}" data-align="center" title="Center">⇔</button>
+    <button type="button" class="blk-fmt-btn blk-align-btn${align === "right"  ? " active" : ""}" data-align="right"  title="Right">⇥</button>
+  </div>`;
 }
 
 function buildBlockEditorHtml(b, i) {
@@ -833,65 +1570,119 @@ function buildBlockEditorHtml(b, i) {
       </label>
     </div>` : "";
 
+  const taStyle = `font-weight:${b.fontWeight||"normal"};font-style:${b.fontStyle||"normal"};text-align:${b.textAlign||"left"}`;
+
   switch (b.type) {
     case "text":
       return `
         <div class="blk-header"><span class="blk-type-icon">&#182;</span><span class="blk-type-label">Text</span>${controls}</div>
         ${titleRow}
-        <textarea class="blk-textarea" data-f="content" placeholder="Write something…" rows="4">${esc(b.content || "")}</textarea>`;
+        ${fmtBar(b, true)}
+        <div class="blk-rich-text" contenteditable="true" data-placeholder="Write something…" style="text-align:${b.textAlign||"left"}">${b.content || ""}</div>`;
 
     case "phase":
       return `
         <div class="blk-header"><span class="blk-type-icon">&#9654;</span><span class="blk-type-label">Phase</span>${controls}</div>
         ${titleRow}
+        ${fmtBar(b)}
         <input class="blk-input" type="text" data-f="title" placeholder="Phase title…" value="${esc(b.title || "")}" />
-        <textarea class="blk-textarea" data-f="description" placeholder="What happens in this phase…" rows="3">${esc(b.description || "")}</textarea>`;
+        <textarea class="blk-textarea" data-f="description" style="${taStyle}" placeholder="What happens in this phase…" rows="3">${esc(b.description || "")}</textarea>`;
 
     case "loot":
       return `
         <div class="blk-header"><span class="blk-type-icon">&#127873;</span><span class="blk-type-label">Loot</span>${controls}</div>
         ${titleRow}
-        <div class="blk-row">
-          <input class="blk-input" type="text" data-f="name"  placeholder="Item name…"   value="${esc(b.name  || "")}" />
-          <input class="blk-input blk-input-sm" type="text" data-f="value" placeholder="GP…" value="${esc(b.value || "")}" />
+        ${fmtBar(b)}
+        <div class="loot-search-wrap">
+          <input class="blk-input loot-search-input" type="text" placeholder="&#128269; Search items to add…" autocomplete="off" />
+          <div class="loot-search-drop loc-dropdown" style="display:none"></div>
         </div>
-        <textarea class="blk-textarea" data-f="description" placeholder="Description (optional)…" rows="2">${esc(b.description || "")}</textarea>`;
+        <div class="loot-items-list">
+          ${(b.items || []).map((it, idx) => `
+            <div class="loot-item-row" data-idx="${idx}">
+              <span class="loot-item-name">${esc(it.name)}</span>
+              ${it.value ? `<span class="loot-item-value">${esc(it.value)}</span>` : ""}
+              <button type="button" class="loot-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+            </div>`).join("")}
+        </div>`;
 
     case "boss":
       return `
-        <div class="blk-header"><span class="blk-type-icon">&#9760;</span><span class="blk-type-label">Boss / Enemy</span>${controls}</div>
+        <div class="blk-header"><span class="blk-type-icon">&#9760;</span><span class="blk-type-label">Enemy</span>${controls}</div>
         ${titleRow}
+        ${fmtBar(b)}
         <div class="boss-search-wrap">
-          <input class="blk-input boss-search-input" type="text" placeholder="&#128269; Search creatures from combat tab…" autocomplete="off" />
+          <input class="blk-input boss-search-input" type="text" placeholder="&#128269; Search creatures to add…" autocomplete="off" />
           <div class="boss-search-drop loc-dropdown" style="display:none"></div>
         </div>
-        <input class="blk-input" type="text" data-f="name" placeholder="Creature name…" value="${esc(b.name || "")}" />
-        <div class="blk-row">
-          <input class="blk-input blk-input-sm" type="text" data-f="cr" placeholder="CR"  value="${esc(b.cr  || "")}" />
-          <input class="blk-input blk-input-sm" type="text" data-f="ac" placeholder="AC"  value="${esc(b.ac  || "")}" />
-          <input class="blk-input blk-input-sm" type="text" data-f="hp" placeholder="HP"  value="${esc(b.hp  || "")}" />
-        </div>
-        <textarea class="blk-textarea" data-f="notes" placeholder="Abilities, tactics, lore…" rows="3">${esc(b.notes || "")}</textarea>`;
+        <div class="enemy-items-list">
+          ${(b.enemies || []).map((en, idx) => `
+            <div class="enemy-item-row" data-idx="${idx}">
+              <span class="enemy-item-name">${esc(en.name)}</span>
+              ${en.cr ? `<span class="enemy-item-stat">CR ${esc(en.cr)}</span>` : ""}
+              ${en.ac ? `<span class="enemy-item-stat">AC ${esc(en.ac)}</span>` : ""}
+              ${en.hp ? `<span class="enemy-item-stat">HP ${esc(en.hp)}</span>` : ""}
+              <button type="button" class="enemy-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+            </div>`).join("")}
+        </div>`;
 
     case "note":
       return `
         <div class="blk-header"><span class="blk-type-icon">&#128196;</span><span class="blk-type-label">DM Note</span>${controls}</div>
         ${titleRow}
-        <textarea class="blk-textarea blk-textarea-note" data-f="content" placeholder="Private DM notes…" rows="3">${esc(b.content || "")}</textarea>`;
+        ${fmtBar(b)}
+        <textarea class="blk-textarea blk-textarea-note" data-f="content" style="${taStyle}" placeholder="Private DM notes…" rows="3">${esc(b.content || "")}</textarea>`;
 
     case "puzzle":
       return `
         <div class="blk-header"><span class="blk-type-icon">&#129513;</span><span class="blk-type-label">Puzzle</span>${controls}</div>
         ${titleRow}
+        ${fmtBar(b)}
         <input class="blk-input" type="text" data-f="title" placeholder="Puzzle name…" value="${esc(b.title || "")}" />
-        <textarea class="blk-textarea" data-f="description" placeholder="Describe the puzzle…" rows="3">${esc(b.description || "")}</textarea>
+        <textarea class="blk-textarea" data-f="description" style="${taStyle}" placeholder="Describe the puzzle…" rows="3">${esc(b.description || "")}</textarea>
         <input class="blk-input" type="text" data-f="hint" placeholder="Hint (visible to players)…" value="${esc(b.hint || "")}" />
         <input class="blk-input blk-textarea-note" type="text" data-f="solution" placeholder="Solution (DM only)…" value="${esc(b.solution || "")}" />`;
 
     case "divider":
       return `
         <div class="blk-header"><span class="blk-type-icon">&#8213;</span><span class="blk-type-label">Divider</span>${controls}</div>
+        <input class="blk-input" type="text" data-f="title" placeholder="Divider title (optional)…" value="${esc(b.title || "")}" />
         <div class="blk-divider-preview"></div>`;
+
+    case "character":
+      return `
+        <div class="blk-header"><span class="blk-type-icon">&#128100;</span><span class="blk-type-label">Character</span>${controls}</div>
+        ${titleRow}
+        <div class="char-search-wrap">
+          <input class="blk-input char-search-input" type="text" placeholder="&#128269; Search characters to add…" autocomplete="off" />
+          <div class="char-search-drop loc-dropdown" style="display:none"></div>
+        </div>
+        <div class="char-items-list">
+          ${(b.characters || []).map((ch, idx) => `
+            <div class="char-item-row" data-idx="${idx}">
+              ${ch.picture ? `<img class="char-item-pic" src="${esc(ch.picture)}" alt="" />` : `<div class="char-item-pic char-item-pic-ph">&#128100;</div>`}
+              <span class="char-item-name">${esc(ch.name)}</span>
+              ${ch.profession ? `<span class="char-item-meta">${esc(ch.profession)}</span>` : ""}
+              <button type="button" class="char-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+            </div>`).join("")}
+        </div>`;
+
+    case "loreref":
+      return `
+        <div class="blk-header"><span class="blk-type-icon">&#128218;</span><span class="blk-type-label">Lore</span>${controls}</div>
+        ${titleRow}
+        <div class="loreref-search-wrap">
+          <input class="blk-input loreref-search-input" type="text" placeholder="&#128269; Search lore items to add…" autocomplete="off" />
+          <div class="loreref-search-drop loc-dropdown" style="display:none"></div>
+        </div>
+        <div class="loreref-items-list">
+          ${(b.items || []).map((it, idx) => `
+            <div class="loreref-item-row" data-idx="${idx}">
+              <span class="loreref-item-icon">${it.type === "scroll" ? "📜" : "📖"}</span>
+              <span class="loreref-item-name">${esc(it.title || "")}</span>
+              <button type="button" class="loreref-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+            </div>`).join("")}
+        </div>`;
 
     default:
       return "";
@@ -905,4 +1696,12 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal()
 function esc(str) {
   return String(str ?? "")
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function escBr(str) { return esc(str).replace(/\n/g, "<br>"); }
+
+// Render text block content: HTML if it came from the rich editor, plain text otherwise
+function contentToHtml(str) {
+  if (!str) return "";
+  if (/<[a-z]/i.test(str)) return str;          // already rich HTML
+  return esc(str).replace(/\n/g, "<br>");       // legacy plain text
 }

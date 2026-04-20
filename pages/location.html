@@ -242,6 +242,7 @@
     <div class="modal-box shop-modal-box">
       <button id="shop-close" class="shop-close-btn">&times;</button>
       <button id="sh-edit-btn" class="shop-edit-btn" style="display:none">&#9998; Edit</button>
+      <button id="sh-persist-btn" class="sh-persist-btn" style="display:none" title="Pin shop — keeps inventory across sessions">&#128204; Pin Shop</button>
 
       <div class="shop-header">
         <div class="shop-type-dot" id="sh-type-dot"></div>
@@ -254,7 +255,12 @@
       <div id="sh-owner" class="shop-owner-row"></div>
       <div id="sh-notes" class="shop-building-notes" style="display:none"></div>
 
-      <!-- Tavern section -->
+      <!-- Player-visible tavern info (no staff / tables / menu / rooms) -->
+      <div id="sh-tavern-player" class="sh-tavern-player-info" style="display:none">
+        <p class="sh-player-hint">&#127867; A warm tavern — ask the staff for drinks, food or a room.</p>
+      </div>
+
+      <!-- Tavern section (DM only) -->
       <div id="sh-tavern-section" style="display:none">
         <div id="sh-tavern-meta" class="tavern-meta-row"></div>
         <div id="sh-tavern-servants" class="tavern-servants-row"></div>

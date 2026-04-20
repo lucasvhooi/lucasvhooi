@@ -958,6 +958,40 @@
 }
 .shop-edit-btn:hover { background: rgba(255,204,102,0.16); border-color: var(--accent); }
 
+.sh-persist-btn {
+  position: absolute;
+  top: 14px;
+  right: 110px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid #3a3a3a;
+  color: #888;
+  font-size: 12px;
+  font-family: var(--font);
+  cursor: pointer;
+  padding: 3px 10px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.sh-persist-btn:hover { background: rgba(255,255,255,0.08); border-color: #666; color: var(--text); }
+.sh-persist-btn.sh-persist-active {
+  background: rgba(255,204,102,0.1);
+  border-color: rgba(255,204,102,0.4);
+  color: var(--accent);
+}
+
+.sh-tavern-player-info {
+  padding: 10px 0 4px;
+}
+.sh-player-hint {
+  font-size: 13px;
+  color: #888;
+  font-style: italic;
+  margin: 0;
+}
+
 .shop-header {
   display: flex;
   align-items: center;

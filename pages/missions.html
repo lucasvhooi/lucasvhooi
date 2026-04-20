@@ -48,8 +48,10 @@
 
       <!-- Modal header -->
       <div class="qm-header">
-        <h2 id="qm-title">New Quest</h2>
-        <button class="qm-close-btn" id="qm-cancel" title="Close">&#10005;</button>
+        <div class="qm-header-row1">
+          <h2 id="qm-title">New Quest</h2>
+          <button class="qm-close-btn" id="qm-cancel" title="Close">&#10005;</button>
+        </div>
       </div>
 
       <!-- Meta row 1: Title + Location -->
@@ -94,23 +96,42 @@
         </div>
       </div>
 
-      <!-- Block palette -->
-      <div class="qm-palette">
-        <span class="qm-palette-label">Add block:</span>
-        <button type="button" class="qm-add-block-btn" data-block-type="text"    title="Text paragraph">&#182; Text</button>
-        <button type="button" class="qm-add-block-btn" data-block-type="phase"   title="Quest phase">&#9654; Phase</button>
-        <button type="button" class="qm-add-block-btn" data-block-type="loot"    title="Loot entry">&#127873; Loot</button>
-        <button type="button" class="qm-add-block-btn" data-block-type="boss"    title="Boss / Enemy">&#9760; Boss</button>
-        <button type="button" class="qm-add-block-btn" data-block-type="note"    title="DM Note">&#128196; Note</button>
-        <button type="button" class="qm-add-block-btn" data-block-type="puzzle"  title="Puzzle">&#129513; Puzzle</button>
-        <button type="button" class="qm-add-block-btn" data-block-type="divider" title="Divider">&#8213; Divider</button>
-      </div>
-
       <!-- 4-column block canvas -->
       <div id="qm-block-canvas" class="qm-block-canvas"></div>
 
       <div id="qm-error" class="modal-error"></div>
       <div class="qm-footer">
+        <div class="qm-palette">
+          <span class="qm-palette-label">Add block:</span>
+          <button type="button" class="qm-add-block-btn" data-block-type="text"      title="Text paragraph">&#182; Text</button>
+          <button type="button" class="qm-add-block-btn" data-block-type="phase"     title="Quest phase">&#9654; Phase</button>
+          <button type="button" class="qm-add-block-btn" data-block-type="loot"      title="Loot entry">&#127873; Loot</button>
+          <button type="button" class="qm-add-block-btn" data-block-type="boss"      title="Enemy">&#9760; Enemy</button>
+          <button type="button" class="qm-add-block-btn" data-block-type="note"      title="DM Note">&#128196; Note</button>
+          <button type="button" class="qm-add-block-btn" data-block-type="puzzle"    title="Puzzle">&#129513; Puzzle</button>
+          <button type="button" class="qm-add-block-btn" data-block-type="character" title="Character">&#128100; Character</button>
+          <button type="button" class="qm-add-block-btn" data-block-type="loreref"   title="Lore entry">&#128218; Lore</button>
+          <button type="button" class="qm-add-block-btn" data-block-type="divider"   title="Divider">&#8213; Divider</button>
+          <span class="qm-palette-sep"></span>
+          <button id="qm-paint-btn" class="qm-paint-btn" title="Color cells">&#127912; Paint</button>
+        </div>
+        <div id="qm-color-toolbar" class="qm-color-toolbar" style="display:none">
+          <span class="qm-color-toolbar-label">Cell color:</span>
+          <button class="qm-color-swatch qm-color-clear" data-color="" title="Clear color">&#10005;</button>
+          <button class="qm-color-swatch" data-color="#d63030" style="background:#d63030" title="Red"></button>
+          <button class="qm-color-swatch" data-color="#d4900a" style="background:#d4900a" title="Orange"></button>
+          <button class="qm-color-swatch" data-color="#c8b800" style="background:#c8b800" title="Yellow"></button>
+          <button class="qm-color-swatch" data-color="#2aaa4a" style="background:#2aaa4a" title="Green"></button>
+          <button class="qm-color-swatch" data-color="#1a7fd4" style="background:#1a7fd4" title="Blue"></button>
+          <button class="qm-color-swatch" data-color="#8b35d6" style="background:#8b35d6" title="Purple"></button>
+          <button class="qm-color-swatch" data-color="#d44090" style="background:#d44090" title="Pink"></button>
+          <button class="qm-color-swatch" data-color="#888888" style="background:#888888" title="Gray"></button>
+          <label class="qm-color-custom" title="Custom color">
+            &#127912;
+            <input type="color" id="qm-color-pick" value="#3a1a0a" />
+          </label>
+          <span id="qm-color-sel-count" class="qm-color-sel-count"></span>
+        </div>
         <button id="qm-save" class="dm-btn qm-save-btn">Save Quest</button>
       </div>
 

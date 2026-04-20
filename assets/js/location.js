@@ -1949,11 +1949,34 @@ function openShopModal(marker) {
   // DM edit button
   const shEditBtn = document.getElementById("sh-edit-btn");
   if (shEditBtn) {
-    if (isAdmin) {
-      shEditBtn.style.display = "inline-flex";
-      shEditBtn.onclick = () => { closeShopModal(); openSubMarkerModal(marker.id); };
+    shEditBtn.style.display = isAdmin ? "inline-flex" : "none";
+    if (isAdmin) shEditBtn.onclick = () => { closeShopModal(); openSubMarkerModal(marker.id); };
+  }
+
+  // DM persist toggle
+  const shPersistBtn = document.getElementById("sh-persist-btn");
+  if (shPersistBtn) {
+    if (isAdmin && INVENTORY_TYPES.has(marker.type)) {
+      shPersistBtn.style.display = "inline-flex";
+      const updatePersistBtn = (persisted) => {
+        shPersistBtn.textContent = persisted ? "📌 Pinned" : "📌 Pin Shop";
+        shPersistBtn.classList.toggle("sh-persist-active", !!persisted);
+        shPersistBtn.title = persisted
+          ? "Shop is pinned — inventory won't be overwritten. Click to unpin."
+          : "Pin shop — locks inventory across sessions so Generate won't overwrite it.";
+      };
+      updatePersistBtn(marker.persisted);
+      shPersistBtn.onclick = async () => {
+        const next = !marker.persisted;
+        await set(ref(db, `locations/${locationId}/subMarkers/${marker.id}/persisted`), next);
+        marker.persisted = next;
+        updatePersistBtn(next);
+        // Also update generate button state
+        shGenerateBtn.disabled = next;
+        shGenerateBtn.title = next ? "Unpin the shop to allow regenerating inventory" : "";
+      };
     } else {
-      shEditBtn.style.display = "none";
+      shPersistBtn.style.display = "none";
     }
   }
 
@@ -1962,7 +1985,7 @@ function openShopModal(marker) {
   shName.textContent = marker.name;
   shMeta.innerHTML   = `<span class="shop-type-badge">${markerDisplayType(marker)}${marker.shopSubtype ? ` · ${marker.shopSubtype}` : ""}</span>`;
 
-  // Owner
+  // Owner — show to everyone
   const owner = marker.ownerId ? npcs.find(n => n.id === marker.ownerId) : null;
   if (owner) {
     const subtitle = [owner.race, owner.role].filter(Boolean).join(" · ");
@@ -1979,25 +2002,31 @@ function openShopModal(marker) {
     shOwner.innerHTML = "";
   }
 
-  // Building notes/description
+  // Building notes/description — show to everyone
   const shNotes = document.getElementById("sh-notes");
   if (shNotes) {
-    if (marker.notes) {
-      shNotes.textContent = marker.notes;
-      shNotes.style.display = "";
-    } else {
-      shNotes.style.display = "none";
-    }
+    if (marker.notes) { shNotes.textContent = marker.notes; shNotes.style.display = ""; }
+    else              { shNotes.style.display = "none"; }
   }
 
-  // Tavern section
+  // Tavern section — DM sees full detail, players see only a hint
   const isTavern = marker.type === "Tavern";
-  shTavernSection.style.display = isTavern ? "" : "none";
+  const shTavernPlayer = document.getElementById("sh-tavern-player");
   if (isTavern) {
-    currentTavernMarker = marker;
-    shopModalBox.classList.toggle("night-mode", !isDayTime);
-    renderTavernView(marker);
+    if (isAdmin) {
+      shTavernSection.style.display = "";
+      if (shTavernPlayer) shTavernPlayer.style.display = "none";
+      currentTavernMarker = marker;
+      shopModalBox.classList.toggle("night-mode", !isDayTime);
+      renderTavernView(marker);
+    } else {
+      shTavernSection.style.display = "none";
+      if (shTavernPlayer) shTavernPlayer.style.display = "";
+      shopModalBox.classList.remove("night-mode");
+    }
   } else {
+    shTavernSection.style.display = "none";
+    if (shTavernPlayer) shTavernPlayer.style.display = "none";
     shopModalBox.classList.remove("night-mode");
   }
 
@@ -2006,11 +2035,11 @@ function openShopModal(marker) {
   document.getElementById("sh-library-section").style.display = isLibrary ? "" : "none";
   if (isLibrary) renderLibrarySection();
 
-  // Inventory section only for Shop, Market, Forge
+  // Inventory section — DM only
   const hasInventoryUI = INVENTORY_TYPES.has(marker.type);
-  shInventorySection.style.display = hasInventoryUI ? "" : "none";
+  shInventorySection.style.display = (hasInventoryUI && isAdmin) ? "" : "none";
 
-  if (hasInventoryUI) {
+  if (hasInventoryUI && isAdmin) {
     // Rarity filter
     shopRarityFilter = "all";
     shRarityFilter.querySelectorAll(".rarity-btn").forEach(btn => {
@@ -2023,10 +2052,13 @@ function openShopModal(marker) {
       };
     });
 
-    // Generate inventory button (DM only)
-    if (isAdmin && getShopPool(marker).length > 0) {
+    // Generate inventory button — disabled when pinned
+    if (getShopPool(marker).length > 0) {
       shGenerateBtn.style.display = "inline-block";
+      shGenerateBtn.disabled = !!marker.persisted;
+      shGenerateBtn.title = marker.persisted ? "Unpin the shop to allow regenerating inventory" : "";
       shGenerateBtn.onclick = async () => {
+        if (marker.persisted) return;
         shGenerateBtn.disabled = true;
         shGenerateBtn.textContent = "Generating…";
         await generateShopInventory(marker);

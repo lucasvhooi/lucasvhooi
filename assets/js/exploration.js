@@ -1,165 +1,287 @@
 'use strict';
+import { db }                              from "./firebase.js";
+import { ref, set, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
-let imageData = {};
-let activeCategory = null;
+const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
 
-const isAdmin = (() => {
-  try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; }
-})();
+const charactersRef = ref(db, "characters");
 
-function resolveAssetPath(path) {
-  if (!path) return path;
-  if (/^(https?:)?\/\//i.test(path) || path.startsWith('/') || path.startsWith('../')) return path;
-  return `../${path}`;
-}
+// ── State ─────────────────────────────────────────────────────────────────────
+let characters  = [];
+let editingId   = null;
+let searchQuery = "";
 
-function loadData() {
-  fetch('../assets/data/data.json')
-    .then(r => r.json())
-    .then(data => { imageData = data; generateCategoryButtons(); })
-    .catch(err => console.error('Error loading data:', err));
-}
+// ── DOM refs ──────────────────────────────────────────────────────────────────
+const charGrid       = document.getElementById("char-grid");
+const charEmpty      = document.getElementById("char-empty");
+const charSearch     = document.getElementById("char-search");
+const charAddBtn     = document.getElementById("char-add-btn");
+const charModal      = document.getElementById("char-modal");
+const charModalTitle = document.getElementById("char-modal-title");
+const charViewModal  = document.getElementById("char-view-modal");
+const charViewContent = document.getElementById("char-view-content");
 
-function generateCategoryButtons() {
-  const container = document.getElementById('category-buttons');
-  container.innerHTML = '';
-  Object.keys(imageData).forEach(category => {
-    const btn = document.createElement('button');
-    btn.className = 'category-button';
-    btn.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-    btn.onclick = () => {
-      activeCategory = category;
-      container.querySelectorAll('.category-button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      showCategory(category);
-    };
-    container.appendChild(btn);
+// Editor fields
+const charPicPreview   = document.getElementById("char-pic-preview");
+const charPicFile      = document.getElementById("char-pic-file");
+const charUploadBtn    = document.getElementById("char-upload-btn");
+const charUploadStatus = document.getElementById("char-upload-status");
+const charPicture      = document.getElementById("char-picture");
+const charName        = document.getElementById("char-name");
+const charProfession  = document.getElementById("char-profession");
+const charRace        = document.getElementById("char-race");
+const charAge         = document.getElementById("char-age");
+const charDescription = document.getElementById("char-description");
+const charNotes       = document.getElementById("char-notes");
+const charError       = document.getElementById("char-error");
+const charSave        = document.getElementById("char-save");
+const charCancel      = document.getElementById("char-cancel");
+const charModalClose  = document.getElementById("char-modal-close");
+const charViewClose   = document.getElementById("char-view-close");
+
+// ── Firebase listener ─────────────────────────────────────────────────────────
+onValue(charactersRef, snap => {
+  const data = snap.val();
+  characters = data ? Object.values(data) : [];
+  renderGrid();
+});
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderGrid() {
+  charGrid.innerHTML = "";
+  const q = searchQuery.toLowerCase();
+
+  const visible = characters.filter(c => {
+    if (!isAdmin && !c.encountered) return false;
+    if (q) {
+      const haystack = [c.name, c.profession, c.race, c.description].join(" ").toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
   });
+
+  charEmpty.style.display = visible.length === 0 ? "block" : "none";
+  visible.forEach(c => charGrid.appendChild(buildCard(c)));
 }
 
-function buildCard(item, isEncountered) {
-  const card = document.createElement('div');
-  card.className = 'card-pair ' + (isEncountered ? 'encountered' : 'unencountered');
+function buildCard(c) {
+  const card = document.createElement("div");
+  card.className = `char-card${!c.encountered ? " char-not-encountered" : ""}`;
+
+  const picHtml = c.picture
+    ? `<img class="char-card-pic" src="${esc(c.picture)}" alt="${esc(c.name)}" />`
+    : `<div class="char-card-pic char-card-pic-ph">&#128100;</div>`;
+
+  card.innerHTML = `
+    ${picHtml}
+    <div class="char-card-body">
+      <div class="char-card-name">${esc(c.name || "")}</div>
+      ${c.profession ? `<div class="char-card-meta">${esc(c.profession)}</div>` : ""}
+      ${(c.race || c.age) ? `<div class="char-card-sub">${[c.race ? esc(c.race) : "", c.age ? `Age ${esc(String(c.age))}` : ""].filter(Boolean).join(" · ")}</div>` : ""}
+    </div>
+    ${isAdmin ? `
+      <div class="char-card-dm">
+        <button class="char-encounter-btn${c.encountered ? " encountered" : ""}" title="${c.encountered ? "Mark not encountered" : "Mark encountered"}">&#128065;</button>
+        <button class="char-edit-btn" title="Edit">&#9998;</button>
+        <button class="char-del-btn" title="Delete">&#10005;</button>
+      </div>` : ""}
+  `;
+
+  // Click card body to open detail view
+  card.querySelector(".char-card-body").addEventListener("click", () => openViewModal(c));
+  card.querySelector(".char-card-pic")?.addEventListener("click", () => openViewModal(c));
 
   if (isAdmin) {
-    const badge = document.createElement('div');
-    badge.className = 'status-badge';
-    badge.textContent = isEncountered ? 'Encountered' : 'Not encountered';
-    card.appendChild(badge);
+    card.querySelector(".char-encounter-btn").addEventListener("click", e => {
+      e.stopPropagation();
+      set(ref(db, `characters/${c.id}/encountered`), !c.encountered);
+    });
+    card.querySelector(".char-edit-btn").addEventListener("click", e => {
+      e.stopPropagation();
+      openEditModal(c);
+    });
+    card.querySelector(".char-del-btn").addEventListener("click", e => {
+      e.stopPropagation();
+      if (confirm(`Delete "${c.name}"?`)) remove(ref(db, `characters/${c.id}`));
+    });
   }
 
-  const img = document.createElement('img');
-  img.src = resolveAssetPath(item.src);
-  img.alt = item.name || 'Gallery Image';
-  img.className = 'gallery-image';
-  img.loading = 'lazy';
-  img.onclick = () => openPopup(item.src, item.backImage, item.description);
-  card.appendChild(img);
   return card;
 }
 
-function showCategory(category) {
-  const gallery = document.getElementById('image-gallery');
-  const empty   = document.getElementById('expl-empty');
-  gallery.innerHTML = '';
+// ── Detail view modal ─────────────────────────────────────────────────────────
+function openViewModal(c) {
+  charViewContent.innerHTML = `
+    <div class="char-view-inner">
+      <div class="char-view-pic-wrap">
+        ${c.picture
+          ? `<img class="char-view-pic" src="${esc(c.picture)}" alt="${esc(c.name)}" />`
+          : `<div class="char-view-pic char-view-pic-ph">&#128100;</div>`}
+      </div>
+      <div class="char-view-details">
+        <h2 class="char-view-name">${esc(c.name || "")}</h2>
+        <div class="char-view-tags">
+          ${c.profession ? `<span class="char-view-tag">${esc(c.profession)}</span>` : ""}
+          ${c.race ? `<span class="char-view-tag">${esc(c.race)}</span>` : ""}
+          ${c.age ? `<span class="char-view-tag">Age ${esc(String(c.age))}</span>` : ""}
+        </div>
+        ${c.description ? `<p class="char-view-desc">${escBr(c.description)}</p>` : ""}
+        ${isAdmin && c.notes ? `
+          <div class="char-view-notes">
+            <div class="char-view-notes-label">&#128065; DM Notes</div>
+            <p class="char-view-notes-body">${escBr(c.notes)}</p>
+          </div>` : ""}
+      </div>
+    </div>
+  `;
+  charViewModal.classList.add("open");
+}
 
-  const items = imageData[category] || [];
-  let shown = 0;
+charViewClose.addEventListener("click", () => charViewModal.classList.remove("open"));
+charViewModal.addEventListener("click", e => { if (e.target === charViewModal) charViewModal.classList.remove("open"); });
 
-  items.forEach(item => {
-    const isEncountered = item.Encountered?.toLowerCase() === 'yes';
-    if (!isAdmin && !isEncountered) return;
-    gallery.appendChild(buildCard(item, isEncountered));
-    shown++;
+// ── Edit modal ────────────────────────────────────────────────────────────────
+function openEditModal(c = null) {
+  editingId = c ? c.id : null;
+  charModalTitle.textContent = c ? "Edit Character" : "New Character";
+  charPicture.value     = c ? (c.picture     || "") : "";
+  charName.value        = c ? (c.name        || "") : "";
+  charProfession.value  = c ? (c.profession  || "") : "";
+  charRace.value        = c ? (c.race        || "") : "";
+  charAge.value         = c ? (c.age != null ? String(c.age) : "") : "";
+  charDescription.value = c ? (c.description || "") : "";
+  charNotes.value       = c ? (c.notes       || "") : "";
+  charError.textContent = "";
+  updatePicPreview();
+  charModal.classList.add("open");
+  charName.focus();
+}
+
+function closeEditModal() {
+  charModal.classList.remove("open");
+  editingId = null;
+}
+
+function updatePicPreview() {
+  const url = charPicture.value.trim();
+  if (url) {
+    charPicPreview.innerHTML = `<img src="${esc(url)}" alt="Preview" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+  } else {
+    charPicPreview.innerHTML = "&#128100;";
+  }
+}
+
+charPicture.addEventListener("input", updatePicPreview);
+
+// ── Image upload (canvas resize → base64, no Firebase Storage needed) ────────
+function resizeToBase64(file, maxPx = 400, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let w = img.width, h = img.height;
+      if (w > h) { if (w > maxPx) { h = Math.round(h * maxPx / w); w = maxPx; } }
+      else        { if (h > maxPx) { w = Math.round(w * maxPx / h); h = maxPx; } }
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Could not read image")); };
+    img.src = url;
   });
-
-  empty.style.display = shown === 0 ? 'block' : 'none';
 }
 
-function searchAllImages() {
-  const query   = document.getElementById('searchBar').value.toLowerCase().trim();
-  const gallery = document.getElementById('image-gallery');
-  const empty   = document.getElementById('expl-empty');
+async function uploadImage(file) {
+  charUploadStatus.textContent = "Processing…";
+  charUploadStatus.className = "char-upload-status uploading";
+  charPicPreview.classList.add("uploading");
+  charUploadBtn.disabled = true;
 
-  // Clear active category highlight when searching
-  document.querySelectorAll('.category-button').forEach(b => b.classList.remove('active'));
-
-  if (!query) {
-    gallery.innerHTML = '';
-    empty.style.display = 'none';
-    if (activeCategory) showCategory(activeCategory);
-    return;
+  try {
+    const dataUrl = await resizeToBase64(file);
+    charPicture.value = dataUrl;
+    updatePicPreview();
+    charUploadStatus.textContent = "Image ready ✓";
+    charUploadStatus.className = "char-upload-status done";
+    setTimeout(() => { charUploadStatus.textContent = ""; }, 3000);
+  } catch (err) {
+    charUploadStatus.textContent = "Failed: " + (err.message || err);
+    charUploadStatus.className = "char-upload-status error";
+  } finally {
+    charPicPreview.classList.remove("uploading");
+    charUploadBtn.disabled = false;
   }
-
-  gallery.innerHTML = '';
-  const tags = query.split(/\s+/);
-  let shown = 0;
-
-  Object.values(imageData).forEach(items => {
-    items.forEach(item => {
-      const isEncountered = item.Encountered?.toLowerCase() === 'yes';
-      if (!isAdmin && !isEncountered) return;
-      const itemTags = Array.isArray(item.tags) ? item.tags : [];
-      const matches = tags.some(t => itemTags.some(tag => tag.toLowerCase().includes(t)));
-      if (matches) {
-        gallery.appendChild(buildCard(item, isEncountered));
-        shown++;
-      }
-    });
-  });
-
-  empty.style.display = shown === 0 ? 'block' : 'none';
 }
 
-function openPopup(frontSrc, backSrc, description) {
-  if (!frontSrc) return;
-  const popup   = document.getElementById('popup');
-  const content = popup.querySelector('.popup-content');
-
-  // Reset (keep close button)
-  content.innerHTML = '<button class="expl-popup-close" id="closePopup">&#10005;</button>';
-  document.getElementById('closePopup').onclick = closePopup;
-
-  const imgWrap = document.createElement('div');
-  imgWrap.className = 'popup-images';
-
-  const front = document.createElement('img');
-  front.src = resolveAssetPath(frontSrc);
-  front.alt = 'Front';
-  front.loading = 'lazy';
-  imgWrap.appendChild(front);
-
-  if (backSrc && backSrc !== 'null' && backSrc !== '') {
-    const back = document.createElement('img');
-    back.src = resolveAssetPath(backSrc);
-    back.alt = 'Back';
-    back.loading = 'lazy';
-    imgWrap.appendChild(back);
-  }
-
-  content.appendChild(imgWrap);
-
-  if (description?.trim()) {
-    const p = document.createElement('p');
-    p.textContent = description;
-    content.appendChild(p);
-  }
-
-  popup.style.display = 'flex';
-  document.body.classList.add('popup-open');
-}
-
-function closePopup() {
-  document.getElementById('popup').style.display = 'none';
-  document.body.classList.remove('popup-open');
-}
-
-document.getElementById('popup').addEventListener('click', e => {
-  if (e.target === document.getElementById('popup')) closePopup();
+// Clicking the preview circle or the upload button triggers file picker
+charPicPreview.addEventListener("click", () => charPicFile.click());
+charUploadBtn.addEventListener("click", () => charPicFile.click());
+charPicFile.addEventListener("change", () => {
+  const file = charPicFile.files[0];
+  if (file) { uploadImage(file); charPicFile.value = ""; }
 });
 
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closePopup();
+// Drag-and-drop onto the preview circle
+charPicPreview.addEventListener("dragover", e => { e.preventDefault(); charPicPreview.classList.add("drag-over"); });
+charPicPreview.addEventListener("dragleave", () => charPicPreview.classList.remove("drag-over"));
+charPicPreview.addEventListener("drop", e => {
+  e.preventDefault();
+  charPicPreview.classList.remove("drag-over");
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith("image/")) uploadImage(file);
 });
 
-document.addEventListener('DOMContentLoaded', loadData);
+charModalClose.addEventListener("click", closeEditModal);
+charCancel.addEventListener("click", closeEditModal);
+charModal.addEventListener("click", e => { if (e.target === charModal) closeEditModal(); });
+
+charSave.addEventListener("click", async () => {
+  const name = charName.value.trim();
+  if (!name) { charError.textContent = "Name is required."; return; }
+  charError.textContent = "";
+
+  const existing = editingId ? characters.find(c => c.id === editingId) : null;
+  const payload = {
+    id:          editingId || push(charactersRef).key,
+    name,
+    profession:  charProfession.value.trim() || null,
+    race:        charRace.value.trim() || null,
+    age:         charAge.value.trim() || null,
+    description: charDescription.value.trim() || null,
+    notes:       charNotes.value.trim() || null,
+    picture:     charPicture.value.trim() || null,
+    encountered: existing ? (existing.encountered ?? false) : false,
+  };
+
+  await set(ref(db, `characters/${payload.id}`), payload);
+  closeEditModal();
+});
+
+// ── Search ────────────────────────────────────────────────────────────────────
+charSearch.addEventListener("input", () => {
+  searchQuery = charSearch.value.trim();
+  renderGrid();
+});
+
+// ── DM: show add button ───────────────────────────────────────────────────────
+if (isAdmin) {
+  charAddBtn.style.display = "inline-flex";
+  charAddBtn.addEventListener("click", () => openEditModal());
+}
+
+// ── Keyboard ──────────────────────────────────────────────────────────────────
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    charModal.classList.remove("open");
+    charViewModal.classList.remove("open");
+  }
+});
+
+// ── Utility ───────────────────────────────────────────────────────────────────
+function esc(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function escBr(str) { return esc(str).replace(/\n/g, "<br>"); }
