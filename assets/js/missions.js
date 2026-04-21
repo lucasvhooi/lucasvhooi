@@ -951,6 +951,163 @@ function autoPlaceBlocks(blocks) {
   });
 }
 
+// ── @mention system ──────────────────────────────────────────────────────────
+const mentionState = { active: false, el: null, query: "", hits: [], focusedIdx: 0 };
+let _mentionDrop = null;
+
+function getMentionDrop() {
+  if (!_mentionDrop) {
+    _mentionDrop = document.createElement("div");
+    _mentionDrop.className = "mention-drop";
+    _mentionDrop.style.display = "none";
+    document.body.appendChild(_mentionDrop);
+  }
+  return _mentionDrop;
+}
+
+function hideMentionDrop() {
+  getMentionDrop().style.display = "none";
+  mentionState.active = false;
+}
+
+function renderMentionDrop(richEl) {
+  const drop = getMentionDrop();
+  const q = mentionState.query.toLowerCase();
+  mentionState.hits = allCharacters
+    .filter(c => c.name && (!q || c.name.toLowerCase().includes(q)))
+    .slice(0, 8);
+
+  if (!mentionState.hits.length) { hideMentionDrop(); return; }
+  mentionState.focusedIdx = 0;
+
+  drop.innerHTML = mentionState.hits.map((c, i) => `
+    <div class="mention-drop-item${i === 0 ? " focused" : ""}">
+      ${c.picture
+        ? `<img class="mention-drop-pic" src="${esc(c.picture)}" />`
+        : `<div class="mention-drop-pic mention-drop-ph">&#128100;</div>`}
+      <div class="mention-drop-info">
+        <span class="mention-drop-name">${esc(c.name)}</span>
+        ${c.profession ? `<span class="mention-drop-meta">${esc(c.profession)}</span>` : ""}
+      </div>
+    </div>`).join("");
+
+  drop.querySelectorAll(".mention-drop-item").forEach((item, i) => {
+    item.addEventListener("mousedown", e => { e.preventDefault(); doInsertMention(richEl, mentionState.hits[i]); });
+  });
+
+  // Position near cursor
+  const sel = window.getSelection();
+  if (sel.rangeCount) {
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    const left = Math.max(4, Math.min(rect.left, window.innerWidth - 270));
+    const below = window.innerHeight - rect.bottom > 260;
+    const top = below ? rect.bottom + 4 : rect.top - Math.min(mentionState.hits.length * 48 + 8, rect.top - 4);
+    drop.style.cssText = `display:block;position:fixed;left:${left}px;top:${top}px;z-index:9999;`;
+  }
+}
+
+function updateMentionFocus() {
+  getMentionDrop().querySelectorAll(".mention-drop-item")
+    .forEach((item, i) => item.classList.toggle("focused", i === mentionState.focusedIdx));
+}
+
+function doInsertMention(richEl, char) {
+  if (!richEl) { hideMentionDrop(); return; }
+  richEl.focus();
+  const sel = window.getSelection();
+  if (!sel.rangeCount) { hideMentionDrop(); return; }
+
+  // Select back over @+query then delete it
+  const backLen = mentionState.query.length + 1;
+  for (let i = 0; i < backLen; i++) sel.modify("extend", "backward", "character");
+  const range = sel.getRangeAt(0);
+  range.deleteContents();
+
+  // Insert mention span
+  const span = document.createElement("span");
+  span.className = "char-mention";
+  span.contentEditable = "false";
+  span.dataset.charId   = char.id   || "";
+  span.dataset.charName = char.name || "";
+  span.textContent = `@${char.name}`;
+  range.insertNode(span);
+
+  // Place cursor after a non-breaking space following the span
+  const space = document.createTextNode("\u00A0");
+  span.after(space);
+  const after = document.createRange();
+  after.setStartAfter(space);
+  after.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(after);
+
+  richEl.dispatchEvent(new Event("input", { bubbles: true }));
+  hideMentionDrop();
+}
+
+// Close dropdown on outside click
+document.addEventListener("mousedown", e => {
+  if (_mentionDrop && !_mentionDrop.contains(e.target)) hideMentionDrop();
+});
+
+// ── Character detail popup (for @mention chips) ───────────────────────────────
+let _charPopup = null;
+
+function getCharPopup() {
+  if (!_charPopup) {
+    _charPopup = document.createElement("div");
+    _charPopup.className = "char-popup-overlay";
+    _charPopup.innerHTML = `<div class="char-popup-box"><button class="char-popup-close">&#10005;</button><div class="char-popup-inner"></div></div>`;
+    _charPopup.querySelector(".char-popup-close").addEventListener("click", hideCharPopup);
+    _charPopup.addEventListener("click", e => { if (e.target === _charPopup) hideCharPopup(); });
+    document.body.appendChild(_charPopup);
+  }
+  return _charPopup;
+}
+
+function hideCharPopup() {
+  if (_charPopup) _charPopup.style.display = "none";
+}
+
+function showCharacterPopup(charId) {
+  const c = allCharacters.find(ch => ch.id === charId);
+  if (!c) return;
+  const popup = getCharPopup();
+  const inner = popup.querySelector(".char-popup-inner");
+  inner.innerHTML = `
+    <div class="char-popup-pic-wrap">
+      ${c.picture
+        ? `<img class="char-popup-pic" src="${esc(c.picture)}" alt="${esc(c.name)}" />`
+        : `<div class="char-popup-pic char-popup-pic-ph">&#128100;</div>`}
+    </div>
+    <div class="char-popup-details">
+      <h2 class="char-popup-name">${esc(c.name || "")}</h2>
+      <div class="char-popup-tags">
+        ${c.profession ? `<span class="char-popup-tag">${esc(c.profession)}</span>` : ""}
+        ${c.race ? `<span class="char-popup-tag">${esc(c.race)}</span>` : ""}
+        ${c.age ? `<span class="char-popup-tag">Age ${esc(String(c.age))}</span>` : ""}
+      </div>
+      ${c.description ? `<p class="char-popup-desc">${escBr(c.description)}</p>` : ""}
+      ${isAdmin && c.notes ? `
+        <div class="char-popup-notes">
+          <div class="char-popup-notes-label">&#128065; DM Notes</div>
+          <p class="char-popup-notes-body">${escBr(c.notes)}</p>
+        </div>` : ""}
+    </div>
+  `;
+  popup.style.display = "flex";
+}
+
+// Click delegation for @mention chips in card view and editor
+questGrid.addEventListener("click", e => {
+  const m = e.target.closest(".char-mention");
+  if (m) showCharacterPopup(m.dataset.charId);
+});
+qmBlockCanvas.addEventListener("click", e => {
+  const m = e.target.closest(".char-mention");
+  if (m) { e.stopPropagation(); showCharacterPopup(m.dataset.charId); }
+});
+
 // ── Drop target for grid ghost cells ─────────────────────────────────────────
 function attachDropTarget(ghost, row, col) {
   ghost.addEventListener("dragover", e => {
@@ -1199,6 +1356,49 @@ function buildBlocksEditor() {
     const richEl = wrap.querySelector(".blk-rich-text");
     if (richEl) {
       richEl.addEventListener("input", () => { block.content = richEl.innerHTML; });
+
+      // @mention detection
+      richEl.addEventListener("input", () => {
+        const sel = window.getSelection();
+        if (!sel.rangeCount || !richEl.contains(sel.anchorNode)) return;
+        const range = sel.getRangeAt(0);
+        const pre = document.createRange();
+        pre.selectNodeContents(richEl);
+        pre.setEnd(range.startContainer, range.startOffset);
+        const match = pre.toString().match(/@([^@\s]*)$/);
+        if (match) {
+          mentionState.active = true;
+          mentionState.el = richEl;
+          mentionState.query = match[1];
+          renderMentionDrop(richEl);
+        } else {
+          hideMentionDrop();
+        }
+      });
+
+      richEl.addEventListener("keydown", e => {
+        if (!mentionState.active || mentionState.el !== richEl) return;
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          mentionState.focusedIdx = (mentionState.focusedIdx + 1) % mentionState.hits.length;
+          updateMentionFocus();
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          mentionState.focusedIdx = (mentionState.focusedIdx - 1 + mentionState.hits.length) % mentionState.hits.length;
+          updateMentionFocus();
+        } else if (e.key === "Enter" || e.key === "Tab") {
+          if (mentionState.hits.length) {
+            e.preventDefault(); e.stopPropagation();
+            doInsertMention(richEl, mentionState.hits[mentionState.focusedIdx]);
+          }
+        } else if (e.key === "Escape") {
+          e.preventDefault(); hideMentionDrop();
+        }
+      });
+
+      richEl.addEventListener("blur", () => {
+        setTimeout(() => { if (mentionState.el === richEl) hideMentionDrop(); }, 150);
+      });
 
       // Bold / Italic via execCommand (mousedown to keep selection alive)
       wrap.querySelector(".blk-fmt-bold")?.addEventListener("mousedown", e => {
@@ -1690,7 +1890,7 @@ function buildBlockEditorHtml(b, i) {
 }
 
 // ── Keyboard ──────────────────────────────────────────────────────────────────
-document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") { closeModal(); hideCharPopup(); } });
 
 // ── Utility ───────────────────────────────────────────────────────────────────
 function esc(str) {
