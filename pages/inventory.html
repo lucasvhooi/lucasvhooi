@@ -8,6 +8,7 @@
   <meta property="og:image" content="../Images/EssolisLogoWeb.webp" />
   <link rel="stylesheet" href="../assets/css/base.css">
   <link rel="stylesheet" href="../assets/css/lore.css">
+  <link rel="stylesheet" href="../assets/css/items.css">
   <link rel="stylesheet" href="../assets/css/inventory.css">
 </head>
 <body>
@@ -15,7 +16,7 @@
     <img src="../Images/EssolisLogo.webp" alt="Essolis Logo" class="nav-logo">
     <ul>
       <li><a href="missions.html">Missions</a></li>
-      <li><a href="exploration.html">Exploration</a></li>
+      <li><a href="exploration.html">Characters</a></li>
       <li class="nav-dm-only"><a href="items.html">Items</a></li>
       <li><a href="map.html">Map</a></li>
       <li><a href="lore.html">Lore</a></li>
@@ -244,6 +245,75 @@
       </div>
       <div class="inv-modal-footer">
         <button class="btn-ghost" data-close="manage-modal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Quick-Edit Item Modal (admin) ─────────────────────────────────────── -->
+  <div id="qe-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>Edit Item</h2>
+        <button class="modal-close-x" id="qe-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label>Name <span class="req">*</span>
+            <input type="text" id="qe-name" placeholder="e.g. Health Potion" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Description
+            <textarea id="qe-desc" rows="3" placeholder="What does this item do or look like?"></textarea>
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Base Price (gp) <span class="req">*</span>
+            <input type="number" id="qe-price" placeholder="e.g. 50" min="0" step="0.01" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Tags</label>
+          <div class="im-tag-picker-row">
+            <div class="im-tag-chips" id="qe-tag-chips"></div>
+            <button type="button" id="qe-tag-add-btn" class="im-tag-add-btn">+ New Tag</button>
+          </div>
+          <input type="text" id="qe-tag-new-input" class="im-tag-new-input" placeholder="New tag name…" style="display:none" />
+        </div>
+        <div class="form-row">
+          <label>Rarity</label>
+          <div class="rarity-selector" id="qe-rarity-selector">
+            <button type="button" class="rarity-sel-btn" data-rarity="common">Common</button>
+            <button type="button" class="rarity-sel-btn" data-rarity="uncommon">Uncommon</button>
+            <button type="button" class="rarity-sel-btn" data-rarity="rare">Rare</button>
+            <button type="button" class="rarity-sel-btn" data-rarity="very rare">Very Rare</button>
+            <button type="button" class="rarity-sel-btn" data-rarity="legendary">Legendary</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="qe-shop-available" checked />
+            <span class="checkbox-box"></span>
+            Available in shop (players can buy this item)
+          </label>
+        </div>
+        <div class="form-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="qe-requires-attunement" />
+            <span class="checkbox-box"></span>
+            Requires Attunement
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Abilities</label>
+          <div id="qe-abilities-list" class="im-abilities-list"></div>
+          <button type="button" id="qe-ability-add-btn" class="im-ability-add-btn">+ Add Ability</button>
+        </div>
+        <div id="qe-error" class="modal-error"></div>
+      </div>
+      <div class="modal-actions">
+        <button id="qe-save" class="dm-btn">Save Item</button>
+        <button id="qe-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
       </div>
     </div>
   </div>

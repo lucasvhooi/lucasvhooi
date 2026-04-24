@@ -2,6 +2,7 @@
 import { db }                                        from "./firebase.js";
 import { ref, set, remove, onValue, push }           from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { getSession, clearSession, hashPassword }    from "./auth.js";
+import { parseTags, formatGold, getDisplayTags } from "./item-utils.js";
 
 // ── Auth guard ────────────────────────────────────────────────────────────────
 const session = getSession();
@@ -294,11 +295,13 @@ function buildGenericCard(item, ownerId) {
   const isAttuned = attKey in userAttunes;
   if (isAttuned) card.classList.add("inv-card-attuned");
   const attunedCount = Object.keys(userAttunes).length;
-  const canAttune = isAdmin || ownerId === session.id;
+  const needsAttunement = item.requiresAttunement === true;
+  const canAttune = needsAttunement && (isAdmin || ownerId === session.id);
 
   const abilities = Array.isArray(item.abilities) ? item.abilities : (item.abilities ? Object.values(item.abilities) : []);
 
   card.innerHTML = `
+    ${isAdmin ? `<button class="inv-quick-edit-btn" title="Edit item">&#9998;</button>` : ""}
     <div class="inv-card-body">
       <div class="inv-card-top">
         <span class="inv-type-icon">${TYPE_ICON[effectiveType] || "◈"}</span>
@@ -308,6 +311,7 @@ function buildGenericCard(item, ownerId) {
             <span class="inv-type-badge inv-badge-${effectiveType}">${TYPE_LABEL[effectiveType] || "Misc"}</span>
             ${stackQtyBadge(item)}
             ${rarity ? `<span class="inv-rarity-label" style="color:${rarityColor}">${esc(rarity)}</span>` : ""}
+            ${needsAttunement && !isAttuned ? `<span class="inv-attunement-required-badge">⟡ Requires Attunement</span>` : ""}
           </div>
         </div>
       </div>
@@ -333,6 +337,7 @@ function buildGenericCard(item, ownerId) {
 
   card.querySelector(".btn-send").addEventListener("click", () => openSendModal(item, ownerId));
   card.querySelector(".btn-delete")?.addEventListener("click", () => openRemoveModal(item, ownerId));
+  card.querySelector(".inv-quick-edit-btn")?.addEventListener("click", e => { e.stopPropagation(); openQuickEdit(item, ownerId); });
 
   if (canAttune) {
     const attBtn = card.querySelector(".btn-attune");
@@ -790,6 +795,179 @@ document.getElementById("np-save").addEventListener("click", async () => {
 });
 
 // ── Modal helpers ─────────────────────────────────────────────────────────────
+// ── Quick-Edit Item (DM only) — exact port of items.js modal logic ───────────
+const QE_RARITY_KEYWORDS = new Set(["common", "uncommon", "rare", "very rare", "legendary"]);
+
+let _qeSourceId      = null;
+let _qeInvItemId     = null;
+let _qeOwnerId       = null;
+let _qeRarity        = "common";
+let _qeSelectedTags  = new Set();
+let _qeAbilities     = [];
+
+const qeModal        = document.getElementById("qe-modal");
+const qeNameEl       = document.getElementById("qe-name");
+const qeDescEl       = document.getElementById("qe-desc");
+const qePriceEl      = document.getElementById("qe-price");
+const qeErrEl        = document.getElementById("qe-error");
+const qeRarityEl     = document.getElementById("qe-rarity-selector");
+const qeAbilList     = document.getElementById("qe-abilities-list");
+const qeTagAddBtn    = document.getElementById("qe-tag-add-btn");
+const qeTagNewInput  = document.getElementById("qe-tag-new-input");
+
+qeRarityEl.querySelectorAll(".rarity-sel-btn").forEach(btn => {
+  btn.addEventListener("click", () => { _qeRarity = btn.dataset.rarity; _qeSyncRarity(); });
+});
+function _qeSyncRarity() {
+  qeRarityEl.querySelectorAll(".rarity-sel-btn").forEach(b => b.classList.toggle("active", b.dataset.rarity === _qeRarity));
+}
+
+function _qeGetAllTags() {
+  const s = new Set();
+  allItemsDb.forEach(item => {
+    getDisplayTags(item.tags).forEach(t => s.add(t));
+    parseTags(item.tags)
+      .filter(t => !QE_RARITY_KEYWORDS.has(t) && getDisplayTags(t).length === 0)
+      .forEach(t => s.add(t));
+  });
+  return [...s].sort();
+}
+
+function _qeRenderTagPicker() {
+  const dbTags  = _qeGetAllTags().filter(t => !QE_RARITY_KEYWORDS.has(t));
+  const pending = [..._qeSelectedTags].filter(t => !dbTags.includes(t) && !QE_RARITY_KEYWORDS.has(t));
+  const allTags = [...dbTags, ...pending];
+  const chips = document.getElementById("qe-tag-chips");
+  chips.innerHTML = allTags.length
+    ? allTags.map(t => `<button type="button" class="im-tag-chip${_qeSelectedTags.has(t) ? " active" : ""}" data-tag="${t.replace(/"/g,'&quot;')}">${t.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</button>`).join("")
+    : '<span class="im-tag-empty">No tags yet</span>';
+  chips.querySelectorAll(".im-tag-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const t = chip.dataset.tag;
+      if (_qeSelectedTags.has(t)) _qeSelectedTags.delete(t); else _qeSelectedTags.add(t);
+      chip.classList.toggle("active", _qeSelectedTags.has(t));
+    });
+  });
+}
+
+qeTagAddBtn.addEventListener("click", () => {
+  const show = qeTagNewInput.style.display === "none";
+  qeTagNewInput.style.display = show ? "inline-block" : "none";
+  if (show) qeTagNewInput.focus();
+});
+qeTagNewInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const t = qeTagNewInput.value.trim().toLowerCase();
+    if (t && !QE_RARITY_KEYWORDS.has(t)) _qeSelectedTags.add(t);
+    qeTagNewInput.value = "";
+    qeTagNewInput.style.display = "none";
+    _qeRenderTagPicker();
+  }
+  if (e.key === "Escape") { qeTagNewInput.style.display = "none"; }
+});
+
+function _qeRenderAbilities() {
+  qeAbilList.innerHTML = _qeAbilities.map((ab, i) => `
+    <div class="im-ability-entry" data-idx="${i}">
+      <input class="im-ability-name-input" type="text" placeholder="Ability name…" value="${ab.name.replace(/"/g,'&quot;')}" data-field="name" data-idx="${i}" />
+      <textarea class="im-ability-desc-input" placeholder="Description…" rows="2" data-field="description" data-idx="${i}">${ab.description || ""}</textarea>
+      <button type="button" class="im-ability-del-btn" data-idx="${i}">✕</button>
+    </div>`).join("");
+  qeAbilList.querySelectorAll("[data-field]").forEach(el => {
+    el.addEventListener("input", () => { _qeAbilities[el.dataset.idx][el.dataset.field] = el.value; });
+  });
+  qeAbilList.querySelectorAll(".im-ability-del-btn").forEach(btn => {
+    btn.addEventListener("click", () => { _qeAbilities.splice(Number(btn.dataset.idx), 1); _qeRenderAbilities(); });
+  });
+}
+
+document.getElementById("qe-ability-add-btn").addEventListener("click", () => {
+  _qeAbilities.push({ name: "", description: "" });
+  _qeRenderAbilities();
+  qeAbilList.querySelectorAll(".im-ability-name-input").at(-1)?.focus();
+});
+
+function openQuickEdit(item, ownerId) {
+  const master = item.sourceItemId ? allItemsDb.find(i => i.id === item.sourceItemId) : null;
+  const src = master || item;
+
+  _qeSourceId  = master ? master.id : null;
+  _qeInvItemId = item.id;
+  _qeOwnerId   = ownerId;
+  _qeRarity    = src.rarity || "common";
+  _qeSelectedTags = new Set(parseTags(src.tags).filter(t => !QE_RARITY_KEYWORDS.has(t)));
+  _qeAbilities = Array.isArray(src.abilities) ? src.abilities.map(a => ({ ...a }))
+    : src.abilities ? Object.values(src.abilities).map(a => ({ ...a })) : [];
+
+  qeNameEl.value  = src.name        || "";
+  qeDescEl.value  = src.description || "";
+  qePriceEl.value = src.price       ?? "";
+  document.getElementById("qe-shop-available").checked     = src.shopAvailable !== false;
+  document.getElementById("qe-requires-attunement").checked = src.requiresAttunement === true;
+  qeErrEl.textContent = "";
+  qeTagNewInput.style.display = "none";
+  _qeSyncRarity();
+  _qeRenderTagPicker();
+  _qeRenderAbilities();
+  qeModal.classList.add("open");
+  qeNameEl.focus();
+}
+
+function _qeClose() { qeModal.classList.remove("open"); }
+document.getElementById("qe-cancel").addEventListener("click", _qeClose);
+document.getElementById("qe-close-btn").addEventListener("click", _qeClose);
+qeModal.addEventListener("click", e => { if (e.target === qeModal) _qeClose(); });
+
+document.getElementById("qe-save").addEventListener("click", async () => {
+  const name  = qeNameEl.value.trim();
+  const price = parseFloat(qePriceEl.value);
+  if (!name)                    { qeErrEl.textContent = "Name is required."; return; }
+  if (isNaN(price) || price <= 0) { qeErrEl.textContent = "Enter a valid price greater than 0."; return; }
+  qeErrEl.textContent = "";
+
+  const description        = qeDescEl.value.trim() || null;
+  const shopAvailable      = document.getElementById("qe-shop-available").checked;
+  const requiresAttunement = document.getElementById("qe-requires-attunement").checked || false;
+  const cleanTags          = Array.from(_qeSelectedTags).filter(t => !QE_RARITY_KEYWORDS.has(t)).join(", ") || null;
+  const abilities          = _qeAbilities.filter(a => a.name.trim()).length
+    ? _qeAbilities.filter(a => a.name.trim()) : null;
+
+  if (_qeSourceId) {
+    const master = allItemsDb.find(i => i.id === _qeSourceId);
+    await set(ref(db, `items/${_qeSourceId}`), {
+      ...(master || {}),
+      name, description, price, rarity: _qeRarity, tags: cleanTags,
+      shopAvailable, requiresAttunement, abilities,
+    });
+    for (const [uid, userInv] of Object.entries(allInventory)) {
+      for (const [key, invItem] of Object.entries(userInv || {})) {
+        if (invItem.sourceItemId === _qeSourceId || (!invItem.sourceItemId && master && invItem.name === master.name)) {
+          await set(ref(db, `inventory/${uid}/${key}`), {
+            ...invItem,
+            name, description, rarity: _qeRarity, tags: cleanTags,
+            requiresAttunement, abilities,
+            value: price ? formatGold(price) : null,
+            sourceItemId: _qeSourceId,
+          });
+        }
+      }
+    }
+  } else {
+    const invItem = (allInventory[_qeOwnerId] || {})[_qeInvItemId];
+    if (invItem) {
+      await set(ref(db, `inventory/${_qeOwnerId}/${_qeInvItemId}`), {
+        ...invItem,
+        name, description, rarity: _qeRarity, tags: cleanTags,
+        requiresAttunement, abilities,
+        value: price ? formatGold(price) : null,
+      });
+    }
+  }
+
+  _qeClose();
+});
+
 function openModal(id) { document.getElementById(id).classList.add("open"); }
 function closeModal(id) { document.getElementById(id).classList.remove("open"); }
 

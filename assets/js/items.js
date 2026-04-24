@@ -1,6 +1,6 @@
 import { db }                          from "./firebase.js";
 import { ref, set, remove, onValue, get }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
-import { parseTags, formatGold, getDisplayTags } from "./item-utils.js";
+import { parseTags, formatGold } from "./item-utils.js";
 import { openGivePanel }              from "./give-to-player.js";
 
 const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
@@ -72,7 +72,9 @@ function syncRarityButtons() {
 
 // ── Tag picker ────────────────────────────────────────────────────────────────
 function renderTagPicker() {
-  const allTags = getAllTags().filter(t => !RARITY_KEYWORDS.has(t));
+  const dbTags  = getTagList();
+  const pending = [...selectedTags].filter(t => !dbTags.includes(t));
+  const allTags = [...dbTags, ...pending];
   const chips = document.getElementById("im-tag-chips");
   if (!chips) return;
   chips.innerHTML = allTags.length
@@ -118,15 +120,17 @@ onValue(itemsRef, snapshot => {
   renderItems();
 });
 
-function getAllTags() {
-  const set = new Set();
-  items.forEach(item => getDisplayTags(item.tags).forEach(t => set.add(t)));
-  return [...set].sort();
+function getTagList() {
+  const s = new Set();
+  items.forEach(item => {
+    parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t)).forEach(t => s.add(t));
+  });
+  return [...s].sort();
 }
 
 // ── Tag Filter ────────────────────────────────────────────────────────────────
 function renderTagFilter() {
-  const tags = getAllTags();
+  const tags = getTagList();
   tagFilter.innerHTML = "";
   if (tags.length === 0) return;
 
@@ -137,11 +141,28 @@ function renderTagFilter() {
   tagFilter.appendChild(allBtn);
 
   tags.forEach(tag => {
+    const wrap = document.createElement("span");
+    wrap.className = "tag-btn-wrap";
+
     const btn = document.createElement("button");
     btn.className   = "tag-btn" + (activeTag === tag ? " active" : "");
     btn.textContent = tag;
     btn.addEventListener("click", () => { activeTag = tag; renderTagFilter(); renderItems(); });
-    tagFilter.appendChild(btn);
+    wrap.appendChild(btn);
+
+    if (isAdmin) {
+      const del = document.createElement("button");
+      del.className   = "tag-delete-btn";
+      del.textContent = "×";
+      del.title       = `Remove tag "${tag}" from all items`;
+      del.addEventListener("click", e => {
+        e.stopPropagation();
+        deleteTag(tag);
+      });
+      wrap.appendChild(del);
+    }
+
+    tagFilter.appendChild(wrap);
   });
 }
 
@@ -165,7 +186,7 @@ function renderItems() {
   }
 
   if (activeTag) {
-    filtered = filtered.filter(i => getDisplayTags(i.tags).includes(activeTag));
+    filtered = filtered.filter(i => parseTags(i.tags).includes(activeTag));
   }
 
   filtered.sort((a, b) => a.name.localeCompare(b.name));
@@ -181,7 +202,7 @@ function renderItems() {
 
     const rarity      = getItemRarity(item);
     const rarityColor = RARITY_COLORS[rarity] || "#9e9e9e";
-    const tags = getDisplayTags(item.tags);
+    const tags = parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t));
 
     card.style.setProperty("--rc", rarityColor);
 
@@ -219,16 +240,17 @@ function renderItems() {
       card.querySelector(".item-give-btn").addEventListener("click", e => {
         e.stopPropagation();
         openGivePanel(e.currentTarget, {
-          id:          item.id,
-          name:        item.name,
-          type:        inferTypeFromTags(item.tags),
-          description: item.description || null,
-          quantity:    1,
-          value:       item.price ? formatGold(item.price) : null,
-          content:     null,
-          rarity:      getItemRarity(item),
-          tags:        item.tags || null,
-          abilities:   item.abilities || null,
+          id:                  item.id,
+          name:                item.name,
+          type:                inferTypeFromTags(item.tags),
+          description:         item.description || null,
+          quantity:            1,
+          value:               item.price ? formatGold(item.price) : null,
+          content:             null,
+          rarity:              getItemRarity(item),
+          tags:                item.tags || null,
+          abilities:           item.abilities || null,
+          requiresAttunement:  item.requiresAttunement || false,
         });
       });
     }
@@ -251,6 +273,7 @@ function openItemModal(id) {
     selectedRarity = getItemRarity(item);
     selectedTags = new Set(parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t)));
     document.getElementById("im-shop-available").checked = item.shopAvailable !== false;
+    document.getElementById("im-requires-attunement").checked = item.requiresAttunement === true;
     selectedAbilities = Array.isArray(item.abilities) ? item.abilities.map(a => ({ ...a }))
       : item.abilities ? Object.values(item.abilities).map(a => ({ ...a })) : [];
   } else {
@@ -260,6 +283,7 @@ function openItemModal(id) {
     selectedRarity = "common";
     selectedTags = new Set();
     document.getElementById("im-shop-available").checked = true;
+    document.getElementById("im-requires-attunement").checked = false;
     selectedAbilities = [];
   }
 
@@ -320,15 +344,17 @@ imSave.addEventListener("click", async () => {
 
   const cleanAbilities = selectedAbilities.filter(a => a.name.trim());
 
-  const description  = imDesc.value.trim() || null;
-  const shopAvailable = document.getElementById("im-shop-available").checked;
-  const abilities    = cleanAbilities.length ? cleanAbilities : null;
+  const description        = imDesc.value.trim() || null;
+  const shopAvailable      = document.getElementById("im-shop-available").checked;
+  const requiresAttunement = document.getElementById("im-requires-attunement").checked || false;
+  const abilities          = cleanAbilities.length ? cleanAbilities : null;
 
   await set(ref(db, `items/${id}`), {
     id, name, description, price,
     rarity: selectedRarity,
     tags:   cleanTags,
     shopAvailable,
+    requiresAttunement,
     abilities,
     createdAt: existing?.createdAt || Date.now()
   });
@@ -346,11 +372,12 @@ imSave.addEventListener("click", async () => {
             ...invItem,
             name,
             description,
-            rarity:       selectedRarity,
-            tags:         cleanTags,
+            rarity:              selectedRarity,
+            tags:                cleanTags,
             abilities,
-            value:        price ? formatGold(price) : null,
-            sourceItemId: id,
+            requiresAttunement,
+            value:               price ? formatGold(price) : null,
+            sourceItemId:        id,
           });
         }
       }
@@ -361,9 +388,28 @@ imSave.addEventListener("click", async () => {
 });
 
 imCancel.addEventListener("click", closeItemModal);
+document.getElementById("im-close-btn").addEventListener("click", closeItemModal);
 itemModal.addEventListener("click", e => { if (e.target === itemModal) closeItemModal(); });
 addItemBtn.addEventListener("click", () => openItemModal(null));
 imName.addEventListener("keydown", e => { if (e.key === "Enter") imSave.click(); });
+
+// ── Delete Tag ────────────────────────────────────────────────────────────────
+async function deleteTag(tag) {
+  if (!confirm(`Remove tag "${tag}" from all items? This cannot be undone.`)) return;
+
+  const affected = items.filter(item => parseTags(item.tags).includes(tag));
+
+  for (const item of affected) {
+    const newTags = parseTags(item.tags)
+      .filter(t => t !== tag && !RARITY_KEYWORDS.has(t))
+      .join(", ") || null;
+    await set(ref(db, `items/${item.id}/tags`), newTags);
+  }
+
+  if (activeTag === tag) {
+    activeTag = null;
+  }
+}
 
 // ── Search ────────────────────────────────────────────────────────────────────
 itemsSearch.addEventListener("input", e => { searchQuery = e.target.value; renderItems(); });

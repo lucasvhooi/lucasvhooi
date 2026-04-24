@@ -14,7 +14,7 @@
     <img src="../Images/EssolisLogo.webp" alt="Essolis Logo" class="nav-logo">
     <ul>
 <li><a href="missions.html">Missions</a></li>
-      <li><a href="exploration.html">Exploration</a></li>
+      <li><a href="exploration.html">Characters</a></li>
       <li class="nav-dm-only"><a href="items.html">Items</a></li>
       <li><a href="map.html">Map</a></li>
       <li><a href="lore.html">Lore</a></li>
@@ -25,9 +25,15 @@
 
   <!-- Hero with "+ New Quest" button pinned top-right -->
   <header class="quest-hero">
-    <button id="quest-add-btn" class="dm-btn quest-hero-add-btn" style="display:none">+ New Quest</button>
-    <h1 class="quest-title">Quests</h1>
-    <p class="quest-subtitle">Missions and adventures across Enora</p>
+    <div class="quest-hero-inner">
+      <div class="quest-hero-text">
+        <h1 class="quest-title">Quests</h1>
+        <p class="quest-subtitle">Missions and adventures across Enora</p>
+      </div>
+      <button id="quest-add-btn" class="dm-btn quest-hero-add-btn" style="display:none">
+        <span class="plus">+</span> New Quest
+      </button>
+    </div>
     <div class="quest-filter-tabs">
       <button class="quest-tab active" data-filter="all">All</button>
       <button class="quest-tab" data-filter="main">Main</button>
@@ -42,96 +48,189 @@
     <p id="quest-empty" class="quest-empty" style="display:none">No quests found.</p>
   </main>
 
-  <!-- Quest Editor Modal -->
+  <!-- Quest Editor Modal — OneNote-style sidebar layout -->
   <div id="quest-modal" class="modal-overlay">
     <div class="modal-box quest-edit-box">
 
-      <!-- Modal header -->
-      <div class="qm-header">
-        <div class="qm-header-row1">
+      <!-- Top bar -->
+      <div class="qm-topbar">
+        <div class="qm-topbar-left">
+          <span class="qm-topbar-icon">&#9876;</span>
           <h2 id="qm-title">New Quest</h2>
-          <button class="qm-close-btn" id="qm-cancel" title="Close">&#10005;</button>
+        </div>
+        <div class="qm-topbar-center">
+          <button id="qm-undo-btn" class="qm-topbar-btn" title="Undo (Ctrl+Z)" disabled>
+            <span class="qm-topbar-btn-icon">&#8630;</span>
+            <span class="qm-topbar-btn-label">Undo</span>
+          </button>
+          <button id="qm-redo-btn" class="qm-topbar-btn" title="Redo (Ctrl+Y)" disabled>
+            <span class="qm-topbar-btn-icon">&#8631;</span>
+            <span class="qm-topbar-btn-label">Redo</span>
+          </button>
+          <div class="qm-topbar-divider"></div>
+          <span id="qm-autosave-status" class="qm-autosave-status" title="Draft is saved locally">
+            <span class="qm-autosave-dot"></span>
+            <span class="qm-autosave-text">All changes saved</span>
+          </span>
+        </div>
+        <div class="qm-topbar-right">
+          <button id="qm-preview-toggle" class="qm-topbar-btn qm-preview-btn" title="Preview as players see it">
+            <span class="qm-topbar-btn-icon">&#128065;</span>
+            <span class="qm-topbar-btn-label">Preview</span>
+          </button>
+          <button class="qm-close-btn" id="qm-cancel" title="Close (Esc)">&#10005;</button>
         </div>
       </div>
 
-      <!-- Meta row 1: Title + Location -->
-      <div class="qm-meta-row">
-        <div class="qm-meta-field qm-meta-title">
-          <label class="qm-label">Title <span class="required">*</span></label>
-          <input type="text" id="qm-name" class="qm-input" placeholder="Quest title…" />
-        </div>
-        <div class="qm-meta-field qm-meta-location">
-          <label class="qm-label">Location</label>
-          <div class="qm-location-wrap">
-            <input type="text" id="qm-location" class="qm-input" placeholder="Search map locations…" autocomplete="off" />
-            <div id="qm-location-drop" class="loc-dropdown" style="display:none"></div>
+      <!-- Draft restore banner (hidden until a local draft is detected) -->
+      <div id="qm-draft-banner" class="qm-draft-banner" style="display:none">
+        <span class="qm-draft-banner-icon">&#128190;</span>
+        <span class="qm-draft-banner-text">Unsaved draft found from <span id="qm-draft-time">earlier</span>.</span>
+        <button type="button" id="qm-draft-restore" class="qm-draft-banner-btn qm-draft-banner-primary">Restore</button>
+        <button type="button" id="qm-draft-discard" class="qm-draft-banner-btn">Discard</button>
+      </div>
+
+      <!-- Two-column body: sidebar + canvas -->
+      <div class="qm-body">
+
+        <!-- Left sidebar: block palette (OneNote sections) -->
+        <aside class="qm-sidebar">
+          <div class="qm-sidebar-section">
+            <div class="qm-sidebar-label">Add content</div>
+            <button type="button" class="qm-add-block-btn" data-block-type="text"      title="Paragraph of text"><span class="qm-ab-icon">&#182;</span><span class="qm-ab-text">Text</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="phase"     title="Quest phase / step"><span class="qm-ab-icon qm-ab-phase">&#9654;</span><span class="qm-ab-text">Phase</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="loot"      title="Loot / rewards"><span class="qm-ab-icon qm-ab-loot">&#127873;</span><span class="qm-ab-text">Loot</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="boss"      title="Enemy / encounter"><span class="qm-ab-icon qm-ab-boss">&#9760;</span><span class="qm-ab-text">Enemy</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="puzzle"    title="Puzzle / riddle"><span class="qm-ab-icon qm-ab-puzzle">&#129513;</span><span class="qm-ab-text">Puzzle</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="character" title="Character / NPC"><span class="qm-ab-icon qm-ab-char">&#128100;</span><span class="qm-ab-text">Character</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="loreref"   title="Lore reference"><span class="qm-ab-icon qm-ab-lore">&#128218;</span><span class="qm-ab-text">Lore</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="note"      title="DM-only note"><span class="qm-ab-icon qm-ab-note">&#128196;</span><span class="qm-ab-text">DM Note</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="divider"   title="Chapter divider"><span class="qm-ab-icon qm-ab-div">&#8213;</span><span class="qm-ab-text">Divider</span></button>
           </div>
-        </div>
-      </div>
 
-      <!-- Meta row 2: Type + Status + Visibility -->
-      <div class="qm-meta-row">
-        <div class="qm-meta-field">
-          <label class="qm-label">Type</label>
-          <div class="quest-type-selector" id="qm-type-selector">
-            <button type="button" class="quest-type-btn active" data-type="main">&#9876; Main</button>
-            <button type="button" class="quest-type-btn" data-type="side">&#10022; Side</button>
+          <div class="qm-sidebar-section qm-sidebar-templates">
+            <div class="qm-sidebar-label">Templates</div>
+            <button type="button" class="qm-template-btn" data-template="boss-fight" title="Enemy + Loot + Phase">
+              <span class="qm-ab-icon">&#9876;</span>
+              <span class="qm-ab-text">Boss Fight</span>
+            </button>
+            <button type="button" class="qm-template-btn" data-template="investigation" title="Character + Puzzle + Lore">
+              <span class="qm-ab-icon">&#128270;</span>
+              <span class="qm-ab-text">Investigation</span>
+            </button>
+            <button type="button" class="qm-template-btn" data-template="dungeon-room" title="Phase + Enemy + Loot">
+              <span class="qm-ab-icon">&#127959;</span>
+              <span class="qm-ab-text">Dungeon Room</span>
+            </button>
+            <button type="button" class="qm-template-btn" data-template="social-scene" title="Character + Text + DM Note">
+              <span class="qm-ab-icon">&#128172;</span>
+              <span class="qm-ab-text">Social Scene</span>
+            </button>
+            <button type="button" class="qm-template-btn" data-template="travel-encounter" title="Phase + Enemy">
+              <span class="qm-ab-icon">&#128506;</span>
+              <span class="qm-ab-text">Travel</span>
+            </button>
           </div>
-        </div>
-        <div class="qm-meta-field">
-          <label class="qm-label">Status</label>
-          <select id="qm-status" class="qm-select">
-            <option value="not_started">Not Started</option>
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
-        <div class="qm-meta-field qm-meta-discovered">
-          <label class="qm-label">Visibility</label>
-          <label class="qm-toggle-label">
-            <input type="checkbox" id="qm-discovered" class="qm-toggle-input" />
-            <span class="qm-toggle-track"><span class="qm-toggle-thumb"></span></span>
-            <span class="qm-toggle-text">Visible to players</span>
-          </label>
-        </div>
+
+          <div class="qm-sidebar-section">
+            <div class="qm-sidebar-label">Tools</div>
+            <button id="qm-paint-btn" class="qm-paint-btn" title="Paint cell backgrounds"><span class="qm-ab-icon">&#127912;</span><span class="qm-ab-text">Paint cells</span></button>
+            <div id="qm-color-toolbar" class="qm-color-toolbar" style="display:none">
+              <button class="qm-color-swatch qm-color-clear" data-color="" title="Clear color">&#10005;</button>
+              <button class="qm-color-swatch" data-color="#d63030" style="background:#d63030" title="Red"></button>
+              <button class="qm-color-swatch" data-color="#d4900a" style="background:#d4900a" title="Orange"></button>
+              <button class="qm-color-swatch" data-color="#c8b800" style="background:#c8b800" title="Yellow"></button>
+              <button class="qm-color-swatch" data-color="#2aaa4a" style="background:#2aaa4a" title="Green"></button>
+              <button class="qm-color-swatch" data-color="#1a7fd4" style="background:#1a7fd4" title="Blue"></button>
+              <button class="qm-color-swatch" data-color="#8b35d6" style="background:#8b35d6" title="Purple"></button>
+              <button class="qm-color-swatch" data-color="#d44090" style="background:#d44090" title="Pink"></button>
+              <button class="qm-color-swatch" data-color="#888888" style="background:#888888" title="Gray"></button>
+              <label class="qm-color-custom" title="Custom color">
+                &#127912;
+                <input type="color" id="qm-color-pick" value="#3a1a0a" />
+              </label>
+              <span id="qm-color-sel-count" class="qm-color-sel-count"></span>
+            </div>
+          </div>
+
+          <div class="qm-sidebar-help">
+            <div class="qm-sidebar-help-title">Tips</div>
+            <ul>
+              <li>Click a block above to add it.</li>
+              <li>Drag <span class="qm-kbd">⠿⠿</span> to rearrange.</li>
+              <li><span class="qm-kbd">@</span> mentions a character.</li>
+              <li><span class="qm-kbd">#</span> links another quest.</li>
+              <li><span class="qm-kbd">$</span> links lore, <span class="qm-kbd">^</span> links a location.</li>
+              <li><span class="qm-kbd">/</span> opens the block inserter.</li>
+              <li><span class="qm-kbd">Ctrl+Z</span> undo, <span class="qm-kbd">Ctrl+Y</span> redo.</li>
+            </ul>
+          </div>
+        </aside>
+
+        <!-- Right: main canvas -->
+        <section class="qm-canvas-wrap">
+
+          <!-- Notebook-style quest details card -->
+          <div class="qm-details-card">
+            <div class="qm-details-card-label">Quest details</div>
+
+            <div class="qm-meta-row">
+              <div class="qm-meta-field qm-meta-title">
+                <label class="qm-label">Title <span class="required">*</span></label>
+                <input type="text" id="qm-name" class="qm-input qm-input-lg" placeholder="Quest title…" />
+              </div>
+              <div class="qm-meta-field qm-meta-location">
+                <label class="qm-label">Location</label>
+                <div class="qm-location-wrap">
+                  <input type="text" id="qm-location" class="qm-input" placeholder="&#128269; Search map locations…" autocomplete="off" />
+                  <div id="qm-location-drop" class="loc-dropdown" style="display:none"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="qm-meta-row">
+              <div class="qm-meta-field">
+                <label class="qm-label">Type</label>
+                <div class="quest-type-selector" id="qm-type-selector">
+                  <button type="button" class="quest-type-btn active" data-type="main">&#9876; Main</button>
+                  <button type="button" class="quest-type-btn" data-type="side">&#10022; Side</button>
+                </div>
+              </div>
+              <div class="qm-meta-field">
+                <label class="qm-label">Status</label>
+                <select id="qm-status" class="qm-select">
+                  <option value="not_started">Not Started</option>
+                  <option value="active">Active</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+              <div class="qm-meta-field qm-meta-discovered">
+                <label class="qm-label">Visibility</label>
+                <label class="qm-toggle-label">
+                  <input type="checkbox" id="qm-discovered" class="qm-toggle-input" />
+                  <span class="qm-toggle-track"><span class="qm-toggle-thumb"></span></span>
+                  <span class="qm-toggle-text">Visible to players</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Content sections label -->
+          <div class="qm-canvas-label">
+            <span class="qm-canvas-label-text">Content</span>
+            <span class="qm-canvas-label-hint">Click the sidebar to add blocks, or drag them onto the canvas</span>
+          </div>
+
+          <!-- Block canvas -->
+          <div id="qm-block-canvas" class="qm-block-canvas"></div>
+
+          <div id="qm-error" class="modal-error"></div>
+        </section>
       </div>
 
-      <!-- 4-column block canvas -->
-      <div id="qm-block-canvas" class="qm-block-canvas"></div>
-
-      <div id="qm-error" class="modal-error"></div>
+      <!-- Sticky footer -->
       <div class="qm-footer">
-        <div class="qm-palette">
-          <span class="qm-palette-label">Add block:</span>
-          <button type="button" class="qm-add-block-btn" data-block-type="text"      title="Text paragraph">&#182; Text</button>
-          <button type="button" class="qm-add-block-btn" data-block-type="phase"     title="Quest phase">&#9654; Phase</button>
-          <button type="button" class="qm-add-block-btn" data-block-type="loot"      title="Loot entry">&#127873; Loot</button>
-          <button type="button" class="qm-add-block-btn" data-block-type="boss"      title="Enemy">&#9760; Enemy</button>
-          <button type="button" class="qm-add-block-btn" data-block-type="note"      title="DM Note">&#128196; Note</button>
-          <button type="button" class="qm-add-block-btn" data-block-type="puzzle"    title="Puzzle">&#129513; Puzzle</button>
-          <button type="button" class="qm-add-block-btn" data-block-type="character" title="Character">&#128100; Character</button>
-          <button type="button" class="qm-add-block-btn" data-block-type="loreref"   title="Lore entry">&#128218; Lore</button>
-          <button type="button" class="qm-add-block-btn" data-block-type="divider"   title="Divider">&#8213; Divider</button>
-          <span class="qm-palette-sep"></span>
-          <button id="qm-paint-btn" class="qm-paint-btn" title="Color cells">&#127912; Paint</button>
-        </div>
-        <div id="qm-color-toolbar" class="qm-color-toolbar" style="display:none">
-          <span class="qm-color-toolbar-label">Cell color:</span>
-          <button class="qm-color-swatch qm-color-clear" data-color="" title="Clear color">&#10005;</button>
-          <button class="qm-color-swatch" data-color="#d63030" style="background:#d63030" title="Red"></button>
-          <button class="qm-color-swatch" data-color="#d4900a" style="background:#d4900a" title="Orange"></button>
-          <button class="qm-color-swatch" data-color="#c8b800" style="background:#c8b800" title="Yellow"></button>
-          <button class="qm-color-swatch" data-color="#2aaa4a" style="background:#2aaa4a" title="Green"></button>
-          <button class="qm-color-swatch" data-color="#1a7fd4" style="background:#1a7fd4" title="Blue"></button>
-          <button class="qm-color-swatch" data-color="#8b35d6" style="background:#8b35d6" title="Purple"></button>
-          <button class="qm-color-swatch" data-color="#d44090" style="background:#d44090" title="Pink"></button>
-          <button class="qm-color-swatch" data-color="#888888" style="background:#888888" title="Gray"></button>
-          <label class="qm-color-custom" title="Custom color">
-            &#127912;
-            <input type="color" id="qm-color-pick" value="#3a1a0a" />
-          </label>
-          <span id="qm-color-sel-count" class="qm-color-sel-count"></span>
-        </div>
+        <button id="qm-cancel-footer" class="qm-cancel-btn" type="button">Cancel</button>
         <button id="qm-save" class="dm-btn qm-save-btn">Save Quest</button>
       </div>
 

@@ -730,7 +730,7 @@ cmSave.addEventListener("click", () => {
         conditions: [],
         notes:      t.notes   || null,
         templateId: t.id,
-        loot:       t.loot    ?? null,
+        loot:       t.loot ? { ...t.loot, lootItems: t.lootItems || [] } : null,
         stats:      t.stats   || null,
         attacks:    Array.isArray(t.attacks) ? t.attacks : (t.attacks ? Object.values(t.attacks) : null),
         speed:      t.speed   || null,
@@ -1316,7 +1316,7 @@ function _seedLootTables() {
 
 // Readiness check — called when either templates or system flags finish loading
 function _checkAndSeedLoot() {
-  const LOOT_VERSION = 1;
+  const LOOT_VERSION = 2;
   if (!window._enemyTemplatesLoaded)   return; // templates not ready
   if (window._systemFlags === undefined) return; // system flags not ready
   if ((window._systemFlags.lootVersion || 0) < LOOT_VERSION) {
@@ -1838,7 +1838,13 @@ function generateLootFor(combatant) {
   const dropped = [];
 
   // Template-based loot: each item has individual drop chance
-  const templateItems = cfg?.lootItems || [];
+  let templateItems = cfg?.lootItems || [];
+  // Fallback: combatants loaded from old localStorage state won't have lootItems populated —
+  // look up by name in SEED_LOOT so preset monsters always drop the right items.
+  if (templateItems.length === 0 && combatant.name) {
+    const seedEntry = SEED_LOOT[combatant.name];
+    if (seedEntry) templateItems = _buildSeedLootItems(seedEntry.items || []);
+  }
   if (templateItems.length > 0) {
     // Determine how many items to drop (respects min/max if set)
     const maxToDrop = iMax > 0

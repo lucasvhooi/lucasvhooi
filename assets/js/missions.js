@@ -108,6 +108,17 @@ let isColorSelecting = false;
 let selAnchor       = null;   // {row, col}
 let selCursor       = null;   // {row, col}
 
+// ── Undo / redo / autosave state ──────────────────────────────────────────────
+const UNDO_LIMIT     = 80;
+let undoStack        = [];
+let redoStack        = [];
+let isApplyingSnap   = false;      // suppress pushUndo during restore
+let autosaveTimer    = null;
+let autosaveStatusTimer = null;
+let draftKey         = null;       // set on openModal
+let hasUnsavedChanges = false;
+let isPlayerPreview  = false;
+
 function hexToRgba(hex, alpha) {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -143,8 +154,10 @@ function updateColorSelection() {
 
 function applyColorToSelection(color) {
   const sel = getSelectedKeys();
+  if (!sel.size) return;
   sel.forEach(key => { if (color) currentCellColors[key] = color; else delete currentCellColors[key]; });
   selAnchor = selCursor = null;
+  onEditTick();
   buildBlocksEditor();
 }
 
@@ -190,6 +203,25 @@ const qmTypeSelector   = document.getElementById("qm-type-selector");
 const qmPaintBtn       = document.getElementById("qm-paint-btn");
 const qmColorToolbar   = document.getElementById("qm-color-toolbar");
 const qmColorSelCount  = document.getElementById("qm-color-sel-count");
+const qmUndoBtn        = document.getElementById("qm-undo-btn");
+const qmRedoBtn        = document.getElementById("qm-redo-btn");
+const qmAutosaveStatus = document.getElementById("qm-autosave-status");
+const qmPreviewToggle  = document.getElementById("qm-preview-toggle");
+const qmCanvasWrap     = document.querySelector(".qm-canvas-wrap");
+const qmDraftBanner    = document.getElementById("qm-draft-banner");
+const qmDraftTime      = document.getElementById("qm-draft-time");
+const qmDraftRestore   = document.getElementById("qm-draft-restore");
+const qmDraftDiscard   = document.getElementById("qm-draft-discard");
+
+// Preview panel is appended into the canvas wrap dynamically
+let qmPreviewPanel = null;
+function ensurePreviewPanel() {
+  if (qmPreviewPanel) return qmPreviewPanel;
+  qmPreviewPanel = document.createElement("div");
+  qmPreviewPanel.className = "qm-preview-panel";
+  qmBlockCanvas.parentNode.appendChild(qmPreviewPanel);
+  return qmPreviewPanel;
+}
 
 let selectedType = "main";
 
@@ -460,6 +492,29 @@ function buildChapterGrid(blocks, cellColors) {
   return `<div class="qc-grid" style="grid-template-rows:${rowHeights}">${ghostHtml}${blockHtml}</div>`;
 }
 
+// Build at-a-glance content summary chips (phase/enemy/loot counts) for a quest card
+function buildSummaryChips(blocks) {
+  if (!blocks || !blocks.length) return "";
+  let phases = 0, enemies = 0, loot = 0, puzzles = 0, chars = 0, lore = 0;
+  for (const b of blocks) {
+    if (b.type === "phase")     phases++;
+    else if (b.type === "boss") enemies += (b.enemies?.length || (b.name ? 1 : 0));
+    else if (b.type === "loot") loot    += (b.items?.length   || (b.name ? 1 : 0));
+    else if (b.type === "puzzle")    puzzles++;
+    else if (b.type === "character") chars += (b.characters?.length || 0);
+    else if (b.type === "loreref")   lore  += (b.items?.length || 0);
+  }
+  const chips = [];
+  if (phases)  chips.push(`<span class="qc-chip qc-chip-phase"><span class="qc-chip-icon">&#9654;</span><span class="qc-chip-count">${phases}</span> ${phases === 1 ? "phase" : "phases"}</span>`);
+  if (enemies) chips.push(`<span class="qc-chip qc-chip-boss"><span class="qc-chip-icon">&#9760;</span><span class="qc-chip-count">${enemies}</span> ${enemies === 1 ? "enemy" : "enemies"}</span>`);
+  if (loot)    chips.push(`<span class="qc-chip qc-chip-loot"><span class="qc-chip-icon">&#127873;</span><span class="qc-chip-count">${loot}</span> loot</span>`);
+  if (puzzles) chips.push(`<span class="qc-chip qc-chip-puzzle"><span class="qc-chip-icon">&#129513;</span><span class="qc-chip-count">${puzzles}</span> ${puzzles === 1 ? "puzzle" : "puzzles"}</span>`);
+  if (chars)   chips.push(`<span class="qc-chip qc-chip-char"><span class="qc-chip-icon">&#128100;</span><span class="qc-chip-count">${chars}</span> NPC${chars === 1 ? "" : "s"}</span>`);
+  if (lore)    chips.push(`<span class="qc-chip qc-chip-lore"><span class="qc-chip-icon">&#128218;</span><span class="qc-chip-count">${lore}</span> lore</span>`);
+  if (!chips.length) return "";
+  return `<div class="qc-summary">${chips.join("")}</div>`;
+}
+
 function buildCard(q) {
   const state = loadPageState();
   const openQuests = new Set(state.openQuests || []);
@@ -470,6 +525,19 @@ function buildCard(q) {
   card.dataset.questId = q.id;
   const blocks = q.blocks ? q.blocks.map(b => ({ ...b })) : [];
   const cardGridHtml = buildCardChapters(blocks, q.cellColors || {});
+
+  // Session filter bar — list each unique session present, in first-seen order
+  const sessionList = [];
+  for (const b of blocks) {
+    if (b.sessionMarker && !sessionList.includes(b.sessionMarker)) sessionList.push(b.sessionMarker);
+  }
+  const sessionFilterHtml = sessionList.length ? `
+    <div class="qc-session-filter">
+      <button class="qc-session-filter-btn active" data-session="all" title="Show everything">All</button>
+      ${sessionList.map(s =>
+        `<button class="qc-session-filter-btn ${sessionColorClass(s)}" data-session="${esc(s)}" title="Show only ${esc(s)}">${esc(s)}</button>`
+      ).join("")}
+    </div>` : "";
 
   card.innerHTML = `
     <div class="qc-accent-bar"></div>
@@ -486,6 +554,8 @@ function buildCard(q) {
           <span class="qc-status ${STATUS_CLASS[q.status] || ""}">${STATUS_LABEL[q.status] || "Unknown"}</span>
           ${isAdmin && !q.discovered ? `<span class="qc-hidden-badge">&#128065; DM Only</span>` : ""}
         </div>
+        ${buildSummaryChips(blocks)}
+        ${sessionFilterHtml}
       </div>
       <div class="qc-content">
         ${cardGridHtml}
@@ -497,6 +567,22 @@ function buildCard(q) {
         <button class="qc-btn qc-del-btn"  title="Delete">&#10005;</button>
       </div>` : ""}
   `;
+
+  // Session filter tab clicks
+  card.querySelectorAll(".qc-session-filter-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      card.querySelectorAll(".qc-session-filter-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const target = btn.dataset.session;
+      card.querySelectorAll(".qcb-cell, .qcb-divider-cell").forEach(cell => {
+        if (target === "all") { cell.classList.remove("session-hidden"); return; }
+        const pill = cell.querySelector(".qcb-session-pill");
+        const marker = pill?.textContent.trim();
+        cell.classList.toggle("session-hidden", marker !== target);
+      });
+    });
+  });
 
   // Fold toggle — persists open/closed state across tab switches
   const foldBtn  = card.querySelector(".qc-fold-btn");
@@ -628,19 +714,23 @@ function renderBlockInCard(b, cellColors) {
     b.fontStyle  && b.fontStyle  !== "normal"  ? `font-style:${b.fontStyle}`   : "",
   ].filter(Boolean).join(";");
 
+  const sessionPill = b.sessionMarker
+    ? `<span class="qcb-session-pill ${sessionColorClass(b.sessionMarker)}">${esc(b.sessionMarker)}</span>`
+    : "";
+
   switch (b.type) {
     case "text":
       if (!b.content) return "";
-      return `<div class="qcb-cell qcb-cell-text" style="${spanStyle}">${titleHtml}<div class="qcb-text" style="${cellTxtStyle}">${contentToHtml(b.content)}</div></div>`;
+      return `<div class="qcb-cell qcb-cell-text" style="${spanStyle}">${sessionPill}${titleHtml}<div class="qcb-text" style="${cellTxtStyle}">${contentToHtml(b.content)}</div></div>`;
 
     case "phase":
-      return `<div class="qcb-cell qcb-cell-phase" style="${spanStyle}">${titleHtml}
+      return `<div class="qcb-cell qcb-cell-phase" style="${spanStyle}">${sessionPill}${titleHtml}
         <button class="qc-phase-toggle" data-open="false">
           <span class="toggle-arrow">▶</span>
           <span class="phase-label">${esc(b.title || "Phase")}</span>
         </button>
         <div class="qc-phase-body" style="display:none">
-          ${b.description ? `<p class="qcb-phase-desc" style="${cellTxtStyle}">${escBr(b.description)}</p>` : ""}
+          ${b.description ? `<div class="qcb-phase-desc" style="${cellTxtStyle}">${contentToHtml(b.description)}</div>` : ""}
         </div>
       </div>`;
 
@@ -648,7 +738,7 @@ function renderBlockInCard(b, cellColors) {
       const lootItems = b.items?.length ? b.items
         : (b.name ? [{ name: b.name, value: b.value || "", description: b.description || "" }] : []);
       if (!lootItems.length) return "";
-      return `<div class="qcb-cell qcb-cell-loot" style="${spanStyle}">${titleHtml}
+      return `<div class="qcb-cell qcb-cell-loot" style="${spanStyle}">${sessionPill}${titleHtml}
         ${lootItems.map(it => `
           <div class="qcb-loot" style="${cellTxtStyle}">
             <span class="qcb-loot-icon">&#127873;</span>
@@ -663,7 +753,7 @@ function renderBlockInCard(b, cellColors) {
       const enemies = b.enemies?.length ? b.enemies
         : (b.name ? [{ name: b.name, ac: b.ac || "", hp: b.hp || "", cr: b.cr || "", notes: b.notes || "" }] : []);
       if (!enemies.length) return "";
-      return `<div class="qcb-cell qcb-cell-boss" style="${spanStyle}">${titleHtml}
+      return `<div class="qcb-cell qcb-cell-boss" style="${spanStyle}">${sessionPill}${titleHtml}
         ${enemies.map(en => `
           <div class="qcb-boss">
             <div class="qcb-boss-header">
@@ -680,11 +770,11 @@ function renderBlockInCard(b, cellColors) {
 
     case "note":
       if (!isAdmin || !b.content) return "";
-      return `<div class="qcb-cell qcb-cell-note" style="${spanStyle}">${titleHtml}<div class="qcb-note" style="${cellTxtStyle}">&#128196; ${escBr(b.content)}</div></div>`;
+      return `<div class="qcb-cell qcb-cell-note" style="${spanStyle}">${sessionPill}${titleHtml}<div class="qcb-note" style="${cellTxtStyle}">&#128196; ${escBr(b.content)}</div></div>`;
 
     case "puzzle":
       if (!b.description && !b.title) return "";
-      return `<div class="qcb-cell qcb-cell-puzzle" style="${spanStyle}">${titleHtml}
+      return `<div class="qcb-cell qcb-cell-puzzle" style="${spanStyle}">${sessionPill}${titleHtml}
         <div class="qcb-puzzle-header"><span class="qcb-puzzle-icon">&#129513;</span><span class="qcb-puzzle-name">${esc(b.title || "Puzzle")}</span></div>
         ${b.description ? `<p class="qcb-puzzle-desc" style="${cellTxtStyle}">${escBr(b.description)}</p>` : ""}
         ${b.hint ? `<div class="qcb-puzzle-hint">&#128161; ${esc(b.hint)}</div>` : ""}
@@ -701,7 +791,7 @@ function renderBlockInCard(b, cellColors) {
     case "character": {
       const chars = b.characters || [];
       if (!chars.length) return "";
-      return `<div class="qcb-cell qcb-cell-character" style="${spanStyle}">${titleHtml}
+      return `<div class="qcb-cell qcb-cell-character" style="${spanStyle}">${sessionPill}${titleHtml}
         ${chars.map(ch => `
           <div class="qcb-character">
             ${ch.picture
@@ -719,7 +809,7 @@ function renderBlockInCard(b, cellColors) {
     case "loreref": {
       const loreItems = b.items || [];
       if (!loreItems.length) return "";
-      return `<div class="qcb-cell qcb-cell-loreref" style="${spanStyle}">${titleHtml}
+      return `<div class="qcb-cell qcb-cell-loreref" style="${spanStyle}">${sessionPill}${titleHtml}
         ${loreItems.map(it => `
           <div class="qcb-loreref">
             <span class="qcb-loreref-icon">${it.type === "scroll" ? "📜" : "📖"}</span>
@@ -764,10 +854,25 @@ function openModal(q) {
   qmStatus.value       = q ? (q.status   || "not_started") : "not_started";
   qmDiscovered.checked = q ? (q.discovered === true) : false;
   qmError.textContent  = "";
+
+  // Reset undo/redo, disable preview mode, wire draft key
+  undoStack = []; redoStack = [];
+  hasUnsavedChanges = false;
+  setPreviewMode(false);
+  draftKey = `questDraft:${editingId || "new"}`;
+  syncUndoButtons();
+  setAutosaveStatus("saved", "All changes saved");
+
   syncTypeBtns();
   buildBlocksEditor();
   questModal.classList.add("open");
   qmName.focus();
+
+  // Check for an existing local draft
+  maybeShowDraftBanner();
+
+  // Seed the first undo snapshot so initial edits go on the stack correctly
+  undoStack.push(captureState());
 }
 
 function closeModal() {
@@ -775,9 +880,15 @@ function closeModal() {
   editingId = null; currentBlocks = []; currentCellColors = {};
   selAnchor = selCursor = null; isColorSelecting = false;
   hideDrop(qmLocationDrop);
+  hideSlashMenu();
+  setPreviewMode(false);
+  undoStack = []; redoStack = [];
+  syncUndoButtons();
+  clearTimeout(autosaveTimer);
 }
 
 qmCancel.addEventListener("click", closeModal);
+document.getElementById("qm-cancel-footer")?.addEventListener("click", closeModal);
 questModal.addEventListener("click", e => { if (e.target === questModal) closeModal(); });
 qmSave.addEventListener("click", async () => {
   const title = qmName.value.trim();
@@ -794,8 +905,19 @@ qmSave.addEventListener("click", async () => {
     discovered: qmDiscovered.checked,
   };
   await set(ref(db, `quests/${payload.id}`), payload);
+  // Clear local draft on successful save
+  if (draftKey) { try { localStorage.removeItem(draftKey); } catch {} }
+  hasUnsavedChanges = false;
   closeModal();
 });
+
+// ── Meta field edits also push to undo + autosave ─────────────────────────────
+[qmName, qmLocationInp, qmStatus, qmDiscovered].forEach(el => {
+  if (!el) return;
+  const evt = el.tagName === "SELECT" || el.type === "checkbox" ? "change" : "input";
+  el.addEventListener(evt, () => onEditTick());
+});
+qmTypeSelector?.addEventListener("click", () => onEditTick());
 
 // ── Type buttons ──────────────────────────────────────────────────────────────
 qmTypeSelector.querySelectorAll(".quest-type-btn").forEach(btn => {
@@ -824,6 +946,7 @@ const BLOCK_DEFAULTS = {
 document.querySelectorAll(".qm-add-block-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     currentBlocks.push({ ...BLOCK_DEFAULTS[btn.dataset.blockType] });
+    onEditTick();
     buildBlocksEditor();
     setTimeout(() => qmBlockCanvas.querySelector(".qm-block:last-of-type")?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
   });
@@ -841,9 +964,62 @@ document.querySelectorAll(".qm-add-block-btn").forEach(btn => {
 // ── Block drag state ──────────────────────────────────────────────────────────
 let dragSrcIndex = null;
 let dragPaletteType = null;
+let dragPaletteTemplate = null;   // template key being dragged
+
+// ── Template drag preview tooltip ─────────────────────────────────────────────
+let _tplPreview = null;
+function getTplPreview() {
+  if (!_tplPreview) {
+    _tplPreview = document.createElement("div");
+    _tplPreview.className = "tpl-drag-preview";
+    _tplPreview.style.display = "none";
+    document.body.appendChild(_tplPreview);
+  }
+  return _tplPreview;
+}
+function showTplPreview(templateKey, x, y) {
+  const tpl = BLOCK_TEMPLATES[templateKey];
+  if (!tpl) return;
+  const preview = getTplPreview();
+  const BLOCK_ICONS = { phase:"▶", boss:"☠", loot:"🎁", puzzle:"🧩", character:"👤", loreref:"📚", note:"📄", text:"¶", divider:"—" };
+  const BLOCK_COLORS = { phase:"#2a5c8a", boss:"#8a2a2a", loot:"#4a7a2a", puzzle:"#7a4a8a", character:"#5a4a2a", loreref:"#2a5a4a", note:"#5a5a2a", text:"#3a3a5a", divider:"#4a4a4a" };
+  const rows = [];
+  let col = 1, row = 1, curRow = [];
+  tpl.forEach(t => {
+    const span = t.span || 1;
+    if (col + span - 1 > 4) { if (curRow.length) rows.push(curRow); curRow = []; col = 1; row++; }
+    curRow.push(t);
+    col += span;
+    if (col > 4) { rows.push(curRow); curRow = []; col = 1; row++; }
+  });
+  if (curRow.length) rows.push(curRow);
+  preview.innerHTML = `<div class="tpl-preview-title">${templateKey.replace(/-/g, " ")}</div>` +
+    rows.map(row => `<div class="tpl-preview-row">${row.map(t => {
+      const label = t.blockTitle || t.type;
+      const color = BLOCK_COLORS[t.type] || "#3a3a3a";
+      const icon = BLOCK_ICONS[t.type] || "▪";
+      const flex = t.span || 1;
+      return `<div class="tpl-preview-block" style="flex:${flex};border-color:${color}"><span class="tpl-preview-icon">${icon}</span><span class="tpl-preview-label">${label}</span></div>`;
+    }).join("")}</div>`).join("");
+  preview.style.display = "block";
+  positionTplPreview(x, y);
+}
+function positionTplPreview(x, y) {
+  const p = getTplPreview();
+  if (p.style.display === "none") return;
+  const pw = p.offsetWidth || 220, ph = p.offsetHeight || 60;
+  const left = Math.min(x + 16, window.innerWidth - pw - 8);
+  const top  = y + 16 + ph > window.innerHeight ? y - ph - 8 : y + 16;
+  p.style.left = left + "px";
+  p.style.top  = top  + "px";
+}
+function hideTplPreview() {
+  if (_tplPreview) _tplPreview.style.display = "none";
+}
 
 function clearDragHighlights() {
   qmBlockCanvas.querySelectorAll(".drag-over").forEach(el => el.classList.remove("drag-over"));
+  hideTplPreview();
 }
 
 // Ghost cell drop target for flex-column layout
@@ -852,14 +1028,18 @@ function makeGhostCell(colNum, position) {
   ghost.className = "qm-ghost-cell";
 
   ghost.addEventListener("dragover", e => {
-    if (dragSrcIndex === null && dragPaletteType === null) return;
+    if (dragSrcIndex === null && dragPaletteType === null && dragPaletteTemplate === null) return;
     e.preventDefault();
-    e.dataTransfer.dropEffect = dragPaletteType ? "copy" : "move";
+    e.dataTransfer.dropEffect = (dragPaletteType || dragPaletteTemplate) ? "copy" : "move";
     clearDragHighlights();
     ghost.classList.add("drag-over");
+    if (dragPaletteTemplate) showTplPreview(dragPaletteTemplate, e.clientX, e.clientY);
+  });
+  ghost.addEventListener("mousemove", e => {
+    if (dragPaletteTemplate && ghost.classList.contains("drag-over")) positionTplPreview(e.clientX, e.clientY);
   });
   ghost.addEventListener("dragleave", e => {
-    if (!ghost.contains(e.relatedTarget)) ghost.classList.remove("drag-over");
+    if (!ghost.contains(e.relatedTarget)) { ghost.classList.remove("drag-over"); hideTplPreview(); }
   });
   ghost.addEventListener("drop", e => {
     e.preventDefault();
@@ -875,6 +1055,7 @@ function makeGhostCell(colNum, position) {
       colBlocks.splice(position, 0, block);
       colBlocks.forEach((b, idx) => { b.row = idx + 1; });
       dragSrcIndex = null;
+      onEditTick();
       buildBlocksEditor();
     } else if (dragPaletteType !== null) {
       const newBlock = { ...BLOCK_DEFAULTS[dragPaletteType], col: colNum };
@@ -886,6 +1067,12 @@ function makeGhostCell(colNum, position) {
       colBlocks.forEach((b, idx) => { b.row = idx + 1; });
       currentBlocks.push(newBlock);
       dragPaletteType = null;
+      onEditTick();
+      buildBlocksEditor();
+    } else if (dragPaletteTemplate !== null) {
+      applyTemplateAtPosition(dragPaletteTemplate, null, colNum);
+      dragPaletteTemplate = null;
+      onEditTick();
       buildBlocksEditor();
     }
   });
@@ -1111,14 +1298,18 @@ qmBlockCanvas.addEventListener("click", e => {
 // ── Drop target for grid ghost cells ─────────────────────────────────────────
 function attachDropTarget(ghost, row, col) {
   ghost.addEventListener("dragover", e => {
-    if (dragSrcIndex === null && dragPaletteType === null) return;
+    if (dragSrcIndex === null && dragPaletteType === null && dragPaletteTemplate === null) return;
     e.preventDefault();
-    e.dataTransfer.dropEffect = dragPaletteType ? "copy" : "move";
+    e.dataTransfer.dropEffect = (dragPaletteType || dragPaletteTemplate) ? "copy" : "move";
     clearDragHighlights();
     ghost.classList.add("drag-over");
+    if (dragPaletteTemplate) showTplPreview(dragPaletteTemplate, e.clientX, e.clientY);
+  });
+  ghost.addEventListener("mousemove", e => {
+    if (dragPaletteTemplate && ghost.classList.contains("drag-over")) positionTplPreview(e.clientX, e.clientY);
   });
   ghost.addEventListener("dragleave", e => {
-    if (!ghost.contains(e.relatedTarget)) ghost.classList.remove("drag-over");
+    if (!ghost.contains(e.relatedTarget)) { ghost.classList.remove("drag-over"); hideTplPreview(); }
   });
   ghost.addEventListener("drop", e => {
     e.preventDefault();
@@ -1129,12 +1320,19 @@ function attachDropTarget(ghost, row, col) {
       block.col = col;
       if (col + (block.span || 1) - 1 > 4) block.span = 5 - col;
       dragSrcIndex = null;
+      onEditTick();
       buildBlocksEditor();
     } else if (dragPaletteType !== null) {
       const newBlock = { ...BLOCK_DEFAULTS[dragPaletteType], row, col };
       if (col + (newBlock.span || 1) - 1 > 4) newBlock.span = 5 - col;
       currentBlocks.push(newBlock);
       dragPaletteType = null;
+      onEditTick();
+      buildBlocksEditor();
+    } else if (dragPaletteTemplate !== null) {
+      applyTemplateAtPosition(dragPaletteTemplate, row, col);
+      dragPaletteTemplate = null;
+      onEditTick();
       buildBlocksEditor();
     }
   });
@@ -1206,14 +1404,18 @@ function buildBlocksEditor() {
     zone.style.cssText = `grid-row:${r};grid-column:1/span 4;align-self:start;z-index:8;`;
     zone.dataset.insertBefore = r;
     zone.addEventListener("dragover", e => {
-      if (dragSrcIndex === null && dragPaletteType === null) return;
+      if (dragSrcIndex === null && dragPaletteType === null && dragPaletteTemplate === null) return;
       e.preventDefault(); e.stopPropagation();
-      e.dataTransfer.dropEffect = dragPaletteType ? "copy" : "move";
+      e.dataTransfer.dropEffect = (dragPaletteType || dragPaletteTemplate) ? "copy" : "move";
       clearDragHighlights();
       zone.classList.add("drag-over");
+      if (dragPaletteTemplate) showTplPreview(dragPaletteTemplate, e.clientX, e.clientY);
+    });
+    zone.addEventListener("mousemove", e => {
+      if (dragPaletteTemplate && zone.classList.contains("drag-over")) positionTplPreview(e.clientX, e.clientY);
     });
     zone.addEventListener("dragleave", e => {
-      if (!zone.contains(e.relatedTarget)) zone.classList.remove("drag-over");
+      if (!zone.contains(e.relatedTarget)) { zone.classList.remove("drag-over"); hideTplPreview(); }
     });
     zone.addEventListener("drop", e => {
       e.preventDefault(); e.stopPropagation();
@@ -1231,8 +1433,12 @@ function buildBlocksEditor() {
       } else if (dragPaletteType !== null) {
         currentBlocks.push({ ...BLOCK_DEFAULTS[dragPaletteType], row: targetRow, col: 1 });
         dragPaletteType = null;
+      } else if (dragPaletteTemplate !== null) {
+        applyTemplateAtPosition(dragPaletteTemplate, targetRow, 1);
+        dragPaletteTemplate = null;
       }
       qmBlockCanvas.classList.remove("qm-drag-active");
+      onEditTick();
       buildBlocksEditor();
     });
     qmBlockCanvas.appendChild(zone);
@@ -1259,6 +1465,7 @@ function buildBlocksEditor() {
           b.row = bRow - 1;                                   // below — shift up
         }
       }
+      onEditTick();
       buildBlocksEditor();
     });
     qmBlockCanvas.appendChild(delBtn);
@@ -1296,12 +1503,13 @@ function buildBlocksEditor() {
     }
 
     // Controls
-    wrap.querySelector(".blk-del")?.addEventListener("click", () => { currentBlocks.splice(i, 1); buildBlocksEditor(); });
+    wrap.querySelector(".blk-del")?.addEventListener("click", () => { currentBlocks.splice(i, 1); onEditTick(); buildBlocksEditor(); });
     wrap.querySelectorAll(".blk-span-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const newSpan = Number(btn.dataset.span);
         currentBlocks[i].span = newSpan;
         if (currentBlocks[i].col + newSpan - 1 > 4) currentBlocks[i].col = Math.max(1, 5 - newSpan);
+        onEditTick();
         buildBlocksEditor();
       });
     });
@@ -1311,6 +1519,7 @@ function buildBlocksEditor() {
         const newRowSpan = Number(btn.dataset.rowspan);
         const delta = newRowSpan - oldRowSpan;
         currentBlocks[i].rowSpan = newRowSpan;
+        onEditTick();
 
         if (delta !== 0) {
           const oldEnd = (currentBlocks[i].row || 1) + oldRowSpan - 1;
@@ -1352,12 +1561,17 @@ function buildBlocksEditor() {
     wireInput(wrap, block, "blockTitle",  "[data-f=blockTitle]");
     wireInput(wrap, block, "titleColor",  "[data-f=titleColor]");
 
-    // Rich text block (contenteditable) — inline formatting
-    const richEl = wrap.querySelector(".blk-rich-text");
+    // Rich text / rich phase blocks (contenteditable) — inline formatting + @ / # / $ / ^ / slash
+    const richEl = wrap.querySelector(".blk-rich-text") || wrap.querySelector(".blk-rich-phase");
+    const isPhase = richEl && richEl.classList.contains("blk-rich-phase");
     if (richEl) {
-      richEl.addEventListener("input", () => { block.content = richEl.innerHTML; });
+      richEl.addEventListener("input", () => {
+        if (isPhase) block.description = richEl.innerHTML;
+        else         block.content     = richEl.innerHTML;
+        onEditTick();
+      });
 
-      // @mention detection
+      // Combined trigger detection: `/` slash menu + @ # $ ^ link chips
       richEl.addEventListener("input", () => {
         const sel = window.getSelection();
         if (!sel.rangeCount || !richEl.contains(sel.anchorNode)) return;
@@ -1365,47 +1579,71 @@ function buildBlocksEditor() {
         const pre = document.createRange();
         pre.selectNodeContents(richEl);
         pre.setEnd(range.startContainer, range.startOffset);
-        const match = pre.toString().match(/@([^@\s]*)$/);
-        if (match) {
-          mentionState.active = true;
-          mentionState.el = richEl;
-          mentionState.query = match[1];
-          renderMentionDrop(richEl);
+        const preText = pre.toString();
+
+        // Slash command: `/query` at start of line or after whitespace
+        const slashMatch = preText.match(/(^|\s)\/([^\s/]{0,20})$/);
+        if (slashMatch) {
+          slashState.active = true;
+          slashState.srcEl = richEl;
+          slashState.blockIndex = i;
+          slashState.query = slashMatch[2];
+          slashState.focusedIdx = 0;
+          hideLinkDrop();
+          renderSlashMenu();
+          return;
+        }
+        hideSlashMenu();
+
+        // Link triggers (most recent non-whitespace trigger char)
+        const linkMatch = preText.match(/([@#$^])([^\s@#$^]*)$/);
+        if (linkMatch) {
+          linkState.active = true;
+          linkState.trigger = linkMatch[1];
+          linkState.el = richEl;
+          linkState.query = linkMatch[2];
+          renderLinkDrop(richEl);
         } else {
-          hideMentionDrop();
+          hideLinkDrop();
         }
       });
 
       richEl.addEventListener("keydown", e => {
-        if (!mentionState.active || mentionState.el !== richEl) return;
-        if (e.key === "ArrowDown") {
-          e.preventDefault();
-          mentionState.focusedIdx = (mentionState.focusedIdx + 1) % mentionState.hits.length;
-          updateMentionFocus();
-        } else if (e.key === "ArrowUp") {
-          e.preventDefault();
-          mentionState.focusedIdx = (mentionState.focusedIdx - 1 + mentionState.hits.length) % mentionState.hits.length;
-          updateMentionFocus();
-        } else if (e.key === "Enter" || e.key === "Tab") {
-          if (mentionState.hits.length) {
-            e.preventDefault(); e.stopPropagation();
-            doInsertMention(richEl, mentionState.hits[mentionState.focusedIdx]);
+        // Slash menu navigation
+        if (slashState.active && slashState.srcEl === richEl) {
+          const hits = slashState.hits || [];
+          if (e.key === "ArrowDown")  { e.preventDefault(); slashState.focusedIdx = (slashState.focusedIdx + 1) % hits.length; renderSlashMenu(); return; }
+          if (e.key === "ArrowUp")    { e.preventDefault(); slashState.focusedIdx = (slashState.focusedIdx - 1 + hits.length) % hits.length; renderSlashMenu(); return; }
+          if (e.key === "Enter" || e.key === "Tab") {
+            if (hits.length) { e.preventDefault(); e.stopPropagation(); insertSlashBlock(hits[slashState.focusedIdx].type); return; }
           }
-        } else if (e.key === "Escape") {
-          e.preventDefault(); hideMentionDrop();
+          if (e.key === "Escape") { e.preventDefault(); hideSlashMenu(); return; }
+        }
+        // Link drop navigation
+        if (linkState.active && linkState.el === richEl) {
+          if (e.key === "ArrowDown")  { e.preventDefault(); linkState.focusedIdx = (linkState.focusedIdx + 1) % linkState.hits.length; updateLinkFocus(); return; }
+          if (e.key === "ArrowUp")    { e.preventDefault(); linkState.focusedIdx = (linkState.focusedIdx - 1 + linkState.hits.length) % linkState.hits.length; updateLinkFocus(); return; }
+          if (e.key === "Enter" || e.key === "Tab") {
+            if (linkState.hits.length) { e.preventDefault(); e.stopPropagation(); doInsertLink(richEl, linkState.hits[linkState.focusedIdx]); return; }
+          }
+          if (e.key === "Escape") { e.preventDefault(); hideLinkDrop(); return; }
         }
       });
 
       richEl.addEventListener("blur", () => {
-        setTimeout(() => { if (mentionState.el === richEl) hideMentionDrop(); }, 150);
+        setTimeout(() => { if (linkState.el === richEl) hideLinkDrop(); if (slashState.srcEl === richEl) hideSlashMenu(); }, 150);
       });
 
       // Bold / Italic via execCommand (mousedown to keep selection alive)
       wrap.querySelector(".blk-fmt-bold")?.addEventListener("mousedown", e => {
         e.preventDefault(); document.execCommand("bold"); richEl.focus();
+        if (isPhase) block.description = richEl.innerHTML; else block.content = richEl.innerHTML;
+        onEditTick();
       });
       wrap.querySelector(".blk-fmt-italic")?.addEventListener("mousedown", e => {
         e.preventDefault(); document.execCommand("italic"); richEl.focus();
+        if (isPhase) block.description = richEl.innerHTML; else block.content = richEl.innerHTML;
+        onEditTick();
       });
 
       // Inline text color — save selection before picker opens, restore on change
@@ -1422,8 +1660,9 @@ function buildBlocksEditor() {
           sel.removeAllRanges();
           if (savedRange) sel.addRange(savedRange);
           document.execCommand("foreColor", false, colorPick.value);
-          block.content = richEl.innerHTML;
+          if (isPhase) block.description = richEl.innerHTML; else block.content = richEl.innerHTML;
           savedRange = sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null;
+          onEditTick();
         });
       }
     } else {
@@ -1432,11 +1671,13 @@ function buildBlocksEditor() {
         block.fontWeight = block.fontWeight === "bold" ? "normal" : "bold";
         wrap.querySelector(".blk-fmt-bold").classList.toggle("active", block.fontWeight === "bold");
         wrap.querySelectorAll(".blk-textarea").forEach(ta => { ta.style.fontWeight = block.fontWeight; });
+        onEditTick();
       });
       wrap.querySelector(".blk-fmt-italic")?.addEventListener("click", () => {
         block.fontStyle = block.fontStyle === "italic" ? "normal" : "italic";
         wrap.querySelector(".blk-fmt-italic").classList.toggle("active", block.fontStyle === "italic");
         wrap.querySelectorAll(".blk-textarea").forEach(ta => { ta.style.fontStyle = block.fontStyle; });
+        onEditTick();
       });
     }
 
@@ -1447,7 +1688,14 @@ function buildBlocksEditor() {
         if (richEl) richEl.style.textAlign = btn.dataset.align;
         wrap.querySelectorAll(".blk-textarea").forEach(ta => { ta.style.textAlign = btn.dataset.align; });
         wrap.querySelectorAll(".blk-align-btn").forEach(b => b.classList.toggle("active", b.dataset.align === btn.dataset.align));
+        onEditTick();
       });
+    });
+
+    // Session marker pill
+    wrap.querySelector(".blk-session-btn")?.addEventListener("click", e => {
+      e.stopPropagation();
+      openSessionPopup(e.currentTarget, i);
     });
 
     // Loot item search
@@ -1713,7 +1961,7 @@ function buildBlocksEditor() {
 
 function wireInput(wrap, block, field, selector) {
   const el = wrap.querySelector(selector);
-  if (el) el.addEventListener("input", () => { block[field] = el.value; });
+  if (el) el.addEventListener("input", () => { block[field] = el.value; onEditTick(); });
 }
 
 function spanBtns(current) {
@@ -1753,8 +2001,12 @@ function fmtBar(b, richText = false) {
 function buildBlockEditorHtml(b, i) {
   const span    = b.span    || 1;
   const rowSpan = b.rowSpan || 1;
+  const sessionPillHtml = b.sessionMarker
+    ? `<button type="button" class="blk-session-btn has-session ${sessionColorClass(b.sessionMarker)}" title="Click to edit session marker">${esc(b.sessionMarker)}</button>`
+    : `<button type="button" class="blk-session-btn" title="Tag this block with a session">+ Session</button>`;
   const controls = `
     <div class="blk-controls">
+      ${sessionPillHtml}
       <div class="blk-span-group">${spanBtns(span)}</div>
       <div class="blk-span-group">${rowSpanBtns(rowSpan)}</div>
       <div class="blk-drag-handle" title="Drag to reorder">⠿⠿</div>
@@ -1784,9 +2036,9 @@ function buildBlockEditorHtml(b, i) {
       return `
         <div class="blk-header"><span class="blk-type-icon">&#9654;</span><span class="blk-type-label">Phase</span>${controls}</div>
         ${titleRow}
-        ${fmtBar(b)}
+        ${fmtBar(b, true)}
         <input class="blk-input" type="text" data-f="title" placeholder="Phase title…" value="${esc(b.title || "")}" />
-        <textarea class="blk-textarea" data-f="description" style="${taStyle}" placeholder="What happens in this phase…" rows="3">${esc(b.description || "")}</textarea>`;
+        <div class="blk-rich-phase" contenteditable="true" data-placeholder="What happens in this phase… (try @ # $ ^ / for links & blocks)" style="text-align:${b.textAlign||"left"}">${b.description || ""}</div>`;
 
     case "loot":
       return `
@@ -1904,4 +2156,696 @@ function contentToHtml(str) {
   if (!str) return "";
   if (/<[a-z]/i.test(str)) return str;          // already rich HTML
   return esc(str).replace(/\n/g, "<br>");       // legacy plain text
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UNDO / REDO + AUTOSAVE
+// ═══════════════════════════════════════════════════════════════════════════
+
+function captureState() {
+  return {
+    title:       qmName?.value || "",
+    location:    qmLocationInp?.value || "",
+    type:        selectedType,
+    status:      qmStatus?.value || "not_started",
+    discovered:  !!qmDiscovered?.checked,
+    blocks:      JSON.parse(JSON.stringify(currentBlocks || [])),
+    cellColors:  { ...currentCellColors },
+  };
+}
+
+function applyState(snap) {
+  if (!snap) return;
+  isApplyingSnap = true;
+  qmName.value        = snap.title || "";
+  qmLocationInp.value = snap.location || "";
+  selectedType        = snap.type || "main";
+  qmStatus.value      = snap.status || "not_started";
+  qmDiscovered.checked = !!snap.discovered;
+  currentBlocks       = JSON.parse(JSON.stringify(snap.blocks || []));
+  currentCellColors   = { ...(snap.cellColors || {}) };
+  syncTypeBtns();
+  buildBlocksEditor();
+  isApplyingSnap = false;
+}
+
+function pushUndo() {
+  if (isApplyingSnap) return;
+  const snap = captureState();
+  const last = undoStack[undoStack.length - 1];
+  if (last && JSON.stringify(last) === JSON.stringify(snap)) return; // dedupe
+  undoStack.push(snap);
+  if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+  redoStack = [];
+  syncUndoButtons();
+}
+
+function undo() {
+  if (undoStack.length <= 1) return;
+  const current = undoStack.pop();
+  redoStack.push(current);
+  const prev = undoStack[undoStack.length - 1];
+  applyState(prev);
+  syncUndoButtons();
+  scheduleAutosave();
+}
+
+function redo() {
+  if (!redoStack.length) return;
+  const snap = redoStack.pop();
+  undoStack.push(snap);
+  applyState(snap);
+  syncUndoButtons();
+  scheduleAutosave();
+}
+
+function syncUndoButtons() {
+  if (qmUndoBtn) qmUndoBtn.disabled = undoStack.length <= 1;
+  if (qmRedoBtn) qmRedoBtn.disabled = redoStack.length === 0;
+}
+
+// Central "something changed" hook: push undo + schedule autosave + mark dirty
+function onEditTick() {
+  if (isApplyingSnap) return;
+  pushUndo();
+  hasUnsavedChanges = true;
+  setAutosaveStatus("dirty", "Unsaved changes…");
+  scheduleAutosave();
+}
+
+function scheduleAutosave() {
+  if (isApplyingSnap) return;
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(doAutosave, 600);
+}
+
+function doAutosave() {
+  if (!draftKey || !questModal.classList.contains("open")) return;
+  setAutosaveStatus("saving", "Saving draft…");
+  try {
+    const payload = { ...captureState(), savedAt: Date.now() };
+    localStorage.setItem(draftKey, JSON.stringify(payload));
+    hasUnsavedChanges = false;
+    clearTimeout(autosaveStatusTimer);
+    autosaveStatusTimer = setTimeout(() => setAutosaveStatus("saved", "Draft saved just now"), 180);
+  } catch (err) {
+    setAutosaveStatus("dirty", "Autosave failed");
+  }
+}
+
+function setAutosaveStatus(kind, text) {
+  if (!qmAutosaveStatus) return;
+  qmAutosaveStatus.classList.remove("saving", "dirty");
+  if (kind !== "saved") qmAutosaveStatus.classList.add(kind);
+  const label = qmAutosaveStatus.querySelector(".qm-autosave-text");
+  if (label) label.textContent = text;
+}
+
+function formatRelativeTime(ts) {
+  const diff = Math.max(0, Date.now() - ts);
+  const s = Math.round(diff / 1000);
+  if (s < 60)  return `${s}s ago`;
+  const m = Math.round(s / 60);
+  if (m < 60)  return `${m} min ago`;
+  const h = Math.round(m / 60);
+  if (h < 24)  return `${h}h ago`;
+  const d = Math.round(h / 24);
+  return `${d}d ago`;
+}
+
+function maybeShowDraftBanner() {
+  if (!qmDraftBanner || !draftKey) return;
+  let draft = null;
+  try { draft = JSON.parse(localStorage.getItem(draftKey) || "null"); } catch {}
+  if (!draft || !draft.savedAt) { qmDraftBanner.style.display = "none"; return; }
+  // If the draft is essentially identical to the quest we just opened, skip the prompt
+  const current = captureState();
+  const { savedAt, ...rest } = draft;
+  if (JSON.stringify(rest) === JSON.stringify(current)) { qmDraftBanner.style.display = "none"; return; }
+  qmDraftTime.textContent = formatRelativeTime(savedAt);
+  qmDraftBanner.style.display = "flex";
+}
+
+qmDraftRestore?.addEventListener("click", () => {
+  if (!draftKey) return;
+  let draft = null;
+  try { draft = JSON.parse(localStorage.getItem(draftKey) || "null"); } catch {}
+  if (!draft) { qmDraftBanner.style.display = "none"; return; }
+  const { savedAt, ...rest } = draft;
+  applyState(rest);
+  undoStack = [captureState()]; redoStack = [];
+  syncUndoButtons();
+  qmDraftBanner.style.display = "none";
+  setAutosaveStatus("saved", "Draft restored");
+});
+qmDraftDiscard?.addEventListener("click", () => {
+  if (draftKey) { try { localStorage.removeItem(draftKey); } catch {} }
+  qmDraftBanner.style.display = "none";
+});
+
+// Undo/redo buttons + keyboard
+qmUndoBtn?.addEventListener("click", undo);
+qmRedoBtn?.addEventListener("click", redo);
+
+document.addEventListener("keydown", e => {
+  if (!questModal.classList.contains("open")) return;
+  const mod = e.ctrlKey || e.metaKey;
+  if (!mod) return;
+  const key = e.key.toLowerCase();
+  if (key === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
+  else if ((key === "y") || (key === "z" && e.shiftKey)) { e.preventDefault(); redo(); }
+  else if (key === "s") { e.preventDefault(); qmSave.click(); }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PLAYER PREVIEW MODE
+// ═══════════════════════════════════════════════════════════════════════════
+qmPreviewToggle?.addEventListener("click", () => setPreviewMode(!isPlayerPreview));
+
+function setPreviewMode(on) {
+  isPlayerPreview = !!on;
+  if (!qmCanvasWrap) return;
+  qmCanvasWrap.classList.toggle("preview-mode", isPlayerPreview);
+  qmPreviewToggle?.classList.toggle("active", isPlayerPreview);
+  if (isPlayerPreview) {
+    buildPreviewPanel();
+  } else if (qmPreviewPanel) {
+    qmPreviewPanel.innerHTML = "";
+  }
+}
+
+function buildPreviewPanel() {
+  const panel = ensurePreviewPanel();
+  // Filter out DM-only blocks the way the card view would see them as a player
+  const visibleBlocks = (currentBlocks || [])
+    .filter(b => b.type !== "note")                      // DM notes never shown
+    .map(b => {
+      if (b.type === "puzzle") {
+        const { solution, ...rest } = b;                 // strip solution field
+        return rest;
+      }
+      return b;
+    });
+  const title = qmName.value.trim() || "Untitled quest";
+  const location = qmLocationInp.value.trim();
+  const gridHtml = buildCardChapters(
+    visibleBlocks.map(b => ({ ...b })),
+    currentCellColors
+  );
+  panel.innerHTML = `
+    <div class="qm-preview-watermark">
+      <span class="qm-preview-watermark-icon">&#128065;</span>
+      <span>This is how players see this quest — DM notes and puzzle solutions are hidden.</span>
+    </div>
+    <div class="quest-card quest-${selectedType} preview-card">
+      <div class="qc-accent-bar"></div>
+      <div class="qc-body">
+        <div class="qc-header-row">
+          <div class="qc-title-row">
+            <h3 class="qc-title">${esc(title)}</h3>
+            ${location ? `<div class="qc-location">&#128205; ${esc(location)}</div>` : ""}
+          </div>
+          <div class="qc-top-row">
+            <span class="qc-type-badge">${selectedType === "main" ? "Main Quest" : "Side Quest"}</span>
+          </div>
+          ${buildSummaryChips(visibleBlocks)}
+        </div>
+        <div class="qc-content">${gridHtml || '<p style="color:#6a5a42;font-style:italic;padding:20px">(No player-visible content yet.)</p>'}</div>
+      </div>
+    </div>
+  `;
+  // Wire chapter folds and phase toggles inside the preview
+  panel.querySelectorAll(".qc-chapter-header").forEach(header => {
+    header.addEventListener("click", () => {
+      const open = header.dataset.open === "true";
+      header.dataset.open = String(!open);
+      header.querySelector(".qc-chapter-arrow").textContent = open ? "▶" : "▼";
+      header.nextElementSibling.style.display = open ? "none" : "";
+    });
+  });
+  panel.querySelectorAll(".qc-phase-toggle").forEach(btn => {
+    const body = btn.nextElementSibling;
+    btn.addEventListener("click", () => {
+      const open = btn.dataset.open === "true";
+      btn.dataset.open = String(!open);
+      body.style.display = open ? "none" : "block";
+      btn.querySelector(".toggle-arrow").textContent = open ? "▶" : "▼";
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BLOCK TEMPLATES
+// ═══════════════════════════════════════════════════════════════════════════
+
+function applyTemplateAtPosition(templateKey, startRow, startCol) {
+  const tpl = BLOCK_TEMPLATES[templateKey];
+  if (!tpl) return;
+  const baseRow = startRow ?? (currentBlocks.reduce((m, b) => Math.max(m, (b.row || 1) + (b.rowSpan || 1) - 1), 0) + 1);
+  let insertRow = baseRow, col = startCol ?? 1;
+  // Shift existing blocks down to make room
+  const tplRows = (() => {
+    let r = 0, c = startCol ?? 1;
+    tpl.forEach(t => { const span = t.span || 1; if (c + span - 1 > 4) { r++; c = 1; } c += span; if (c > 4) { r++; c = 1; } });
+    return r + 1;
+  })();
+  currentBlocks.forEach(b => { if ((b.row || 1) >= baseRow) b.row = (b.row || 1) + tplRows; });
+  tpl.forEach(t => {
+    const block = { ...BLOCK_DEFAULTS[t.type], ...t, row: insertRow, col };
+    if (col + (block.span || 1) - 1 > 4) { insertRow++; col = 1; block.row = insertRow; block.col = 1; }
+    currentBlocks.push(block);
+    col += (block.span || 1);
+    if (col > 4) { insertRow++; col = 1; }
+  });
+}
+
+const BLOCK_TEMPLATES = {
+  "boss-fight": [
+    { type: "phase",   title: "Combat setup", description: "", span: 2, rowSpan: 1, blockTitle: "The encounter" },
+    { type: "boss",    enemies: [], span: 2, rowSpan: 2, blockTitle: "Enemies" },
+    { type: "loot",    items: [], span: 2, rowSpan: 1, blockTitle: "Reward" },
+  ],
+  "investigation": [
+    { type: "character", characters: [], span: 2, rowSpan: 1, blockTitle: "Contact" },
+    { type: "puzzle",    title: "The mystery", description: "", hint: "", solution: "", span: 2, rowSpan: 1, blockTitle: "Puzzle" },
+    { type: "loreref",   items: [], span: 4, rowSpan: 1, blockTitle: "Relevant lore" },
+  ],
+  "dungeon-room": [
+    { type: "phase", title: "Room description", description: "", span: 4, rowSpan: 1, blockTitle: "Room" },
+    { type: "boss",  enemies: [], span: 2, rowSpan: 1, blockTitle: "Enemies" },
+    { type: "loot",  items: [], span: 2, rowSpan: 1, blockTitle: "Loot" },
+  ],
+  "social-scene": [
+    { type: "character", characters: [], span: 2, rowSpan: 2, blockTitle: "NPC" },
+    { type: "text", content: "", span: 2, rowSpan: 1, blockTitle: "Read-aloud", textAlign: "left" },
+    { type: "note", content: "", span: 2, rowSpan: 1, blockTitle: "DM guidance" },
+  ],
+  "travel-encounter": [
+    { type: "phase", title: "Setting the scene", description: "", span: 4, rowSpan: 1 },
+    { type: "boss",  enemies: [], span: 2, rowSpan: 1, blockTitle: "Encounter" },
+    { type: "loot",  items: [], span: 2, rowSpan: 1, blockTitle: "Discoveries" },
+  ],
+};
+
+document.querySelectorAll(".qm-template-btn").forEach(btn => {
+  btn.draggable = true;
+  btn.addEventListener("dragstart", e => {
+    dragPaletteTemplate = btn.dataset.template;
+    dragSrcIndex = null;
+    dragPaletteType = null;
+    e.dataTransfer.effectAllowed = "copy";
+    e.dataTransfer.setData("text/plain", btn.dataset.template);
+    qmBlockCanvas.classList.add("qm-drag-active");
+    // Build a drag image from a compact preview element
+    const img = document.createElement("div");
+    img.className = "tpl-drag-image";
+    img.textContent = btn.querySelector(".qm-ab-text")?.textContent || btn.dataset.template;
+    img.style.cssText = "position:fixed;top:-200px;left:-200px;padding:6px 12px;background:#2a1a0a;color:#f5deb3;border-radius:6px;font-size:13px;white-space:nowrap;border:1px solid #8a6a3a;";
+    document.body.appendChild(img);
+    e.dataTransfer.setDragImage(img, img.offsetWidth / 2, img.offsetHeight / 2);
+    setTimeout(() => img.remove(), 0);
+  });
+  btn.addEventListener("dragend", () => {
+    dragPaletteTemplate = null;
+    qmBlockCanvas.classList.remove("qm-drag-active");
+    hideTplPreview();
+  });
+  btn.addEventListener("click", () => {
+    if (!BLOCK_TEMPLATES[btn.dataset.template]) return;
+    applyTemplateAtPosition(btn.dataset.template, null, 1);
+    onEditTick();
+    buildBlocksEditor();
+    setTimeout(() => qmBlockCanvas.querySelector(".qm-block:last-of-type")?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SLASH COMMAND MENU
+// ═══════════════════════════════════════════════════════════════════════════
+const SLASH_ITEMS = [
+  { type: "phase",     icon: "&#9654;",    name: "Phase",      hint: "A quest step" },
+  { type: "boss",      icon: "&#9760;",    name: "Enemy",      hint: "Creature stat block" },
+  { type: "loot",      icon: "&#127873;",  name: "Loot",       hint: "Items or rewards" },
+  { type: "puzzle",    icon: "&#129513;",  name: "Puzzle",     hint: "Riddle or skill check" },
+  { type: "character", icon: "&#128100;",  name: "Character",  hint: "NPC reference" },
+  { type: "loreref",   icon: "&#128218;",  name: "Lore",       hint: "Book or scroll reference" },
+  { type: "note",      icon: "&#128196;",  name: "DM Note",    hint: "Private to you" },
+  { type: "divider",   icon: "&#8213;",    name: "Divider",    hint: "Chapter break" },
+  { type: "text",      icon: "&#182;",     name: "Text",       hint: "Paragraph" },
+];
+
+const slashState = { active: false, srcEl: null, query: "", focusedIdx: 0, blockIndex: -1 };
+let _slashMenu = null;
+
+function getSlashMenu() {
+  if (!_slashMenu) {
+    _slashMenu = document.createElement("div");
+    _slashMenu.className = "slash-menu";
+    _slashMenu.style.display = "none";
+    document.body.appendChild(_slashMenu);
+  }
+  return _slashMenu;
+}
+
+function hideSlashMenu() {
+  if (_slashMenu) _slashMenu.style.display = "none";
+  slashState.active = false;
+  slashState.srcEl = null;
+}
+
+function renderSlashMenu() {
+  const menu = getSlashMenu();
+  const q = slashState.query.toLowerCase();
+  const hits = SLASH_ITEMS.filter(it =>
+    !q || it.name.toLowerCase().includes(q) || it.type.includes(q)
+  );
+  if (!hits.length) { hideSlashMenu(); return; }
+  if (slashState.focusedIdx >= hits.length) slashState.focusedIdx = 0;
+
+  menu.innerHTML = `
+    <div class="slash-menu-header">Insert block</div>
+    ${hits.map((it, i) => `
+      <button type="button" class="slash-menu-item${i === slashState.focusedIdx ? " focused" : ""}" data-type="${it.type}">
+        <span class="slash-menu-icon">${it.icon}</span>
+        <span class="slash-menu-info">
+          <span class="slash-menu-name">${it.name}</span>
+          <span class="slash-menu-hint">${it.hint}</span>
+        </span>
+      </button>`).join("")}
+  `;
+  slashState.hits = hits;
+
+  menu.querySelectorAll(".slash-menu-item").forEach((item, i) => {
+    item.addEventListener("mousedown", e => {
+      e.preventDefault();
+      insertSlashBlock(hits[i].type);
+    });
+    item.addEventListener("mouseenter", () => {
+      slashState.focusedIdx = i;
+      menu.querySelectorAll(".slash-menu-item").forEach((it, j) => it.classList.toggle("focused", j === i));
+    });
+  });
+
+  // Position near caret
+  const sel = window.getSelection();
+  if (sel.rangeCount) {
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - 240));
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const top = spaceBelow > 280 ? rect.bottom + 4 : Math.max(8, rect.top - 280);
+    menu.style.cssText = `display:block;left:${left}px;top:${top}px;`;
+  }
+}
+
+function insertSlashBlock(type) {
+  const srcEl = slashState.srcEl;
+  const blockIndex = slashState.blockIndex;
+  // Delete the `/query` from the source element
+  if (srcEl) {
+    const sel = window.getSelection();
+    if (sel.rangeCount) {
+      const backLen = slashState.query.length + 1;
+      for (let i = 0; i < backLen; i++) sel.modify("extend", "backward", "character");
+      sel.getRangeAt(0).deleteContents();
+      // Sync the source block's content
+      const srcBlock = currentBlocks[blockIndex];
+      if (srcBlock) {
+        if (srcEl.classList.contains("blk-rich-text")) srcBlock.content = srcEl.innerHTML;
+        if (srcEl.classList.contains("blk-rich-phase")) srcBlock.description = srcEl.innerHTML;
+      }
+    }
+  }
+  hideSlashMenu();
+  // Insert the new block directly after the source in the list
+  const newBlock = { ...BLOCK_DEFAULTS[type] };
+  const insertAt = blockIndex >= 0 ? blockIndex + 1 : currentBlocks.length;
+  // Place it on the row directly after the source block (or at end)
+  if (blockIndex >= 0) {
+    const src = currentBlocks[blockIndex];
+    const targetRow = (src.row || 1) + (src.rowSpan || 1);
+    // Shift every block at or past targetRow down
+    currentBlocks.forEach((b, i) => {
+      if (i === blockIndex) return;
+      if ((b.row || 1) >= targetRow) b.row = (b.row || 1) + 1;
+    });
+    newBlock.row = targetRow;
+    newBlock.col = 1;
+  }
+  currentBlocks.splice(insertAt, 0, newBlock);
+  onEditTick();
+  buildBlocksEditor();
+  setTimeout(() => {
+    const newWrap = qmBlockCanvas.querySelectorAll(".qm-block")[insertAt];
+    newWrap?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    newWrap?.querySelector("input,textarea,[contenteditable]")?.focus();
+  }, 60);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CROSS-LINK (@ # $ ^) TRIGGER DETECTION for rich-text editors
+// ═══════════════════════════════════════════════════════════════════════════
+// `@` → character, `#` → quest, `$` → lore, `^` → location
+const linkState = { active: false, trigger: null, el: null, query: "", hits: [], focusedIdx: 0 };
+let _linkDrop = null;
+
+function getLinkDrop() {
+  if (!_linkDrop) {
+    _linkDrop = document.createElement("div");
+    _linkDrop.className = "mention-drop";
+    _linkDrop.style.display = "none";
+    document.body.appendChild(_linkDrop);
+  }
+  return _linkDrop;
+}
+function hideLinkDrop() {
+  if (_linkDrop) _linkDrop.style.display = "none";
+  linkState.active = false;
+}
+
+function searchLinkHits(trigger, q) {
+  const query = q.toLowerCase();
+  if (trigger === "@") {
+    return allCharacters.filter(c => c.name && (!query || c.name.toLowerCase().includes(query))).slice(0, 8)
+      .map(c => ({ kind: "char", id: c.id, label: c.name, sub: c.profession, pic: c.picture }));
+  }
+  if (trigger === "#") {
+    return quests.filter(q2 => q2.title && (!query || q2.title.toLowerCase().includes(query)) && q2.id !== editingId).slice(0, 8)
+      .map(q2 => ({ kind: "quest", id: q2.id, label: q2.title, sub: q2.location || "" }));
+  }
+  if (trigger === "$") {
+    return allLoreItems.filter(l => l.title && (!query || l.title.toLowerCase().includes(query))).slice(0, 8)
+      .map(l => ({ kind: "lore", id: l.id, label: l.title, sub: l.writer || "" }));
+  }
+  if (trigger === "^") {
+    return markerNames.filter(m => m.name && (!query || m.name.toLowerCase().includes(query))).slice(0, 8)
+      .map(m => ({ kind: "loc", id: m.id || m.name, label: m.name, sub: "" }));
+  }
+  return [];
+}
+
+function renderLinkDrop(richEl) {
+  const drop = getLinkDrop();
+  linkState.hits = searchLinkHits(linkState.trigger, linkState.query);
+  if (!linkState.hits.length) { hideLinkDrop(); return; }
+  linkState.focusedIdx = 0;
+  const iconMap = { "@": "&#128100;", "#": "&#9876;", "$": "&#128218;", "^": "&#128205;" };
+
+  drop.innerHTML = linkState.hits.map((h, i) => `
+    <div class="mention-drop-item${i === 0 ? " focused" : ""}">
+      ${h.pic
+        ? `<img class="mention-drop-pic" src="${esc(h.pic)}" />`
+        : `<div class="mention-drop-pic mention-drop-ph">${iconMap[linkState.trigger] || ""}</div>`}
+      <div class="mention-drop-info">
+        <span class="mention-drop-name">${esc(h.label)}</span>
+        ${h.sub ? `<span class="mention-drop-meta">${esc(h.sub)}</span>` : ""}
+      </div>
+    </div>`).join("");
+
+  drop.querySelectorAll(".mention-drop-item").forEach((item, i) => {
+    item.addEventListener("mousedown", e => { e.preventDefault(); doInsertLink(richEl, linkState.hits[i]); });
+  });
+
+  const sel = window.getSelection();
+  if (sel.rangeCount) {
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    const left = Math.max(4, Math.min(rect.left, window.innerWidth - 270));
+    const below = window.innerHeight - rect.bottom > 260;
+    const top = below ? rect.bottom + 4 : rect.top - Math.min(linkState.hits.length * 48 + 8, rect.top - 4);
+    drop.style.cssText = `display:block;position:fixed;left:${left}px;top:${top}px;z-index:9999;`;
+  }
+}
+
+function updateLinkFocus() {
+  getLinkDrop().querySelectorAll(".mention-drop-item")
+    .forEach((item, i) => item.classList.toggle("focused", i === linkState.focusedIdx));
+}
+
+function doInsertLink(richEl, hit) {
+  if (!richEl || !hit) { hideLinkDrop(); return; }
+  richEl.focus();
+  const sel = window.getSelection();
+  if (!sel.rangeCount) { hideLinkDrop(); return; }
+
+  // Select back over trigger + query then delete
+  const backLen = linkState.query.length + 1;
+  for (let i = 0; i < backLen; i++) sel.modify("extend", "backward", "character");
+  const range = sel.getRangeAt(0);
+  range.deleteContents();
+
+  const span = document.createElement("span");
+  if (hit.kind === "char")   span.className = "char-mention";
+  if (hit.kind === "quest")  span.className = "quest-link";
+  if (hit.kind === "lore")   span.className = "lore-link";
+  if (hit.kind === "loc")    span.className = "loc-link";
+  span.contentEditable = "false";
+  span.dataset.linkKind = hit.kind;
+  span.dataset.linkId   = hit.id || "";
+  span.dataset.linkName = hit.label || "";
+  // Legacy field for the old charId handler
+  if (hit.kind === "char") { span.dataset.charId = hit.id || ""; span.dataset.charName = hit.label || ""; }
+  span.textContent = hit.label;
+  range.insertNode(span);
+
+  const space = document.createTextNode("\u00A0");
+  span.after(space);
+  const after = document.createRange();
+  after.setStartAfter(space);
+  after.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(after);
+
+  richEl.dispatchEvent(new Event("input", { bubbles: true }));
+  hideLinkDrop();
+}
+
+// Close dropdown + slash menu on outside click
+document.addEventListener("mousedown", e => {
+  if (_linkDrop && !_linkDrop.contains(e.target)) hideLinkDrop();
+  if (_slashMenu && !_slashMenu.contains(e.target)) hideSlashMenu();
+});
+
+// ── Quest link / lore link / location link popups ────────────────────────────
+function showQuestLinkPopup(questId) {
+  const q = quests.find(x => x.id === questId);
+  if (!q) return;
+  const popup = getCharPopup();
+  const inner = popup.querySelector(".char-popup-inner");
+  inner.innerHTML = `
+    <div class="char-popup-details">
+      <h2 class="char-popup-name">${esc(q.title || "")}</h2>
+      <div class="char-popup-tags">
+        <span class="char-popup-tag">${q.type === "main" ? "Main Quest" : "Side Quest"}</span>
+        ${q.location ? `<span class="char-popup-tag">&#128205; ${esc(q.location)}</span>` : ""}
+        <span class="char-popup-tag">${STATUS_LABEL[q.status] || "Unknown"}</span>
+      </div>
+    </div>
+  `;
+  popup.style.display = "flex";
+}
+function showLoreLinkPopup(loreId) {
+  const l = allLoreItems.find(x => x.id === loreId);
+  if (!l) return;
+  const popup = getCharPopup();
+  const inner = popup.querySelector(".char-popup-inner");
+  inner.innerHTML = `
+    <div class="char-popup-details">
+      <h2 class="char-popup-name">${l.type === "scroll" ? "📜" : "📖"} ${esc(l.title || "")}</h2>
+      <div class="char-popup-tags">
+        ${l.writer ? `<span class="char-popup-tag">by ${esc(l.writer)}</span>` : ""}
+      </div>
+      ${l.content ? `<p class="char-popup-desc">${escBr(l.content)}</p>` : ""}
+    </div>
+  `;
+  popup.style.display = "flex";
+}
+function showLocLinkPopup(locName) {
+  const popup = getCharPopup();
+  const inner = popup.querySelector(".char-popup-inner");
+  inner.innerHTML = `
+    <div class="char-popup-details">
+      <h2 class="char-popup-name">&#128205; ${esc(locName)}</h2>
+      <p class="char-popup-desc">See this location on the map.</p>
+    </div>
+  `;
+  popup.style.display = "flex";
+}
+
+// Global click delegation for all link chip types (card view + editor + preview)
+function handleLinkChipClick(e) {
+  const chip = e.target.closest(".char-mention, .quest-link, .lore-link, .loc-link");
+  if (!chip) return;
+  e.stopPropagation();
+  const kind = chip.dataset.linkKind || (chip.classList.contains("char-mention") ? "char" : "");
+  const id   = chip.dataset.linkId   || chip.dataset.charId || "";
+  const name = chip.dataset.linkName || chip.dataset.charName || "";
+  if (kind === "char" || chip.classList.contains("char-mention")) showCharacterPopup(id);
+  else if (kind === "quest") showQuestLinkPopup(id);
+  else if (kind === "lore")  showLoreLinkPopup(id);
+  else if (kind === "loc")   showLocLinkPopup(name);
+}
+document.addEventListener("click", handleLinkChipClick);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SESSION MARKER POPUP
+// ═══════════════════════════════════════════════════════════════════════════
+let _sessionPop = null;
+function getSessionPop() {
+  if (!_sessionPop) {
+    _sessionPop = document.createElement("div");
+    _sessionPop.className = "session-input-pop";
+    _sessionPop.style.display = "none";
+    document.body.appendChild(_sessionPop);
+    document.addEventListener("mousedown", e => {
+      if (!_sessionPop.contains(e.target) && !e.target.closest(".blk-session-btn")) {
+        _sessionPop.style.display = "none";
+      }
+    });
+  }
+  return _sessionPop;
+}
+
+function openSessionPopup(anchorBtn, blockIndex) {
+  const pop = getSessionPop();
+  const block = currentBlocks[blockIndex];
+  if (!block) return;
+  pop.innerHTML = `
+    <div class="session-input-pop-label">Session marker</div>
+    <input type="text" placeholder="e.g. Session 4" value="${esc(block.sessionMarker || "")}" />
+    <div class="session-input-pop-actions">
+      <button type="button" class="session-input-pop-btn" data-act="save">Save</button>
+      <button type="button" class="session-input-pop-btn danger" data-act="clear">Clear</button>
+    </div>
+  `;
+  const input = pop.querySelector("input");
+  pop.querySelector('[data-act="save"]').addEventListener("click", () => {
+    const val = input.value.trim();
+    block.sessionMarker = val || null;
+    pop.style.display = "none";
+    onEditTick();
+    buildBlocksEditor();
+  });
+  pop.querySelector('[data-act="clear"]').addEventListener("click", () => {
+    block.sessionMarker = null;
+    pop.style.display = "none";
+    onEditTick();
+    buildBlocksEditor();
+  });
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); pop.querySelector('[data-act="save"]').click(); }
+    if (e.key === "Escape") pop.style.display = "none";
+  });
+  const rect = anchorBtn.getBoundingClientRect();
+  pop.style.display = "flex";
+  pop.style.left = `${Math.min(rect.left, window.innerWidth - 220)}px`;
+  pop.style.top  = `${rect.bottom + 6}px`;
+  input.focus();
+  input.select();
+}
+
+// Color a session label deterministically from its string
+function sessionColorClass(marker) {
+  if (!marker) return "";
+  let hash = 0;
+  for (let i = 0; i < marker.length; i++) hash = (hash * 31 + marker.charCodeAt(i)) >>> 0;
+  return `session-color-${(hash % 8) + 1}`;
 }

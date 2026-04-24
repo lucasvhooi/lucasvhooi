@@ -108,6 +108,7 @@ async function giveToInventory(playerId, itemData) {
   if (itemData.pages     != null) payload.pages     = itemData.pages;
   if (itemData.writer    != null) payload.writer    = itemData.writer;
   if (itemData.abilities != null) payload.abilities = itemData.abilities;
+  if (itemData.requiresAttunement) payload.requiresAttunement = true;
   // coverColor: always copy even if null so bookColor() doesn't generate a random one
   payload.coverColor = itemData.coverColor || null;
   await set(newRef, payload);

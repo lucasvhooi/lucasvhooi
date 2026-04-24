@@ -63,7 +63,7 @@
 /* ── Grid ──────────────────────────────────────────────────────────────────── */
 .lore-main {
   padding: 20px 24px 60px;
-  max-width: 1200px;
+  max-width: 80vw;
   margin: 0 auto;
 }
 

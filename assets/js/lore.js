@@ -1,5 +1,5 @@
 import { db }                          from "./firebase.js";
-import { ref, set, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+import { ref, set, remove, onValue, push, get } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { openGivePanel }              from "./give-to-player.js";
 
 const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
@@ -144,14 +144,13 @@ function buildCard(item) {
     giveBtn.addEventListener("click", e => {
       e.stopPropagation();
       openGivePanel(e.currentTarget, {
+        id:          item.id,
         name:        item.title,
         type:        item.type,
         description: item.writer ? `Written by ${item.writer}` : null,
         quantity:    1,
         value:       null,
-        // Books: pass full pages array so inventory reader can turn pages
         pages:       item.type === "book" ? (item.pages || []) : undefined,
-        // Scrolls: plain text content
         content:     item.type === "scroll" ? (item.content || null) : null,
         writer:      item.writer || null,
         coverColor:  item.coverColor || null,
@@ -375,6 +374,31 @@ lmSave.addEventListener("click", async () => {
   };
 
   await set(ref(db, `lore/${payload.id}`), payload);
+
+  // Sync into any inventory copies of this lore item
+  const invSnap = await get(ref(db, "inventory"));
+  if (invSnap.exists()) {
+    const oldTitle = editingId ? (loreItems.find(i => i.id === editingId)?.title ?? null) : null;
+    for (const [uid, userInv] of Object.entries(invSnap.val())) {
+      for (const [key, invItem] of Object.entries(userInv || {})) {
+        const matchById   = invItem.sourceItemId === payload.id;
+        const matchByName = !invItem.sourceItemId && oldTitle && invItem.name === oldTitle;
+        if (matchById || matchByName) {
+          await set(ref(db, `inventory/${uid}/${key}`), {
+            ...invItem,
+            name:        payload.title,
+            description: payload.writer ? `Written by ${payload.writer}` : null,
+            pages:       payload.pages   ?? null,
+            content:     payload.content ?? null,
+            writer:      payload.writer  ?? null,
+            coverColor:  payload.coverColor ?? null,
+            sourceItemId: payload.id,
+          });
+        }
+      }
+    }
+  }
+
   closeLoreModal();
 });
 

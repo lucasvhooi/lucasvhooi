@@ -66,6 +66,7 @@ onValue(infoRef, snapshot => {
   locationInfo = snapshot.val() || {};
   renderDescription();
   renderMapImage();
+  renderFeatureImage();
 });
 
 onValue(subMarkersRef, snapshot => {
@@ -126,6 +127,22 @@ function renderDescription() {
   }
 }
 
+// ── Render Feature Image (location banner) ────────────────────────────────────
+const locFeatureImg   = document.getElementById("loc-feature-img");
+const locFeatureImgPh = document.getElementById("loc-feature-img-ph");
+
+function renderFeatureImage() {
+  const url = locationInfo.featureImageUrl;
+  if (url) {
+    locFeatureImg.src = url;
+    locFeatureImg.style.display = "block";
+    locFeatureImgPh.style.display = "none";
+  } else {
+    locFeatureImg.style.display = "none";
+    locFeatureImgPh.style.display = "flex";
+  }
+}
+
 // ── Render Map Image ──────────────────────────────────────────────────────────
 function renderMapImage() {
   const url = locationInfo.mapImageUrl;
@@ -181,6 +198,7 @@ function renderSubMarkers() {
     const tooltip = document.createElement("div");
     tooltip.className = "loc-marker-tooltip";
     tooltip.innerHTML = `
+      ${marker.picture ? `<img class="tooltip-img" src="${marker.picture}" alt="${marker.name}" />` : ""}
       <div class="tooltip-name">${marker.name}</div>
       <div class="tooltip-type">${markerDisplayType(marker)}${marker.shopSubtype ? ` · ${marker.shopSubtype}` : ""}</div>
       ${ownerNpc ? `<div class="tooltip-owner">&#128100; ${ownerNpc.name}</div>` : ""}
@@ -299,6 +317,10 @@ const lmServantsList   = document.getElementById("lm-servants-list");
 let selectedTavernWealth = "Middle Class";
 const lmOwner          = document.getElementById("lm-owner");
 const lmNotes          = document.getElementById("lm-notes");
+const lmPicture        = document.getElementById("lm-picture");
+const lmUploadBtn      = document.getElementById("lm-upload-btn");
+const lmPicFile        = document.getElementById("lm-pic-file");
+const lmUploadStatus   = document.getElementById("lm-upload-status");
 const lmError          = document.getElementById("lm-error");
 const lmSave           = document.getElementById("lm-save");
 const lmCancel         = document.getElementById("lm-cancel");
@@ -398,19 +420,21 @@ function openSubMarkerModal(id) {
     lmSubtype.value      = m.shopSubtype   || "";
     lmInvTags.value      = m.inventoryTags || "";
     lmNotes.value        = m.notes         || "";
+    lmPicture.value      = m.picture       || "";
     selectedTavernWealth = m.tavernWealth  || "Middle Class";
     lmTavernTables.value = m.tavernTables  || 6;
     lmRoomCount.value    = m.roomCount     ?? 4;
     populateOwnerSelect(m.ownerId || "");
   } else {
     lmTitle.textContent  = "Place Marker";
-    lmName.value = lmNotes.value = lmCustomType.value = lmSubtype.value = lmInvTags.value = "";
+    lmName.value = lmNotes.value = lmCustomType.value = lmSubtype.value = lmInvTags.value = lmPicture.value = "";
     lmType.value = "Forge";
     selectedTavernWealth = "Middle Class";
     lmTavernTables.value = 6;
     lmRoomCount.value    = 4;
     populateOwnerSelect("");
   }
+  if (lmUploadStatus) lmUploadStatus.textContent = "";
 
   updateMarkerTypeFields();
   // If editing a tavern, re-populate servants with the saved list (overrides the empty call above)
@@ -465,6 +489,7 @@ lmSave.addEventListener("click", () => {
     seating:            (isTavern && existing?.seating) ? existing.seating : null,
     ownerId:            newOwnerId,
     notes:              lmNotes.value.trim() || null,
+    picture:            lmPicture.value.trim() || null,
     x:                  existing ? existing.x : pendingCoords.x,
     y:                  existing ? existing.y : pendingCoords.y,
     order:              existing ? (existing.order !== undefined ? existing.order : subMarkers.length) : subMarkers.length,
@@ -519,6 +544,31 @@ lmSave.addEventListener("click", () => {
 lmType.addEventListener("change", updateMarkerTypeFields);
 lmCancel.addEventListener("click", closeSubMarkerModal);
 locMarkerModal.addEventListener("click", e => { if (e.target === locMarkerModal) closeSubMarkerModal(); });
+
+// Marker image upload
+if (lmUploadBtn && lmPicFile) {
+  lmUploadBtn.addEventListener("click", () => lmPicFile.click());
+  lmPicFile.addEventListener("change", async () => {
+    const file = lmPicFile.files[0];
+    if (!file) return;
+    lmUploadStatus.textContent = "Compressing…";
+    lmUploadStatus.className = "lm-upload-status uploading";
+    lmUploadBtn.disabled = true;
+    try {
+      const base64 = await compressImage(file, 600, 0.82);
+      lmPicture.value = base64;
+      lmUploadStatus.textContent = "Image ready ✓";
+      lmUploadStatus.className = "lm-upload-status done";
+      setTimeout(() => { lmUploadStatus.textContent = ""; }, 3000);
+    } catch {
+      lmUploadStatus.textContent = "Upload failed.";
+      lmUploadStatus.className = "lm-upload-status error";
+    } finally {
+      lmUploadBtn.disabled = false;
+      lmPicFile.value = "";
+    }
+  });
+}
 
 // ── Buildings List (DM only — mirrors sub-markers) ───────────────────────────
 const locBuildingsList = document.getElementById("loc-buildings-list");
@@ -856,6 +906,25 @@ if (locMapUpload) {
   });
 }
 
+// ── Feature image upload ──────────────────────────────────────────────────────
+const locFeatureUpload = document.getElementById("loc-feature-upload");
+if (locFeatureUpload) {
+  locFeatureUpload.addEventListener("change", async () => {
+    const file = locFeatureUpload.files[0];
+    if (!file) return;
+    locFeatureImgPh.innerHTML = `<span style="color:#aaa;font-size:13px">Compressing…</span>`;
+    locFeatureImgPh.style.display = "flex";
+    locFeatureImg.style.display = "none";
+    try {
+      const base64 = await compressImage(file, 1200, 0.85);
+      await set(ref(db, `locations/${locationId}/info/featureImageUrl`), base64);
+    } catch {
+      locFeatureImgPh.innerHTML = `<span style="color:#E57373;font-size:13px">Upload failed.</span>`;
+    }
+    locFeatureUpload.value = "";
+  });
+}
+
 // ── DM Controls visibility ────────────────────────────────────────────────────
 if (isAdmin) {
   document.getElementById("loc-dm-toolbar").style.display    = "flex";
@@ -864,6 +933,8 @@ if (isAdmin) {
   document.getElementById("sec-npcs").style.display          = "block";
   const hint = document.getElementById("loc-upload-hint");
   if (hint) hint.style.display = "block";
+  const featureUploadBtn = document.getElementById("loc-feature-upload-btn");
+  if (featureUploadBtn) featureUploadBtn.style.display = "flex";
 }
 
 // ── NPC Generator ─────────────────────────────────────────────────────────────

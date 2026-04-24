@@ -14,7 +14,7 @@
     <img src="../Images/EssolisLogo.webp" alt="Essolis Logo" class="nav-logo">
     <ul>
       <li><a href="missions.html">Missions</a></li>
-      <li><a href="exploration.html">Exploration</a></li>
+      <li><a href="exploration.html">Characters</a></li>
       <li class="nav-dm-only"><a href="items.html">Items</a></li>
       <li><a href="map.html">Map</a></li>
       <li><a href="lore.html">Lore</a></li>
@@ -41,53 +41,65 @@
   <!-- Item modal -->
   <div id="item-modal" class="modal-overlay">
     <div class="modal-box">
-      <h2 id="im-title">Add Item</h2>
-      <div class="form-row">
-        <label>Name <span class="req">*</span>
-          <input type="text" id="im-name" placeholder="e.g. Health Potion" />
-        </label>
+      <div class="modal-header">
+        <h2 id="im-title">Add Item</h2>
+        <button class="modal-close-x" id="im-close-btn">&times;</button>
       </div>
-      <div class="form-row">
-        <label>Description
-          <textarea id="im-desc" rows="3" placeholder="What does this item do or look like?"></textarea>
-        </label>
-      </div>
-      <div class="form-row">
-        <label>Base Price (gp) <span class="req">*</span>
-          <input type="number" id="im-price" placeholder="e.g. 50" min="0" step="0.01" />
-        </label>
-      </div>
-      <div class="form-row">
-        <label>Tags</label>
-        <div class="im-tag-picker-row">
-          <div class="im-tag-chips" id="im-tag-chips"></div>
-          <button type="button" id="im-tag-add-btn" class="im-tag-add-btn">+ New Tag</button>
+      <div class="modal-body">
+        <div class="form-row">
+          <label>Name <span class="req">*</span>
+            <input type="text" id="im-name" placeholder="e.g. Health Potion" />
+          </label>
         </div>
-        <input type="text" id="im-tag-new-input" class="im-tag-new-input" placeholder="New tag name…" style="display:none" />
-      </div>
-      <div class="form-row">
-        <label>Rarity</label>
-        <div class="rarity-selector" id="im-rarity-selector">
-          <button type="button" class="rarity-sel-btn" data-rarity="common">Common</button>
-          <button type="button" class="rarity-sel-btn" data-rarity="uncommon">Uncommon</button>
-          <button type="button" class="rarity-sel-btn" data-rarity="rare">Rare</button>
-          <button type="button" class="rarity-sel-btn" data-rarity="very rare">Very Rare</button>
-          <button type="button" class="rarity-sel-btn" data-rarity="legendary">Legendary</button>
+        <div class="form-row">
+          <label>Description
+            <textarea id="im-desc" rows="3" placeholder="What does this item do or look like?"></textarea>
+          </label>
         </div>
+        <div class="form-row">
+          <label>Base Price (gp) <span class="req">*</span>
+            <input type="number" id="im-price" placeholder="e.g. 50" min="0" step="0.01" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Tags</label>
+          <div class="im-tag-picker-row">
+            <div class="im-tag-chips" id="im-tag-chips"></div>
+            <button type="button" id="im-tag-add-btn" class="im-tag-add-btn">+ New Tag</button>
+          </div>
+          <input type="text" id="im-tag-new-input" class="im-tag-new-input" placeholder="New tag name…" style="display:none" />
+        </div>
+        <div class="form-row">
+          <label>Rarity</label>
+          <div class="rarity-selector" id="im-rarity-selector">
+            <button type="button" class="rarity-sel-btn" data-rarity="common">Common</button>
+            <button type="button" class="rarity-sel-btn" data-rarity="uncommon">Uncommon</button>
+            <button type="button" class="rarity-sel-btn" data-rarity="rare">Rare</button>
+            <button type="button" class="rarity-sel-btn" data-rarity="very rare">Very Rare</button>
+            <button type="button" class="rarity-sel-btn" data-rarity="legendary">Legendary</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="im-shop-available" checked />
+            <span class="checkbox-box"></span>
+            Available in shop (players can buy this item)
+          </label>
+        </div>
+        <div class="form-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="im-requires-attunement" />
+            <span class="checkbox-box"></span>
+            Requires Attunement
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Abilities</label>
+          <div id="im-abilities-list" class="im-abilities-list"></div>
+          <button type="button" id="im-ability-add-btn" class="im-ability-add-btn">+ Add Ability</button>
+        </div>
+        <div id="im-error" class="modal-error"></div>
       </div>
-      <div class="form-row">
-        <label class="checkbox-label">
-          <input type="checkbox" id="im-shop-available" checked />
-          <span class="checkbox-box"></span>
-          Available in shop (players can buy this item)
-        </label>
-      </div>
-      <div class="form-row">
-        <label>Abilities</label>
-        <div id="im-abilities-list" class="im-abilities-list"></div>
-        <button type="button" id="im-ability-add-btn" class="im-ability-add-btn">+ Add Ability</button>
-      </div>
-      <div id="im-error" class="modal-error"></div>
       <div class="modal-actions">
         <button id="im-save" class="dm-btn">Save Item</button>
         <button id="im-cancel" class="dm-btn dm-btn-secondary">Cancel</button>

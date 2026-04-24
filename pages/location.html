@@ -15,7 +15,7 @@
     <img src="../Images/EssolisLogo.webp" alt="Essolis Logo" class="nav-logo">
     <ul>
       <li><a href="missions.html">Missions</a></li>
-      <li><a href="exploration.html">Exploration</a></li>
+      <li><a href="exploration.html">Characters</a></li>
       <li class="nav-dm-only"><a href="items.html">Items</a></li>
       <li><a href="map.html">Map</a></li>
       <li><a href="lore.html">Lore</a></li>
@@ -33,11 +33,31 @@
 
   <main class="loc-main">
 
-    <!-- Column 1: Map + About -->
+    <!-- Full-width feature banner: location image + description -->
+    <div class="loc-feature-row anim-1" id="loc-feature-row">
+      <div class="loc-feature-img-wrap" id="loc-feature-img-wrap">
+        <img id="loc-feature-img" class="loc-feature-img" alt="Location" style="display:none" />
+        <div id="loc-feature-img-ph" class="loc-feature-img-ph">
+          <span class="loc-feature-img-ph-icon">&#127760;</span>
+        </div>
+        <label for="loc-feature-upload" id="loc-feature-upload-btn" class="loc-feature-upload-btn" style="display:none" title="Upload location image">&#128247;</label>
+        <input type="file" id="loc-feature-upload" accept="image/*" style="display:none" />
+      </div>
+      <div class="loc-feature-desc-wrap">
+        <div class="sec-header-row">
+          <h2 class="sec-heading">About</h2>
+          <button id="loc-edit-desc-btn" class="dm-btn dm-btn-sm" style="display:none">Edit</button>
+        </div>
+        <p id="loc-desc-text" class="loc-description" style="display:none"></p>
+        <p id="loc-desc-empty" class="loc-desc-empty">No description added yet.</p>
+      </div>
+    </div>
+
+    <!-- Column 1: Map -->
     <div class="loc-col loc-col-map">
 
       <!-- Location Map -->
-      <section class="loc-section anim-1" id="sec-map">
+      <section class="loc-section anim-2" id="sec-map">
         <div class="sec-header-row">
           <h2 class="sec-heading">Location Map</h2>
           <div id="loc-dm-toolbar" class="loc-dm-toolbar" style="display:none">
@@ -58,16 +78,6 @@
             <div id="loc-placing-banner" class="loc-placing-banner">Click anywhere on the map to place a marker</div>
           </div>
         </div>
-      </section>
-
-      <!-- About -->
-      <section class="loc-section anim-2" id="sec-desc">
-        <div class="sec-header-row">
-          <h2 class="sec-heading">About</h2>
-          <button id="loc-edit-desc-btn" class="dm-btn dm-btn-sm" style="display:none">Edit</button>
-        </div>
-        <p id="loc-desc-text" class="loc-description" style="display:none"></p>
-        <p id="loc-desc-empty" class="loc-desc-empty">No description added yet.</p>
       </section>
 
     </div>
@@ -123,6 +133,15 @@
         <label>Name <span class="req">*</span>
           <input type="text" id="lm-name" placeholder="e.g. The Rusty Anvil" />
         </label>
+      </div>
+      <div class="form-row">
+        <label>Image <span class="dm-hint">(shows in tooltip)</span></label>
+        <div class="lm-img-row">
+          <input type="text" id="lm-picture" placeholder="Paste URL or upload…" />
+          <button type="button" id="lm-upload-btn" class="dm-btn dm-btn-sm" title="Upload image">&#128247;</button>
+        </div>
+        <input type="file" id="lm-pic-file" accept="image/*" style="display:none" />
+        <span id="lm-upload-status" class="lm-upload-status"></span>
       </div>
       <div class="form-row">
         <label>Type
