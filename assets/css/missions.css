@@ -163,10 +163,10 @@
 /* Card header */
 .qc-header-row {
   display: grid;
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: auto 1fr auto;
   grid-template-areas:
-    "drag fold title badges"
-    ".    .    summary summary";
+    "drag title badges"
+    ".    summary .";
   gap: 4px 10px;
   align-items: center;
   margin-bottom: 6px;
@@ -2683,3 +2683,104 @@
   background: rgba(255,204,102,0.25);
 }
 .conn-popup-del:hover { background: rgba(239,83,80,0.2); border-color: rgba(239,83,80,0.5); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   QUEST VIEW OVERLAY — full-screen quest detail page
+   ═══════════════════════════════════════════════════════════════════════════ */
+.qview-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  flex-direction: column;
+  background: #120a02;
+}
+.qview-overlay.open { display: flex; }
+
+.qview-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: linear-gradient(180deg, #2a1505 0%, #1c0e03 100%);
+  border-bottom: 1px solid #3a2510;
+  flex-shrink: 0;
+  min-height: 52px;
+}
+
+.qview-back-btn {
+  background: none;
+  border: 1px solid #3a2510;
+  border-radius: 6px;
+  color: #c9a87a;
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.qview-back-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+.qview-title-area { flex: 1; min-width: 0; }
+
+.qview-title {
+  font-family: 'IM Fell English', 'Garamond', serif;
+  font-size: clamp(1rem, 3vw, 1.35rem);
+  color: var(--accent);
+  margin: 0 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: normal;
+}
+
+.qview-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.qview-admin-btns { flex-shrink: 0; }
+
+.qview-edit-btn {
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 6px 14px;
+  background: var(--accent);
+  color: #1a0a00;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.qview-edit-btn:hover { background: #ffe08a; }
+
+.qview-session-bar {
+  padding: 6px 16px;
+  background: rgba(255,255,255,0.015);
+  border-bottom: 1px solid #2a1a06;
+  flex-shrink: 0;
+}
+
+.qview-canvas-wrap {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  min-height: 0;
+}
+
+.qview-canvas-wrap .qc-ro-canvas {
+  height: 100%;
+  border-radius: 0;
+  border: none;
+  border-top: none;
+}
+
+/* Cards are now tap-to-open buttons */
+.quest-card { cursor: pointer; }
+.quest-card:active { transform: scale(0.995); }

@@ -499,10 +499,11 @@
 
 /* ── Responsive ── */
 @media (max-width: 600px) {
-  .spells-main { padding: 16px 12px 48px; }
+  .spells-main { padding: 12px 8px 48px; }
   .spells-toolbar { gap: 8px; }
   .spells-search { width: 100%; }
   .level-filter { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+  .spells-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
 
   .modal-overlay { align-items: flex-end; }
   .modal-box {

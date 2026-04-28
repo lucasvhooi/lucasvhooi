@@ -956,34 +956,16 @@ function buildSummaryChips(blocks) {
 }
 
 function buildCard(q) {
-  const state = loadPageState();
-  const openQuests = new Set(state.openQuests || []);
-  const startOpen = openQuests.has(q.id);
-
   const card = document.createElement("div");
-  card.className = `quest-card quest-${q.type || "main"}${q.status === "completed" ? " quest-completed" : ""}${startOpen ? "" : " qc-folded"}`;
+  card.className = `quest-card quest-${q.type || "main"}${q.status === "completed" ? " quest-completed" : ""}`;
   card.dataset.questId = q.id;
   const blocks = q.blocks ? q.blocks.map(b => ({ ...b })) : [];
-
-  // Session filter bar — list each unique session present, in first-seen order
-  const sessionList = [];
-  for (const b of blocks) {
-    if (b.sessionMarker && !sessionList.includes(b.sessionMarker)) sessionList.push(b.sessionMarker);
-  }
-  const sessionFilterHtml = sessionList.length ? `
-    <div class="qc-session-filter">
-      <button class="qc-session-filter-btn active" data-session="all" title="Show everything">All</button>
-      ${sessionList.map(s =>
-        `<button class="qc-session-filter-btn ${sessionColorClass(s)}" data-session="${esc(s)}" title="Show only ${esc(s)}">${esc(s)}</button>`
-      ).join("")}
-    </div>` : "";
 
   card.innerHTML = `
     <div class="qc-accent-bar"></div>
     <div class="qc-body">
       <div class="qc-header-row">
         ${isAdmin ? `<div class="qc-drag-handle" title="Drag to reorder quests">&#8942;&#8942;</div>` : ""}
-        <button class="qc-fold-btn" title="Collapse/Expand">${startOpen ? "&#9660;" : "&#9654;"}</button>
         <div class="qc-title-row">
           <h3 class="qc-title">${esc(q.title || "")}</h3>
           ${q.location ? `<div class="qc-location">&#128205; ${esc(q.location)}</div>` : ""}
@@ -994,9 +976,7 @@ function buildCard(q) {
           ${isAdmin && !q.discovered ? `<span class="qc-hidden-badge">&#128065; DM Only</span>` : ""}
         </div>
         ${buildSummaryChips(blocks)}
-        ${sessionFilterHtml}
       </div>
-      <div class="qc-content"></div>
     </div>
     ${isAdmin ? `
       <div class="qc-actions">
@@ -1005,37 +985,8 @@ function buildCard(q) {
       </div>` : ""}
   `;
 
-  // Append read-only canvas into .qc-content
-  const qcContent = card.querySelector(".qc-content");
-  qcContent.appendChild(buildQuestCanvasDOM(q));
-
-  // Session filter tab clicks — show/hide canvas blocks by session marker
-  card.querySelectorAll(".qc-session-filter-btn").forEach(btn => {
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      card.querySelectorAll(".qc-session-filter-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      const target = btn.dataset.session;
-      card.querySelectorAll(".qc-block-ro").forEach(blk => {
-        if (target === "all") { blk.style.display = ""; return; }
-        blk.style.display = (blk.dataset.session === target) ? "" : "none";
-      });
-    });
-  });
-
-  // Fold toggle — persists open/closed state across tab switches
-  const foldBtn  = card.querySelector(".qc-fold-btn");
-  const content  = card.querySelector(".qc-content");
-  foldBtn.addEventListener("click", e => {
-    e.stopPropagation();
-    const folded = card.classList.toggle("qc-folded");
-    foldBtn.innerHTML = folded ? "&#9654;" : "&#9660;";
-    // Persist which quests are open
-    const st = loadPageState();
-    const openSet = new Set(st.openQuests || []);
-    if (folded) openSet.delete(q.id); else openSet.add(q.id);
-    savePageState({ openQuests: [...openSet] });
-  });
+  // Click card body → open full-screen quest view
+  card.querySelector(".qc-body").addEventListener("click", () => openQuestView(q));
 
   if (isAdmin) {
     card.querySelector(".qc-edit-btn").addEventListener("click", e => { e.stopPropagation(); openModal(q); });
@@ -1047,6 +998,86 @@ function buildCard(q) {
   }
   return card;
 }
+
+// ── Quest View Overlay ────────────────────────────────────────────────────────
+function openQuestView(q) {
+  const overlay   = document.getElementById("quest-view");
+  const titleArea = document.getElementById("qview-title-area");
+  const adminBtns = document.getElementById("qview-admin-btns");
+  const sessionBar = document.getElementById("qview-session-bar");
+  const canvasWrap = document.getElementById("qview-canvas-wrap");
+
+  // Position overlay flush below the sticky nav
+  const nav = document.querySelector("nav");
+  overlay.style.top = (nav ? Math.round(nav.getBoundingClientRect().bottom) : 0) + "px";
+
+  // Header: title + meta badges
+  titleArea.innerHTML = `
+    <div class="qview-title">${esc(q.title || "")}</div>
+    <div class="qview-meta-row">
+      <span class="qc-type-badge">${q.type === "main" ? "Main Quest" : "Side Quest"}</span>
+      <span class="qc-status ${STATUS_CLASS[q.status] || ""}">${STATUS_LABEL[q.status] || ""}</span>
+      ${q.location ? `<span class="qc-location">&#128205; ${esc(q.location)}</span>` : ""}
+    </div>
+  `;
+
+  // Admin: edit button
+  if (isAdmin) {
+    adminBtns.innerHTML = `<button class="qview-edit-btn">&#9998; Edit</button>`;
+    adminBtns.querySelector(".qview-edit-btn").addEventListener("click", () => {
+      closeQuestView();
+      openModal(q);
+    });
+  } else {
+    adminBtns.innerHTML = "";
+  }
+
+  // Session filter (if quest has session markers)
+  const blocks = q.blocks ? q.blocks.map(b => ({...b})) : [];
+  const sessionList = [];
+  for (const b of blocks) {
+    if (b.sessionMarker && !sessionList.includes(b.sessionMarker)) sessionList.push(b.sessionMarker);
+  }
+  if (sessionList.length) {
+    sessionBar.innerHTML = `
+      <div class="qc-session-filter">
+        <button class="qc-session-filter-btn active" data-session="all">All</button>
+        ${sessionList.map(s => `<button class="qc-session-filter-btn ${sessionColorClass(s)}" data-session="${esc(s)}">${esc(s)}</button>`).join("")}
+      </div>`;
+    sessionBar.style.display = "block";
+    sessionBar.querySelectorAll(".qc-session-filter-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        sessionBar.querySelectorAll(".qc-session-filter-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const target = btn.dataset.session;
+        canvasWrap.querySelectorAll(".qc-block-ro").forEach(blk => {
+          blk.style.display = (target === "all" || blk.dataset.session === target) ? "" : "none";
+        });
+      });
+    });
+  } else {
+    sessionBar.style.display = "none";
+    sessionBar.innerHTML = "";
+  }
+
+  // Canvas
+  canvasWrap.innerHTML = "";
+  canvasWrap.appendChild(buildQuestCanvasDOM(q));
+
+  overlay.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeQuestView() {
+  document.getElementById("quest-view").classList.remove("open");
+  document.getElementById("qview-canvas-wrap").innerHTML = "";
+  document.body.style.overflow = "";
+}
+
+document.getElementById("qview-back").addEventListener("click", closeQuestView);
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && document.getElementById("quest-view").classList.contains("open")) closeQuestView();
+});
 
 // ── Quest card drag-and-drop reordering ───────────────────────────────────────
 let questDragSrcId   = null;
