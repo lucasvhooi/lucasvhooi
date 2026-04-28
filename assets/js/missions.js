@@ -498,10 +498,19 @@ qmBlockCanvas.addEventListener("drop", e => {
 });
 
 // ── Firebase: quests ──────────────────────────────────────────────────────────
+let _questRestoredOnLoad = false;
 onValue(questsRef, snapshot => {
   const data = snapshot.val();
   quests = data ? Object.values(data) : [];
   renderGrid();
+  if (!_questRestoredOnLoad) {
+    _questRestoredOnLoad = true;
+    const savedId = loadPageState().openQuestId;
+    if (savedId) {
+      const q = quests.find(x => x.id === savedId);
+      if (q) openQuestView(q);
+    }
+  }
 });
 
 // ── Firebase: markers ─────────────────────────────────────────────────────────
@@ -1064,11 +1073,13 @@ function openQuestView(q) {
   canvasWrap.innerHTML = "";
   canvasWrap.appendChild(buildQuestCanvasDOM(q));
 
+  savePageState({ openQuestId: q.id });
   overlay.classList.add("open");
   document.body.style.overflow = "hidden";
 }
 
 function closeQuestView() {
+  savePageState({ openQuestId: null });
   document.getElementById("quest-view").classList.remove("open");
   document.getElementById("qview-canvas-wrap").innerHTML = "";
   document.body.style.overflow = "";

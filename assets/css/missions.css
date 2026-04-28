@@ -123,30 +123,31 @@
 .quest-grid {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 7px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    QUEST CARD — notebook-page feel
    ═══════════════════════════════════════════════════════════════════════════ */
 .quest-card {
-  background: linear-gradient(180deg, #221509 0%, #1a0f06 100%);
+  background: linear-gradient(180deg, #1e1208 0%, #160d05 100%);
   border: 1px solid #3a2510;
-  border-radius: 12px;
+  border-radius: 8px;
   display: flex;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.45);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.4);
   transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
   position: relative;
+  height: 120px;
 }
 .quest-card:hover {
   box-shadow: 0 6px 24px rgba(0,0,0,0.6);
   border-color: #4a3318;
 }
 
-/* Left colored accent bar — thicker, more prominent */
+/* Left colored accent bar */
 .qc-accent-bar {
-  width: 6px;
+  width: 4px;
   flex-shrink: 0;
   background: var(--accent);
 }
@@ -156,7 +157,7 @@
 
 .qc-body {
   flex: 1;
-  padding: 14px 18px 12px 18px;
+  padding: 9px 14px 8px 12px;
   min-width: 0;
 }
 
@@ -167,9 +168,9 @@
   grid-template-areas:
     "drag title badges"
     ".    summary .";
-  gap: 4px 10px;
+  gap: 2px 8px;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 0;
 }
 
 .qc-drag-handle {
@@ -216,7 +217,7 @@
 
 .qc-title {
   font-family: 'IM Fell English', 'Garamond', serif;
-  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
   color: var(--text);
   margin: 0;
   font-weight: normal;
@@ -287,23 +288,23 @@
   grid-area: summary;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 4px;
+  margin-top: 3px;
 }
 .qc-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   background: rgba(255,255,255,0.02);
   border: 1px solid #2e1c0c;
   color: #9a8670;
-  border-radius: 12px;
-  padding: 2px 10px;
-  font-size: 11px;
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 10px;
   letter-spacing: 0.02em;
 }
-.qc-chip-icon   { font-size: 11px; line-height: 1; }
-.qc-chip-count  { color: var(--text); font-weight: bold; font-size: 11px; }
+.qc-chip-icon   { font-size: 10px; line-height: 1; }
+.qc-chip-count  { color: var(--text); font-weight: bold; font-size: 10px; }
 .qc-chip-phase  { border-color: rgba(255,204,102,0.3); color: #d6b06a; background: rgba(255,204,102,0.04); }
 .qc-chip-phase  .qc-chip-count { color: var(--accent); }
 .qc-chip-boss   { border-color: rgba(239,83,80,0.35);  color: #e57373;  background: rgba(239,83,80,0.05); }
