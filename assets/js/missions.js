@@ -102,11 +102,46 @@ let allItems          = [];   // items from Firebase items tab
 let allLoreItems      = [];   // lore items from Firebase lore tab
 let allCharacters     = [];   // characters from Firebase characters tab
 
-// ── Cell color selection state ────────────────────────────────────────────────
-let isPaintMode     = false;
-let isColorSelecting = false;
-let selAnchor       = null;   // {row, col}
-let selCursor       = null;   // {row, col}
+
+// ── Infinite canvas state ─────────────────────────────────────────────────────
+const BLOCK_DEFAULT_W = 300;
+const BLOCK_DEFAULT_H = 220;
+const SNAP_THRESHOLD  = 10;
+let canvasZoom      = 1;
+let canvasPanX      = 20;
+let canvasPanY      = 20;
+let canvasWorld     = null;   // the world div inside qmBlockCanvas
+let blockDragState   = null;  // {index, startClientX, startClientY, startWorldX, startWorldY, wrap}
+let blockResizeState = null;  // {index, dir, startClientX, startClientY, startW, startH, wrap}
+let canvasPanState   = null;  // {startX, startY, startPanX, startPanY}
+
+let currentConnections = [];  // [{id, from, fromSide, to, toSide, label}]
+let connDragState = null;    // {fromIndex, fromSide, curX, curY, snapToIndex, snapToSide}
+let canvasSvg     = null;  // the SVG overlay element
+let selectedBlockSet = new Set(); // indices of selected blocks
+let blockClipboard   = null;      // deep copy of a block for paste
+let marqueeState     = null;      // {startCX, startCY} – screen-space coords rel. to canvas rect
+let currentGroups    = [];        // [{id, title, color, indices}]
+
+function migrateBlock(b) {
+  if (b.worldX === undefined && b.worldY === undefined) {
+    b.worldX = ((b.col  || 1) - 1) * 320;
+    b.worldY = ((b.row  || 1) - 1) * 240;
+    b.width  = (b.span    || 1) * BLOCK_DEFAULT_W + Math.max(0, (b.span    || 1) - 1) * 20;
+    b.height = (b.rowSpan || 1) * BLOCK_DEFAULT_H + Math.max(0, (b.rowSpan || 1) - 1) * 20;
+  }
+  return b;
+}
+
+function applyCanvasTransform() {
+  if (!canvasWorld) return;
+  canvasWorld.style.transform = `translate(${canvasPanX}px,${canvasPanY}px) scale(${canvasZoom})`;
+}
+
+function resetCanvasView() {
+  canvasZoom = 1; canvasPanX = 20; canvasPanY = 20;
+  applyCanvasTransform();
+}
 
 // ── Undo / redo / autosave state ──────────────────────────────────────────────
 const UNDO_LIMIT     = 80;
@@ -119,6 +154,158 @@ let draftKey         = null;       // set on openModal
 let hasUnsavedChanges = false;
 let isPlayerPreview  = false;
 
+function applyBlockBgColor(wrap, color) {
+  wrap.style.background = color ? hexToRgba(color, 0.22) : "";
+}
+
+const CONN_SIDES = ['top', 'right', 'bottom', 'left'];
+
+function blockPortPos(block, side, el) {
+  const w = block.width || BLOCK_DEFAULT_W;
+  const h = el ? el.offsetHeight : (block.height || BLOCK_DEFAULT_H);
+  switch (side) {
+    case 'top':    return { x: block.worldX + w / 2, y: block.worldY };
+    case 'right':  return { x: block.worldX + w,     y: block.worldY + h / 2 };
+    case 'bottom': return { x: block.worldX + w / 2, y: block.worldY + h };
+    case 'left':   return { x: block.worldX,          y: block.worldY + h / 2 };
+  }
+}
+
+function sideControlVec(side, d) {
+  switch (side) {
+    case 'right':  return { dx: d, dy: 0 };
+    case 'left':   return { dx: -d, dy: 0 };
+    case 'bottom': return { dx: 0, dy: d };
+    case 'top':    return { dx: 0, dy: -d };
+    default:       return { dx: d, dy: 0 };
+  }
+}
+
+// ── Group helpers ─────────────────────────────────────────────────────────────
+const GROUP_PAD = 20, GROUP_TOP = 38;
+
+function getGroupBounds(group) {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  group.indices.forEach(idx => {
+    const b = currentBlocks[idx];
+    if (!b) return;
+    const el = canvasWorld?.querySelector(`[data-index="${idx}"]`);
+    const w = b.width || BLOCK_DEFAULT_W;
+    const h = el?.offsetHeight || b.height || BLOCK_DEFAULT_H;
+    minX = Math.min(minX, b.worldX || 0); minY = Math.min(minY, b.worldY || 0);
+    maxX = Math.max(maxX, (b.worldX || 0) + w);
+    maxY = Math.max(maxY, (b.worldY || 0) + h);
+  });
+  if (!isFinite(minX)) return null;
+  return { x: minX - GROUP_PAD, y: minY - GROUP_TOP, w: maxX - minX + GROUP_PAD * 2, h: maxY - minY + GROUP_TOP + GROUP_PAD };
+}
+
+function buildGroupsInEditor() {
+  canvasWorld?.querySelectorAll(".blk-group").forEach(el => el.remove());
+  currentGroups.forEach((group, gi) => {
+    const bounds = getGroupBounds(group);
+    if (!bounds) return;
+
+    const el = document.createElement("div");
+    el.className = "blk-group";
+    el.dataset.groupIndex = String(gi);
+    el.style.left = bounds.x + "px"; el.style.top = bounds.y + "px";
+    el.style.width = bounds.w + "px"; el.style.height = bounds.h + "px";
+    const col = group.color || "#ffcc66";
+    el.style.background   = hexToRgba(col, 0.1);
+    el.style.borderColor  = hexToRgba(col, 0.45);
+    el.style.setProperty("--grp-col", col);
+
+    el.innerHTML = `
+      <div class="blk-group-header">
+        <input class="blk-group-title" type="text" value="${esc(group.title || "")}" placeholder="Group name…" />
+        <label class="blk-group-color-label" title="Group color">
+          <span class="blk-group-swatch" style="background:${col}"></span>
+          <input type="color" class="blk-group-color-pick" value="${col}" />
+        </label>
+        <button type="button" class="blk-group-del" title="Ungroup (keeps blocks)">&#10005;</button>
+      </div>`;
+
+    const titleInp = el.querySelector(".blk-group-title");
+    titleInp.addEventListener("input", e2 => { currentGroups[gi].title = e2.target.value; onEditTick(); });
+    titleInp.addEventListener("pointerdown", e2 => e2.stopPropagation());
+
+    const colorPick = el.querySelector(".blk-group-color-pick");
+    const swatch = el.querySelector(".blk-group-swatch");
+    colorPick.addEventListener("input", e2 => {
+      currentGroups[gi].color = e2.target.value;
+      el.style.background  = hexToRgba(e2.target.value, 0.1);
+      el.style.borderColor = hexToRgba(e2.target.value, 0.45);
+      el.style.setProperty("--grp-col", e2.target.value);
+      swatch.style.background = e2.target.value;
+      onEditTick();
+    });
+    colorPick.addEventListener("pointerdown", e2 => e2.stopPropagation());
+
+    el.querySelector(".blk-group-del").addEventListener("click", () => {
+      currentGroups.splice(gi, 1);
+      onEditTick();
+      buildGroupsInEditor();
+    });
+
+    // Drag group header → move all member blocks
+    const hdr = el.querySelector(".blk-group-header");
+    hdr.addEventListener("pointerdown", e2 => {
+      if (e2.button !== 0) return;
+      if (e2.target.closest("button, input, label")) return;
+      e2.stopPropagation();
+      hdr.setPointerCapture(e2.pointerId);
+      const members = group.indices.filter(idx => currentBlocks[idx]).map(idx => ({
+        idx,
+        startX: currentBlocks[idx].worldX || 0,
+        startY: currentBlocks[idx].worldY || 0,
+        el: canvasWorld.querySelector(`[data-index="${idx}"]`),
+      }));
+      const startCX = e2.clientX, startCY = e2.clientY;
+      const startBX = bounds.x, startBY = bounds.y;
+
+      const onMove = e3 => {
+        const dx = (e3.clientX - startCX) / canvasZoom;
+        const dy = (e3.clientY - startCY) / canvasZoom;
+        members.forEach(m => {
+          const b = currentBlocks[m.idx];
+          b.worldX = m.startX + dx; b.worldY = m.startY + dy;
+          if (m.el) { m.el.style.left = b.worldX + "px"; m.el.style.top = b.worldY + "px"; }
+        });
+        el.style.left = (startBX + dx) + "px"; el.style.top = (startBY + dy) + "px";
+        renderConnections();
+      };
+      const onUp = () => {
+        hdr.removeEventListener("pointermove", onMove);
+        hdr.removeEventListener("pointerup", onUp);
+        onEditTick();
+        requestAnimationFrame(buildGroupsInEditor);
+      };
+      hdr.addEventListener("pointermove", onMove);
+      hdr.addEventListener("pointerup", onUp);
+    });
+
+    canvasWorld.appendChild(el);
+  });
+}
+
+function remapGroupsAfterInsert(insertAt) {
+  currentGroups = currentGroups.map(g => ({
+    ...g, indices: g.indices.map(idx => idx >= insertAt ? idx + 1 : idx),
+  }));
+}
+
+function remapGroupsAfterDelete(deletedArr) {
+  const deletedSet = new Set(deletedArr);
+  const sorted = [...deletedArr].sort((a, b) => a - b);
+  currentGroups = currentGroups.map(g => ({
+    ...g,
+    indices: g.indices
+      .filter(idx => !deletedSet.has(idx))
+      .map(idx => idx - sorted.filter(d => d < idx).length),
+  })).filter(g => g.indices.length > 0);
+}
+
 function hexToRgba(hex, alpha) {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -126,44 +313,6 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-function getSelRect() {
-  if (!selAnchor || !selCursor) return null;
-  return {
-    r1: Math.min(selAnchor.row, selCursor.row), r2: Math.max(selAnchor.row, selCursor.row),
-    c1: Math.min(selAnchor.col, selCursor.col), c2: Math.max(selAnchor.col, selCursor.col),
-  };
-}
-
-function getSelectedKeys() {
-  const rect = getSelRect();
-  if (!rect) return new Set();
-  const s = new Set();
-  for (let r = rect.r1; r <= rect.r2; r++)
-    for (let c = rect.c1; c <= rect.c2; c++) s.add(`${r},${c}`);
-  return s;
-}
-
-function updateColorSelection() {
-  const sel = getSelectedKeys();
-  qmBlockCanvas.querySelectorAll("[data-row][data-col]").forEach(el => {
-    el.classList.toggle("cell-sel", sel.has(`${el.dataset.row},${el.dataset.col}`));
-  });
-  const count = document.getElementById("qm-color-sel-count");
-  if (count) count.textContent = sel.size ? `${sel.size} cell${sel.size > 1 ? "s" : ""} selected` : "";
-}
-
-function applyColorToSelection(color) {
-  const sel = getSelectedKeys();
-  if (!sel.size) return;
-  sel.forEach(key => { if (color) currentCellColors[key] = color; else delete currentCellColors[key]; });
-  selAnchor = selCursor = null;
-  onEditTick();
-  buildBlocksEditor();
-}
-
-function cellColorForBlock(block) {
-  return currentCellColors[`${block.row},${block.col}`] || null;
-}
 
 onValue(ref(db, "enemyTemplates"), snap => {
   const data = snap.val();
@@ -200,9 +349,6 @@ const qmSave         = document.getElementById("qm-save");
 const qmCancel       = document.getElementById("qm-cancel");
 const qmBlockCanvas  = document.getElementById("qm-block-canvas");
 const qmTypeSelector   = document.getElementById("qm-type-selector");
-const qmPaintBtn       = document.getElementById("qm-paint-btn");
-const qmColorToolbar   = document.getElementById("qm-color-toolbar");
-const qmColorSelCount  = document.getElementById("qm-color-sel-count");
 const qmUndoBtn        = document.getElementById("qm-undo-btn");
 const qmRedoBtn        = document.getElementById("qm-redo-btn");
 const qmAutosaveStatus = document.getElementById("qm-autosave-status");
@@ -225,48 +371,131 @@ function ensurePreviewPanel() {
 
 let selectedType = "main";
 
-// ── Paint mode toggle ─────────────────────────────────────────────────────────
-qmPaintBtn.addEventListener("click", () => {
-  isPaintMode = !isPaintMode;
-  qmPaintBtn.classList.toggle("active", isPaintMode);
-  qmColorToolbar.style.display = isPaintMode ? "flex" : "none";
-  if (!isPaintMode) { selAnchor = selCursor = null; updateColorSelection(); }
-});
+document.getElementById("qm-zoom-reset-btn")?.addEventListener("click", resetCanvasView);
 
-// ── Canvas drag-select for cell coloring ──────────────────────────────────────
-qmBlockCanvas.addEventListener("mousedown", e => {
-  if (!isPaintMode) return;
-  const el = e.target.closest("[data-row][data-col]");
-  if (!el) return;
-  if (e.target.closest("input,textarea,button,select,[contenteditable],.blk-drag-handle")) return;
-  if (e.button !== 0) return;
-  isColorSelecting = true;
-  selAnchor = { row: +el.dataset.row, col: +el.dataset.col };
-  selCursor = { ...selAnchor };
-  updateColorSelection();
+// ── Infinite canvas: wheel zoom ───────────────────────────────────────────────
+qmBlockCanvas.addEventListener("wheel", e => {
+  if (e.target.closest(".blk-body")) return;
   e.preventDefault();
+  const rect = qmBlockCanvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  const factor = e.deltaY < 0 ? 1.1 : 0.9;
+  const newZoom = Math.max(0.15, Math.min(3, canvasZoom * factor));
+  const wx = (mouseX - canvasPanX) / canvasZoom;
+  const wy = (mouseY - canvasPanY) / canvasZoom;
+  canvasPanX = mouseX - wx * newZoom;
+  canvasPanY = mouseY - wy * newZoom;
+  canvasZoom = newZoom;
+  applyCanvasTransform();
+}, { passive: false });
+
+// ── Marquee helper ────────────────────────────────────────────────────────────
+const marqueeEl = document.createElement("div");
+marqueeEl.className = "canvas-marquee";
+marqueeEl.style.display = "none";
+qmBlockCanvas.appendChild(marqueeEl);
+
+function refreshSelectionClasses() {
+  canvasWorld?.querySelectorAll(".qm-block").forEach(el => {
+    el.classList.toggle("blk-selected", selectedBlockSet.has(parseInt(el.dataset.index)));
+  });
+}
+
+// ── Infinite canvas: middle-mouse pans, left-mouse marquee-selects ────────────
+qmBlockCanvas.addEventListener("mousedown", e => { if (e.button === 1) e.preventDefault(); });
+qmBlockCanvas.addEventListener("pointerdown", e => {
+  if (blockDragState) return;
+  const t = e.target;
+  if (t !== qmBlockCanvas && t !== canvasWorld) return;
+
+  if (e.button === 1) {
+    // Middle mouse → pan
+    canvasPanState = { startX: e.clientX, startY: e.clientY, startPanX: canvasPanX, startPanY: canvasPanY };
+    qmBlockCanvas.setPointerCapture(e.pointerId);
+    qmBlockCanvas.style.cursor = "grabbing";
+    e.preventDefault();
+    return;
+  }
+
+  if (e.button === 0) {
+    // Left mouse → start marquee selection
+    if (!e.shiftKey) { selectedBlockSet.clear(); refreshSelectionClasses(); }
+    const rect = qmBlockCanvas.getBoundingClientRect();
+    marqueeState = { startCX: e.clientX - rect.left, startCY: e.clientY - rect.top };
+    qmBlockCanvas.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  }
+});
+qmBlockCanvas.addEventListener("pointermove", e => {
+  if (canvasPanState) {
+    canvasPanX = canvasPanState.startPanX + (e.clientX - canvasPanState.startX);
+    canvasPanY = canvasPanState.startPanY + (e.clientY - canvasPanState.startY);
+    applyCanvasTransform();
+    return;
+  }
+  if (marqueeState) {
+    const rect = qmBlockCanvas.getBoundingClientRect();
+    const curCX = e.clientX - rect.left, curCY = e.clientY - rect.top;
+    const x = Math.min(marqueeState.startCX, curCX);
+    const y = Math.min(marqueeState.startCY, curCY);
+    const w = Math.abs(curCX - marqueeState.startCX);
+    const h = Math.abs(curCY - marqueeState.startCY);
+    if (w > 4 || h > 4) {
+      marqueeEl.style.display = "block";
+      marqueeEl.style.left = x + "px"; marqueeEl.style.top  = y + "px";
+      marqueeEl.style.width = w + "px"; marqueeEl.style.height = h + "px";
+    }
+  }
+});
+qmBlockCanvas.addEventListener("pointerup", e => {
+  if (canvasPanState) { canvasPanState = null; qmBlockCanvas.style.cursor = ""; return; }
+  if (marqueeState) {
+    const rect = qmBlockCanvas.getBoundingClientRect();
+    const curCX = e.clientX - rect.left, curCY = e.clientY - rect.top;
+    const sx1 = Math.min(marqueeState.startCX, curCX), sx2 = Math.max(marqueeState.startCX, curCX);
+    const sy1 = Math.min(marqueeState.startCY, curCY), sy2 = Math.max(marqueeState.startCY, curCY);
+    if (sx2 - sx1 > 4 || sy2 - sy1 > 4) {
+      // Convert screen marquee to world space
+      const wx1 = (sx1 - canvasPanX) / canvasZoom, wy1 = (sy1 - canvasPanY) / canvasZoom;
+      const wx2 = (sx2 - canvasPanX) / canvasZoom, wy2 = (sy2 - canvasPanY) / canvasZoom;
+      currentBlocks.forEach((b, idx) => {
+        const bel = canvasWorld?.querySelector(`[data-index="${idx}"]`);
+        const bx1 = b.worldX || 0, by1 = b.worldY || 0;
+        const bx2 = bx1 + (b.width || BLOCK_DEFAULT_W);
+        const by2 = by1 + (bel?.offsetHeight || b.height || BLOCK_DEFAULT_H);
+        if (bx2 > wx1 && bx1 < wx2 && by2 > wy1 && by1 < wy2) selectedBlockSet.add(idx);
+      });
+      refreshSelectionClasses();
+    }
+    marqueeEl.style.display = "none";
+    marqueeState = null;
+  }
 });
 
-qmBlockCanvas.addEventListener("mouseover", e => {
-  if (!isColorSelecting) return;
-  const el = e.target.closest("[data-row][data-col]");
-  if (!el) return;
-  selCursor = { row: +el.dataset.row, col: +el.dataset.col };
-  updateColorSelection();
+// ── Palette drag → canvas: drop to place at cursor position ───────────────────
+qmBlockCanvas.addEventListener("dragover", e => {
+  if (dragPaletteType === null && dragPaletteTemplate === null) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "copy";
 });
-
-document.addEventListener("mouseup", () => {
-  if (!isColorSelecting) return;
-  isColorSelecting = false;
+qmBlockCanvas.addEventListener("drop", e => {
+  if (dragPaletteType === null && dragPaletteTemplate === null) return;
+  e.preventDefault();
+  const rect = qmBlockCanvas.getBoundingClientRect();
+  const worldX = (e.clientX - rect.left - canvasPanX) / canvasZoom - BLOCK_DEFAULT_W / 2;
+  const worldY = (e.clientY - rect.top  - canvasPanY) / canvasZoom - BLOCK_DEFAULT_H / 2;
+  if (dragPaletteType !== null) {
+    currentBlocks.push({ ...BLOCK_DEFAULTS[dragPaletteType], worldX, worldY, width: BLOCK_DEFAULT_W, height: BLOCK_DEFAULT_H });
+    dragPaletteType = null;
+  } else if (dragPaletteTemplate !== null) {
+    applyTemplateAtPosition(dragPaletteTemplate, worldX, worldY);
+    dragPaletteTemplate = null;
+  }
+  qmBlockCanvas.classList.remove("qm-drag-active");
+  onEditTick();
+  buildBlocksEditor();
 });
-
-// ── Color swatches ────────────────────────────────────────────────────────────
-qmColorToolbar.querySelectorAll(".qm-color-swatch").forEach(btn => {
-  btn.addEventListener("click", () => applyColorToSelection(btn.dataset.color || ""));
-});
-
-const qmColorPick = document.getElementById("qm-color-pick");
-qmColorPick.addEventListener("input", () => applyColorToSelection(qmColorPick.value));
 
 // ── Firebase: quests ──────────────────────────────────────────────────────────
 onValue(questsRef, snapshot => {
@@ -380,6 +609,217 @@ function renderGrid() {
 // ── Quest card ────────────────────────────────────────────────────────────────
 const STATUS_LABEL = { active: "Active", not_started: "Not Started", completed: "Completed" };
 const STATUS_CLASS = { active: "status-active", not_started: "status-pending", completed: "status-done" };
+
+const BLOCK_TYPE_ICON  = { text:"&#182;", phase:"&#9654;", loot:"&#127873;", boss:"&#9760;", puzzle:"&#129513;", character:"&#128100;", loreref:"&#128218;", note:"&#128196;", divider:"&#8213;" };
+const BLOCK_TYPE_LABEL = { text:"Text", phase:"Phase", loot:"Loot", boss:"Enemy", puzzle:"Puzzle", character:"Character", loreref:"Lore", note:"DM Note", divider:"Divider" };
+
+function buildBlockROContent(b) {
+  const titleHtml = b.blockTitle && b.type !== "divider"
+    ? `<div class="qcro-block-title"${b.titleColor ? ` style="color:${esc(b.titleColor)}"` : ""}>${esc(b.blockTitle)}</div>`
+    : "";
+  switch (b.type) {
+    case "text":
+      return titleHtml + `<div class="qcro-text">${contentToHtml(b.content || "")}</div>`;
+    case "phase":
+      return titleHtml +
+        `<div class="qcro-phase-title">&#9654; ${esc(b.title || "Phase")}</div>` +
+        (b.description ? `<div class="qcro-text">${contentToHtml(b.description)}</div>` : "");
+    case "loot": {
+      const items = b.items?.length ? b.items : (b.name ? [{name:b.name,value:b.value||""}] : []);
+      if (!items.length) return titleHtml;
+      return titleHtml + items.map(it => `<div class="qcro-loot-row"><span class="qcb-loot-icon">&#127873;</span><span>${esc(it.name)}</span>${it.value ? `<span class="qcb-loot-value">${esc(it.value)}</span>` : ""}</div>`).join("");
+    }
+    case "boss": {
+      const enemies = b.enemies?.length ? b.enemies : (b.name ? [{name:b.name,cr:b.cr||"",ac:b.ac||"",hp:b.hp||"",notes:b.notes||""}] : []);
+      if (!enemies.length) return titleHtml;
+      return titleHtml + enemies.map(en => `<div class="qcro-boss-row"><span class="qcb-boss-icon">&#9760;</span><span class="qcb-boss-name">${esc(en.name)}</span>${en.cr?`<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>`:""}${en.ac?`<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>`:""}${en.hp?`<span class="qcb-boss-stat">HP ${esc(en.hp)}</span>`:""}</div>${en.notes?`<p class="qcro-text">${escBr(en.notes)}</p>`:""}`).join("");
+    }
+    case "puzzle":
+      return titleHtml +
+        `<div class="qcro-phase-title">&#129513; ${esc(b.title || "Puzzle")}</div>` +
+        (b.description ? `<div class="qcro-text">${escBr(b.description)}</div>` : "") +
+        (b.hint ? `<div class="qcro-hint">&#128161; ${esc(b.hint)}</div>` : "") +
+        (isAdmin && b.solution ? `<div class="qcro-solution">&#128273; ${esc(b.solution)}</div>` : "");
+    case "character": {
+      const chars = b.characters || [];
+      if (!chars.length) return titleHtml;
+      return titleHtml + chars.map(ch => `<div class="qcro-char-row">${ch.picture?`<img class="char-item-pic" src="${esc(ch.picture)}" alt="">`:`<div class="char-item-pic char-item-pic-ph">&#128100;</div>`}<div><div class="char-item-name">${esc(ch.name)}</div>${ch.profession?`<div class="char-item-meta">${esc(ch.profession)}</div>`:""}</div></div>`).join("");
+    }
+    case "note":
+      if (!isAdmin || !b.content) return "";
+      return titleHtml + `<div class="qcro-note">&#128196; ${escBr(b.content)}</div>`;
+    case "loreref": {
+      const items = b.items || [];
+      if (!items.length) return titleHtml;
+      return titleHtml + items.map(it => `<div class="qcro-lore-row"><span>${it.type==="scroll"?"&#128220;":"&#128218;"}</span><span>${esc(it.title||"")}</span></div>`).join("");
+    }
+    case "divider":
+      return b.title ? `<div class="qcro-divider-line"><span>${esc(b.title)}</span></div>` : `<div class="qcro-divider-line"></div>`;
+    default:
+      return "";
+  }
+}
+
+function buildQuestCanvasDOM(q) {
+  const blocks = q.blocks ? q.blocks.map(b => migrateBlock({...b})) : [];
+  const connections = q.connections || [];
+  const groups = q.groups || [];
+
+  const container = document.createElement("div");
+  container.className = "qc-ro-canvas";
+
+  if (!blocks.length) {
+    container.innerHTML = `<div class="qc-ro-empty">No blocks yet.</div>`;
+    return container;
+  }
+
+  const world = document.createElement("div");
+  world.className = "qc-ro-world";
+
+  const arrowId = `qcro-arrow-${q.id || Math.random().toString(36).slice(2)}`;
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "qm-canvas-svg");
+  svg.innerHTML = `<defs><marker id="${arrowId}" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="rgba(255,204,102,0.7)"/></marker></defs>`;
+  world.appendChild(svg);
+
+  // Render groups behind blocks (uses same bounds logic as editor, but with local blocks array)
+  groups.forEach(group => {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    (group.indices || []).forEach(idx => {
+      const b = blocks[idx];
+      if (!b) return;
+      const w = b.width || BLOCK_DEFAULT_W, h = b.height || BLOCK_DEFAULT_H;
+      minX = Math.min(minX, b.worldX || 0); minY = Math.min(minY, b.worldY || 0);
+      maxX = Math.max(maxX, (b.worldX || 0) + w);
+      maxY = Math.max(maxY, (b.worldY || 0) + h);
+    });
+    if (!isFinite(minX)) return;
+    const bx = minX - GROUP_PAD, by = minY - GROUP_TOP;
+    const bw = maxX - minX + GROUP_PAD * 2, bh = maxY - minY + GROUP_TOP + GROUP_PAD;
+    const col = group.color || "#ffcc66";
+    const gel = document.createElement("div");
+    gel.className = "blk-group qc-group-ro";
+    gel.style.left = bx + "px"; gel.style.top = by + "px";
+    gel.style.width = bw + "px"; gel.style.height = bh + "px";
+    gel.style.background  = hexToRgba(col, 0.1);
+    gel.style.borderColor = hexToRgba(col, 0.45);
+    if (group.title) {
+      gel.innerHTML = `<div class="blk-group-header qc-group-ro-header" style="pointer-events:none">
+        <span class="blk-group-title" style="background:transparent;border:none;color:rgba(255,220,150,0.85);font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase">${esc(group.title)}</span>
+        <span class="blk-group-swatch" style="background:${col};width:10px;height:10px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,0.15)"></span>
+      </div>`;
+    }
+    world.appendChild(gel);
+  });
+
+  blocks.forEach((b, idx) => {
+    if (!isAdmin && b.type === "note") return;
+    const wrap = document.createElement("div");
+    wrap.className = "qm-block qc-block-ro";
+    wrap.dataset.index = String(idx);
+    wrap.dataset.session = b.sessionMarker || "";
+    wrap.style.left  = `${b.worldX || 0}px`;
+    wrap.style.top   = `${b.worldY || 0}px`;
+    wrap.style.width = `${b.width  || BLOCK_DEFAULT_W}px`;
+    if (b.height) wrap.style.minHeight = `${b.height}px`;
+    if (b.bgColor) wrap.style.background = hexToRgba(b.bgColor, 0.22);
+
+    const sessionPill = b.sessionMarker
+      ? `<span class="qcro-session-pill ${sessionColorClass(b.sessionMarker)}">${esc(b.sessionMarker)}</span>`
+      : "";
+    wrap.innerHTML = `
+      <div class="blk-header qcro-header">
+        <span class="blk-type-icon">${BLOCK_TYPE_ICON[b.type] || ""}</span>
+        <span class="blk-type-label">${BLOCK_TYPE_LABEL[b.type] || b.type}</span>
+        ${sessionPill}
+      </div>
+      <div class="blk-body">${buildBlockROContent(b)}</div>`;
+    world.appendChild(wrap);
+  });
+
+  container.appendChild(world);
+
+  let roZoom = 1, roPanX = 0, roPanY = 0, roPanState = null;
+
+  const applyROTransform = () => {
+    world.style.transform = `translate(${roPanX}px,${roPanY}px) scale(${roZoom})`;
+  };
+
+  const autoFit = () => {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    blocks.forEach(b => {
+      const x = b.worldX||0, y = b.worldY||0;
+      const w = b.width||BLOCK_DEFAULT_W, h = b.height||BLOCK_DEFAULT_H;
+      minX = Math.min(minX,x); minY = Math.min(minY,y);
+      maxX = Math.max(maxX,x+w); maxY = Math.max(maxY,y+h);
+    });
+    const pad = 24;
+    const bw = maxX - minX + pad*2, bh = maxY - minY + pad*2;
+    const cw = container.offsetWidth || 400, ch = container.offsetHeight || 400;
+    roZoom = Math.min(1, cw/bw, ch/bh);
+    roPanX = (cw - bw*roZoom)/2 - (minX - pad)*roZoom;
+    roPanY = (ch - bh*roZoom)/2 - (minY - pad)*roZoom;
+    applyROTransform();
+    renderROConns();
+  };
+
+  const renderROConns = () => {
+    svg.querySelectorAll(".conn-path").forEach(el => el.remove());
+    connections.forEach(conn => {
+      const fb = blocks[conn.from], tb = blocks[conn.to];
+      if (!fb || !tb) return;
+      const fromEl = world.querySelector(`[data-index="${conn.from}"]`);
+      const toEl   = world.querySelector(`[data-index="${conn.to}"]`);
+      const fromSide = conn.fromSide || "right", toSide = conn.toSide || "left";
+      const p1 = blockPortPos(fb, fromSide, fromEl);
+      const p2 = blockPortPos(tb, toSide,   toEl);
+      const off = Math.max(50, Math.abs(p2.x-p1.x)*0.45, Math.abs(p2.y-p1.y)*0.45);
+      const cv1 = sideControlVec(fromSide, off), cv2 = sideControlVec(toSide, off);
+      const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+      path.setAttribute("d", `M${p1.x},${p1.y} C${p1.x+cv1.dx},${p1.y+cv1.dy} ${p2.x+cv2.dx},${p2.y+cv2.dy} ${p2.x},${p2.y}`);
+      path.setAttribute("class","conn-path");
+      path.setAttribute("marker-end",`url(#${arrowId})`);
+      svg.appendChild(path);
+    });
+  };
+
+  // Auto-fit once when the canvas first becomes visible
+  let hasFit = false;
+  const fitObserver = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && !hasFit) { hasFit = true; autoFit(); fitObserver.disconnect(); }
+  }, { threshold: 0.01 });
+  fitObserver.observe(container);
+
+  container.addEventListener("wheel", e => {
+    e.preventDefault();
+    const rect = container.getBoundingClientRect();
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    const factor = e.deltaY < 0 ? 1.1 : 0.9;
+    const newZoom = Math.max(0.1, Math.min(3, roZoom * factor));
+    const wx = (mx - roPanX)/roZoom, wy = (my - roPanY)/roZoom;
+    roPanX = mx - wx*newZoom; roPanY = my - wy*newZoom;
+    roZoom = newZoom;
+    applyROTransform();
+  }, { passive: false });
+
+  container.addEventListener("mousedown", e => { if (e.button === 1) e.preventDefault(); });
+  container.addEventListener("pointerdown", e => {
+    if (e.button !== 0 && e.button !== 1) return;
+    e.preventDefault();
+    container.setPointerCapture(e.pointerId);
+    roPanState = { startX: e.clientX, startY: e.clientY, startPanX: roPanX, startPanY: roPanY };
+    container.style.cursor = "grabbing";
+  });
+  container.addEventListener("pointermove", e => {
+    if (!roPanState) return;
+    roPanX = roPanState.startPanX + (e.clientX - roPanState.startX);
+    roPanY = roPanState.startPanY + (e.clientY - roPanState.startY);
+    applyROTransform();
+  });
+  container.addEventListener("pointerup", () => { roPanState = null; container.style.cursor = ""; });
+
+  return container;
+}
 
 // Builds a grid HTML string that exactly mirrors the editor layout (explicit row/col, ghost cells, dynamic row heights)
 function buildCardGrid(blocks, cellColors) {
@@ -524,7 +964,6 @@ function buildCard(q) {
   card.className = `quest-card quest-${q.type || "main"}${q.status === "completed" ? " quest-completed" : ""}${startOpen ? "" : " qc-folded"}`;
   card.dataset.questId = q.id;
   const blocks = q.blocks ? q.blocks.map(b => ({ ...b })) : [];
-  const cardGridHtml = buildCardChapters(blocks, q.cellColors || {});
 
   // Session filter bar — list each unique session present, in first-seen order
   const sessionList = [];
@@ -557,9 +996,7 @@ function buildCard(q) {
         ${buildSummaryChips(blocks)}
         ${sessionFilterHtml}
       </div>
-      <div class="qc-content">
-        ${cardGridHtml}
-      </div>
+      <div class="qc-content"></div>
     </div>
     ${isAdmin ? `
       <div class="qc-actions">
@@ -568,18 +1005,20 @@ function buildCard(q) {
       </div>` : ""}
   `;
 
-  // Session filter tab clicks
+  // Append read-only canvas into .qc-content
+  const qcContent = card.querySelector(".qc-content");
+  qcContent.appendChild(buildQuestCanvasDOM(q));
+
+  // Session filter tab clicks — show/hide canvas blocks by session marker
   card.querySelectorAll(".qc-session-filter-btn").forEach(btn => {
     btn.addEventListener("click", e => {
       e.stopPropagation();
       card.querySelectorAll(".qc-session-filter-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       const target = btn.dataset.session;
-      card.querySelectorAll(".qcb-cell, .qcb-divider-cell").forEach(cell => {
-        if (target === "all") { cell.classList.remove("session-hidden"); return; }
-        const pill = cell.querySelector(".qcb-session-pill");
-        const marker = pill?.textContent.trim();
-        cell.classList.toggle("session-hidden", marker !== target);
+      card.querySelectorAll(".qc-block-ro").forEach(blk => {
+        if (target === "all") { blk.style.display = ""; return; }
+        blk.style.display = (blk.dataset.session === target) ? "" : "none";
       });
     });
   });
@@ -596,27 +1035,6 @@ function buildCard(q) {
     const openSet = new Set(st.openQuests || []);
     if (folded) openSet.delete(q.id); else openSet.add(q.id);
     savePageState({ openQuests: [...openSet] });
-  });
-
-  // Chapter collapse/expand
-  card.querySelectorAll(".qc-chapter-header").forEach(header => {
-    header.addEventListener("click", () => {
-      const open = header.dataset.open === "true";
-      header.dataset.open = String(!open);
-      header.querySelector(".qc-chapter-arrow").textContent = open ? "▶" : "▼";
-      header.nextElementSibling.style.display = open ? "none" : "";
-    });
-  });
-
-  // Phase expand inside card
-  card.querySelectorAll(".qc-phase-toggle").forEach(btn => {
-    const body = btn.nextElementSibling;
-    btn.addEventListener("click", () => {
-      const open = btn.dataset.open === "true";
-      btn.dataset.open = String(!open);
-      body.style.display = open ? "none" : "block";
-      btn.querySelector(".toggle-arrow").textContent = open ? "▶" : "▼";
-    });
   });
 
   if (isAdmin) {
@@ -848,6 +1266,8 @@ function openModal(q) {
   } else {
     currentBlocks = [];
   }
+  currentConnections = q?.connections ? JSON.parse(JSON.stringify(q.connections)) : [];
+  currentGroups      = q?.groups      ? JSON.parse(JSON.stringify(q.groups))      : [];
   qmTitle.textContent  = q ? "Edit Quest" : "New Quest";
   qmName.value         = q ? (q.title    || "") : "";
   qmLocationInp.value  = q ? (q.location || "") : "";
@@ -864,6 +1284,7 @@ function openModal(q) {
   setAutosaveStatus("saved", "All changes saved");
 
   syncTypeBtns();
+  resetCanvasView();
   buildBlocksEditor();
   questModal.classList.add("open");
   qmName.focus();
@@ -878,7 +1299,8 @@ function openModal(q) {
 function closeModal() {
   questModal.classList.remove("open");
   editingId = null; currentBlocks = []; currentCellColors = {};
-  selAnchor = selCursor = null; isColorSelecting = false;
+  blockDragState = null; blockResizeState = null; canvasPanState = null; connDragState = null;
+  currentConnections = []; canvasSvg = null; currentGroups = []; selectedBlockSet.clear(); marqueeState = null;
   hideDrop(qmLocationDrop);
   hideSlashMenu();
   setPreviewMode(false);
@@ -895,14 +1317,15 @@ qmSave.addEventListener("click", async () => {
   if (!title) { qmError.textContent = "Title is required."; return; }
   qmError.textContent = "";
   const payload = {
-    id:         editingId || push(questsRef).key,
+    id:          editingId || push(questsRef).key,
     title,
-    type:       selectedType,
-    location:   qmLocationInp.value.trim() || null,
-    status:     qmStatus.value,
-    blocks:     currentBlocks.length > 0 ? currentBlocks : null,
-    cellColors: Object.keys(currentCellColors).length ? { ...currentCellColors } : null,
-    discovered: qmDiscovered.checked,
+    type:        selectedType,
+    location:    qmLocationInp.value.trim() || null,
+    status:      qmStatus.value,
+    blocks:      currentBlocks.length > 0 ? currentBlocks : null,
+    discovered:  qmDiscovered.checked,
+    connections: currentConnections.length > 0 ? currentConnections : null,
+    groups:      currentGroups.length > 0 ? currentGroups : null,
   };
   await set(ref(db, `quests/${payload.id}`), payload);
   // Clear local draft on successful save
@@ -931,29 +1354,28 @@ function syncTypeBtns() {
 
 // ── Block defaults (module scope for palette drag) ────────────────────────────
 const BLOCK_DEFAULTS = {
-  text:    { type: "text",    content: "",     blockTitle: "", titleColor: "", span: 1, rowSpan: 1, textAlign: "left" },
-  phase:   { type: "phase",   title: "",   description: "", blockTitle: "", titleColor: "", span: 1, rowSpan: 1, textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
-  loot:    { type: "loot",    items: [],   blockTitle: "", titleColor: "", span: 1, rowSpan: 1, textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
-  boss:    { type: "boss",    enemies: [], blockTitle: "", titleColor: "", span: 1, rowSpan: 1, textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
-  note:    { type: "note",    content: "", blockTitle: "", titleColor: "", span: 1, rowSpan: 1, textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
-  puzzle:  { type: "puzzle",  title: "",   description: "", hint: "", solution: "", blockTitle: "", titleColor: "", span: 1, rowSpan: 1, textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
-  divider:   { type: "divider",   title: "", span: 4, rowSpan: 1 },
-  character: { type: "character", characters: [], blockTitle: "", titleColor: "", span: 1, rowSpan: 1 },
-  loreref:   { type: "loreref",   items: [],      blockTitle: "", titleColor: "", span: 1, rowSpan: 1 },
+  text:    { type: "text",    content: "",     blockTitle: "", titleColor: "", textAlign: "left" },
+  phase:   { type: "phase",   title: "",   description: "", blockTitle: "", titleColor: "", textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
+  loot:    { type: "loot",    items: [],   blockTitle: "", titleColor: "", textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
+  boss:    { type: "boss",    enemies: [], blockTitle: "", titleColor: "", textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
+  note:    { type: "note",    content: "", blockTitle: "", titleColor: "", textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
+  puzzle:  { type: "puzzle",  title: "",   description: "", hint: "", solution: "", blockTitle: "", titleColor: "", textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
+  divider:   { type: "divider",   title: "" },
+  character: { type: "character", characters: [], blockTitle: "", titleColor: "" },
+  loreref:   { type: "loreref",   items: [],      blockTitle: "", titleColor: "" },
 };
 
 // ── Block palette ─────────────────────────────────────────────────────────────
 document.querySelectorAll(".qm-add-block-btn").forEach(btn => {
   btn.addEventListener("click", () => {
-    currentBlocks.push({ ...BLOCK_DEFAULTS[btn.dataset.blockType] });
+    const maxY = currentBlocks.reduce((m, b) => Math.max(m, (b.worldY || 0) + (b.height || BLOCK_DEFAULT_H) + 20), 20);
+    currentBlocks.push({ ...BLOCK_DEFAULTS[btn.dataset.blockType], worldX: 20, worldY: maxY, width: BLOCK_DEFAULT_W, height: BLOCK_DEFAULT_H });
     onEditTick();
     buildBlocksEditor();
-    setTimeout(() => qmBlockCanvas.querySelector(".qm-block:last-of-type")?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
   });
   btn.draggable = true;
   btn.addEventListener("dragstart", e => {
     dragPaletteType = btn.dataset.blockType;
-    dragSrcIndex = null;
     e.dataTransfer.effectAllowed = "copy";
     e.dataTransfer.setData("text/plain", btn.dataset.blockType);
     qmBlockCanvas.classList.add("qm-drag-active");
@@ -961,8 +1383,7 @@ document.querySelectorAll(".qm-add-block-btn").forEach(btn => {
   btn.addEventListener("dragend", () => { dragPaletteType = null; qmBlockCanvas.classList.remove("qm-drag-active"); });
 });
 
-// ── Block drag state ──────────────────────────────────────────────────────────
-let dragSrcIndex = null;
+// ── Palette drag state ────────────────────────────────────────────────────────
 let dragPaletteType = null;
 let dragPaletteTemplate = null;   // template key being dragged
 
@@ -1018,90 +1439,7 @@ function hideTplPreview() {
 }
 
 function clearDragHighlights() {
-  qmBlockCanvas.querySelectorAll(".drag-over").forEach(el => el.classList.remove("drag-over"));
   hideTplPreview();
-}
-
-// Ghost cell drop target for flex-column layout
-function makeGhostCell(colNum, position) {
-  const ghost = document.createElement("div");
-  ghost.className = "qm-ghost-cell";
-
-  ghost.addEventListener("dragover", e => {
-    if (dragSrcIndex === null && dragPaletteType === null && dragPaletteTemplate === null) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = (dragPaletteType || dragPaletteTemplate) ? "copy" : "move";
-    clearDragHighlights();
-    ghost.classList.add("drag-over");
-    if (dragPaletteTemplate) showTplPreview(dragPaletteTemplate, e.clientX, e.clientY);
-  });
-  ghost.addEventListener("mousemove", e => {
-    if (dragPaletteTemplate && ghost.classList.contains("drag-over")) positionTplPreview(e.clientX, e.clientY);
-  });
-  ghost.addEventListener("dragleave", e => {
-    if (!ghost.contains(e.relatedTarget)) { ghost.classList.remove("drag-over"); hideTplPreview(); }
-  });
-  ghost.addEventListener("drop", e => {
-    e.preventDefault();
-    clearDragHighlights();
-
-    if (dragSrcIndex !== null) {
-      const block = currentBlocks[dragSrcIndex];
-      const colBlocks = currentBlocks
-        .filter((b, i) => i !== dragSrcIndex && (b.col || 1) === colNum)
-        .sort((a, b) => (a.row || 1) - (b.row || 1));
-      block.col = colNum;
-      if (block.col + (block.span || 1) - 1 > 4) block.span = 5 - colNum;
-      colBlocks.splice(position, 0, block);
-      colBlocks.forEach((b, idx) => { b.row = idx + 1; });
-      dragSrcIndex = null;
-      onEditTick();
-      buildBlocksEditor();
-    } else if (dragPaletteType !== null) {
-      const newBlock = { ...BLOCK_DEFAULTS[dragPaletteType], col: colNum };
-      if (newBlock.col + (newBlock.span || 1) - 1 > 4) newBlock.span = 5 - colNum;
-      const colBlocks = currentBlocks
-        .filter(b => (b.col || 1) === colNum)
-        .sort((a, b) => (a.row || 1) - (b.row || 1));
-      colBlocks.splice(position, 0, newBlock);
-      colBlocks.forEach((b, idx) => { b.row = idx + 1; });
-      currentBlocks.push(newBlock);
-      dragPaletteType = null;
-      onEditTick();
-      buildBlocksEditor();
-    } else if (dragPaletteTemplate !== null) {
-      applyTemplateAtPosition(dragPaletteTemplate, null, colNum);
-      dragPaletteTemplate = null;
-      onEditTick();
-      buildBlocksEditor();
-    }
-  });
-
-  return ghost;
-}
-
-// ── Resolve overlapping blocks after a rowSpan change ────────────────────────
-function resolveOverlaps() {
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (let i = 0; i < currentBlocks.length; i++) {
-      for (let j = 0; j < currentBlocks.length; j++) {
-        if (i === j) continue;
-        const a = currentBlocks[i];
-        const b = currentBlocks[j];
-        const aC1 = a.col || 1, aC2 = aC1 + (a.span || 1) - 1;
-        const bC1 = b.col || 1, bC2 = bC1 + (b.span || 1) - 1;
-        if (aC2 < bC1 || bC2 < aC1) continue;           // no column overlap
-        const aR1 = a.row || 1, aR2 = aR1 + (a.rowSpan || 1) - 1;
-        const bR1 = b.row || 1, bR2 = bR1 + (b.rowSpan || 1) - 1;
-        if (aR2 < bR1 || bR2 < aR1) continue;           // no row overlap
-        // a and b overlap — push whichever starts later below the other
-        if (aR1 <= bR1) { b.row = aR2 + 1; changed = true; }
-        else            { a.row = bR2 + 1; changed = true; }
-      }
-    }
-  }
 }
 
 // ── Auto-place blocks that have no explicit row/col ───────────────────────────
@@ -1295,255 +1633,290 @@ qmBlockCanvas.addEventListener("click", e => {
   if (m) { e.stopPropagation(); showCharacterPopup(m.dataset.charId); }
 });
 
-// ── Drop target for grid ghost cells ─────────────────────────────────────────
-function attachDropTarget(ghost, row, col) {
-  ghost.addEventListener("dragover", e => {
-    if (dragSrcIndex === null && dragPaletteType === null && dragPaletteTemplate === null) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = (dragPaletteType || dragPaletteTemplate) ? "copy" : "move";
-    clearDragHighlights();
-    ghost.classList.add("drag-over");
-    if (dragPaletteTemplate) showTplPreview(dragPaletteTemplate, e.clientX, e.clientY);
-  });
-  ghost.addEventListener("mousemove", e => {
-    if (dragPaletteTemplate && ghost.classList.contains("drag-over")) positionTplPreview(e.clientX, e.clientY);
-  });
-  ghost.addEventListener("dragleave", e => {
-    if (!ghost.contains(e.relatedTarget)) { ghost.classList.remove("drag-over"); hideTplPreview(); }
-  });
-  ghost.addEventListener("drop", e => {
-    e.preventDefault();
-    clearDragHighlights();
-    if (dragSrcIndex !== null) {
-      const block = currentBlocks[dragSrcIndex];
-      block.row = row;
-      block.col = col;
-      if (col + (block.span || 1) - 1 > 4) block.span = 5 - col;
-      dragSrcIndex = null;
-      onEditTick();
-      buildBlocksEditor();
-    } else if (dragPaletteType !== null) {
-      const newBlock = { ...BLOCK_DEFAULTS[dragPaletteType], row, col };
-      if (col + (newBlock.span || 1) - 1 > 4) newBlock.span = 5 - col;
-      currentBlocks.push(newBlock);
-      dragPaletteType = null;
-      onEditTick();
-      buildBlocksEditor();
-    } else if (dragPaletteTemplate !== null) {
-      applyTemplateAtPosition(dragPaletteTemplate, row, col);
-      dragPaletteTemplate = null;
-      onEditTick();
-      buildBlocksEditor();
-    }
-  });
-}
 
 // ── Build block editor ────────────────────────────────────────────────────────
 function buildBlocksEditor() {
-  qmBlockCanvas.innerHTML = "";
+  // Ensure the world div exists inside the canvas viewport
+  if (!canvasWorld || !qmBlockCanvas.contains(canvasWorld)) {
+    canvasWorld = document.createElement("div");
+    canvasWorld.className = "qm-canvas-world";
+    qmBlockCanvas.appendChild(canvasWorld);
+    applyCanvasTransform();
+  }
+  canvasWorld.innerHTML = "";
 
-  autoPlaceBlocks(currentBlocks);
-  resolveOverlaps();
+  // Ensure the SVG overlay exists (inserted before blocks so blocks render on top)
+  if (!canvasSvg || !canvasWorld.contains(canvasSvg)) {
+    canvasSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    canvasSvg.setAttribute("class", "qm-canvas-svg");
+    canvasSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    canvasSvg.innerHTML = `<defs><marker id="conn-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="rgba(255,204,102,0.7)"/></marker></defs>`;
+    canvasWorld.appendChild(canvasSvg);
+  }
 
-  const maxRow = currentBlocks.reduce((m, b) => Math.max(m, (b.row || 1) + (b.rowSpan || 1) - 1), 0);
-  const numRows = Math.max(6, maxRow + 2);
-
-  // Give divider-only rows a compact height; all others get 220px
-  const editorRowTypes = {};
-  currentBlocks.forEach(b => {
-    for (let r = b.row || 1; r < (b.row || 1) + (b.rowSpan || 1); r++) {
-      if (!editorRowTypes[r]) editorRowTypes[r] = [];
-      editorRowTypes[r].push(b.type);
-    }
-  });
-  const editorRowHeights = Array.from({ length: numRows }, (_, i) => {
-    const types = editorRowTypes[i + 1] || [];
-    return (types.length > 0 && types.every(t => t === "divider")) ? "90px" : "220px";
-  }).join(" ");
-  qmBlockCanvas.style.gridTemplateRows = editorRowHeights;
+  // Migrate any legacy row/col blocks to world-space coordinates
+  currentBlocks.forEach(migrateBlock);
 
   if (currentBlocks.length === 0) {
     const empty = document.createElement("div");
     empty.className = "qm-canvas-empty";
-    empty.style.cssText = "grid-row:1; grid-column:1/span 4;";
-    empty.textContent = "Use the buttons above to add content blocks — then drag ⠿⠿ to any empty cell.";
-    qmBlockCanvas.appendChild(empty);
+    empty.textContent = "Click a block type in the sidebar to add content — drag the header to move blocks freely.";
+    canvasWorld.appendChild(empty);
+    return;
   }
 
-  // Build occupancy map — exclude the block being dragged so its cells show as drop targets
-  const occupied = new Set();
-  currentBlocks.forEach((b, idx) => {
-    if (idx === dragSrcIndex) return;
-    const span    = Math.min(b.span    || 1, 4);
-    const rowSpan = b.rowSpan || 1;
-    for (let r = b.row; r < b.row + rowSpan; r++)
-      for (let c = b.col; c < b.col + span; c++) occupied.add(`${r},${c}`);
-  });
-
-  // Render ghost (drop-target) cells for every unoccupied position
-  for (let r = 1; r <= numRows; r++) {
-    for (let c = 1; c <= 4; c++) {
-      if (occupied.has(`${r},${c}`)) continue;
-      const ghost = document.createElement("div");
-      ghost.className = "qm-ghost-cell";
-      ghost.style.gridRow = r;
-      ghost.style.gridColumn = c;
-      ghost.dataset.row = r;
-      ghost.dataset.col = c;
-      const cc = currentCellColors[`${r},${c}`];
-      if (cc) { ghost.style.background = hexToRgba(cc, 0.32); ghost.style.borderColor = hexToRgba(cc, 0.8); }
-      attachDropTarget(ghost, r, c);
-      qmBlockCanvas.appendChild(ghost);
-    }
-  }
-
-  // Row-insert zones — span full width, sit at the top of each row, only active during drag
-  for (let r = 1; r <= numRows; r++) {
-    const zone = document.createElement("div");
-    zone.className = "qm-row-insert-zone";
-    zone.style.cssText = `grid-row:${r};grid-column:1/span 4;align-self:start;z-index:8;`;
-    zone.dataset.insertBefore = r;
-    zone.addEventListener("dragover", e => {
-      if (dragSrcIndex === null && dragPaletteType === null && dragPaletteTemplate === null) return;
-      e.preventDefault(); e.stopPropagation();
-      e.dataTransfer.dropEffect = (dragPaletteType || dragPaletteTemplate) ? "copy" : "move";
-      clearDragHighlights();
-      zone.classList.add("drag-over");
-      if (dragPaletteTemplate) showTplPreview(dragPaletteTemplate, e.clientX, e.clientY);
-    });
-    zone.addEventListener("mousemove", e => {
-      if (dragPaletteTemplate && zone.classList.contains("drag-over")) positionTplPreview(e.clientX, e.clientY);
-    });
-    zone.addEventListener("dragleave", e => {
-      if (!zone.contains(e.relatedTarget)) { zone.classList.remove("drag-over"); hideTplPreview(); }
-    });
-    zone.addEventListener("drop", e => {
-      e.preventDefault(); e.stopPropagation();
-      clearDragHighlights();
-      const targetRow = Number(zone.dataset.insertBefore);
-      // Shift every other block at row >= targetRow down by 1
-      currentBlocks.forEach((b, j) => {
-        if (j === dragSrcIndex) return;
-        if ((b.row || 1) >= targetRow) b.row = (b.row || 1) + 1;
-      });
-      if (dragSrcIndex !== null) {
-        const blk = currentBlocks[dragSrcIndex];
-        blk.row = targetRow;
-        dragSrcIndex = null;
-      } else if (dragPaletteType !== null) {
-        currentBlocks.push({ ...BLOCK_DEFAULTS[dragPaletteType], row: targetRow, col: 1 });
-        dragPaletteType = null;
-      } else if (dragPaletteTemplate !== null) {
-        applyTemplateAtPosition(dragPaletteTemplate, targetRow, 1);
-        dragPaletteTemplate = null;
-      }
-      qmBlockCanvas.classList.remove("qm-drag-active");
-      onEditTick();
-      buildBlocksEditor();
-    });
-    qmBlockCanvas.appendChild(zone);
-  }
-
-  // Row-delete buttons — one per occupied row, in column 5
-  for (let r = 1; r <= maxRow; r++) {
-    const delBtn = document.createElement("button");
-    delBtn.type = "button";
-    delBtn.className = "qm-row-del-btn";
-    delBtn.style.cssText = `grid-row:${r};grid-column:5;align-self:center;justify-self:center;`;
-    delBtn.title = "Delete row";
-    delBtn.innerHTML = "&#10005;";
-    delBtn.addEventListener("click", () => {
-      for (let j = currentBlocks.length - 1; j >= 0; j--) {
-        const b = currentBlocks[j];
-        const bRow = b.row || 1;
-        const bEnd = bRow + (b.rowSpan || 1) - 1;
-        if (bRow === r) {
-          currentBlocks.splice(j, 1);                         // starts here — remove
-        } else if (bRow < r && bEnd >= r) {
-          b.rowSpan = Math.max(1, (b.rowSpan || 1) - 1);     // spans through — shrink
-        } else if (bRow > r) {
-          b.row = bRow - 1;                                   // below — shift up
-        }
-      }
-      onEditTick();
-      buildBlocksEditor();
-    });
-    qmBlockCanvas.appendChild(delBtn);
-  }
-
-  // Render blocks at their explicit grid positions
   currentBlocks.forEach((block, i) => {
     const wrap = document.createElement("div");
-    wrap.className = `qm-block qm-block-${block.type}`;
+    wrap.className = `qm-block qm-block-${block.type}${selectedBlockSet.has(i) ? " blk-selected" : ""}`;
     wrap.dataset.index = i;
-    wrap.dataset.row = block.row;
-    wrap.dataset.col = block.col;
-    wrap.style.gridRow = `${block.row} / span ${block.rowSpan || 1}`;
-    wrap.style.gridColumn = `${block.col} / span ${block.span || 1}`;
-    const cc = currentCellColors[`${block.row},${block.col}`];
-    if (cc) { wrap.style.background = hexToRgba(cc, 0.25); wrap.style.borderLeftColor = cc; }
+    wrap.style.left  = (block.worldX || 0) + "px";
+    wrap.style.top   = (block.worldY || 0) + "px";
+    wrap.style.width = (block.width  || BLOCK_DEFAULT_W) + "px";
+    if (block.type !== "divider") {
+      wrap.style.minHeight = (block.height || BLOCK_DEFAULT_H) + "px";
+    }
     wrap.innerHTML = buildBlockEditorHtml(block, i);
 
-    // Handle-only drag source
-    const handle = wrap.querySelector(".blk-drag-handle");
-    if (handle) {
-      handle.draggable = true;
-      handle.addEventListener("dragstart", e => {
-        dragSrcIndex = i;
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", String(i));
-        requestAnimationFrame(() => { wrap.classList.add("dragging"); qmBlockCanvas.classList.add("qm-drag-active"); });
+    // Click to select (for copy/paste/delete)
+    wrap.addEventListener("pointerdown", e => {
+      if (e.target.closest("button, input, label, select, a, [contenteditable]")) return;
+      // Don't clear selection if this block is already in it (preserves multi-select for drag)
+      if (!e.shiftKey && !selectedBlockSet.has(i)) {
+        selectedBlockSet.clear();
+        refreshSelectionClasses();
+      }
+      selectedBlockSet.add(i);
+      wrap.classList.add("blk-selected");
+    }, { capture: true });
+
+    // Wrap all content after the header in a scrollable body div
+    const blkHeader = wrap.querySelector(".blk-header");
+    if (blkHeader) {
+      const body = document.createElement("div");
+      body.className = "blk-body";
+      while (blkHeader.nextSibling) body.appendChild(blkHeader.nextSibling);
+      wrap.appendChild(body);
+    }
+
+    // Apply existing block background color
+    if (block.bgColor) {
+      applyBlockBgColor(wrap, block.bgColor);
+      const swatch = wrap.querySelector(".blk-bg-swatch");
+      if (swatch) swatch.style.background = block.bgColor;
+    }
+
+    // Block background color picker
+    wrap.querySelector(".blk-bg-pick")?.addEventListener("input", e => {
+      block.bgColor = e.target.value;
+      applyBlockBgColor(wrap, block.bgColor);
+      const swatch = wrap.querySelector(".blk-bg-swatch");
+      if (swatch) swatch.style.background = block.bgColor;
+      wrap.querySelector(".blk-bg-clear")?.classList.add("visible");
+      onEditTick();
+    });
+    wrap.querySelector(".blk-bg-clear")?.addEventListener("click", () => {
+      block.bgColor = null;
+      applyBlockBgColor(wrap, null);
+      const swatch = wrap.querySelector(".blk-bg-swatch");
+      if (swatch) swatch.style.background = "transparent";
+      wrap.querySelector(".blk-bg-clear")?.classList.remove("visible");
+      onEditTick();
+    });
+
+    // Drag by clicking the block header (skip clicks on interactive elements)
+    const header = wrap.querySelector(".blk-header");
+    if (header) {
+      header.addEventListener("pointerdown", e => {
+        if (e.button !== 0) return;
+        if (e.target.closest("button, input, label, select, a")) return;
+        e.stopPropagation();
+        header.setPointerCapture(e.pointerId);
+
+        // If block isn't in selection, replace selection with just this block
+        if (!selectedBlockSet.has(i)) {
+          selectedBlockSet.clear();
+          refreshSelectionClasses();
+          selectedBlockSet.add(i);
+          wrap.classList.add("blk-selected");
+        }
+
+        // Record start positions for all blocks in the drag group
+        const group = [...selectedBlockSet].map(idx => ({
+          idx,
+          startWorldX: currentBlocks[idx].worldX || 0,
+          startWorldY: currentBlocks[idx].worldY || 0,
+          el: canvasWorld.querySelector(`[data-index="${idx}"]`),
+        }));
+
+        blockDragState = {
+          index: i,
+          startClientX: e.clientX,
+          startClientY: e.clientY,
+          startWorldX: block.worldX || 0,
+          startWorldY: block.worldY || 0,
+          wrap,
+          group,
+        };
+        group.forEach(g => { g.el?.classList.add("dragging"); if (g.el) g.el.style.zIndex = "10"; });
       });
-      handle.addEventListener("dragend", () => {
-        wrap.classList.remove("dragging");
-        qmBlockCanvas.classList.remove("qm-drag-active");
-        clearDragHighlights();
-        dragSrcIndex = null;
+      header.addEventListener("pointermove", e => {
+        if (!blockDragState || blockDragState.index !== i) return;
+        const dx = (e.clientX - blockDragState.startClientX) / canvasZoom;
+        const dy = (e.clientY - blockDragState.startClientY) / canvasZoom;
+
+        // Snap only the primary block, then apply same delta to the group
+        let rawX = blockDragState.startWorldX + dx;
+        let rawY = blockDragState.startWorldY + dy;
+        const bW = block.width  || BLOCK_DEFAULT_W;
+        const bH = block.height || BLOCK_DEFAULT_H;
+        let snapX = rawX, snapY = rawY;
+        for (let j = 0; j < currentBlocks.length; j++) {
+          if (selectedBlockSet.has(j)) continue; // skip blocks in the group
+          const other = currentBlocks[j];
+          const oW = other.width  || BLOCK_DEFAULT_W;
+          const oH = other.height || BLOCK_DEFAULT_H;
+          for (const ys of [other.worldY, other.worldY + oH]) {
+            if (Math.abs(rawY - ys) < SNAP_THRESHOLD)       { snapY = ys; break; }
+            if (Math.abs(rawY + bH - ys) < SNAP_THRESHOLD)  { snapY = ys - bH; break; }
+          }
+          for (const xs of [other.worldX, other.worldX + oW]) {
+            if (Math.abs(rawX - xs) < SNAP_THRESHOLD)       { snapX = xs; break; }
+            if (Math.abs(rawX + bW - xs) < SNAP_THRESHOLD)  { snapX = xs - bW; break; }
+          }
+        }
+        const snappedDx = snapX - blockDragState.startWorldX;
+        const snappedDy = snapY - blockDragState.startWorldY;
+
+        blockDragState.group.forEach(g => {
+          const b = currentBlocks[g.idx];
+          b.worldX = g.startWorldX + snappedDx;
+          b.worldY = g.startWorldY + snappedDy;
+          if (g.el) { g.el.style.left = b.worldX + "px"; g.el.style.top = b.worldY + "px"; }
+        });
+        // Highlight group being hovered
+        const bCX = (block.worldX || 0) + (block.width || BLOCK_DEFAULT_W) / 2;
+        const bCY = (block.worldY || 0) + (wrap.offsetHeight || block.height || BLOCK_DEFAULT_H) / 2;
+        canvasWorld.querySelectorAll(".blk-group").forEach(gel => {
+          const gi2 = parseInt(gel.dataset.groupIndex);
+          const bounds2 = getGroupBounds(currentGroups[gi2]);
+          const inside = bounds2 && bCX >= bounds2.x && bCX <= bounds2.x + bounds2.w && bCY >= bounds2.y && bCY <= bounds2.y + bounds2.h;
+          gel.classList.toggle("grp-hover", !!inside);
+        });
+        renderConnections();
+      });
+      header.addEventListener("pointerup", () => {
+        if (!blockDragState || blockDragState.index !== i) return;
+        blockDragState.group.forEach(g => { g.el?.classList.remove("dragging"); if (g.el) g.el.style.zIndex = ""; });
+
+        // Group membership: add dragged blocks into any group whose bounds they land in;
+        // remove from groups if they've been dragged out
+        blockDragState.group.forEach(g => {
+          const b = currentBlocks[g.idx];
+          if (!b) return;
+          const bel = canvasWorld.querySelector(`[data-index="${g.idx}"]`);
+          const bCX = (b.worldX || 0) + (b.width || BLOCK_DEFAULT_W) / 2;
+          const bCY = (b.worldY || 0) + (bel?.offsetHeight || b.height || BLOCK_DEFAULT_H) / 2;
+          currentGroups.forEach(grp => {
+            const bounds = getGroupBounds(grp);
+            const inside = bounds && bCX >= bounds.x && bCX <= bounds.x + bounds.w && bCY >= bounds.y && bCY <= bounds.y + bounds.h;
+            if (inside && !grp.indices.includes(g.idx)) grp.indices.push(g.idx);
+          });
+        });
+        // Clear group hover highlights
+        canvasWorld.querySelectorAll(".blk-group.grp-hover").forEach(el => el.classList.remove("grp-hover"));
+
+        blockDragState = null;
+        onEditTick();
+        requestAnimationFrame(buildGroupsInEditor);
       });
     }
 
-    // Controls
-    wrap.querySelector(".blk-del")?.addEventListener("click", () => { currentBlocks.splice(i, 1); onEditTick(); buildBlocksEditor(); });
-    wrap.querySelectorAll(".blk-span-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const newSpan = Number(btn.dataset.span);
-        currentBlocks[i].span = newSpan;
-        if (currentBlocks[i].col + newSpan - 1 > 4) currentBlocks[i].col = Math.max(1, 5 - newSpan);
-        onEditTick();
-        buildBlocksEditor();
+    // Resize handles — all 8 directions
+    [
+      { dir: "e",  cls: "blk-rh blk-rh-e" },
+      { dir: "s",  cls: "blk-rh blk-rh-s" },
+      { dir: "se", cls: "blk-rh blk-rh-se" },
+      { dir: "n",  cls: "blk-rh blk-rh-n" },
+      { dir: "w",  cls: "blk-rh blk-rh-w" },
+      { dir: "nw", cls: "blk-rh blk-rh-nw" },
+      { dir: "ne", cls: "blk-rh blk-rh-ne" },
+      { dir: "sw", cls: "blk-rh blk-rh-sw" },
+    ].forEach(({ dir, cls }) => {
+      const rh = document.createElement("div");
+      rh.className = cls;
+      rh.addEventListener("pointerdown", e => {
+        if (e.button !== 0) return;
+        e.stopPropagation();
+        e.preventDefault();
+        rh.setPointerCapture(e.pointerId);
+        blockResizeState = {
+          index: i, dir,
+          startClientX: e.clientX,
+          startClientY: e.clientY,
+          startW: block.width  || BLOCK_DEFAULT_W,
+          startH: block.height || wrap.offsetHeight,
+          startWorldX: block.worldX || 0,
+          startWorldY: block.worldY || 0,
+          wrap,
+        };
+        wrap.classList.add("resizing");
       });
-    });
-    wrap.querySelectorAll(".blk-rowspan-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const oldRowSpan = currentBlocks[i].rowSpan || 1;
-        const newRowSpan = Number(btn.dataset.rowspan);
-        const delta = newRowSpan - oldRowSpan;
-        currentBlocks[i].rowSpan = newRowSpan;
-        onEditTick();
-
-        if (delta !== 0) {
-          const oldEnd = (currentBlocks[i].row || 1) + oldRowSpan - 1;
-          if (delta > 0) {
-            // Block grew — shift ALL blocks below the old end down by delta (insert-row behaviour)
-            currentBlocks.forEach((other, j) => {
-              if (j === i) return;
-              if ((other.row || 1) > oldEnd) other.row = (other.row || 1) + delta;
-            });
-          } else {
-            // Block shrank — pull blocks below it up by |delta| rows (same columns only)
-            const blk = currentBlocks[i];
-            const bC1 = blk.col || 1, bC2 = bC1 + (blk.span || 1) - 1;
-            currentBlocks.forEach((other, j) => {
-              if (j === i) return;
-              const oC1 = other.col || 1, oC2 = oC1 + (other.span || 1) - 1;
-              if (oC2 < bC1 || bC2 < oC1) return;
-              if ((other.row || 1) > oldEnd) other.row = Math.max(1, (other.row || 1) + delta);
-            });
-          }
+      rh.addEventListener("pointermove", e => {
+        if (!blockResizeState || blockResizeState.index !== i) return;
+        const dx = (e.clientX - blockResizeState.startClientX) / canvasZoom;
+        const dy = (e.clientY - blockResizeState.startClientY) / canvasZoom;
+        // Right edge
+        if (dir === "e" || dir === "se" || dir === "ne") {
+          block.width = Math.max(160, blockResizeState.startW + dx);
+          wrap.style.width = block.width + "px";
         }
-
-        buildBlocksEditor();
+        // Left edge — moves worldX as well
+        if (dir === "w" || dir === "nw" || dir === "sw") {
+          const newW = Math.max(160, blockResizeState.startW - dx);
+          block.worldX = blockResizeState.startWorldX + (blockResizeState.startW - newW);
+          block.width  = newW;
+          wrap.style.width = newW + "px";
+          wrap.style.left  = block.worldX + "px";
+        }
+        // Bottom edge
+        if (dir === "s" || dir === "se" || dir === "sw") {
+          block.height = Math.max(80, blockResizeState.startH + dy);
+          wrap.style.height    = block.height + "px";
+          wrap.style.minHeight = block.height + "px";
+        }
+        // Top edge — moves worldY as well
+        if (dir === "n" || dir === "nw" || dir === "ne") {
+          const newH = Math.max(80, blockResizeState.startH - dy);
+          block.worldY  = blockResizeState.startWorldY + (blockResizeState.startH - newH);
+          block.height  = newH;
+          wrap.style.height    = newH + "px";
+          wrap.style.minHeight = newH + "px";
+          wrap.style.top       = block.worldY + "px";
+        }
+        renderConnections();
       });
+      rh.addEventListener("pointerup", () => {
+        if (!blockResizeState || blockResizeState.index !== i) return;
+        blockResizeState.wrap.classList.remove("resizing");
+        blockResizeState = null;
+        onEditTick();
+      });
+      wrap.appendChild(rh);
+    });
+
+    // Delete — also remove any connections involving this block and remap remaining indices
+    wrap.querySelector(".blk-del")?.addEventListener("click", () => {
+      currentBlocks.splice(i, 1);
+      currentConnections = currentConnections
+        .filter(c => c.from !== i && c.to !== i)
+        .map(c => ({
+          ...c,
+          from: c.from > i ? c.from - 1 : c.from,
+          to:   c.to   > i ? c.to   - 1 : c.to,
+        }));
+      remapGroupsAfterDelete([i]);
+      onEditTick();
+      buildBlocksEditor();
     });
 
     // Inputs
@@ -1945,35 +2318,267 @@ function buildBlocksEditor() {
       }
     }
 
-    qmBlockCanvas.appendChild(wrap);
+    // Port handles — one on each side for drag-to-connect (not for dividers)
+    if (block.type !== "divider") CONN_SIDES.forEach(side => {
+      const port = document.createElement("div");
+      port.className = `blk-port blk-port-${side}`;
+      port.title = "Drag to connect";
+      port.addEventListener("pointerdown", e => {
+        if (e.button !== 0) return;
+        e.stopPropagation(); e.preventDefault();
+        port.setPointerCapture(e.pointerId);
+        const rect = qmBlockCanvas.getBoundingClientRect();
+        const curX = (e.clientX - rect.left - canvasPanX) / canvasZoom;
+        const curY = (e.clientY - rect.top  - canvasPanY) / canvasZoom;
+        connDragState = { fromIndex: i, fromSide: side, curX, curY, snapToIndex: null, snapToSide: null };
+        port.classList.add("drag-active");
+        renderConnections();
+      });
+      port.addEventListener("pointermove", e => {
+        if (!connDragState || connDragState.fromIndex !== i || connDragState.fromSide !== side) return;
+        const rect = qmBlockCanvas.getBoundingClientRect();
+        connDragState.curX = (e.clientX - rect.left - canvasPanX) / canvasZoom;
+        connDragState.curY = (e.clientY - rect.top  - canvasPanY) / canvasZoom;
+        // Snap detection — 40px in screen space
+        const SNAP_R = 40 / canvasZoom;
+        let bestDist = SNAP_R, bestIdx = null, bestSide = null;
+        currentBlocks.forEach((b, j) => {
+          if (j === i) return;
+          const el = canvasWorld.querySelector(`[data-index="${j}"]`);
+          CONN_SIDES.forEach(s => {
+            const p = blockPortPos(b, s, el);
+            const d = Math.hypot(connDragState.curX - p.x, connDragState.curY - p.y);
+            if (d < bestDist) { bestDist = d; bestIdx = j; bestSide = s; }
+          });
+        });
+        connDragState.snapToIndex = bestIdx;
+        connDragState.snapToSide  = bestSide;
+        // Highlight snap target port
+        canvasWorld.querySelectorAll(".blk-port.snap-target").forEach(el => el.classList.remove("snap-target"));
+        if (bestIdx !== null) {
+          const targetEl = canvasWorld.querySelector(`[data-index="${bestIdx}"] .blk-port-${bestSide}`);
+          targetEl?.classList.add("snap-target");
+        }
+        renderConnections();
+      });
+      port.addEventListener("pointerup", () => {
+        if (!connDragState || connDragState.fromIndex !== i || connDragState.fromSide !== side) return;
+        port.classList.remove("drag-active");
+        if (connDragState.snapToIndex !== null) {
+          const already = currentConnections.some(c =>
+            (c.from === i && c.to === connDragState.snapToIndex) ||
+            (c.from === connDragState.snapToIndex && c.to === i)
+          );
+          if (!already) {
+            currentConnections.push({
+              id: Date.now().toString(36),
+              from: i, fromSide: side,
+              to: connDragState.snapToIndex, toSide: connDragState.snapToSide,
+              label: ""
+            });
+            onEditTick();
+          }
+        }
+        canvasWorld.querySelectorAll(".blk-port.snap-target").forEach(el => el.classList.remove("snap-target"));
+        connDragState = null;
+        renderConnections();
+      });
+      wrap.appendChild(port);
+    });
+
+    canvasWorld.appendChild(wrap);
   });
 
-  // Auto-resize all textareas to fit content (no manual drag handle)
+  // Auto-resize all textareas to fit content
   requestAnimationFrame(() => {
-    qmBlockCanvas.querySelectorAll(".blk-textarea").forEach(ta => {
+    canvasWorld.querySelectorAll(".blk-textarea").forEach(ta => {
       const resize = () => { ta.style.height = "0"; ta.style.height = ta.scrollHeight + "px"; };
       resize();
       ta.addEventListener("input", resize);
     });
   });
+
+  requestAnimationFrame(() => { renderConnections(); buildGroupsInEditor(); });
 }
 
+
+function renderConnections() {
+  if (!canvasSvg) return;
+  // Clear all paths/labels but keep defs
+  canvasSvg.querySelectorAll(".conn-path, .conn-label-group, .conn-guide, .conn-hit").forEach(el => el.remove());
+
+  // Draw snap guides if dragging
+  if (blockDragState) {
+    const block = currentBlocks[blockDragState.index];
+    const bW = block.width || BLOCK_DEFAULT_W;
+    const bH = block.height || BLOCK_DEFAULT_H;
+    for (let j = 0; j < currentBlocks.length; j++) {
+      if (j === blockDragState.index) continue;
+      const other = currentBlocks[j];
+      const oH = other.height || BLOCK_DEFAULT_H;
+      const oW = other.width  || BLOCK_DEFAULT_W;
+      // Draw Y guide
+      const ySnaps = [other.worldY, other.worldY + oH];
+      for (const ys of ySnaps) {
+        if (Math.abs(block.worldY - ys) < 2 || Math.abs(block.worldY + bH - ys) < 2) {
+          const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          line.setAttribute("x1", "0"); line.setAttribute("x2", "4000");
+          line.setAttribute("y1", ys); line.setAttribute("y2", ys);
+          line.setAttribute("class", "conn-guide");
+          canvasSvg.appendChild(line);
+        }
+      }
+      // Draw X guide
+      const xSnaps = [other.worldX, other.worldX + oW];
+      for (const xs of xSnaps) {
+        if (Math.abs(block.worldX - xs) < 2 || Math.abs(block.worldX + bW - xs) < 2) {
+          const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          line.setAttribute("x1", xs); line.setAttribute("x2", xs);
+          line.setAttribute("y1", "0"); line.setAttribute("y2", "4000");
+          line.setAttribute("class", "conn-guide");
+          canvasSvg.appendChild(line);
+        }
+      }
+    }
+  }
+
+  // Draw connection drag preview
+  if (connDragState) {
+    const fromBlock = currentBlocks[connDragState.fromIndex];
+    const fromEl = canvasWorld?.querySelector(`[data-index="${connDragState.fromIndex}"]`);
+    const p1 = blockPortPos(fromBlock, connDragState.fromSide, fromEl);
+    let x2 = connDragState.curX, y2 = connDragState.curY;
+    let previewSide = null;
+    if (connDragState.snapToIndex !== null) {
+      const toBlock = currentBlocks[connDragState.snapToIndex];
+      const toEl = canvasWorld?.querySelector(`[data-index="${connDragState.snapToIndex}"]`);
+      const snap = blockPortPos(toBlock, connDragState.snapToSide, toEl);
+      x2 = snap.x; y2 = snap.y; previewSide = connDragState.snapToSide;
+    }
+    const cv1 = sideControlVec(connDragState.fromSide, Math.max(50, Math.abs(x2 - p1.x) * 0.45, Math.abs(y2 - p1.y) * 0.45));
+    const cv2 = previewSide
+      ? sideControlVec(previewSide, Math.max(50, Math.abs(x2 - p1.x) * 0.45, Math.abs(y2 - p1.y) * 0.45))
+      : { dx: -cv1.dx, dy: -cv1.dy };
+    const preview = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    preview.setAttribute("d", `M${p1.x},${p1.y} C${p1.x+cv1.dx},${p1.y+cv1.dy} ${x2+cv2.dx},${y2+cv2.dy} ${x2},${y2}`);
+    preview.setAttribute("class", "conn-path conn-preview");
+    canvasSvg.appendChild(preview);
+  }
+
+  // Draw each connection
+  currentConnections.forEach((conn, ci) => {
+    const fromBlock = currentBlocks[conn.from];
+    const toBlock   = currentBlocks[conn.to];
+    if (!fromBlock || !toBlock) return;
+
+    const fromEl = canvasWorld?.querySelector(`[data-index="${conn.from}"]`);
+    const toEl   = canvasWorld?.querySelector(`[data-index="${conn.to}"]`);
+
+    // Use stored port sides if available, otherwise fall back to right→left center
+    const fromSide = conn.fromSide || 'right';
+    const toSide   = conn.toSide   || 'left';
+    const p1 = blockPortPos(fromBlock, fromSide, fromEl);
+    const p2 = blockPortPos(toBlock,   toSide,   toEl);
+    const offset = Math.max(50, Math.abs(p2.x - p1.x) * 0.45, Math.abs(p2.y - p1.y) * 0.45);
+    const cv1 = sideControlVec(fromSide, offset);
+    const cv2 = sideControlVec(toSide,   offset);
+
+    // Bezier path
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const d = `M${p1.x},${p1.y} C${p1.x+cv1.dx},${p1.y+cv1.dy} ${p2.x+cv2.dx},${p2.y+cv2.dy} ${p2.x},${p2.y}`;
+    path.setAttribute("d", d);
+    path.setAttribute("class", "conn-path");
+    path.dataset.connIndex = ci;
+    canvasSvg.appendChild(path);
+
+    // Hit area (wider invisible path for easier clicking)
+    const hit = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    hit.setAttribute("d", d);
+    hit.setAttribute("class", "conn-hit");
+    hit.dataset.connIndex = ci;
+    hit.addEventListener("click", e => {
+      e.stopPropagation();
+      openConnectionPopup(ci, e.clientX, e.clientY);
+    });
+    canvasSvg.appendChild(hit);
+
+    // Label at midpoint
+    if (conn.label) {
+      const mx = (p1.x + p2.x) / 2;
+      const my = (p1.y + p2.y) / 2 - 10;
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("class", "conn-label-group");
+      g.dataset.connIndex = ci;
+
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("class", "conn-label-bg");
+      const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      txt.setAttribute("class", "conn-label-text");
+      txt.setAttribute("x", mx);
+      txt.setAttribute("y", my);
+      txt.setAttribute("text-anchor", "middle");
+      txt.textContent = conn.label;
+      g.appendChild(rect);
+      g.appendChild(txt);
+      canvasSvg.appendChild(g);
+
+      // Position rect after text is in DOM
+      requestAnimationFrame(() => {
+        try {
+          const bb = txt.getBBox();
+          rect.setAttribute("x", bb.x - 5);
+          rect.setAttribute("y", bb.y - 3);
+          rect.setAttribute("width", bb.width + 10);
+          rect.setAttribute("height", bb.height + 6);
+          rect.setAttribute("rx", "3");
+        } catch {}
+      });
+
+      g.addEventListener("click", e => {
+        e.stopPropagation();
+        openConnectionPopup(ci, e.clientX, e.clientY);
+      });
+    }
+  });
+}
+
+// Popup to edit/delete a connection
+let _connPopup = null;
+function openConnectionPopup(connIndex, clientX, clientY) {
+  if (!_connPopup) {
+    _connPopup = document.createElement("div");
+    _connPopup.className = "conn-popup";
+    document.body.appendChild(_connPopup);
+    document.addEventListener("mousedown", e => {
+      if (_connPopup && !_connPopup.contains(e.target)) _connPopup.style.display = "none";
+    });
+  }
+  const conn = currentConnections[connIndex];
+  if (!conn) return;
+  _connPopup.innerHTML = `
+    <input class="conn-popup-input" type="text" placeholder="Connection label…" value="${(conn.label || "").replace(/"/g, '&quot;')}" />
+    <button class="conn-popup-del" title="Delete connection">✕ Remove</button>
+  `;
+  _connPopup.style.cssText = `display:block;position:fixed;left:${clientX}px;top:${clientY}px;z-index:9999;`;
+  const inp = _connPopup.querySelector(".conn-popup-input");
+  inp.focus(); inp.select();
+  inp.addEventListener("input", () => {
+    currentConnections[connIndex].label = inp.value;
+    renderConnections();
+    onEditTick();
+  });
+  inp.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === "Escape") _connPopup.style.display = "none"; });
+  _connPopup.querySelector(".conn-popup-del").addEventListener("click", () => {
+    currentConnections.splice(connIndex, 1);
+    _connPopup.style.display = "none";
+    renderConnections();
+    onEditTick();
+  });
+}
 
 function wireInput(wrap, block, field, selector) {
   const el = wrap.querySelector(selector);
   if (el) el.addEventListener("input", () => { block[field] = el.value; onEditTick(); });
-}
-
-function spanBtns(current) {
-  return [1, 2, 4].map(s =>
-    `<button type="button" class="blk-span-btn${current === s ? " active" : ""}" data-span="${s}" title="${s === 4 ? "Full width" : s + " col"}">${s === 4 ? "⇔" : s + "×"}</button>`
-  ).join("");
-}
-
-function rowSpanBtns(current) {
-  return [1, 2, 3].map(s =>
-    `<button type="button" class="blk-rowspan-btn${current === s ? " active" : ""}" data-rowspan="${s}" title="${s} row${s > 1 ? "s" : ""}">${s}↕</button>`
-  ).join("");
 }
 
 // Generates the formatting toolbar HTML for a block
@@ -1999,17 +2604,19 @@ function fmtBar(b, richText = false) {
 }
 
 function buildBlockEditorHtml(b, i) {
-  const span    = b.span    || 1;
-  const rowSpan = b.rowSpan || 1;
   const sessionPillHtml = b.sessionMarker
     ? `<button type="button" class="blk-session-btn has-session ${sessionColorClass(b.sessionMarker)}" title="Click to edit session marker">${esc(b.sessionMarker)}</button>`
     : `<button type="button" class="blk-session-btn" title="Tag this block with a session">+ Session</button>`;
+  const bgColorHtml = `
+    <label class="blk-bg-label" title="Block background color">
+      <span class="blk-bg-swatch" style="background:${b.bgColor || 'transparent'}"></span>
+      <input type="color" class="blk-bg-pick" value="${b.bgColor || '#c8903a'}" />
+    </label>
+    <button type="button" class="blk-ctrl blk-bg-clear${b.bgColor ? ' visible' : ''}" title="Clear block color">&#10007;</button>`;
   const controls = `
     <div class="blk-controls">
       ${sessionPillHtml}
-      <div class="blk-span-group">${spanBtns(span)}</div>
-      <div class="blk-span-group">${rowSpanBtns(rowSpan)}</div>
-      <div class="blk-drag-handle" title="Drag to reorder">⠿⠿</div>
+      ${bgColorHtml}
       <button type="button" class="blk-ctrl blk-del" title="Remove">&#10005;</button>
     </div>`;
 
@@ -2170,7 +2777,8 @@ function captureState() {
     status:      qmStatus?.value || "not_started",
     discovered:  !!qmDiscovered?.checked,
     blocks:      JSON.parse(JSON.stringify(currentBlocks || [])),
-    cellColors:  { ...currentCellColors },
+    connections: JSON.parse(JSON.stringify(currentConnections || [])),
+    groups:      JSON.parse(JSON.stringify(currentGroups || [])),
   };
 }
 
@@ -2183,7 +2791,8 @@ function applyState(snap) {
   qmStatus.value      = snap.status || "not_started";
   qmDiscovered.checked = !!snap.discovered;
   currentBlocks       = JSON.parse(JSON.stringify(snap.blocks || []));
-  currentCellColors   = { ...(snap.cellColors || {}) };
+  currentConnections  = JSON.parse(JSON.stringify(snap.connections || []));
+  currentGroups       = JSON.parse(JSON.stringify(snap.groups || []));
   syncTypeBtns();
   buildBlocksEditor();
   isApplyingSnap = false;
@@ -2315,6 +2924,64 @@ document.addEventListener("keydown", e => {
   if (key === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
   else if ((key === "y") || (key === "z" && e.shiftKey)) { e.preventDefault(); redo(); }
   else if (key === "s") { e.preventDefault(); qmSave.click(); }
+  else if (key === "g" && selectedBlockSet.size > 0 && !e.target.closest("input, textarea, [contenteditable]")) {
+    e.preventDefault();
+    const indices = [...selectedBlockSet].sort((a, b) => a - b);
+    currentGroups.push({ id: Date.now().toString(36), title: "", color: "#ffcc66", indices });
+    onEditTick();
+    buildBlocksEditor();
+  }
+  else if (key === "c" && selectedBlockSet.size > 0 && !e.target.closest("input, textarea, [contenteditable]")) {
+    e.preventDefault();
+    const idx = Math.min(...selectedBlockSet);
+    blockClipboard = JSON.parse(JSON.stringify(currentBlocks[idx]));
+  }
+  else if (key === "v" && blockClipboard && !e.target.closest("input, textarea, [contenteditable]")) {
+    e.preventDefault();
+    const src = JSON.parse(JSON.stringify(blockClipboard));
+    src.worldX = (src.worldX || 0) + 30;
+    src.worldY = (src.worldY || 0) + 30;
+    delete src.id;
+    const newIdx = selectedBlockSet.size > 0 ? Math.max(...selectedBlockSet) + 1 : currentBlocks.length;
+    currentBlocks.splice(newIdx, 0, src);
+    currentConnections = currentConnections.map(c => ({
+      ...c,
+      from: c.from >= newIdx ? c.from + 1 : c.from,
+      to:   c.to   >= newIdx ? c.to   + 1 : c.to,
+    }));
+    remapGroupsAfterInsert(newIdx);
+    selectedBlockSet.clear();
+    selectedBlockSet.add(newIdx);
+    onEditTick();
+    buildBlocksEditor();
+  }
+});
+
+// ── Delete selected blocks ────────────────────────────────────────────────────
+document.addEventListener("keydown", e => {
+  if (!questModal.classList.contains("open")) return;
+  if (e.key !== "Delete" && e.key !== "Backspace") return;
+  if (e.target.closest("input, textarea, [contenteditable]")) return;
+  if (selectedBlockSet.size === 0) return;
+  e.preventDefault();
+
+  const toDelete = [...selectedBlockSet].sort((a, b) => a - b);
+  const deletedSet = new Set(toDelete);
+
+  // Drop connections touching deleted blocks, then remap surviving indices
+  currentConnections = currentConnections
+    .filter(c => !deletedSet.has(c.from) && !deletedSet.has(c.to))
+    .map(c => {
+      const shiftFrom = toDelete.filter(d => d < c.from).length;
+      const shiftTo   = toDelete.filter(d => d < c.to).length;
+      return { ...c, from: c.from - shiftFrom, to: c.to - shiftTo };
+    });
+
+  remapGroupsAfterDelete(toDelete);
+  toDelete.reverse().forEach(idx => currentBlocks.splice(idx, 1));
+  selectedBlockSet.clear();
+  onEditTick();
+  buildBlocksEditor();
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2398,24 +3065,20 @@ function buildPreviewPanel() {
 // BLOCK TEMPLATES
 // ═══════════════════════════════════════════════════════════════════════════
 
-function applyTemplateAtPosition(templateKey, startRow, startCol) {
+function applyTemplateAtPosition(templateKey, originX, originY) {
   const tpl = BLOCK_TEMPLATES[templateKey];
   if (!tpl) return;
-  const baseRow = startRow ?? (currentBlocks.reduce((m, b) => Math.max(m, (b.row || 1) + (b.rowSpan || 1) - 1), 0) + 1);
-  let insertRow = baseRow, col = startCol ?? 1;
-  // Shift existing blocks down to make room
-  const tplRows = (() => {
-    let r = 0, c = startCol ?? 1;
-    tpl.forEach(t => { const span = t.span || 1; if (c + span - 1 > 4) { r++; c = 1; } c += span; if (c > 4) { r++; c = 1; } });
-    return r + 1;
-  })();
-  currentBlocks.forEach(b => { if ((b.row || 1) >= baseRow) b.row = (b.row || 1) + tplRows; });
+  const gap = 20;
+  let x = originX ?? 20;
+  let y = originY ?? (currentBlocks.reduce((m, b) => Math.max(m, (b.worldY || 0) + (b.height || BLOCK_DEFAULT_H)), 0) + gap);
+  const rowW = 4 * (BLOCK_DEFAULT_W + gap);
   tpl.forEach(t => {
-    const block = { ...BLOCK_DEFAULTS[t.type], ...t, row: insertRow, col };
-    if (col + (block.span || 1) - 1 > 4) { insertRow++; col = 1; block.row = insertRow; block.col = 1; }
+    const w = Math.round((t.span || 1) * (BLOCK_DEFAULT_W + gap) - gap);
+    const block = { ...BLOCK_DEFAULTS[t.type], ...t, worldX: x, worldY: y, width: w, height: BLOCK_DEFAULT_H };
+    delete block.span; delete block.rowSpan; delete block.row; delete block.col;
     currentBlocks.push(block);
-    col += (block.span || 1);
-    if (col > 4) { insertRow++; col = 1; }
+    x += w + gap;
+    if (x > (originX ?? 20) + rowW) { x = originX ?? 20; y += BLOCK_DEFAULT_H + gap; }
   });
 }
 
@@ -2451,7 +3114,6 @@ document.querySelectorAll(".qm-template-btn").forEach(btn => {
   btn.draggable = true;
   btn.addEventListener("dragstart", e => {
     dragPaletteTemplate = btn.dataset.template;
-    dragSrcIndex = null;
     dragPaletteType = null;
     e.dataTransfer.effectAllowed = "copy";
     e.dataTransfer.setData("text/plain", btn.dataset.template);
@@ -2472,10 +3134,9 @@ document.querySelectorAll(".qm-template-btn").forEach(btn => {
   });
   btn.addEventListener("click", () => {
     if (!BLOCK_TEMPLATES[btn.dataset.template]) return;
-    applyTemplateAtPosition(btn.dataset.template, null, 1);
+    applyTemplateAtPosition(btn.dataset.template, null, null);
     onEditTick();
     buildBlocksEditor();
-    setTimeout(() => qmBlockCanvas.querySelector(".qm-block:last-of-type")?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
   });
 });
 
@@ -2576,27 +3237,29 @@ function insertSlashBlock(type) {
     }
   }
   hideSlashMenu();
-  // Insert the new block directly after the source in the list
-  const newBlock = { ...BLOCK_DEFAULTS[type] };
+  // Insert the new block positioned below the source block
+  const newBlock = { ...BLOCK_DEFAULTS[type], width: BLOCK_DEFAULT_W, height: BLOCK_DEFAULT_H };
   const insertAt = blockIndex >= 0 ? blockIndex + 1 : currentBlocks.length;
-  // Place it on the row directly after the source block (or at end)
   if (blockIndex >= 0) {
     const src = currentBlocks[blockIndex];
-    const targetRow = (src.row || 1) + (src.rowSpan || 1);
-    // Shift every block at or past targetRow down
-    currentBlocks.forEach((b, i) => {
-      if (i === blockIndex) return;
-      if ((b.row || 1) >= targetRow) b.row = (b.row || 1) + 1;
-    });
-    newBlock.row = targetRow;
-    newBlock.col = 1;
+    newBlock.worldX = src.worldX || 0;
+    newBlock.worldY = (src.worldY || 0) + (src.height || BLOCK_DEFAULT_H) + 20;
+  } else {
+    const maxY = currentBlocks.reduce((m, b) => Math.max(m, (b.worldY || 0) + (b.height || BLOCK_DEFAULT_H)), 0);
+    newBlock.worldX = 20;
+    newBlock.worldY = maxY + 20;
   }
   currentBlocks.splice(insertAt, 0, newBlock);
   onEditTick();
   buildBlocksEditor();
   setTimeout(() => {
-    const newWrap = qmBlockCanvas.querySelectorAll(".qm-block")[insertAt];
-    newWrap?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    const blk = currentBlocks[insertAt];
+    if (blk) {
+      canvasPanX = 20 - (blk.worldX || 0);
+      canvasPanY = 20 - (blk.worldY || 0);
+      applyCanvasTransform();
+    }
+    const newWrap = canvasWorld?.querySelectorAll(".qm-block")[insertAt];
     newWrap?.querySelector("input,textarea,[contenteditable]")?.focus();
   }, 60);
 }

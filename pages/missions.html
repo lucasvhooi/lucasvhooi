@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -20,6 +20,7 @@
       <li><a href="lore.html">Lore</a></li>
       <li class="nav-dm-only"><a href="combat.html">Combat</a></li>
       <li><a href="inventory.html">Inventory</a></li>
+      <li><a href="spells.html">Spells</a></li>
     </ul>
   </nav>
 
@@ -56,7 +57,26 @@
       <div class="qm-topbar">
         <div class="qm-topbar-left">
           <span class="qm-topbar-icon">&#9876;</span>
-          <h2 id="qm-title">New Quest</h2>
+          <span id="qm-title" style="display:none"></span>
+          <input type="text" id="qm-name" class="qm-input qm-topbar-name" placeholder="Quest title…" />
+          <div class="qm-location-wrap">
+            <input type="text" id="qm-location" class="qm-input qm-topbar-loc" placeholder="&#128205; Location…" autocomplete="off" />
+            <div id="qm-location-drop" class="loc-dropdown" style="display:none"></div>
+          </div>
+          <div class="quest-type-selector" id="qm-type-selector">
+            <button type="button" class="quest-type-btn active" data-type="main">&#9876; Main</button>
+            <button type="button" class="quest-type-btn" data-type="side">&#10022; Side</button>
+          </div>
+          <select id="qm-status" class="qm-select qm-topbar-status">
+            <option value="not_started">Not Started</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+          </select>
+          <label class="qm-toggle-label qm-topbar-vis">
+            <input type="checkbox" id="qm-discovered" class="qm-toggle-input" />
+            <span class="qm-toggle-track"><span class="qm-toggle-thumb"></span></span>
+            <span class="qm-toggle-text">Visible</span>
+          </label>
         </div>
         <div class="qm-topbar-center">
           <button id="qm-undo-btn" class="qm-topbar-btn" title="Undo (Ctrl+Z)" disabled>
@@ -74,6 +94,10 @@
           </span>
         </div>
         <div class="qm-topbar-right">
+<button id="qm-zoom-reset-btn" class="qm-topbar-btn" title="Reset zoom/pan">
+            <span class="qm-topbar-btn-icon">&#8857;</span>
+            <span class="qm-topbar-btn-label">Reset view</span>
+          </button>
           <button id="qm-preview-toggle" class="qm-topbar-btn qm-preview-btn" title="Preview as players see it">
             <span class="qm-topbar-btn-icon">&#128065;</span>
             <span class="qm-topbar-btn-label">Preview</span>
@@ -132,36 +156,18 @@
             </button>
           </div>
 
-          <div class="qm-sidebar-section">
-            <div class="qm-sidebar-label">Tools</div>
-            <button id="qm-paint-btn" class="qm-paint-btn" title="Paint cell backgrounds"><span class="qm-ab-icon">&#127912;</span><span class="qm-ab-text">Paint cells</span></button>
-            <div id="qm-color-toolbar" class="qm-color-toolbar" style="display:none">
-              <button class="qm-color-swatch qm-color-clear" data-color="" title="Clear color">&#10005;</button>
-              <button class="qm-color-swatch" data-color="#d63030" style="background:#d63030" title="Red"></button>
-              <button class="qm-color-swatch" data-color="#d4900a" style="background:#d4900a" title="Orange"></button>
-              <button class="qm-color-swatch" data-color="#c8b800" style="background:#c8b800" title="Yellow"></button>
-              <button class="qm-color-swatch" data-color="#2aaa4a" style="background:#2aaa4a" title="Green"></button>
-              <button class="qm-color-swatch" data-color="#1a7fd4" style="background:#1a7fd4" title="Blue"></button>
-              <button class="qm-color-swatch" data-color="#8b35d6" style="background:#8b35d6" title="Purple"></button>
-              <button class="qm-color-swatch" data-color="#d44090" style="background:#d44090" title="Pink"></button>
-              <button class="qm-color-swatch" data-color="#888888" style="background:#888888" title="Gray"></button>
-              <label class="qm-color-custom" title="Custom color">
-                &#127912;
-                <input type="color" id="qm-color-pick" value="#3a1a0a" />
-              </label>
-              <span id="qm-color-sel-count" class="qm-color-sel-count"></span>
-            </div>
-          </div>
-
           <div class="qm-sidebar-help">
             <div class="qm-sidebar-help-title">Tips</div>
             <ul>
               <li>Click a block above to add it.</li>
-              <li>Drag <span class="qm-kbd">⠿⠿</span> to rearrange.</li>
+              <li>Drag the header to move blocks.</li>
+              <li>Left-drag empty space to select blocks.</li>
+              <li>Middle-drag to pan the canvas.</li>
+              <li><span class="qm-kbd">Ctrl+G</span> group selected blocks.</li>
+              <li><span class="qm-kbd">Ctrl+C</span> copy, <span class="qm-kbd">Ctrl+V</span> paste.</li>
+              <li><span class="qm-kbd">Del</span> delete selected blocks.</li>
               <li><span class="qm-kbd">@</span> mentions a character.</li>
               <li><span class="qm-kbd">#</span> links another quest.</li>
-              <li><span class="qm-kbd">$</span> links lore, <span class="qm-kbd">^</span> links a location.</li>
-              <li><span class="qm-kbd">/</span> opens the block inserter.</li>
               <li><span class="qm-kbd">Ctrl+Z</span> undo, <span class="qm-kbd">Ctrl+Y</span> redo.</li>
             </ul>
           </div>
@@ -169,57 +175,6 @@
 
         <!-- Right: main canvas -->
         <section class="qm-canvas-wrap">
-
-          <!-- Notebook-style quest details card -->
-          <div class="qm-details-card">
-            <div class="qm-details-card-label">Quest details</div>
-
-            <div class="qm-meta-row">
-              <div class="qm-meta-field qm-meta-title">
-                <label class="qm-label">Title <span class="required">*</span></label>
-                <input type="text" id="qm-name" class="qm-input qm-input-lg" placeholder="Quest title…" />
-              </div>
-              <div class="qm-meta-field qm-meta-location">
-                <label class="qm-label">Location</label>
-                <div class="qm-location-wrap">
-                  <input type="text" id="qm-location" class="qm-input" placeholder="&#128269; Search map locations…" autocomplete="off" />
-                  <div id="qm-location-drop" class="loc-dropdown" style="display:none"></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="qm-meta-row">
-              <div class="qm-meta-field">
-                <label class="qm-label">Type</label>
-                <div class="quest-type-selector" id="qm-type-selector">
-                  <button type="button" class="quest-type-btn active" data-type="main">&#9876; Main</button>
-                  <button type="button" class="quest-type-btn" data-type="side">&#10022; Side</button>
-                </div>
-              </div>
-              <div class="qm-meta-field">
-                <label class="qm-label">Status</label>
-                <select id="qm-status" class="qm-select">
-                  <option value="not_started">Not Started</option>
-                  <option value="active">Active</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-              <div class="qm-meta-field qm-meta-discovered">
-                <label class="qm-label">Visibility</label>
-                <label class="qm-toggle-label">
-                  <input type="checkbox" id="qm-discovered" class="qm-toggle-input" />
-                  <span class="qm-toggle-track"><span class="qm-toggle-thumb"></span></span>
-                  <span class="qm-toggle-text">Visible to players</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Content sections label -->
-          <div class="qm-canvas-label">
-            <span class="qm-canvas-label-text">Content</span>
-            <span class="qm-canvas-label-hint">Click the sidebar to add blocks, or drag them onto the canvas</span>
-          </div>
 
           <!-- Block canvas -->
           <div id="qm-block-canvas" class="qm-block-canvas"></div>

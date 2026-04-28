@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spells — DnD Campaign</title>
+  <link rel="icon" type="image/webp" href="../Images/EssolisLogoWeb.webp" />
+  <meta property="og:image" content="../Images/EssolisLogoWeb.webp" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/spells.css" />
+</head>
+<body>
+  <nav>
+    <img src="../Images/EssolisLogo.webp" alt="Essolis Logo" class="nav-logo">
+    <ul>
+      <li><a href="missions.html">Missions</a></li>
+      <li><a href="exploration.html">Characters</a></li>
+      <li class="nav-dm-only"><a href="items.html">Items</a></li>
+      <li><a href="map.html">Map</a></li>
+      <li><a href="lore.html">Lore</a></li>
+      <li class="nav-dm-only"><a href="combat.html">Combat</a></li>
+      <li><a href="inventory.html">Inventory</a></li>
+      <li><a href="spells.html">Spells</a></li>
+    </ul>
+  </nav>
+
+  <header class="spells-hero">
+    <h1 class="spells-title">Spells</h1>
+    <p class="spells-subtitle">Complete D&amp;D spell compendium with condition tooltips</p>
+  </header>
+
+  <main class="spells-main">
+    <div id="seed-status" class="seed-status" style="display:none"></div>
+
+    <div class="spells-toolbar">
+      <input type="text" id="spells-search" class="spells-search" placeholder="Search spells…" />
+      <div id="level-filter" class="level-filter"></div>
+    </div>
+    <div class="spells-toolbar spells-toolbar-row2">
+      <select id="school-filter" class="spells-select">
+        <option value="">All Schools</option>
+      </select>
+      <select id="class-filter" class="spells-select">
+        <option value="">All Classes</option>
+      </select>
+      <span class="spells-count" id="spell-count"></span>
+    </div>
+
+    <div id="spells-grid" class="spells-grid"></div>
+  </main>
+
+  <!-- Spell detail modal -->
+  <div id="spell-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 id="sm-title"></h2>
+        <button class="modal-close-x" id="sm-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="sm-meta" id="sm-meta"></div>
+        <div class="sm-stats" id="sm-stats"></div>
+        <div class="sm-components" id="sm-components"></div>
+        <hr class="sm-divider" />
+        <div class="sm-description" id="sm-description"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Condition tooltip (single floating element) -->
+  <div id="condition-tooltip" class="condition-tooltip-box" style="display:none"></div>
+
+  <script type="module" src="../assets/js/spells.js"></script>
+  <script src="../assets/js/base.js"></script>
+</body>
+</html>

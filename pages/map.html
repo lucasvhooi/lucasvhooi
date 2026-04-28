@@ -3,23 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Map — DnD Campaign</title>
-  <link rel="icon" type="image/webp" href="../Images/EssolisLogoWeb.webp" />
-  <meta property="og:image" content="../Images/EssolisLogoWeb.webp" />
+  <title>Interactive Map</title>
   <link rel="stylesheet" href="../assets/css/base.css">
   <link rel="stylesheet" href="../assets/css/map.css">
 </head>
 <body class="map-page">
   <nav>
-    <img src="../Images/EssolisLogo.webp" alt="Essolis Logo" class="nav-logo">
     <ul>
+      <li><a href="homepage.html">Home</a></li>
       <li><a href="missions.html">Missions</a></li>
-      <li><a href="exploration.html">Characters</a></li>
+      <li><a href="exploration.html">Exploration</a></li>d
       <li class="nav-dm-only"><a href="items.html">Items</a></li>
       <li><a href="map.html">Map</a></li>
-      <li><a href="lore.html">Lore</a></li>
-      <li class="nav-dm-only"><a href="combat.html">Combat</a></li>
-      <li><a href="inventory.html">Inventory</a></li>
+      <li><a href="spells.html">Spells</a></li>
     </ul>
   </nav>
 
@@ -34,25 +30,6 @@
       <span class="dm-label">DM Tools</span>
       <button id="btn-place-marker" class="dm-btn">Place Marker</button>
     </div>
-
-    <!-- Location list panel toggle (always visible) -->
-    <button id="lp-open-btn" class="lp-open-btn" title="Open location list">&#9776; Locations</button>
-
-    <!-- Location list panel -->
-    <div id="location-panel" class="location-panel">
-      <div id="lp-resize-handle" class="lp-resize-handle" title="Drag to resize"></div>
-      <div class="lp-header">
-        <span class="lp-title">&#128205; Locations</span>
-        <div class="lp-header-actions">
-          <button id="lp-add-country-btn" class="lp-hdr-btn" title="Add country" style="display:none">&#43; Country</button>
-          <button id="lp-close-btn" class="lp-hdr-btn lp-hdr-close" title="Close">&times;</button>
-        </div>
-      </div>
-      <div class="lp-search-row">
-        <input type="text" id="lp-search" class="lp-search-input" placeholder="&#128269; Search locations…" />
-      </div>
-      <div class="lp-body" id="lp-body"></div>
-    </div>
   </div>
 
   <!-- Marker Form Modal -->
@@ -62,13 +39,6 @@
       <div class="form-row">
         <label>Name <span class="required">*</span>
           <input type="text" id="m-name" placeholder="e.g. Frostholm" />
-        </label>
-      </div>
-      <div class="form-row" id="m-country-row">
-        <label>Country / Region
-          <select id="m-country">
-            <option value="">— None —</option>
-          </select>
         </label>
       </div>
       <div class="form-row">
@@ -133,32 +103,6 @@
     </div>
   </div>
 
-
-  <!-- Add / Edit Country modal -->
-  <div id="country-modal" class="modal-overlay">
-    <div class="modal-box">
-      <h2 id="cm-modal-title">Add Country</h2>
-      <div class="form-row">
-        <label>Name <span class="required">*</span>
-          <input type="text" id="cm-name" placeholder="e.g. The Ferrath Empire" />
-        </label>
-      </div>
-      <div class="form-row">
-        <label>Colour</label>
-        <div class="country-color-row" id="cm-color-swatches"></div>
-      </div>
-      <div class="form-row">
-        <label>Description <span class="dm-only">(optional)</span>
-          <textarea id="cm-desc" rows="3" placeholder="Brief notes about this region…"></textarea>
-        </label>
-      </div>
-      <div id="cm-error" class="modal-error"></div>
-      <div class="modal-actions">
-        <button id="cm-save" class="dm-btn">Save</button>
-        <button id="cm-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
-      </div>
-    </div>
-  </div>
 
 <script type="module" src="../assets/js/map.js"></script>
   <script src="../assets/js/base.js"></script>

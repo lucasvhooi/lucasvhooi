@@ -5,7 +5,11 @@
       "Read(//tmp/**)",
       "WebSearch",
       "Bash(python3 -c ' *)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(node --input-type=module)",
+      "Bash(node.exe --input-type=module)",
+      "Bash(where node *)",
+      "PowerShell(node --input-type=module --eval \"import\\('./assets/js/missions.js'\\)\" 2>&1 | Select-Object -First 20)"
     ]
   }
 }
