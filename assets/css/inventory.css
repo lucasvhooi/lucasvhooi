@@ -97,6 +97,21 @@
 .inv-tab:hover { border-color: var(--accent); color: var(--accent); }
 .inv-tab.active { background: rgba(255,204,102,0.1); border-color: var(--accent); color: var(--accent); }
 
+/* Spells tab — same separation as lore tab */
+.inv-tab-spells {
+  margin-left: 10px;
+  position: relative;
+}
+.inv-tab-spells::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 20%;
+  height: 60%;
+  width: 1px;
+  background: #3a2510;
+}
+
 /* Books & Scrolls tab — separated with a left gap */
 .inv-tab-lore {
   margin-left: 10px;
@@ -111,6 +126,13 @@
   height: 60%;
   width: 1px;
   background: #3a2510;
+}
+
+/* ── Spells grid layout override ────────────────────────────────────────────── */
+.inv-grid.inv-spells-view {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  align-items: start;
 }
 
 /* ── Main grid ──────────────────────────────────────────────────────────────── */
@@ -780,6 +802,7 @@
   /* Grid — single-column on mobile */
   .inv-main { margin: 16px auto; }
   .inv-grid { gap: 10px; grid-template-columns: 1fr; }
+  .inv-grid.inv-spells-view { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 
   /* Card body */
   .inv-card-body { padding: 14px 16px 10px 18px; }

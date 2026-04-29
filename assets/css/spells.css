@@ -497,27 +497,54 @@
   color: #8899bb;
 }
 
+/* ── Spell save/bookmark button ── */
+.spell-save-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: #334;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 3px 5px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+  z-index: 1;
+}
+.spell-save-btn:hover        { color: #7eb8ff; background: rgba(126,184,255,0.08); }
+.spell-save-btn.saved        { color: #7eb8ff; }
+.spell-save-btn.saved:hover  { color: #ff8080; background: rgba(255,100,100,0.08); }
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .spells-main { max-width: 100%; padding: 12px 8px 48px; }
-  .spells-toolbar { gap: 8px; }
-  .spells-search { width: 100%; }
-  .level-filter { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
-  .spells-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .spells-main { max-width: 100%; padding: 10px 8px 48px; overflow-x: hidden; }
 
-  .modal-overlay { align-items: flex-end; }
-  .modal-box {
-    width: 100%;
-    max-width: 100%;
-    max-height: 96vh;
-    border-radius: 14px 14px 0 0;
-  }
-  .modal-header { border-radius: 14px 14px 0 0; }
+  /* Toolbars */
+  .spells-toolbar { gap: 6px; }
+  .spells-search { width: 100%; min-width: 0; }
+  .level-filter { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; min-width: 0; }
+  /* Selects share the row width instead of using their intrinsic (wide) size */
+  .spells-select { flex: 1 1 0; min-width: 0; width: 0; font-size: 12px; }
+  .spells-count { display: none; }
+
+  /* Grid — minmax(0,1fr) lets cells shrink below content width */
+  .spells-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+
+  /* Compact card */
+  .spell-card { padding: 7px 8px; gap: 3px; border-radius: 7px; overflow: hidden; }
+  .spell-name { font-size: 12px; line-height: 1.2; }
+  .spell-school-badge { font-size: 9px; }
+  .spell-level-badge { font-size: 9px; padding: 1px 5px; }
+  .spell-classes { display: none; }
+  .spell-card-stats { display: none; }
+  .spell-duration { font-size: 10px; }
+
+  /* Modal — centred dialog */
+  .modal-overlay { align-items: center; justify-content: center; padding: 12px; }
+  .modal-box { width: 100%; max-width: 480px; max-height: 88vh; border-radius: 12px; }
+  .modal-header { border-radius: 12px 12px 0 0; }
   .modal-body { padding: 14px 16px 18px; }
-
   .sm-stat-row { grid-template-columns: 1fr 1fr; }
-
-  .spell-name { font-size: 13px; }
-  .spell-school-badge { font-size: 10px; }
-  .spell-card { padding: 10px 10px; gap: 4px; }
 }

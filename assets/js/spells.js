@@ -1,10 +1,12 @@
 import { db } from "./firebase.js";
-import { ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+import { ref, set, remove, onValue, get } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
-const isAdmin = (() => {
-  try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; }
-  catch { return false; }
+const _session = (() => {
+  try { return JSON.parse(localStorage.getItem('playerSession')); }
+  catch { return null; }
 })();
+const isAdmin = _session?.role === 'admin';
+const _userId = _session?.id || null;
 
 // ── Condition data (from Conditions.txt) ──────────────────────────────────────
 const CONDITIONS = {
@@ -103,6 +105,31 @@ function levelShort(level) {
   if (level === 0) return "Cantrip";
   const sfx = ["th","st","nd","rd","th","th","th","th","th","th"];
   return `${level}${sfx[level] || "th"}`;
+}
+
+// ── Spellbook (saved spells) ───────────────────────────────────────────────────
+const spellbookRef = _userId ? ref(db, `spellbook/${_userId}`) : null;
+let savedSpellIds  = new Set();
+
+if (spellbookRef) {
+  onValue(spellbookRef, snap => {
+    savedSpellIds = new Set(snap.val() ? Object.keys(snap.val()) : []);
+    document.querySelectorAll('.spell-save-btn').forEach(btn => {
+      const saved = savedSpellIds.has(btn.dataset.spellId);
+      btn.classList.toggle('saved', saved);
+      btn.textContent = saved ? '★' : '☆';
+      btn.title = saved ? 'Remove from spellbook' : 'Save to My Spells';
+    });
+  });
+}
+
+async function toggleSaveSpell(spellId) {
+  if (!_userId) return;
+  if (savedSpellIds.has(spellId)) {
+    await remove(ref(db, `spellbook/${_userId}/${spellId}`));
+  } else {
+    await set(ref(db, `spellbook/${_userId}/${spellId}`), { savedAt: Date.now() });
+  }
 }
 
 // ── State ──────────────────────────────────────────────────────────────────────
@@ -342,7 +369,21 @@ function renderSpells() {
       ${spell.duration ? `<div class="spell-duration">${isConc ? '<span class="conc-tag">C</span>' : ''}${escHtml(durText)}</div>` : ''}
     `;
 
-    card.addEventListener("click", () => openSpellModal(spell));
+    card.addEventListener("click", e => {
+      if (e.target.closest('.spell-save-btn')) return;
+      openSpellModal(spell);
+    });
+
+    if (_userId) {
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'spell-save-btn' + (savedSpellIds.has(spell.id) ? ' saved' : '');
+      saveBtn.dataset.spellId = spell.id;
+      saveBtn.textContent = savedSpellIds.has(spell.id) ? '★' : '☆';
+      saveBtn.title = savedSpellIds.has(spell.id) ? 'Remove from spellbook' : 'Save to My Spells';
+      saveBtn.addEventListener('click', e => { e.stopPropagation(); toggleSaveSpell(spell.id); });
+      card.appendChild(saveBtn);
+    }
+
     fragment.appendChild(card);
   });
 

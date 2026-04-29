@@ -8,6 +8,7 @@
   <meta property="og:image" content="../Images/EssolisLogoWeb.webp" />
   <link rel="stylesheet" href="../assets/css/base.css">
   <link rel="stylesheet" href="../assets/css/lore.css">
+  <link rel="stylesheet" href="../assets/css/spells.css">
   <link rel="stylesheet" href="../assets/css/items.css">
   <link rel="stylesheet" href="../assets/css/inventory.css">
 </head>
@@ -51,6 +52,7 @@
       <button class="inv-tab" data-filter="potion">⚗ Potions</button>
       <button class="inv-tab" data-filter="misc">◈ Misc</button>
       <button class="inv-tab inv-tab-lore" data-filter="books-scrolls">📚 Books & Scrolls</button>
+      <button class="inv-tab inv-tab-spells" data-filter="spells">✦ Spells</button>
     </div>
   </header>
 
@@ -318,6 +320,25 @@
       </div>
     </div>
   </div>
+
+  <!-- ── Spell detail modal ─────────────────────────────────────────────────── -->
+  <div id="spell-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 id="sm-title"></h2>
+        <button class="modal-close-x" id="sm-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="sm-meta" id="sm-meta"></div>
+        <div class="sm-stats" id="sm-stats"></div>
+        <div class="sm-components" id="sm-components"></div>
+        <hr class="sm-divider" />
+        <div class="sm-description" id="sm-description"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="condition-tooltip" class="condition-tooltip-box" style="display:none"></div>
 
   <script type="module" src="../assets/js/inventory.js"></script>
   <script src="../assets/js/base.js"></script>

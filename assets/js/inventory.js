@@ -21,6 +21,8 @@ let selectedItemDb = null;
 let allUsers     = {};   // { id: { id, username, color, role } }
 let allInventory = {};   // { userId: { itemId: item } }
 let allAttunements = {};
+let allSpells    = {};
+let allSpellbooks = {};
 let viewingId    = session.id;  // which player's inventory to show
 let activeFilter = "all";
 let sendItemId   = null;
@@ -52,6 +54,16 @@ onValue(inventoryRef, snap => {
 onValue(ref(db, "attunements"), snap => {
   allAttunements = snap.val() || {};
   renderGrid();
+});
+
+onValue(ref(db, "spells"), snap => {
+  allSpells = snap.val() || {};
+  if (activeFilter === "spells") renderGrid();
+});
+
+onValue(ref(db, "spellbook"), snap => {
+  allSpellbooks = snap.val() || {};
+  if (activeFilter === "spells") renderGrid();
 });
 
 // ── Player selector ───────────────────────────────────────────────────────────
@@ -100,6 +112,13 @@ function renderGrid() {
   attBar.style.display = "block";
   attSlots.textContent = `${attunedCount} / 3 Attunement Slots`;
   attSlots.style.color = attunedCount === 3 ? "#e57373" : attunedCount >= 2 ? "#ff9800" : "var(--accent)";
+
+  if (activeFilter === "spells") {
+    invGrid.classList.add("inv-spells-view");
+    renderSpellsGrid();
+    return;
+  }
+  invGrid.classList.remove("inv-spells-view");
 
   const items = (allInventory[viewingId]
     ? Object.values(allInventory[viewingId])
@@ -981,7 +1000,13 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     document.querySelectorAll(".inv-overlay.open").forEach(o => o.classList.remove("open"));
     invReader.classList.remove("open");
+    closeInvSpellModal();
   }
+});
+
+document.getElementById("sm-close-btn").addEventListener("click", closeInvSpellModal);
+document.getElementById("spell-modal").addEventListener("click", e => {
+  if (e.target === document.getElementById("spell-modal")) closeInvSpellModal();
 });
 
 // ── Admin: show add-item target row only for admin ────────────────────────────
@@ -1013,4 +1038,198 @@ function inferTypeFromTags(tags) {
 function esc(str) {
   return String(str ?? "")
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+// ── Saved Spells tab ──────────────────────────────────────────────────────────
+const _SPELL_CONDITIONS = {
+  blinded:       { name: "Blinded",       desc: "A blinded creature can't see and automatically fails any ability check that requires sight. Attack rolls against the creature have advantage, and the creature's attack rolls have disadvantage." },
+  charmed:       { name: "Charmed",       desc: "A charmed creature can't attack the charmer or target the charmer with harmful abilities or magical effects. The charmer has advantage on any ability check to interact socially with the creature." },
+  deafened:      { name: "Deafened",      desc: "A deafened creature can't hear and automatically fails any ability check that requires hearing." },
+  exhaustion:    { name: "Exhaustion",    desc: "Exhaustion is measured in six levels. 1: Disadvantage on ability checks. 2: Speed halved. 3: Disadvantage on attack rolls and saving throws. 4: Hit point maximum halved. 5: Speed reduced to 0. 6: Death. A long rest reduces exhaustion level by 1." },
+  frightened:    { name: "Frightened",    desc: "A frightened creature has disadvantage on ability checks and attack rolls while the source of its fear is within line of sight. The creature can't willingly move closer to the source of its fear." },
+  grappled:      { name: "Grappled",      desc: "A grappled creature's speed becomes 0, and it can't benefit from any bonus to its speed. The condition ends if the grappler is incapacitated, or if an effect removes the grappled creature from reach of the grappler." },
+  incapacitated: { name: "Incapacitated", desc: "An incapacitated creature can't take actions or reactions." },
+  invisible:     { name: "Invisible",     desc: "An invisible creature is impossible to see without the aid of magic or a special sense. Attack rolls against the creature have disadvantage, and the creature's attack rolls have advantage." },
+  paralyzed:     { name: "Paralyzed",     desc: "A paralyzed creature is incapacitated and can't move or speak. It automatically fails Strength and Dexterity saving throws. Attack rolls against it have advantage. Any attack that hits is a critical hit if the attacker is within 5 feet." },
+  petrified:     { name: "Petrified",     desc: "A petrified creature is transformed into a solid inanimate substance. It is incapacitated, can't move or speak, and is unaware of its surroundings. It automatically fails Strength and Dexterity saving throws, has resistance to all damage, and is immune to poison and disease." },
+  poisoned:      { name: "Poisoned",      desc: "A poisoned creature has disadvantage on attack rolls and ability checks." },
+  prone:         { name: "Prone",         desc: "A prone creature's only movement option is to crawl, unless it stands up. It has disadvantage on attack rolls. An attack roll against it has advantage if the attacker is within 5 feet, otherwise the roll has disadvantage." },
+  restrained:    { name: "Restrained",    desc: "A restrained creature's speed becomes 0. Attack rolls against it have advantage, and its attack rolls have disadvantage. It has disadvantage on Dexterity saving throws." },
+  stunned:       { name: "Stunned",       desc: "A stunned creature is incapacitated, can't move, and can speak only falteringly. It automatically fails Strength and Dexterity saving throws. Attack rolls against it have advantage." },
+  unconscious:   { name: "Unconscious",   desc: "An unconscious creature is incapacitated, can't move or speak, and is unaware of its surroundings. It drops whatever it's holding and falls prone. It automatically fails Strength and Dexterity saving throws. Attack rolls against it have advantage. Any attack that hits is a critical hit if the attacker is within 5 feet." }
+};
+const _SPELL_COND_REGEX = new RegExp(`\\b(${Object.keys(_SPELL_CONDITIONS).join('|')})\\b`, 'gi');
+const _SPELL_SCHOOL_COLORS = {
+  "abjuration": "#5ba4cf", "conjuration": "#61bd4f", "divination": "#00c2e0",
+  "enchantment": "#c377e0", "evocation": "#eb5a46", "illusion": "#9f8fef",
+  "necromancy": "#8fab8e", "transmutation": "#d4b44a"
+};
+
+function _spellSchoolColor(school) {
+  return _SPELL_SCHOOL_COLORS[(school || '').toLowerCase()] || '#7a9abb';
+}
+function _spellLevelLabel(level) {
+  if (level === 0) return 'Cantrip';
+  const sfx = ['th','st','nd','rd','th','th','th','th','th','th'];
+  return `${level}${sfx[level] || 'th'} Level`;
+}
+function _spellLevelShort(level) {
+  if (level === 0) return 'Cantrip';
+  const sfx = ['th','st','nd','rd','th','th','th','th','th','th'];
+  return `${level}${sfx[level] || 'th'}`;
+}
+function _renderSpellDesc(text) {
+  if (!text) return '<p style="color:#445;font-style:italic">No description.</p>';
+  let html = esc(text);
+  html = html.replace(_SPELL_COND_REGEX, m => `<span class="condition-tag" data-condition="${m.toLowerCase()}">${m}</span>`);
+  html = '<p>' + html.split('\n\n').map(p => p.replace(/\n/g, '<br>')).join('</p><p>') + '</p>';
+  return html;
+}
+
+function renderSpellsGrid() {
+  const myBook    = allSpellbooks[viewingId] || {};
+  const savedIds  = Object.keys(myBook);
+  const canUnsave = isAdmin || viewingId === session.id;
+
+  if (savedIds.length === 0) {
+    invGrid.innerHTML = `<p class="inv-empty">No saved spells. Tap ☆ on any spell in the Spells page to save it here.</p>`;
+    return;
+  }
+
+  const list = savedIds.map(id => allSpells[id]).filter(Boolean)
+    .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
+
+  if (list.length === 0) {
+    invGrid.innerHTML = `<p class="inv-empty">Spell data loading…</p>`;
+    return;
+  }
+
+  invGrid.innerHTML = '';
+  list.forEach(spell => invGrid.appendChild(buildSavedSpellCard(spell, canUnsave)));
+}
+
+function buildSavedSpellCard(spell, canUnsave) {
+  const card = document.createElement('div');
+  card.className = 'spell-card';
+  const sc = _spellSchoolColor(spell.school);
+  card.style.setProperty('--sc', sc);
+
+  const isConc = (spell.duration || '').includes('Concentration');
+  const durText = isConc ? spell.duration.replace(/^Concentration,\s*/i, '') : spell.duration;
+
+  card.innerHTML = `
+    <div class="spell-card-header">
+      <div class="spell-name">${esc(spell.name)}</div>
+      <div class="spell-school-badge">${esc(spell.school)}</div>
+    </div>
+    <div class="spell-card-meta">
+      <span class="spell-level-badge">${_spellLevelShort(spell.level)}</span>
+      <span class="spell-classes">${esc((spell.classes || []).join(', '))}</span>
+    </div>
+    <div class="spell-card-stats">
+      <span class="spell-stat"><span class="spell-stat-label">Cast</span>${esc(spell.castTime)}</span>
+      <span class="spell-stat"><span class="spell-stat-label">Range</span>${esc(spell.range)}</span>
+    </div>
+    ${spell.duration ? `<div class="spell-duration">${isConc ? '<span class="conc-tag">C</span>' : ''}${esc(durText)}</div>` : ''}
+    ${canUnsave ? `<button class="spell-save-btn saved" data-spell-id="${esc(spell.id)}" title="Remove from spellbook">★</button>` : ''}
+  `;
+
+  card.addEventListener('click', e => {
+    if (e.target.closest('.spell-save-btn')) return;
+    openInvSpellModal(spell);
+  });
+
+  if (canUnsave) {
+    card.querySelector('.spell-save-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      remove(ref(db, `spellbook/${viewingId}/${spell.id}`));
+    });
+  }
+
+  return card;
+}
+
+function openInvSpellModal(spell) {
+  const modal = document.getElementById('spell-modal');
+  document.getElementById('sm-title').textContent = spell.name;
+
+  const sc = _spellSchoolColor(spell.school);
+  const isConc = (spell.duration || '').includes('Concentration');
+
+  document.getElementById('sm-meta').innerHTML = `
+    <span class="sm-badge sm-level-badge">${_spellLevelLabel(spell.level)}</span>
+    <span class="sm-badge sm-school-badge" style="background:color-mix(in srgb,${sc} 18%,transparent);border-color:color-mix(in srgb,${sc} 55%,transparent);color:${sc}">${esc(spell.school)}</span>
+    ${isConc ? '<span class="sm-badge sm-conc-badge">Concentration</span>' : ''}
+    <div class="sm-classes">${esc((spell.classes || []).join(', '))}</div>
+  `;
+
+  document.getElementById('sm-stats').innerHTML = `
+    <div class="sm-stat-row">
+      <div class="sm-stat-item"><span class="sm-stat-label">Casting Time</span><div class="sm-stat-value">${esc(spell.castTime || '—')}</div></div>
+      <div class="sm-stat-item"><span class="sm-stat-label">Range</span><div class="sm-stat-value">${esc(spell.range || '—')}</div></div>
+      <div class="sm-stat-item"><span class="sm-stat-label">Duration</span><div class="sm-stat-value">${esc(spell.duration || 'Instantaneous')}</div></div>
+    </div>
+  `;
+
+  const compParts = [];
+  if (spell.verbal)   compParts.push('<span class="comp-badge comp-v" title="Verbal">V</span>');
+  if (spell.somatic)  compParts.push('<span class="comp-badge comp-s" title="Somatic">S</span>');
+  if (spell.material) compParts.push('<span class="comp-badge comp-m" title="Material">M</span>');
+  const matLabel = spell.materialCost ? `<span class="comp-material">(${esc(spell.materialCost)})</span>` : '';
+
+  document.getElementById('sm-components').innerHTML = `
+    <div class="sm-comp-row">
+      <span class="sm-stat-label">Components</span>
+      ${compParts.length ? compParts.join('') : '<span style="color:#445;font-size:12px">None</span>'}
+      ${matLabel}
+    </div>
+  `;
+
+  document.getElementById('sm-description').innerHTML = _renderSpellDesc(spell.description || '');
+  modal.classList.add('open');
+  modal.querySelector('.modal-body').scrollTop = 0;
+}
+
+function closeInvSpellModal() {
+  document.getElementById('spell-modal').classList.remove('open');
+  const tt = document.getElementById('condition-tooltip');
+  if (tt) tt.style.display = 'none';
+}
+
+// Condition tooltip (works inside the spell detail modal)
+const _condTT = document.getElementById('condition-tooltip');
+let _condTarget = null;
+
+if (_condTT) {
+  document.addEventListener('mouseover', e => {
+    const tag = e.target.closest('.condition-tag');
+    if (!tag) return;
+    const cond = _SPELL_CONDITIONS[tag.dataset.condition];
+    if (!cond) return;
+    _condTarget = tag;
+    _condTT.innerHTML = `<div class="ctt-name">${cond.name}</div><div class="ctt-desc">${cond.desc}</div>`;
+    _condTT.style.display = 'block';
+    const r = tag.getBoundingClientRect();
+    _posCondTT(r.left + r.width / 2, r.top);
+  });
+  document.addEventListener('mouseout', e => {
+    if (!_condTarget || _condTarget.contains(e.relatedTarget)) return;
+    _condTT.style.display = 'none';
+    _condTarget = null;
+  });
+  document.addEventListener('mousemove', e => {
+    if (_condTT.style.display === 'none') return;
+    _posCondTT(e.clientX, e.clientY);
+  });
+}
+
+function _posCondTT(cx, cy) {
+  const W = 280, sx = window.scrollX || 0, sy = window.scrollY || 0, vw = window.innerWidth;
+  let left = cx + sx + 12;
+  let top  = cy + sy - (_condTT.offsetHeight || 90) - 10;
+  if (left + W > vw + sx - 8) left = vw + sx - W - 8;
+  if (left < sx + 8) left = sx + 8;
+  if (top < sy + 8) top = cy + sy + 18;
+  _condTT.style.left = left + 'px';
+  _condTT.style.top  = top  + 'px';
 }

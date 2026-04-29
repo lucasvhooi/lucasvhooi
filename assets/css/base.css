@@ -257,26 +257,28 @@ nav.nav-open .nav-hamburger span:nth-child(3) { transform: translateY(-7px) rota
 .nav-backdrop.open { display: block; }
 
 @media (max-width: 768px) {
-  /* Hide the nav bar entirely — no banner, no logo */
+  /* Slim sticky nav bar — logo hidden, just the hamburger */
   nav {
-    height: 0;
-    padding: 0;
-    border-bottom: none;
-    box-shadow: none;
-    background: none;
+    height: 52px;
+    padding: 0 16px;
     overflow: visible;
-    position: static;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(180deg, #2a1505 0%, #1c0e03 100%);
+    border-bottom: 1px solid #3a2510;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.6);
   }
 
   .nav-logo {
     display: none;
   }
 
-  /* Floating hamburger button — fixed top-right */
+  /* Hamburger — fixed so it stays above the drawer, vertically centred in the 52px bar */
   .nav-hamburger {
     display: flex;
     position: fixed;
-    top: 14px;
+    top: 10px;
     right: 14px;
     z-index: 200;
     background: rgba(28, 12, 3, 0.88);

@@ -104,7 +104,7 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    MAIN GRID
    ═══════════════════════════════════════════════════════════════════════════ */
-.quest-main {
+.quest-page-main {
   width: 100%;
   max-width: 1800px;
   margin: 0 auto;
@@ -1913,7 +1913,7 @@
   .quest-hero-inner { flex-direction: column; align-items: stretch; gap: 14px; text-align: center; }
   .quest-hero-text { text-align: center; }
   .quest-hero-add-btn { align-self: center; }
-  .quest-main { padding: 16px 14px 60px; }
+  .quest-page-main { padding: 16px 14px 60px; }
   .qm-canvas-wrap { padding: 18px 18px 24px; }
 }
 
