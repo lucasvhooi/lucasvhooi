@@ -23,10 +23,9 @@ const COVER_COLORS = [
 ];
 
 // ── DOM Refs ──────────────────────────────────────────────────────────────────
-const loreGrid    = document.getElementById("lore-grid");
-const loreEmpty   = document.getElementById("lore-empty");
-const loreToolbar = document.getElementById("lore-toolbar");
-const loreAddBtn  = document.getElementById("lore-add-btn");
+const loreGrid   = document.getElementById("lore-grid");
+const loreEmpty  = document.getElementById("lore-empty");
+const loreAddBtn = document.getElementById("lore-add-btn");
 
 // Filter tabs
 document.querySelectorAll(".lore-tab").forEach(tab => {
@@ -412,9 +411,8 @@ function closeLoreModal() {
 
 // ── Toolbar ───────────────────────────────────────────────────────────────────
 if (isAdmin) {
-  loreToolbar.style.display = "flex";
+  loreAddBtn.style.display = "inline-flex";
   loreAddBtn.addEventListener("click", () => openEditModal());
-
 }
 
 function updateSeedBtn() {} // no-op, kept for compatibility
