@@ -21,10 +21,10 @@
    HERO
    ═══════════════════════════════════════════════════════════════════════════ */
 .quest-hero {
-  background: linear-gradient(180deg, #2a1505 0%, #1c0e03 55%, #17100a 100%);
-  border-bottom: 1px solid #3a2510;
-  padding: 28px 32px 18px;
-  position: relative;
+    background: linear-gradient(180deg, #3a0d0d 0%, #280a0a 50%, #1a1a1a 100%);
+    padding: 40px 20px 28px;
+    text-align: center;
+    height: 20vh;
 }
 
 .quest-hero-inner {
@@ -34,7 +34,8 @@
   gap: 24px;
   max-width: 1800px;
   margin: 0 auto 16px;
-  text-align: left;
+  align-items: center;
+  text-align: center;
 }
 .quest-hero-text { flex: 1; min-width: 0; }
 
@@ -70,10 +71,9 @@
 
 .quest-filter-tabs {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 4px;
   flex-wrap: wrap;
-  max-width: 1800px;
   margin: 0 auto;
   border-bottom: 1px solid #2e1c0c;
   padding-bottom: 0;

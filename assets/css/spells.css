@@ -10,13 +10,13 @@
   background: linear-gradient(180deg, #0d1a3a 0%, #0a1228 50%, #1a1a1a 100%);
   padding: 40px 20px 28px;
   text-align: center;
-  border-bottom: 1px solid #1a2a5a;
+  height: 15vh;
 }
 
 .spells-title {
   font-family: 'IM Fell English', 'Garamond', serif;
   font-size: clamp(2rem, 5vw, 3rem);
-  color: #7eb8ff;
+  color: var(--accent);
   margin: 0 0 8px;
   letter-spacing: 0.03em;
 }

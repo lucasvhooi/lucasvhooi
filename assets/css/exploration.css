@@ -2,11 +2,13 @@
 
 /* ── Hero ── */
 .expl-hero {
-  background: linear-gradient(180deg, #2a1505 0%, #1c0e03 55%, #1a1a1a 100%);
-  border-bottom: 1px solid #3a2510;
-  padding: 24px 24px 20px;
   text-align: center;
   position: relative;
+  background: linear-gradient(180deg, #0d3a0f 0%, #0a2813 50%, #1a1a1a 100%);
+  padding: 40px 20px 28px;
+  text-align: center;
+    height: 20vh;
+
 }
 
 .char-add-btn {
