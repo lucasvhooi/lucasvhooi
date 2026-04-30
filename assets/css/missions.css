@@ -951,8 +951,7 @@
   width: 4000px;
   height: 4000px;
   transform-origin: 0 0;
-  will-change: transform;
-  contain: layout paint style;
+  contain: layout;
 }
 
 .qm-canvas-empty {

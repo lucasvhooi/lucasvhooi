@@ -497,6 +497,8 @@ qmBlockCanvas.addEventListener('touchstart', e => {
   if (e.touches.length === 1 && e.target.closest('.qm-block')) return;
   e.preventDefault();
   _canvasRectCache = qmBlockCanvas.getBoundingClientRect();
+  // Promote to GPU layer only for the duration of the gesture
+  if (canvasWorld) canvasWorld.style.willChange = 'transform';
 
   if (e.touches.length >= 2) {
     _ct.pan = false; _ct.pinch = true;
@@ -539,7 +541,14 @@ qmBlockCanvas.addEventListener('touchmove', e => {
 
 qmBlockCanvas.addEventListener('touchend', e => {
   if (e.touches.length < 2) _ct.pinch = false;
-  if (e.touches.length === 0) { _ct.pan = false; return; }
+  if (e.touches.length === 0) {
+    _ct.pan = false;
+    // Release GPU layer after the last frame settles (2 rAF to avoid flicker on release)
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (canvasWorld) canvasWorld.style.willChange = '';
+    }));
+    return;
+  }
   // One finger remains after lifting pinch — restart pan from current position
   if (!_ct.pinch && e.touches.length === 1) {
     _ct.pan = true;

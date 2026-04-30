@@ -210,6 +210,8 @@ if (isTouchDevice) {
   mapContainer.addEventListener("touchstart", function(e) {
     if (e.target.closest('#location-panel')) return;
     _updateCachedRect();
+    // Promote wrapper to GPU layer for the gesture duration
+    mapWrapper.style.willChange = 'transform';
     // Disable marker hit-testing during gesture to avoid hover recalcs
     markerLayer.style.pointerEvents = "none";
     if (e.touches.length === 2) {
@@ -253,6 +255,10 @@ if (isTouchDevice) {
     _restoreRendering();
     markerLayer.style.pointerEvents = "";
     flushCounterScale();
+    // Release GPU layer after the final frame settles
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      mapWrapper.style.willChange = '';
+    }));
   }
 
   mapContainer.addEventListener("touchcancel", onTouchDone, { passive: true });
