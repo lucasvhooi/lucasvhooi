@@ -138,6 +138,7 @@ let activeLevel  = null;
 let activeSchool = "";
 let activeClass  = "";
 let searchQuery  = "";
+let activeSaved  = false;
 
 // ── DOM refs ───────────────────────────────────────────────────────────────────
 const spellsGrid   = document.getElementById("spells-grid");
@@ -265,14 +266,21 @@ function buildLevelFilter() {
   const levels = [...new Set(spells.map(s => s.level))].sort((a, b) => a - b);
   levelFilter.innerHTML = "";
 
-  const allBtn = makeBtn("All", "level-btn" + (activeLevel === null ? " active" : ""), () => {
-    activeLevel = null; buildLevelFilter(); renderSpells();
+  if (_userId) {
+    const savedBtn = makeBtn("★ My Spells", "level-btn" + (activeSaved ? " active" : ""), () => {
+      activeSaved = true; activeLevel = null; buildLevelFilter(); renderSpells();
+    });
+    levelFilter.appendChild(savedBtn);
+  }
+
+  const allBtn = makeBtn("All", "level-btn" + (!activeSaved && activeLevel === null ? " active" : ""), () => {
+    activeSaved = false; activeLevel = null; buildLevelFilter(); renderSpells();
   });
   levelFilter.appendChild(allBtn);
 
   levels.forEach(lvl => {
-    const btn = makeBtn(levelShort(lvl), "level-btn" + (activeLevel === lvl ? " active" : ""), () => {
-      activeLevel = lvl; buildLevelFilter(); renderSpells();
+    const btn = makeBtn(levelShort(lvl), "level-btn" + (!activeSaved && activeLevel === lvl ? " active" : ""), () => {
+      activeSaved = false; activeLevel = lvl; buildLevelFilter(); renderSpells();
     });
     levelFilter.appendChild(btn);
   });
@@ -311,32 +319,50 @@ function makeBtn(text, className, onClick) {
 }
 
 // ── Render spells grid ────────────────────────────────────────────────────────
+const _isMobile = () => window.matchMedia('(max-width: 768px)').matches;
+
 function renderSpells() {
   spellsGrid.innerHTML = "";
 
   let filtered = [...spells];
 
-  if (activeLevel !== null) filtered = filtered.filter(s => s.level === activeLevel);
-  if (activeSchool)         filtered = filtered.filter(s => s.school === activeSchool);
-  if (activeClass)          filtered = filtered.filter(s => (s.classes || []).includes(activeClass));
+  if (activeSaved) {
+    filtered = filtered.filter(s => savedSpellIds.has(s.id));
+  } else {
+    if (activeLevel !== null) filtered = filtered.filter(s => s.level === activeLevel);
+    if (activeSchool)         filtered = filtered.filter(s => s.school === activeSchool);
+    if (activeClass)          filtered = filtered.filter(s => (s.classes || []).includes(activeClass));
 
-  if (searchQuery) {
-    const q = searchQuery.toLowerCase();
-    filtered = filtered.filter(s =>
-      s.name.toLowerCase().includes(q) ||
-      (s.description || "").toLowerCase().includes(q) ||
-      (s.school || "").toLowerCase().includes(q) ||
-      (s.classes || []).some(c => c.toLowerCase().includes(q))
-    );
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(s =>
+        s.name.toLowerCase().includes(q) ||
+        (s.description || "").toLowerCase().includes(q) ||
+        (s.school || "").toLowerCase().includes(q) ||
+        (s.classes || []).some(c => c.toLowerCase().includes(q))
+      );
+    }
   }
 
   const total = filtered.length;
-  spellCount.textContent = total === spells.length
-    ? `${total} spells`
-    : `${total} of ${spells.length} spells`;
+  spellCount.textContent = activeSaved
+    ? `${total} saved spell${total !== 1 ? 's' : ''}`
+    : (total === spells.length ? `${total} spells` : `${total} of ${spells.length} spells`);
 
   if (total === 0) {
-    spellsGrid.innerHTML = `<p class="spells-empty">${spells.length === 0 ? "Loading spells…" : "No spells match."}</p>`;
+    const emptyEl = document.createElement('div');
+    emptyEl.className = 'spells-empty';
+    if (activeSaved) {
+      emptyEl.innerHTML = `
+        <div class="spells-empty-inner">
+          <span class="spells-empty-star">☆</span>
+          <p class="spells-empty-title">No saved spells</p>
+          <p class="spells-empty-hint">Tap ☆ on any spell in the Spells page to save it here.</p>
+        </div>`;
+    } else {
+      emptyEl.textContent = spells.length === 0 ? "Loading spells…" : "No spells match.";
+    }
+    spellsGrid.appendChild(emptyEl);
     return;
   }
 
@@ -353,6 +379,9 @@ function renderSpells() {
       ? spell.duration.replace(/^Concentration,\s*/i, "")
       : spell.duration;
 
+    const rawDesc = (spell.description || "").replace(/\n/g, ' ');
+    const shortDesc = rawDesc.length > 160 ? rawDesc.slice(0, 160) + '…' : rawDesc;
+
     card.innerHTML = `
       <div class="spell-card-header">
         <div class="spell-name">${escHtml(spell.name)}</div>
@@ -367,11 +396,26 @@ function renderSpells() {
         <span class="spell-stat"><span class="spell-stat-label">Range</span>${escHtml(spell.range)}</span>
       </div>
       ${spell.duration ? `<div class="spell-duration">${isConc ? '<span class="conc-tag">C</span>' : ''}${escHtml(durText)}</div>` : ''}
+      <div class="spell-expand-body">
+        <div class="spell-expand-desc">${escHtml(shortDesc)}</div>
+        <button class="spell-modal-btn">Full Details →</button>
+      </div>
     `;
 
-    card.addEventListener("click", e => {
-      if (e.target.closest('.spell-save-btn')) return;
+    card.querySelector('.spell-modal-btn').addEventListener('click', e => {
+      e.stopPropagation();
       openSpellModal(spell);
+    });
+
+    card.addEventListener("click", e => {
+      if (e.target.closest('.spell-save-btn, .spell-modal-btn')) return;
+      if (_isMobile()) {
+        const wasExpanded = card.classList.contains('expanded');
+        document.querySelectorAll('.spell-card.expanded').forEach(c => c.classList.remove('expanded'));
+        if (!wasExpanded) card.classList.add('expanded');
+      } else {
+        openSpellModal(spell);
+      }
     });
 
     if (_userId) {

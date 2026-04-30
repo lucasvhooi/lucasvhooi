@@ -114,11 +114,9 @@ function renderGrid() {
   attSlots.style.color = attunedCount === 3 ? "#e57373" : attunedCount >= 2 ? "#ff9800" : "var(--accent)";
 
   if (activeFilter === "spells") {
-    invGrid.classList.add("inv-spells-view");
     renderSpellsGrid();
     return;
   }
-  invGrid.classList.remove("inv-spells-view");
 
   const items = (allInventory[viewingId]
     ? Object.values(allInventory[viewingId])
@@ -1105,46 +1103,71 @@ function renderSpellsGrid() {
   }
 
   invGrid.innerHTML = '';
-  list.forEach(spell => invGrid.appendChild(buildSavedSpellCard(spell, canUnsave)));
+  list.forEach(spell => {
+    const card = buildSavedSpellCard(spell, canUnsave);
+    invGrid.appendChild(card);
+    const nameEl = card.querySelector('.inv-item-name');
+    if (nameEl) fitText(nameEl);
+  });
 }
 
 function buildSavedSpellCard(spell, canUnsave) {
   const card = document.createElement('div');
-  card.className = 'spell-card';
+  card.className = 'inv-card';
+  card.dataset.type = 'spell';
+
   const sc = _spellSchoolColor(spell.school);
-  card.style.setProperty('--sc', sc);
+  card.style.setProperty('--rc', sc);
 
   const isConc = (spell.duration || '').includes('Concentration');
   const durText = isConc ? spell.duration.replace(/^Concentration,\s*/i, '') : spell.duration;
 
-  card.innerHTML = `
-    <div class="spell-card-header">
-      <div class="spell-name">${esc(spell.name)}</div>
-      <div class="spell-school-badge">${esc(spell.school)}</div>
-    </div>
-    <div class="spell-card-meta">
-      <span class="spell-level-badge">${_spellLevelShort(spell.level)}</span>
-      <span class="spell-classes">${esc((spell.classes || []).join(', '))}</span>
-    </div>
-    <div class="spell-card-stats">
-      <span class="spell-stat"><span class="spell-stat-label">Cast</span>${esc(spell.castTime)}</span>
-      <span class="spell-stat"><span class="spell-stat-label">Range</span>${esc(spell.range)}</span>
-    </div>
-    ${spell.duration ? `<div class="spell-duration">${isConc ? '<span class="conc-tag">C</span>' : ''}${esc(durText)}</div>` : ''}
-    ${canUnsave ? `<button class="spell-save-btn saved" data-spell-id="${esc(spell.id)}" title="Remove from spellbook">★</button>` : ''}
-  `;
+  const compParts = [];
+  if (spell.verbal)   compParts.push('V');
+  if (spell.somatic)  compParts.push('S');
+  if (spell.material) compParts.push('M');
+  const compStr = compParts.join(', ') + (spell.materialCost ? ` (${spell.materialCost})` : '');
 
-  card.addEventListener('click', e => {
-    if (e.target.closest('.spell-save-btn')) return;
-    openInvSpellModal(spell);
-  });
+  card.innerHTML = `
+    <div class="inv-card-body">
+      <div class="inv-card-top">
+        <span class="inv-type-icon">✦</span>
+        <div class="inv-name-wrap">
+          <h3 class="inv-item-name">${esc(spell.name)}</h3>
+          <div class="inv-badges">
+            <span class="inv-type-badge inv-badge-spell">${esc(spell.school || 'Spell')}</span>
+            <span class="inv-level-badge">${_spellLevelShort(spell.level)}</span>
+            ${isConc ? `<span class="inv-conc-badge" title="Concentration">C</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="inv-card-details">
+        ${spell.description ? `<p class="inv-desc">${esc(spell.description)}</p>` : ''}
+        <div class="inv-spell-stats">
+          ${spell.castTime ? `<div class="inv-spell-stat"><span class="inv-spell-stat-label">Cast</span>${esc(spell.castTime)}</div>` : ''}
+          ${spell.range    ? `<div class="inv-spell-stat"><span class="inv-spell-stat-label">Range</span>${esc(spell.range)}</div>` : ''}
+          ${spell.duration ? `<div class="inv-spell-stat"><span class="inv-spell-stat-label">Duration</span>${esc(durText)}</div>` : ''}
+          ${compParts.length ? `<div class="inv-spell-stat"><span class="inv-spell-stat-label">Components</span>${esc(compStr)}</div>` : ''}
+          ${(spell.classes || []).length ? `<div class="inv-spell-stat"><span class="inv-spell-stat-label">Classes</span>${esc(spell.classes.join(', '))}</div>` : ''}
+        </div>
+        <div class="inv-card-actions">
+          ${canUnsave ? `<button class="inv-action-btn btn-unsave" title="Remove from spellbook">★ Saved</button>` : ''}
+          <button class="inv-action-btn btn-spell-detail">Details</button>
+        </div>
+      </div>
+    </div>`;
 
   if (canUnsave) {
-    card.querySelector('.spell-save-btn').addEventListener('click', e => {
+    card.querySelector('.btn-unsave').addEventListener('click', e => {
       e.stopPropagation();
       remove(ref(db, `spellbook/${viewingId}/${spell.id}`));
     });
   }
+
+  card.querySelector('.btn-spell-detail').addEventListener('click', e => {
+    e.stopPropagation();
+    openInvSpellModal(spell);
+  });
 
   return card;
 }

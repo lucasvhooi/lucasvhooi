@@ -102,13 +102,6 @@
   background: #3a2510;
 }
 
-/* ── Spells grid layout override ────────────────────────────────────────────── */
-.inv-grid.inv-spells-view {
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 14px;
-  align-items: start;
-}
-
 /* ── Main grid ──────────────────────────────────────────────────────────────── */
 .inv-main {
   width: 95%;
@@ -131,6 +124,7 @@
   font-size: 15px;
   padding: 48px 0;
   width: 100%;
+  grid-column: 1 / -1;
 }
 
 /* ── Regular item card ──────────────────────────────────────────────────────── */
@@ -776,7 +770,6 @@
   /* Grid — single-column on mobile */
   .inv-main { margin: 16px auto; }
   .inv-grid { gap: 10px; grid-template-columns: 1fr; }
-  .inv-grid.inv-spells-view { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 
   /* Card body */
   .inv-card-body { padding: 14px 16px 10px 18px; }
@@ -1133,6 +1126,69 @@
   color: #1a0a00;
   font-weight: bold;
 }
+
+/* ── Spell cards in inventory ── */
+.inv-card[data-type="spell"] .inv-type-icon {
+  color: var(--rc, #7a9abb);
+}
+
+.inv-badge-spell {
+  background: color-mix(in srgb, var(--rc, #7a9abb) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rc, #7a9abb) 55%, transparent);
+  color: var(--rc, #7a9abb);
+}
+
+.inv-level-badge {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-family: sans-serif;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid #3a3a3a;
+  color: #bbb;
+}
+
+.inv-conc-badge {
+  font-size: 10px;
+  font-family: sans-serif;
+  font-weight: bold;
+  background: rgba(200,164,92,0.1);
+  border: 1px solid rgba(200,164,92,0.3);
+  border-radius: 10px;
+  color: #c8a45c;
+  padding: 2px 6px;
+}
+
+.inv-spell-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #999;
+  text-align: left;
+}
+
+.inv-spell-stat {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.inv-spell-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #666;
+  min-width: 70px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.inv-action-btn.btn-unsave { color: var(--accent); }
+.inv-action-btn.btn-unsave:hover { color: #e05050; border-color: #e05050; }
 
 /* ── Inventory tags ── */
 .inv-tags { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; margin-top: 4px; }

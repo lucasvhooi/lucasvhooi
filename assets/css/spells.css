@@ -140,6 +140,42 @@
   grid-column: 1 / -1;
   text-align: center;
   padding: 40px 0;
+  min-height: 55vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spells-empty-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.spells-empty-star {
+  font-size: 52px;
+  opacity: 0.2;
+  color: #7eb8ff;
+  line-height: 1;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.spells-empty-title {
+  font-size: 20px;
+  color: #556;
+  font-style: normal;
+  font-family: 'IM Fell English', 'Garamond', serif;
+  margin: 0;
+}
+
+.spells-empty-hint {
+  font-size: 13px;
+  color: #445;
+  margin: 0;
+  max-width: 260px;
+  line-height: 1.55;
 }
 
 /* ── Spell Card ── */
@@ -517,6 +553,33 @@
 .spell-save-btn.saved        { color: #7eb8ff; }
 .spell-save-btn.saved:hover  { color: #ff8080; background: rgba(255,100,100,0.08); }
 
+/* ── Expand body (mobile inline expand) ── */
+.spell-expand-body { display: none; }
+
+.spell-expand-desc {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #8899bb;
+  margin-bottom: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(100,150,255,0.12);
+}
+
+.spell-modal-btn {
+  font-family: var(--font);
+  font-size: 12px;
+  background: rgba(126,184,255,0.08);
+  border: 1px solid rgba(126,184,255,0.25);
+  border-radius: 6px;
+  color: #7eb8ff;
+  padding: 7px 0;
+  cursor: pointer;
+  width: calc(100% - 28px);
+  text-align: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+.spell-modal-btn:hover { background: rgba(126,184,255,0.16); border-color: rgba(126,184,255,0.5); }
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .spells-main { max-width: 100%; padding: 10px 8px 48px; overflow-x: hidden; }
@@ -525,21 +588,52 @@
   .spells-toolbar { gap: 6px; }
   .spells-search { width: 100%; min-width: 0; }
   .level-filter { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; min-width: 0; }
-  /* Selects share the row width instead of using their intrinsic (wide) size */
   .spells-select { flex: 1 1 0; min-width: 0; width: 0; font-size: 12px; }
   .spells-count { display: none; }
 
-  /* Grid — minmax(0,1fr) lets cells shrink below content width */
+  /* Grid */
   .spells-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 
   /* Compact card */
-  .spell-card { padding: 7px 8px; gap: 3px; border-radius: 7px; overflow: hidden; width: 35vw;}
+  .spell-card { padding: 7px 8px; gap: 3px; border-radius: 7px; }
   .spell-name { font-size: 12px; line-height: 1.2; }
   .spell-school-badge { font-size: 9px; }
   .spell-level-badge { font-size: 9px; padding: 1px 5px; }
   .spell-classes { display: none; }
   .spell-card-stats { display: none; }
   .spell-duration { font-size: 10px; }
+
+  /* Expand body — hidden until card is expanded */
+  .spell-expand-body {
+    display: block;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.2s ease 0.05s;
+  }
+
+  /* Expanded card — spans both columns, shows more */
+  .spell-card.expanded {
+    grid-column: 1 / -1;
+    padding: 12px 14px 12px 14px;
+    gap: 5px;
+    border-color: color-mix(in srgb, var(--sc) 65%, #1a1a2a);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.55);
+  }
+  .spell-card.expanded .spell-expand-body {
+    max-height: 320px;
+    opacity: 1;
+    pointer-events: auto;
+    margin-top: 6px;
+  }
+  .spell-card.expanded .spell-name  { font-size: 15px; }
+  .spell-card.expanded .spell-school-badge { font-size: 10px; }
+  .spell-card.expanded .spell-level-badge  { font-size: 10px; padding: 2px 8px; }
+  .spell-card.expanded .spell-classes      { display: block; }
+  .spell-card.expanded .spell-card-stats   { display: flex; }
+  .spell-card.expanded .spell-duration     { font-size: 11px; }
 
   /* Modal — centred dialog */
   .modal-overlay { align-items: center; justify-content: center; padding: 12px; }
