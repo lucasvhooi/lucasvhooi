@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
+
 :root {
   --bg: #1a1a1a;
   --text: #f4e6d7;
@@ -255,6 +257,68 @@ nav.nav-open .nav-hamburger span:nth-child(3) { transform: translateY(-7px) rota
   z-index: 98;
 }
 .nav-backdrop.open { display: block; }
+
+/* ── Shared page hero ─────────────────────────────────────────────────────── */
+.page-hero {
+  padding: 40px 20px 28px;
+  text-align: center;
+  position: relative;
+}
+
+.page-hero__title {
+  font-family: 'IM Fell English', 'Garamond', serif;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  color: var(--accent);
+  margin: 0 0 6px;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+
+.page-hero__sub {
+  font-size: 14px;
+  color: #888;
+  font-style: italic;
+  margin: 0;
+}
+
+.page-hero__add-btn {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+}
+
+/* ── Shared dm-btn (ghost/outlined) ─────────────────────────────────────── */
+.dm-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 0.03em;
+  padding: 8px 18px;
+  background: rgba(255,204,102,0.12);
+  border: 1px solid rgba(255,204,102,0.4);
+  color: var(--accent);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.dm-btn:hover {
+  background: rgba(255,204,102,0.22);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(255,204,102,0.2);
+}
+.dm-btn:active { transform: scale(0.97); }
+.dm-btn-sm { font-size: 12px; padding: 4px 12px; }
+
+@media (max-width: 768px) {
+  .page-hero__add-btn {
+    position: static;
+    display: block;
+    margin: 0 auto 12px;
+  }
+}
 
 @media (max-width: 768px) {
   /* Slim sticky nav bar — logo hidden, just the hamburger */

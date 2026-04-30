@@ -138,6 +138,19 @@ function applyCanvasTransform() {
   canvasWorld.style.transform = `translate(${canvasPanX}px,${canvasPanY}px) scale(${canvasZoom})`;
 }
 
+// rAF-throttled version for high-frequency paths (wheel, pointermove, touchmove)
+let _canvasRafPending = false;
+function scheduleCanvasTransform() {
+  if (_canvasRafPending) return;
+  _canvasRafPending = true;
+  requestAnimationFrame(() => { applyCanvasTransform(); _canvasRafPending = false; });
+}
+
+// Cached rect — invalidated on resize to avoid layout reads inside touch handlers
+let _canvasRectCache = null;
+function _getCanvasRect() { return (_canvasRectCache ??= qmBlockCanvas.getBoundingClientRect()); }
+window.addEventListener('resize', () => { _canvasRectCache = null; }, { passive: true });
+
 function resetCanvasView() {
   canvasZoom = 1; canvasPanX = 20; canvasPanY = 20;
   applyCanvasTransform();
@@ -377,7 +390,7 @@ document.getElementById("qm-zoom-reset-btn")?.addEventListener("click", resetCan
 qmBlockCanvas.addEventListener("wheel", e => {
   if (e.target.closest(".blk-body")) return;
   e.preventDefault();
-  const rect = qmBlockCanvas.getBoundingClientRect();
+  const rect = _getCanvasRect();
   const mouseX = e.clientX - rect.left;
   const mouseY = e.clientY - rect.top;
   const factor = e.deltaY < 0 ? 1.1 : 0.9;
@@ -387,7 +400,7 @@ qmBlockCanvas.addEventListener("wheel", e => {
   canvasPanX = mouseX - wx * newZoom;
   canvasPanY = mouseY - wy * newZoom;
   canvasZoom = newZoom;
-  applyCanvasTransform();
+  scheduleCanvasTransform();
 }, { passive: false });
 
 // ── Marquee helper ────────────────────────────────────────────────────────────
@@ -405,6 +418,7 @@ function refreshSelectionClasses() {
 // ── Infinite canvas: middle-mouse pans, left-mouse marquee-selects ────────────
 qmBlockCanvas.addEventListener("mousedown", e => { if (e.button === 1) e.preventDefault(); });
 qmBlockCanvas.addEventListener("pointerdown", e => {
+  if (e.pointerType === 'touch') return; // touch handled separately below
   if (blockDragState) return;
   const t = e.target;
   if (t !== qmBlockCanvas && t !== canvasWorld) return;
@@ -421,21 +435,22 @@ qmBlockCanvas.addEventListener("pointerdown", e => {
   if (e.button === 0) {
     // Left mouse → start marquee selection
     if (!e.shiftKey) { selectedBlockSet.clear(); refreshSelectionClasses(); }
-    const rect = qmBlockCanvas.getBoundingClientRect();
+    const rect = _getCanvasRect();
     marqueeState = { startCX: e.clientX - rect.left, startCY: e.clientY - rect.top };
     qmBlockCanvas.setPointerCapture(e.pointerId);
     e.preventDefault();
   }
 });
 qmBlockCanvas.addEventListener("pointermove", e => {
+  if (e.pointerType === 'touch') return;
   if (canvasPanState) {
     canvasPanX = canvasPanState.startPanX + (e.clientX - canvasPanState.startX);
     canvasPanY = canvasPanState.startPanY + (e.clientY - canvasPanState.startY);
-    applyCanvasTransform();
+    scheduleCanvasTransform();
     return;
   }
   if (marqueeState) {
-    const rect = qmBlockCanvas.getBoundingClientRect();
+    const rect = _getCanvasRect();
     const curCX = e.clientX - rect.left, curCY = e.clientY - rect.top;
     const x = Math.min(marqueeState.startCX, curCX);
     const y = Math.min(marqueeState.startCY, curCY);
@@ -451,7 +466,7 @@ qmBlockCanvas.addEventListener("pointermove", e => {
 qmBlockCanvas.addEventListener("pointerup", e => {
   if (canvasPanState) { canvasPanState = null; qmBlockCanvas.style.cursor = ""; return; }
   if (marqueeState) {
-    const rect = qmBlockCanvas.getBoundingClientRect();
+    const rect = _getCanvasRect();
     const curCX = e.clientX - rect.left, curCY = e.clientY - rect.top;
     const sx1 = Math.min(marqueeState.startCX, curCX), sx2 = Math.max(marqueeState.startCX, curCX);
     const sy1 = Math.min(marqueeState.startCY, curCY), sy2 = Math.max(marqueeState.startCY, curCY);
@@ -472,6 +487,66 @@ qmBlockCanvas.addEventListener("pointerup", e => {
     marqueeState = null;
   }
 });
+
+// ── Touch: single-finger pan + two-finger pinch-to-zoom ───────────────────────
+const _ct = { pinch: false, dist0: 0, zoom0: 1, panX0: 0, panY0: 0, midX0: 0, midY0: 0,
+              pan: false, startX: 0, startY: 0, startPanX: 0, startPanY: 0 };
+
+qmBlockCanvas.addEventListener('touchstart', e => {
+  // Let touches on blocks propagate — blocks handle their own drag via pointer events
+  if (e.touches.length === 1 && e.target.closest('.qm-block')) return;
+  e.preventDefault();
+  _canvasRectCache = qmBlockCanvas.getBoundingClientRect();
+
+  if (e.touches.length >= 2) {
+    _ct.pan = false; _ct.pinch = true;
+    const [t0, t1] = [e.touches[0], e.touches[1]];
+    _ct.dist0 = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+    _ct.zoom0 = canvasZoom; _ct.panX0 = canvasPanX; _ct.panY0 = canvasPanY;
+    _ct.midX0 = (t0.clientX + t1.clientX) / 2 - _canvasRectCache.left;
+    _ct.midY0 = (t0.clientY + t1.clientY) / 2 - _canvasRectCache.top;
+  } else if (e.touches.length === 1) {
+    _ct.pinch = false; _ct.pan = true;
+    _ct.startX = e.touches[0].clientX; _ct.startY = e.touches[0].clientY;
+    _ct.startPanX = canvasPanX; _ct.startPanY = canvasPanY;
+  }
+}, { passive: false });
+
+qmBlockCanvas.addEventListener('touchmove', e => {
+  if (e.target.closest('.qm-block') && !_ct.pinch) return;
+  e.preventDefault();
+  const rect = _canvasRectCache || qmBlockCanvas.getBoundingClientRect();
+
+  if (_ct.pinch && e.touches.length >= 2) {
+    const [t0, t1] = [e.touches[0], e.touches[1]];
+    const dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+    const midX = (t0.clientX + t1.clientX) / 2 - rect.left;
+    const midY = (t0.clientY + t1.clientY) / 2 - rect.top;
+    const newZoom = Math.max(0.15, Math.min(3, _ct.zoom0 * (dist / _ct.dist0)));
+    // World point that was under the initial pinch midpoint stays under the current midpoint
+    const wx = (_ct.midX0 - _ct.panX0) / _ct.zoom0;
+    const wy = (_ct.midY0 - _ct.panY0) / _ct.zoom0;
+    canvasZoom = newZoom;
+    canvasPanX = midX - wx * newZoom;
+    canvasPanY = midY - wy * newZoom;
+    scheduleCanvasTransform();
+  } else if (_ct.pan && e.touches.length === 1) {
+    canvasPanX = _ct.startPanX + (e.touches[0].clientX - _ct.startX);
+    canvasPanY = _ct.startPanY + (e.touches[0].clientY - _ct.startY);
+    scheduleCanvasTransform();
+  }
+}, { passive: false });
+
+qmBlockCanvas.addEventListener('touchend', e => {
+  if (e.touches.length < 2) _ct.pinch = false;
+  if (e.touches.length === 0) { _ct.pan = false; return; }
+  // One finger remains after lifting pinch — restart pan from current position
+  if (!_ct.pinch && e.touches.length === 1) {
+    _ct.pan = true;
+    _ct.startX = e.touches[0].clientX; _ct.startY = e.touches[0].clientY;
+    _ct.startPanX = canvasPanX; _ct.startPanY = canvasPanY;
+  }
+}, { passive: true });
 
 // ── Palette drag → canvas: drop to place at cursor position ───────────────────
 qmBlockCanvas.addEventListener("dragover", e => {

@@ -4,28 +4,12 @@
 .inv-hero {
   background: linear-gradient(180deg, #2a1505 0%, #1c0e03 55%, #1a1a1a 100%);
   border-bottom: 1px solid #3a2510;
-  padding: 22px 24px 18px;
-  text-align: center;
-  position: relative;
-}
-
-.inv-hero-title {
-  font-family: 'IM Fell English', 'Garamond', serif;
-  font-size: clamp(1.5rem, 4vw, 2.2rem);
-  color: var(--accent);
-  margin: 0 0 4px;
-  letter-spacing: 0.05em;
-}
-
-.inv-hero-sub {
-  color: #888;
-  font-style: italic;
-  font-size: 14px;
-  margin: 0 0 14px;
+  padding: 36px 20px 16px;
 }
 
 /* Player selector (admin) */
 .inv-player-selector {
+  margin-top: 14px;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -59,20 +43,10 @@
 /* Add item button (admin) */
 .inv-add-btn {
   position: absolute;
-  top: 18px;
+  top: 16px;
   right: 20px;
-  background: linear-gradient(135deg, #3a2008 0%, #5a3410 100%);
-  border: 1px solid #c8a45c;
-  border-radius: 8px;
-  color: var(--accent);
-  font-family: var(--font);
-  font-size: 14px;
-  padding: 8px 16px;
-  cursor: pointer;
   display: none;
-  transition: background 0.2s, box-shadow 0.2s;
 }
-.inv-add-btn:hover { background: linear-gradient(135deg, #4a2c0e 0%, #6a4018 100%); box-shadow: 0 0 12px rgba(200,164,92,0.2); }
 
 /* Filter tabs */
 .inv-filter-tabs {
@@ -609,18 +583,20 @@
 /* ── Admin: Manage Players ──────────────────────────────────────────────────── */
 .manage-btn {
   position: absolute;
-  top: 18px;
+  top: 16px;
   left: 20px;
   background: rgba(255,255,255,0.04);
   border: 1px solid #3a2510;
-  border-radius: 8px;
+  border-radius: 6px;
   color: #888;
   font-family: var(--font);
   font-size: 13px;
-  padding: 7px 14px;
+  font-weight: bold;
+  padding: 8px 14px;
   cursor: pointer;
   display: none;
-  transition: all 0.2s;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
 }
 .manage-btn:hover { border-color: var(--accent); color: var(--accent); }
 
@@ -780,8 +756,6 @@
 @media (max-width: 700px) {
   /* Hero */
   .inv-hero { padding: 14px 12px 12px; }
-  .inv-hero-title { font-size: 1.5rem; }
-  .inv-hero-sub { font-size: 13px; margin-bottom: 10px; }
 
   /* Admin buttons: stack naturally (display controlled by JS) */
   .inv-add-btn, .manage-btn {

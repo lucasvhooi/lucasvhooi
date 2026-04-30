@@ -2,39 +2,14 @@
 
 /* ── Hero ──────────────────────────────────────────────────────────────────── */
 .lore-hero {
-  padding: 40px 24px 20px;
-  text-align: center;
   background: linear-gradient(180deg, #1c0e03 0%, #1a1a1a 100%);
-  height: 20vh;
-  position: relative;
-}
-
-.lore-add-btn {
-  position: absolute;
-  top: 16px;
-  right: 20px;
-}
-
-.lore-title {
-  font-family: 'IM Fell English', 'Garamond', serif;
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  color: var(--accent);
-  margin: 0 0 4px;
-  letter-spacing: 0.04em;
-  line-height: 1.1;
-}
-
-.lore-subtitle {
-  font-size: 14px;
-  color: #888;
-  margin: 0 0 20px;
-  font-style: italic;
 }
 
 .lore-filter-tabs {
   display: flex;
   justify-content: center;
   gap: 8px;
+  margin-top: 16px;
 }
 
 .lore-tab {
@@ -934,14 +909,6 @@
 }
 
 /* ── Mobile ────────────────────────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .lore-add-btn {
-    position: static;
-    display: block;
-    margin: 0 auto 12px;
-  }
-}
-
 @media (max-width: 600px) {
   .lore-grid {
     gap: 16px;

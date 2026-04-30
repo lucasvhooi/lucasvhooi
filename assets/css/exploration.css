@@ -2,39 +2,13 @@
 
 /* ── Hero ── */
 .expl-hero {
-  text-align: center;
-  position: relative;
   background: linear-gradient(180deg, #0d3a0f 0%, #0a2813 50%, #1a1a1a 100%);
-  padding: 40px 20px 28px;
-  text-align: center;
-    height: 20vh;
-
-}
-
-.char-add-btn {
-  position: absolute;
-  top: 16px;
-  right: 20px;
-}
-
-.expl-hero-title {
-  font-family: 'IM Fell English', 'Garamond', serif;
-  font-size: clamp(1.6rem, 4vw, 2.4rem);
-  color: var(--accent);
-  margin: 0 0 6px;
-  letter-spacing: 0.06em;
-}
-
-.expl-hero-sub {
-  color: #888;
-  font-style: italic;
-  font-size: 14px;
-  margin: 0 0 18px;
 }
 
 .expl-search-wrap {
   display: flex;
   justify-content: center;
+  margin-top: 16px;
 }
 
 .expl-search {
@@ -452,13 +426,7 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  /* Pull the add-button out of absolute positioning so it doesn't overlay the title */
-  .char-add-btn {
-    position: static;
-    display: block;
-    margin: 0 auto 12px;
-  }
-  .expl-hero { padding-top: 16px; }
+  .expl-hero { padding: 20px 16px 24px; }
 }
 @media (max-width: 600px) {
   .char-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }

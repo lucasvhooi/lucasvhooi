@@ -8,31 +8,7 @@
 /* ── Hero ── */
 .items-hero {
   background: linear-gradient(180deg, #3a1a05 0%, #2a1005 50%, #1a1a1a 100%);
-  padding: 40px 20px 28px;
-  text-align: center;
   border-bottom: 1px solid #3a2510;
-  position: relative;
-}
-
-.items-add-btn {
-  position: absolute;
-  top: 16px;
-  right: 20px;
-}
-
-.items-title {
-  font-family: 'IM Fell English', 'Garamond', serif;
-  font-size: clamp(2rem, 5vw, 3rem);
-  color: var(--accent);
-  margin: 0 0 8px;
-  letter-spacing: 0.03em;
-}
-
-.items-subtitle {
-  color: #888;
-  font-size: 14px;
-  margin: 0;
-  font-style: italic;
 }
 
 /* ── Seed status ── */
@@ -604,14 +580,6 @@
   transition: background 0.15s;
 }
 .im-ability-add-btn:hover { background: rgba(255,255,255,0.04); }
-
-@media (max-width: 768px) {
-  .items-add-btn {
-    position: static;
-    display: block;
-    margin: 0 auto 12px;
-  }
-}
 
 @media (max-width: 600px) {
   .items-main { padding: 16px 12px 48px; }

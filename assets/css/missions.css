@@ -21,52 +21,7 @@
    HERO
    ═══════════════════════════════════════════════════════════════════════════ */
 .quest-hero {
-    background: linear-gradient(180deg, #3a0d0d 0%, #280a0a 50%, #1a1a1a 100%);
-    padding: 40px 20px 28px;
-    text-align: center;
-    height: 20vh;
-}
-
-.quest-hero-inner {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-  max-width: 1800px;
-  margin: 0 auto 16px;
-  align-items: center;
-  text-align: center;
-}
-.quest-hero-text { flex: 1; min-width: 0; }
-
-.quest-title {
-  font-family: 'IM Fell English', 'Garamond', serif;
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  color: var(--accent);
-  margin: 0 0 4px;
-  letter-spacing: 0.04em;
-  line-height: 1.1;
-}
-
-.quest-subtitle {
-  color: #8a7560;
-  font-style: italic;
-  font-size: 14px;
-  margin: 0;
-}
-
-.quest-hero-add-btn {
-  flex-shrink: 0;
-  font-size: 13px;
-  padding: 10px 20px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.quest-hero-add-btn .plus {
-  font-size: 18px;
-  line-height: 1;
-  font-weight: 400;
+  background: linear-gradient(180deg, #3a0d0d 0%, #280a0a 50%, #1a1a1a 100%);
 }
 
 .quest-filter-tabs {
@@ -74,7 +29,7 @@
   justify-content: center;
   gap: 4px;
   flex-wrap: wrap;
-  margin: 0 auto;
+  margin: 16px auto 0;
   border-bottom: 1px solid #2e1c0c;
   padding-bottom: 0;
 }
@@ -974,6 +929,7 @@
   border-radius: 8px;
   cursor: default;
   user-select: none;
+  touch-action: none;
 }
 
 /* Dot-grid background */
@@ -995,6 +951,8 @@
   width: 4000px;
   height: 4000px;
   transform-origin: 0 0;
+  will-change: transform;
+  contain: layout paint style;
 }
 
 .qm-canvas-empty {
@@ -1910,9 +1868,6 @@
   .qm-sidebar-section { flex-direction: row; gap: 4px; flex-shrink: 0; }
   .qm-add-block-btn { width: auto; border: 1px solid #3a2510; background: rgba(255,255,255,0.02); }
   .quest-hero { padding: 20px 18px 14px; }
-  .quest-hero-inner { flex-direction: column; align-items: stretch; gap: 14px; text-align: center; }
-  .quest-hero-text { text-align: center; }
-  .quest-hero-add-btn { align-self: center; }
   .quest-page-main { padding: 16px 14px 60px; }
   .qm-canvas-wrap { padding: 18px 18px 24px; }
 }
