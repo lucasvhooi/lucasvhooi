@@ -183,7 +183,7 @@ function renderGrid() {
 }
 
 // ── Item card ─────────────────────────────────────────────────────────────────
-const TYPE_ICON  = { weapon: "⚔", armor: "🛡", potion: "⚗", book: "📖", scroll: "📜", misc: "◈" };
+const TYPE_ICON  = { weapon: "game-icons:crossed-swords", armor: "game-icons:shield", potion: "game-icons:potion", book: "game-icons:open-book", scroll: "game-icons:scroll-unfurled", misc: "lucide:gem" };
 const TYPE_LABEL = { weapon: "Weapon", armor: "Armor", potion: "Potion", book: "Book", scroll: "Scroll", misc: "Misc" };
 
 // Cover colours cycling for books without an explicit colour
@@ -318,17 +318,17 @@ function buildGenericCard(item, ownerId) {
   const abilities = Array.isArray(item.abilities) ? item.abilities : (item.abilities ? Object.values(item.abilities) : []);
 
   card.innerHTML = `
-    ${isAdmin ? `<button class="inv-quick-edit-btn" title="Edit item">&#9998;</button>` : ""}
+    ${isAdmin ? `<button class="inv-quick-edit-btn" title="Edit item"><iconify-icon icon="lucide:pencil"></iconify-icon></button>` : ""}
     <div class="inv-card-body">
       <div class="inv-card-top">
-        <span class="inv-type-icon">${TYPE_ICON[effectiveType] || "◈"}</span>
+        <iconify-icon icon="${TYPE_ICON[effectiveType] || 'lucide:gem'}" class="inv-type-icon"></iconify-icon>
         <div class="inv-name-wrap">
-          <h3 class="inv-item-name">${esc(item.name || "Unknown Item")}${isAttuned ? `<span class="inv-attuned-badge">✦ Attuned</span>` : ""}</h3>
+          <h3 class="inv-item-name">${esc(item.name || "Unknown Item")}${isAttuned ? `<span class="inv-attuned-badge"><iconify-icon icon="lucide:sparkles"></iconify-icon> Attuned</span>` : ""}</h3>
           <div class="inv-badges">
             <span class="inv-type-badge inv-badge-${effectiveType}">${TYPE_LABEL[effectiveType] || "Misc"}</span>
             ${stackQtyBadge(item)}
             ${rarity ? `<span class="inv-rarity-label" style="color:${rarityColor}">${esc(rarity)}</span>` : ""}
-            ${needsAttunement && !isAttuned ? `<span class="inv-attunement-required-badge">⟡ Requires Attunement</span>` : ""}
+            ${needsAttunement && !isAttuned ? `<span class="inv-attunement-required-badge"><iconify-icon icon="lucide:link"></iconify-icon> Requires Attunement</span>` : ""}
           </div>
         </div>
       </div>
@@ -336,7 +336,7 @@ function buildGenericCard(item, ownerId) {
         ${item.description ? `<p class="inv-desc">${esc(item.description)}</p>` : ""}
         ${item.tags ? `<div class="inv-tags">${item.tags.split(",").map(t => `<span class="inv-tag">${esc(t.trim())}</span>`).join("")}</div>` : ""}
         ${abilities.length ? `
-          <div class="inv-abilities-toggle">▾ ${abilities.length === 1 ? "1 Ability" : abilities.length + " Abilities"}</div>
+          <div class="inv-abilities-toggle"><iconify-icon icon="lucide:chevron-down"></iconify-icon> ${abilities.length === 1 ? "1 Ability" : abilities.length + " Abilities"}</div>
           <div class="inv-abilities">${abilities.map(a => `
             <div class="inv-ability">
               <span class="inv-ability-name">${esc(a.name)}</span>
@@ -346,7 +346,7 @@ function buildGenericCard(item, ownerId) {
         <div class="inv-card-actions">
           <button class="inv-action-btn btn-send">Send</button>
           ${canAttune && !isAttuned ? `<button class="inv-action-btn btn-attune">Attune</button>` : ""}
-          ${canAttune && isAttuned ? `<button class="inv-action-btn btn-unattuned">★ Attuned</button>` : ""}
+          ${canAttune && isAttuned ? `<button class="inv-action-btn btn-unattuned"><iconify-icon icon="lucide:star"></iconify-icon> Attuned</button>` : ""}
           ${(isAdmin || ownerId === session.id) ? `<button class="inv-action-btn btn-delete">Remove</button>` : ""}
         </div>
       </div>
@@ -889,7 +889,7 @@ function _qeRenderAbilities() {
     <div class="im-ability-entry" data-idx="${i}">
       <input class="im-ability-name-input" type="text" placeholder="Ability name…" value="${ab.name.replace(/"/g,'&quot;')}" data-field="name" data-idx="${i}" />
       <textarea class="im-ability-desc-input" placeholder="Description…" rows="2" data-field="description" data-idx="${i}">${ab.description || ""}</textarea>
-      <button type="button" class="im-ability-del-btn" data-idx="${i}">✕</button>
+      <button type="button" class="im-ability-del-btn" data-idx="${i}"><iconify-icon icon="lucide:x"></iconify-icon></button>
     </div>`).join("");
   qeAbilList.querySelectorAll("[data-field]").forEach(el => {
     el.addEventListener("input", () => { _qeAbilities[el.dataset.idx][el.dataset.field] = el.value; });
@@ -1090,7 +1090,7 @@ function renderSpellsGrid() {
   const canUnsave = isAdmin || viewingId === session.id;
 
   if (savedIds.length === 0) {
-    invGrid.innerHTML = `<p class="inv-empty">No saved spells. Tap ☆ on any spell in the Spells page to save it here.</p>`;
+    invGrid.innerHTML = `<p class="inv-empty">No saved spells. Tap the star on any spell in the Spells page to save it here.</p>`;
     return;
   }
 
@@ -1131,7 +1131,7 @@ function buildSavedSpellCard(spell, canUnsave) {
   card.innerHTML = `
     <div class="inv-card-body">
       <div class="inv-card-top">
-        <span class="inv-type-icon">✦</span>
+        <iconify-icon icon="lucide:sparkles" class="inv-type-icon"></iconify-icon>
         <div class="inv-name-wrap">
           <h3 class="inv-item-name">${esc(spell.name)}</h3>
           <div class="inv-badges">
@@ -1151,7 +1151,7 @@ function buildSavedSpellCard(spell, canUnsave) {
           ${(spell.classes || []).length ? `<div class="inv-spell-stat"><span class="inv-spell-stat-label">Classes</span>${esc(spell.classes.join(', '))}</div>` : ''}
         </div>
         <div class="inv-card-actions">
-          ${canUnsave ? `<button class="inv-action-btn btn-unsave" title="Remove from spellbook">★ Saved</button>` : ''}
+          ${canUnsave ? `<button class="inv-action-btn btn-unsave" title="Remove from spellbook"><iconify-icon icon="lucide:star"></iconify-icon> Saved</button>` : ''}
           <button class="inv-action-btn btn-spell-detail">Details</button>
         </div>
       </div>

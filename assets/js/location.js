@@ -103,10 +103,10 @@ function renderHero() {
 
   const parts = [];
   if (markerData.type)       parts.push(`<span class="stat-badge">${markerData.type}</span>`);
-  if (markerData.population) parts.push(`<span class="stat-badge">&#128100; ${markerData.population}</span>`);
-  if (markerData.wealth)     parts.push(`<span class="stat-badge">&#128176; ${markerData.wealth}</span>`);
-  if (markerData.mainRace)   parts.push(`<span class="stat-badge">&#127981; ${markerData.mainRace}</span>`);
-  if (markerData.religion)   parts.push(`<span class="stat-badge">&#9763; ${markerData.religion}</span>`);
+  if (markerData.population) parts.push(`<span class="stat-badge"><iconify-icon icon="lucide:users"></iconify-icon> ${markerData.population}</span>`);
+  if (markerData.wealth)     parts.push(`<span class="stat-badge"><iconify-icon icon="game-icons:coins"></iconify-icon> ${markerData.wealth}</span>`);
+  if (markerData.mainRace)   parts.push(`<span class="stat-badge"><iconify-icon icon="lucide:building-2"></iconify-icon> ${markerData.mainRace}</span>`);
+  if (markerData.religion)   parts.push(`<span class="stat-badge"><iconify-icon icon="lucide:sun"></iconify-icon> ${markerData.religion}</span>`);
   if (isAdmin) {
     const explored = markerData.explored === true;
     parts.push(`<span class="stat-badge ${explored ? "explored-badge" : "unexplored-badge"}">${explored ? "Explored" : "Unexplored"}</span>`);
@@ -201,7 +201,7 @@ function renderSubMarkers() {
       ${marker.picture ? `<img class="tooltip-img" src="${marker.picture}" alt="${marker.name}" />` : ""}
       <div class="tooltip-name">${marker.name}</div>
       <div class="tooltip-type">${markerDisplayType(marker)}${marker.shopSubtype ? ` · ${marker.shopSubtype}` : ""}</div>
-      ${ownerNpc ? `<div class="tooltip-owner">&#128100; ${ownerNpc.name}</div>` : ""}
+      ${ownerNpc ? `<div class="tooltip-owner"><iconify-icon icon="lucide:user"></iconify-icon> ${ownerNpc.name}</div>` : ""}
       <button class="tooltip-view-btn">View</button>
     `;
     tooltip.querySelector(".tooltip-view-btn").addEventListener("click", e => {
@@ -557,7 +557,7 @@ if (lmUploadBtn && lmPicFile) {
     try {
       const base64 = await compressImage(file, 600, 0.82);
       lmPicture.value = base64;
-      lmUploadStatus.textContent = "Image ready ✓";
+      lmUploadStatus.innerHTML = 'Image ready <iconify-icon icon="lucide:check"></iconify-icon>';
       lmUploadStatus.className = "lm-upload-status done";
       setTimeout(() => { lmUploadStatus.textContent = ""; }, 3000);
     } catch {
@@ -598,7 +598,7 @@ function renderBuildings() {
     const bOwner = marker.ownerId ? npcs.find(n => n.id === marker.ownerId) : null;
 
     card.innerHTML = `
-      <div class="building-drag-handle" title="Drag to reorder">&#9776;</div>
+      <iconify-icon icon="lucide:grip-vertical" class="building-drag-handle" title="Drag to reorder"></iconify-icon>
       <div class="building-dot" style="background:${color}"></div>
       <div class="building-info">
         <div class="building-name">${marker.name}</div>
@@ -607,7 +607,7 @@ function renderBuildings() {
       </div>
       <div class="building-card-actions">
         <button class="building-open-btn dm-btn dm-btn-sm" title="View shop">Open</button>
-        <button class="building-vis-btn${marker.discovered ? " active" : ""}" title="${marker.discovered ? "Hide from players" : "Reveal to players"}">&#128065;</button>
+        <button class="building-vis-btn${marker.discovered ? " active" : ""}" title="${marker.discovered ? "Hide from players" : "Reveal to players"}"><iconify-icon icon="lucide:eye"></iconify-icon></button>
       </div>
     `;
 
@@ -730,7 +730,7 @@ function renderNpcs() {
           ${subtitle ? `<div class="npc-subtitle">${subtitle}</div>` : ""}
         </div>
         <div class="npc-actions">
-          <button class="npc-talk-btn${npc.talkedTo ? " active" : ""}" title="${npc.talkedTo ? "Mark as not talked to" : "Mark as talked to"}">&#10003;</button>
+          <button class="npc-talk-btn${npc.talkedTo ? " active" : ""}" title="${npc.talkedTo ? "Mark as not talked to" : "Mark as talked to"}"><iconify-icon icon="lucide:check"></iconify-icon></button>
           <button class="marker-edit-btn dm-btn dm-btn-sm npc-edit-btn">Edit</button>
           <button class="marker-delete-btn dm-btn dm-btn-sm npc-del-btn">Del</button>
         </div>
@@ -826,7 +826,7 @@ if (toggleGenBtn && npcGeneratorPanel) {
   toggleGenBtn.addEventListener("click", () => {
     generatorOpen = !generatorOpen;
     npcGeneratorPanel.style.display = generatorOpen ? "" : "none";
-    toggleGenBtn.textContent = generatorOpen ? "Generator ▼" : "Generator ▶";
+    toggleGenBtn.innerHTML = generatorOpen ? 'Generator <iconify-icon icon="lucide:chevron-down"></iconify-icon>' : 'Generator <iconify-icon icon="lucide:chevron-right"></iconify-icon>';
   });
 }
 
@@ -1078,7 +1078,7 @@ if (genBtn) {
         set(ref(db, `locations/${locationId}/npcs/${npc.id}`), npc)
       ));
       genStatus.style.color = "#88cc88";
-      genStatus.textContent = `✓ ${count} NPCs generated.`;
+      genStatus.innerHTML = `<iconify-icon icon="lucide:check"></iconify-icon> ${count} NPCs generated.`;
     } catch {
       genStatus.style.color = "#E57373";
       genStatus.textContent = "Generation failed — check Firebase rules.";
@@ -1491,7 +1491,7 @@ function renderShopInventory(marker) {
     let msg;
     if (!hasInventory) {
       msg = isAdmin
-        ? 'No inventory yet. Press "⚡ Generate Inventory" to stock this place.'
+        ? 'No inventory yet. Press "Generate Inventory" to stock this place.'
         : 'Nothing for sale here yet.';
     } else {
       msg = 'No items match this filter.';
@@ -1680,7 +1680,7 @@ function showNpcPopup(npc, isLocal, anchor) {
     <div class="npc-popup-name">${npc.name}</div>
     ${sub ? `<div class="npc-popup-sub">${sub}</div>` : ""}
     ${npc.description ? `<p class="npc-popup-desc">${npc.description}</p>` : ""}
-    ${npc.notes && isAdmin ? `<div class="npc-popup-notes">&#128274; ${npc.notes}</div>` : ""}
+    ${npc.notes && isAdmin ? `<div class="npc-popup-notes"><iconify-icon icon="lucide:lock"></iconify-icon> ${npc.notes}</div>` : ""}
   `;
 
   document.body.appendChild(popup);
@@ -1730,7 +1730,7 @@ function renderNpcChip(seat) {
     isLocal = true;
     div.className = "npc-chip local";
     div.innerHTML = `
-      <span class="npc-chip-icon">&#128100;</span>
+      <iconify-icon icon="lucide:user" class="npc-chip-icon"></iconify-icon>
       <span class="npc-chip-name">${npc.name}</span>
       <span class="npc-chip-role">${[npc.race, npc.role].filter(Boolean).join(" · ")}</span>
     `;
@@ -1758,7 +1758,7 @@ function renderSeating(marker) {
 
   if (!seating) {
     shTavernSeating.innerHTML = isAdmin
-      ? `<p class="shop-empty">No patrons yet. Press "&#9889; Generate Patrons" to fill the tavern.</p>`
+      ? `<p class="shop-empty">No patrons yet. Press "Generate Patrons" to fill the tavern.</p>`
       : `<p class="shop-empty">The tavern is quiet.</p>`;
     return;
   }
@@ -1770,7 +1770,7 @@ function renderSeating(marker) {
   if (filledBarSlots.length > 0) {
     const barDiv = document.createElement("div");
     barDiv.className = "tavern-bar";
-    barDiv.innerHTML = `<div class="tavern-bar-title">&#127867; Bar</div>`;
+    barDiv.innerHTML = `<div class="tavern-bar-title"><iconify-icon icon="lucide:wine"></iconify-icon> Bar</div>`;
     const barSeats = document.createElement("div");
     barSeats.className = "tavern-bar-seats";
     filledBarSlots.forEach(slot => {
@@ -1787,7 +1787,7 @@ function renderSeating(marker) {
     const tablesTitle = document.createElement("div");
     tablesTitle.className = "tavern-bar-title";
     tablesTitle.style.marginTop = "10px";
-    tablesTitle.innerHTML = "&#127869; Tables";
+    tablesTitle.innerHTML = '<iconify-icon icon="lucide:table-2"></iconify-icon> Tables';
     container.appendChild(tablesTitle);
 
     const grid = document.createElement("div");
@@ -1815,7 +1815,7 @@ function renderSeating(marker) {
 
   if (container.children.length === 0) {
     shTavernSeating.innerHTML = isAdmin
-      ? `<p class="shop-empty">No patrons yet. Press "&#9889; Generate Patrons".</p>`
+      ? `<p class="shop-empty">No patrons yet. Press "Generate Patrons".</p>`
       : `<p class="shop-empty">The tavern is quiet.</p>`;
   } else {
     shTavernSeating.appendChild(container);
@@ -1856,7 +1856,7 @@ function renderRooms(marker) {
       card.className = "room-card occupied";
       card.innerHTML = `
         <div class="room-num">Room ${i + 1}</div>
-        <div class="room-guest">&#128100; ${npc ? npc.name : "Unknown"}</div>
+        <div class="room-guest"><iconify-icon icon="lucide:user"></iconify-icon> ${npc ? npc.name : "Unknown"}</div>
         ${npc ? `<div class="room-guest-sub">${[npc.race, npc.role].filter(Boolean).join(" · ")}</div>` : ""}
       `;
     } else if (room?.traveler) {
@@ -1864,14 +1864,14 @@ function renderRooms(marker) {
       card.className = "room-card occupied traveler-room";
       card.innerHTML = `
         <div class="room-num">Room ${i + 1} <span class="room-traveler-tag">Traveler</span></div>
-        <div class="room-guest">&#127939; ${t.name}</div>
+        <div class="room-guest"><iconify-icon icon="lucide:user"></iconify-icon> ${t.name}</div>
         <div class="room-guest-sub">${[t.race, t.role].filter(Boolean).join(" · ")}</div>
       `;
     } else {
       card.className = "room-card vacant";
       card.innerHTML = `
         <div class="room-num">Room ${i + 1}</div>
-        <div class="room-vacant-label">&#10003; Vacant</div>
+        <div class="room-vacant-label"><iconify-icon icon="lucide:check"></iconify-icon> Vacant</div>
       `;
     }
 
@@ -1903,10 +1903,10 @@ function renderTavernView(marker) {
   const wealthClass = wealth === "Poor" ? "poor" : wealth === "Rich" ? "rich" : "middle";
 
   // Meta row
-  const timeLabel = isDayTime ? "&#9728; Day" : "&#9790; Night";
+  const timeLabel = isDayTime ? '<iconify-icon icon="lucide:sun"></iconify-icon> Day' : '<iconify-icon icon="lucide:moon"></iconify-icon> Night';
   shTavernMeta.innerHTML = `
     <span class="tavern-wealth-badge ${wealthClass}">${wealth}</span>
-    <span class="tavern-tables-badge">&#127869; ${marker.tavernTables || 6} tables</span>
+    <span class="tavern-tables-badge"><iconify-icon icon="lucide:table-2"></iconify-icon> ${marker.tavernTables || 6} tables</span>
     <span class="tavern-time-badge ${isDayTime ? "day" : "night"}">${timeLabel}</span>
   `;
 
@@ -1921,7 +1921,7 @@ function renderTavernView(marker) {
       const card = document.createElement("div");
       card.className = "tavern-staff-card";
       card.innerHTML = `
-        <div class="staff-card-icon">&#128100;</div>
+        <iconify-icon icon="lucide:user" class="staff-card-icon"></iconify-icon>
         <div class="staff-card-info">
           <div class="staff-card-name">${n.name}</div>
           <div class="staff-card-role">${n.role || "Staff"}${n.race ? ` · ${n.race}` : ""}</div>
@@ -1944,11 +1944,11 @@ function renderTavernView(marker) {
 
   const dayBtn = document.createElement("button");
   dayBtn.className = "daynight-btn" + (isDayTime ? " active" : "");
-  dayBtn.innerHTML = "&#9728; Day";
+  dayBtn.innerHTML = '<iconify-icon icon="lucide:sun"></iconify-icon> Day';
 
   const nightBtn = document.createElement("button");
   nightBtn.className = "daynight-btn" + (!isDayTime ? " active" : "");
-  nightBtn.innerHTML = "&#9790; Night";
+  nightBtn.innerHTML = '<iconify-icon icon="lucide:moon"></iconify-icon> Night';
 
   dayBtn.onclick = () => {
     if (isDayTime) return;
@@ -1973,7 +1973,7 @@ function renderTavernView(marker) {
 
   if (isAdmin) {
     shTavernGenBtn.style.display = "inline-block";
-    shTavernGenBtn.innerHTML = "&#9889; Generate Patrons";
+    shTavernGenBtn.innerHTML = '<iconify-icon icon="lucide:zap"></iconify-icon> Generate Patrons';
     shTavernGenBtn.onclick = async () => {
       shTavernGenBtn.disabled  = true;
       shTavernGenBtn.innerHTML = "Generating&#8230;";
@@ -1982,7 +1982,7 @@ function renderTavernView(marker) {
       renderSeating(updated);
       renderRooms(updated);
       shTavernGenBtn.disabled  = false;
-      shTavernGenBtn.innerHTML = "&#9889; Generate Patrons";
+      shTavernGenBtn.innerHTML = '<iconify-icon icon="lucide:zap"></iconify-icon> Generate Patrons';
     };
     actionsDiv.appendChild(shTavernGenBtn);
   } else {
@@ -2000,11 +2000,11 @@ function renderTavernView(marker) {
   const menu     = RACE_MENUS[raceKey] || RACE_MENUS.Human;
   shTavernMenu.innerHTML = `
     <div class="tavern-menu-category">
-      <div class="tavern-menu-cat-title">&#127867; Drinks</div>
+      <div class="tavern-menu-cat-title"><iconify-icon icon="lucide:wine"></iconify-icon> Drinks</div>
       <div class="tavern-menu-grid">${renderMenuSection(menu.drinks, wealth)}</div>
     </div>
     <div class="tavern-menu-category">
-      <div class="tavern-menu-cat-title">&#127869; Food</div>
+      <div class="tavern-menu-cat-title"><iconify-icon icon="lucide:utensils"></iconify-icon> Food</div>
       <div class="tavern-menu-grid">${renderMenuSection(menu.foods, wealth)}</div>
     </div>
   `;
@@ -2030,7 +2030,7 @@ function openShopModal(marker) {
     if (isAdmin && INVENTORY_TYPES.has(marker.type)) {
       shPersistBtn.style.display = "inline-flex";
       const updatePersistBtn = (persisted) => {
-        shPersistBtn.textContent = persisted ? "📌 Pinned" : "📌 Pin Shop";
+        shPersistBtn.innerHTML = persisted ? '<iconify-icon icon="lucide:pin"></iconify-icon> Pinned' : '<iconify-icon icon="lucide:pin"></iconify-icon> Pin Shop';
         shPersistBtn.classList.toggle("sh-persist-active", !!persisted);
         shPersistBtn.title = persisted
           ? "Shop is pinned — inventory won't be overwritten. Click to unpin."
@@ -2062,7 +2062,7 @@ function openShopModal(marker) {
     const subtitle = [owner.race, owner.role].filter(Boolean).join(" · ");
     shOwner.innerHTML = `
       <div class="shop-owner-info">
-        <span class="shop-owner-icon">&#128100;</span>
+        <iconify-icon icon="lucide:user" class="shop-owner-icon"></iconify-icon>
         <div>
           <div class="shop-owner-name">${owner.name}</div>
           ${subtitle ? `<div class="shop-owner-sub">${subtitle}</div>` : ""}
@@ -2136,7 +2136,7 @@ function openShopModal(marker) {
         const updated = subMarkers.find(m => m.id === marker.id) || marker;
         renderShopInventory(updated);
         shGenerateBtn.disabled = false;
-        shGenerateBtn.textContent = "⚡ Generate Inventory";
+        shGenerateBtn.innerHTML = '<iconify-icon icon="lucide:zap"></iconify-icon> Generate Inventory';
       };
     } else {
       shGenerateBtn.style.display = "none";
@@ -2198,7 +2198,7 @@ function renderLibrarySection() {
     card.title = item.title + (item.writer ? ` — ${item.writer}` : "");
 
     const revealedBadge = item.discovered
-      ? `<div class="lib-revealed-overlay" title="Revealed to party">✓</div>`
+      ? `<div class="lib-revealed-overlay" title="Revealed to party"><iconify-icon icon="lucide:check" class="lib-overlay-check"></iconify-icon><span class="lib-overlay-text">IN LORE</span></div>`
       : "";
 
     if (item.type === "book") {
@@ -2239,7 +2239,7 @@ function renderLibrarySection() {
       revealBtn.className = item.discovered
         ? "lib-reveal-btn lib-reveal-btn-done"
         : "lib-reveal-btn";
-      revealBtn.textContent = item.discovered ? "✓ In Lore" : "＋ Reveal";
+      revealBtn.innerHTML = item.discovered ? '<iconify-icon icon="lucide:check"></iconify-icon> In Lore' : '<iconify-icon icon="lucide:plus"></iconify-icon> Reveal';
       revealBtn.title = item.discovered
         ? "Click to hide from party's lore journal"
         : "Mark as discovered — party will see this in their Lore tab";

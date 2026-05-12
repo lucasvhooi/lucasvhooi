@@ -1,4 +1,11 @@
 (function () {
+  // Load Iconify web component for icon rendering
+  if (!customElements.get('iconify-icon')) {
+    const s = document.createElement('script');
+    s.src = 'https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js';
+    document.head.appendChild(s);
+  }
+
   const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
 
   // Highlight the current page's nav link

@@ -18,7 +18,10 @@
       "Bash(node *)",
       "Bash(sed -n '9,14p' \"C:/Users/lhooi/Documents/Github Projects/lucasvhooi/assets/css/spells.css\")",
       "Bash(sed -n '4,10p' \"C:/Users/lhooi/Documents/Github Projects/lucasvhooi/assets/css/lore.css\")",
-      "Bash(sed -n '23,30p' \"C:/Users/lhooi/Documents/Github Projects/lucasvhooi/assets/css/missions.css\")"
+      "Bash(sed -n '23,30p' \"C:/Users/lhooi/Documents/Github Projects/lucasvhooi/assets/css/missions.css\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\" -Recurse)",
+      "Bash(Select-Object FullName)",
+      "Bash(python *)"
     ]
   }
 }

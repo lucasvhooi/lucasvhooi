@@ -70,7 +70,7 @@ function buildCard(c) {
 
   const picHtml = c.picture
     ? `<img class="char-card-pic" src="${esc(c.picture)}" alt="${esc(c.name)}" />`
-    : `<div class="char-card-pic char-card-pic-ph">&#128100;</div>`;
+    : `<div class="char-card-pic char-card-pic-ph"><iconify-icon icon="lucide:user"></iconify-icon></div>`;
 
   card.innerHTML = `
     ${picHtml}
@@ -81,9 +81,9 @@ function buildCard(c) {
     </div>
     ${isAdmin ? `
       <div class="char-card-dm">
-        <button class="char-encounter-btn${c.encountered ? " encountered" : ""}" title="${c.encountered ? "Mark not encountered" : "Mark encountered"}">&#128065;</button>
-        <button class="char-edit-btn" title="Edit">&#9998;</button>
-        <button class="char-del-btn" title="Delete">&#10005;</button>
+        <button class="char-encounter-btn${c.encountered ? " encountered" : ""}" title="${c.encountered ? "Mark not encountered" : "Mark encountered"}"><iconify-icon icon="lucide:eye"></iconify-icon></button>
+        <button class="char-edit-btn" title="Edit"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+        <button class="char-del-btn" title="Delete"><iconify-icon icon="lucide:x"></iconify-icon></button>
       </div>` : ""}
   `;
 
@@ -116,7 +116,7 @@ function openViewModal(c) {
       <div class="char-view-pic-wrap">
         ${c.picture
           ? `<img class="char-view-pic" src="${esc(c.picture)}" alt="${esc(c.name)}" />`
-          : `<div class="char-view-pic char-view-pic-ph">&#128100;</div>`}
+          : `<div class="char-view-pic char-view-pic-ph"><iconify-icon icon="lucide:user"></iconify-icon></div>`}
       </div>
       <div class="char-view-details">
         <h2 class="char-view-name">${esc(c.name || "")}</h2>
@@ -128,7 +128,7 @@ function openViewModal(c) {
         ${c.description ? `<p class="char-view-desc">${escBr(c.description)}</p>` : ""}
         ${isAdmin && c.notes ? `
           <div class="char-view-notes">
-            <div class="char-view-notes-label">&#128065; DM Notes</div>
+            <div class="char-view-notes-label"><iconify-icon icon="lucide:eye"></iconify-icon> DM Notes</div>
             <p class="char-view-notes-body">${escBr(c.notes)}</p>
           </div>` : ""}
       </div>
@@ -167,7 +167,7 @@ function updatePicPreview() {
   if (url) {
     charPicPreview.innerHTML = `<img src="${esc(url)}" alt="Preview" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
   } else {
-    charPicPreview.innerHTML = "&#128100;";
+    charPicPreview.innerHTML = '<iconify-icon icon="lucide:user"></iconify-icon>';
   }
 }
 
@@ -203,7 +203,7 @@ async function uploadImage(file) {
     const dataUrl = await resizeToBase64(file);
     charPicture.value = dataUrl;
     updatePicPreview();
-    charUploadStatus.textContent = "Image ready ✓";
+    charUploadStatus.innerHTML = 'Image ready <iconify-icon icon="lucide:check"></iconify-icon>';
     charUploadStatus.className = "char-upload-status done";
     setTimeout(() => { charUploadStatus.textContent = ""; }, 3000);
   } catch (err) {

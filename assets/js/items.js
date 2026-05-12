@@ -309,7 +309,7 @@ function renderAbilities() {
     <div class="im-ability-entry" data-idx="${i}">
       <input class="im-ability-name-input" type="text" placeholder="Ability name…" value="${ab.name.replace(/"/g, '&quot;')}" data-field="name" data-idx="${i}" />
       <textarea class="im-ability-desc-input" placeholder="Description…" rows="2" data-field="description" data-idx="${i}">${ab.description || ""}</textarea>
-      <button type="button" class="im-ability-del-btn" data-idx="${i}">✕</button>
+      <button type="button" class="im-ability-del-btn" data-idx="${i}"><iconify-icon icon="lucide:x"></iconify-icon></button>
     </div>`).join("");
   list.querySelectorAll("[data-field]").forEach(el => {
     el.addEventListener("input", () => {

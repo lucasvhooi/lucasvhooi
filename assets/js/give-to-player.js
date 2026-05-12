@@ -16,7 +16,7 @@ function ensurePanel() {
   panelEl.innerHTML = `
     <div class="give-panel-header">
       <span class="give-panel-title">Give to player</span>
-      <button class="give-panel-close">&#10005;</button>
+      <button class="give-panel-close"><iconify-icon icon="lucide:x"></iconify-icon></button>
     </div>
     <div class="give-panel-list"></div>
     <div class="give-panel-feedback"></div>`;
@@ -65,7 +65,7 @@ export function openGivePanel(anchor, itemData) {
         btn.disabled = true;
         try {
           await giveToInventory(uid, itemData);
-          feedback.textContent = `✓ Sent to ${user.username}`;
+          feedback.innerHTML = `<iconify-icon icon="lucide:check"></iconify-icon> Sent to ${user.username.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}`;
           feedback.className = "give-panel-feedback success";
           setTimeout(hidePanel, 1200);
         } catch(e) {

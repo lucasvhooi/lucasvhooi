@@ -117,7 +117,7 @@ if (spellbookRef) {
     document.querySelectorAll('.spell-save-btn').forEach(btn => {
       const saved = savedSpellIds.has(btn.dataset.spellId);
       btn.classList.toggle('saved', saved);
-      btn.textContent = saved ? '★' : '☆';
+      btn.innerHTML = saved ? '<iconify-icon icon="lucide:star"></iconify-icon>' : '<iconify-icon icon="lucide:star" style="opacity:0.45"></iconify-icon>';
       btn.title = saved ? 'Remove from spellbook' : 'Save to My Spells';
     });
   });
@@ -267,7 +267,7 @@ function buildLevelFilter() {
   levelFilter.innerHTML = "";
 
   if (_userId) {
-    const savedBtn = makeBtn("★ My Spells", "level-btn" + (activeSaved ? " active" : ""), () => {
+    const savedBtn = makeBtn('<iconify-icon icon="lucide:star"></iconify-icon> My Spells', "level-btn" + (activeSaved ? " active" : ""), () => {
       activeSaved = true; activeLevel = null; buildLevelFilter(); renderSpells();
     });
     levelFilter.appendChild(savedBtn);
@@ -313,7 +313,7 @@ function buildClassFilter() {
 function makeBtn(text, className, onClick) {
   const btn = document.createElement("button");
   btn.className = className;
-  btn.textContent = text;
+  btn.innerHTML = text;
   btn.addEventListener("click", onClick);
   return btn;
 }
@@ -355,9 +355,9 @@ function renderSpells() {
     if (activeSaved) {
       emptyEl.innerHTML = `
         <div class="spells-empty-inner">
-          <span class="spells-empty-star">☆</span>
+          <iconify-icon icon="lucide:star" class="spells-empty-star" style="opacity:0.4"></iconify-icon>
           <p class="spells-empty-title">No saved spells</p>
-          <p class="spells-empty-hint">Tap ☆ on any spell in the Spells page to save it here.</p>
+          <p class="spells-empty-hint">Tap the star on any spell in the Spells page to save it here.</p>
         </div>`;
     } else {
       emptyEl.textContent = spells.length === 0 ? "Loading spells…" : "No spells match.";
@@ -398,7 +398,7 @@ function renderSpells() {
       ${spell.duration ? `<div class="spell-duration">${isConc ? '<span class="conc-tag">C</span>' : ''}${escHtml(durText)}</div>` : ''}
       <div class="spell-expand-body">
         <div class="spell-expand-desc">${escHtml(shortDesc)}</div>
-        <button class="spell-modal-btn">Full Details →</button>
+        <button class="spell-modal-btn">Full Details <iconify-icon icon="lucide:arrow-right"></iconify-icon></button>
       </div>
     `;
 
@@ -422,7 +422,7 @@ function renderSpells() {
       const saveBtn = document.createElement('button');
       saveBtn.className = 'spell-save-btn' + (savedSpellIds.has(spell.id) ? ' saved' : '');
       saveBtn.dataset.spellId = spell.id;
-      saveBtn.textContent = savedSpellIds.has(spell.id) ? '★' : '☆';
+      saveBtn.innerHTML = savedSpellIds.has(spell.id) ? '<iconify-icon icon="lucide:star"></iconify-icon>' : '<iconify-icon icon="lucide:star" style="opacity:0.45"></iconify-icon>';
       saveBtn.title = savedSpellIds.has(spell.id) ? 'Remove from spellbook' : 'Save to My Spells';
       saveBtn.addEventListener('click', e => { e.stopPropagation(); toggleSaveSpell(spell.id); });
       card.appendChild(saveBtn);

@@ -49,16 +49,16 @@
       <!-- Top bar -->
       <div class="qm-topbar">
         <div class="qm-topbar-left">
-          <span class="qm-topbar-icon">&#9876;</span>
+          <iconify-icon icon="game-icons:crossed-swords" class="qm-topbar-icon"></iconify-icon>
           <span id="qm-title" style="display:none"></span>
           <input type="text" id="qm-name" class="qm-input qm-topbar-name" placeholder="Quest title…" />
           <div class="qm-location-wrap">
-            <input type="text" id="qm-location" class="qm-input qm-topbar-loc" placeholder="&#128205; Location…" autocomplete="off" />
+            <input type="text" id="qm-location" class="qm-input qm-topbar-loc" placeholder="Location…" autocomplete="off" />
             <div id="qm-location-drop" class="loc-dropdown" style="display:none"></div>
           </div>
           <div class="quest-type-selector" id="qm-type-selector">
-            <button type="button" class="quest-type-btn active" data-type="main">&#9876; Main</button>
-            <button type="button" class="quest-type-btn" data-type="side">&#10022; Side</button>
+            <button type="button" class="quest-type-btn active" data-type="main"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Main</button>
+            <button type="button" class="quest-type-btn" data-type="side"><iconify-icon icon="lucide:sparkles"></iconify-icon> Side</button>
           </div>
           <select id="qm-status" class="qm-select qm-topbar-status">
             <option value="not_started">Not Started</option>
@@ -73,11 +73,11 @@
         </div>
         <div class="qm-topbar-center">
           <button id="qm-undo-btn" class="qm-topbar-btn" title="Undo (Ctrl+Z)" disabled>
-            <span class="qm-topbar-btn-icon">&#8630;</span>
+            <iconify-icon icon="lucide:undo-2" class="qm-topbar-btn-icon"></iconify-icon>
             <span class="qm-topbar-btn-label">Undo</span>
           </button>
           <button id="qm-redo-btn" class="qm-topbar-btn" title="Redo (Ctrl+Y)" disabled>
-            <span class="qm-topbar-btn-icon">&#8631;</span>
+            <iconify-icon icon="lucide:redo-2" class="qm-topbar-btn-icon"></iconify-icon>
             <span class="qm-topbar-btn-label">Redo</span>
           </button>
           <div class="qm-topbar-divider"></div>
@@ -88,20 +88,20 @@
         </div>
         <div class="qm-topbar-right">
 <button id="qm-zoom-reset-btn" class="qm-topbar-btn" title="Reset zoom/pan">
-            <span class="qm-topbar-btn-icon">&#8857;</span>
+            <iconify-icon icon="lucide:maximize" class="qm-topbar-btn-icon"></iconify-icon>
             <span class="qm-topbar-btn-label">Reset view</span>
           </button>
           <button id="qm-preview-toggle" class="qm-topbar-btn qm-preview-btn" title="Preview as players see it">
-            <span class="qm-topbar-btn-icon">&#128065;</span>
+            <iconify-icon icon="lucide:eye" class="qm-topbar-btn-icon"></iconify-icon>
             <span class="qm-topbar-btn-label">Preview</span>
           </button>
-          <button class="qm-close-btn" id="qm-cancel" title="Close (Esc)">&#10005;</button>
+          <button class="qm-close-btn" id="qm-cancel" title="Close (Esc)"><iconify-icon icon="lucide:x"></iconify-icon></button>
         </div>
       </div>
 
       <!-- Draft restore banner (hidden until a local draft is detected) -->
       <div id="qm-draft-banner" class="qm-draft-banner" style="display:none">
-        <span class="qm-draft-banner-icon">&#128190;</span>
+        <iconify-icon icon="lucide:save" class="qm-draft-banner-icon"></iconify-icon>
         <span class="qm-draft-banner-text">Unsaved draft found from <span id="qm-draft-time">earlier</span>.</span>
         <button type="button" id="qm-draft-restore" class="qm-draft-banner-btn qm-draft-banner-primary">Restore</button>
         <button type="button" id="qm-draft-discard" class="qm-draft-banner-btn">Discard</button>
@@ -114,37 +114,37 @@
         <aside class="qm-sidebar">
           <div class="qm-sidebar-section">
             <div class="qm-sidebar-label">Add content</div>
-            <button type="button" class="qm-add-block-btn" data-block-type="text"      title="Paragraph of text"><span class="qm-ab-icon">&#182;</span><span class="qm-ab-text">Text</span></button>
-            <button type="button" class="qm-add-block-btn" data-block-type="phase"     title="Quest phase / step"><span class="qm-ab-icon qm-ab-phase">&#9654;</span><span class="qm-ab-text">Phase</span></button>
-            <button type="button" class="qm-add-block-btn" data-block-type="loot"      title="Loot / rewards"><span class="qm-ab-icon qm-ab-loot">&#127873;</span><span class="qm-ab-text">Loot</span></button>
-            <button type="button" class="qm-add-block-btn" data-block-type="boss"      title="Enemy / encounter"><span class="qm-ab-icon qm-ab-boss">&#9760;</span><span class="qm-ab-text">Enemy</span></button>
-            <button type="button" class="qm-add-block-btn" data-block-type="puzzle"    title="Puzzle / riddle"><span class="qm-ab-icon qm-ab-puzzle">&#129513;</span><span class="qm-ab-text">Puzzle</span></button>
-            <button type="button" class="qm-add-block-btn" data-block-type="character" title="Character / NPC"><span class="qm-ab-icon qm-ab-char">&#128100;</span><span class="qm-ab-text">Character</span></button>
-            <button type="button" class="qm-add-block-btn" data-block-type="loreref"   title="Lore reference"><span class="qm-ab-icon qm-ab-lore">&#128218;</span><span class="qm-ab-text">Lore</span></button>
-            <button type="button" class="qm-add-block-btn" data-block-type="note"      title="DM-only note"><span class="qm-ab-icon qm-ab-note">&#128196;</span><span class="qm-ab-text">DM Note</span></button>
-            <button type="button" class="qm-add-block-btn" data-block-type="divider"   title="Chapter divider"><span class="qm-ab-icon qm-ab-div">&#8213;</span><span class="qm-ab-text">Divider</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="text"      title="Paragraph of text"><iconify-icon icon="lucide:type" class="qm-ab-icon"></iconify-icon><span class="qm-ab-text">Text</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="phase"     title="Quest phase / step"><iconify-icon icon="lucide:chevron-right" class="qm-ab-icon qm-ab-phase"></iconify-icon><span class="qm-ab-text">Phase</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="loot"      title="Loot / rewards"><iconify-icon icon="game-icons:open-treasure-chest" class="qm-ab-icon qm-ab-loot"></iconify-icon><span class="qm-ab-text">Loot</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="boss"      title="Enemy / encounter"><iconify-icon icon="game-icons:skull" class="qm-ab-icon qm-ab-boss"></iconify-icon><span class="qm-ab-text">Enemy</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="puzzle"    title="Puzzle / riddle"><iconify-icon icon="game-icons:puzzle" class="qm-ab-icon qm-ab-puzzle"></iconify-icon><span class="qm-ab-text">Puzzle</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="character" title="Character / NPC"><iconify-icon icon="lucide:user" class="qm-ab-icon qm-ab-char"></iconify-icon><span class="qm-ab-text">Character</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="loreref"   title="Lore reference"><iconify-icon icon="game-icons:bookshelf" class="qm-ab-icon qm-ab-lore"></iconify-icon><span class="qm-ab-text">Lore</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="note"      title="DM-only note"><iconify-icon icon="lucide:file-text" class="qm-ab-icon qm-ab-note"></iconify-icon><span class="qm-ab-text">DM Note</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="divider"   title="Chapter divider"><iconify-icon icon="lucide:minus" class="qm-ab-icon qm-ab-div"></iconify-icon><span class="qm-ab-text">Divider</span></button>
           </div>
 
           <div class="qm-sidebar-section qm-sidebar-templates">
             <div class="qm-sidebar-label">Templates</div>
             <button type="button" class="qm-template-btn" data-template="boss-fight" title="Enemy + Loot + Phase">
-              <span class="qm-ab-icon">&#9876;</span>
+              <iconify-icon icon="game-icons:crossed-swords" class="qm-ab-icon"></iconify-icon>
               <span class="qm-ab-text">Boss Fight</span>
             </button>
             <button type="button" class="qm-template-btn" data-template="investigation" title="Character + Puzzle + Lore">
-              <span class="qm-ab-icon">&#128270;</span>
+              <iconify-icon icon="lucide:search" class="qm-ab-icon"></iconify-icon>
               <span class="qm-ab-text">Investigation</span>
             </button>
             <button type="button" class="qm-template-btn" data-template="dungeon-room" title="Phase + Enemy + Loot">
-              <span class="qm-ab-icon">&#127959;</span>
+              <iconify-icon icon="lucide:building-2" class="qm-ab-icon"></iconify-icon>
               <span class="qm-ab-text">Dungeon Room</span>
             </button>
             <button type="button" class="qm-template-btn" data-template="social-scene" title="Character + Text + DM Note">
-              <span class="qm-ab-icon">&#128172;</span>
+              <iconify-icon icon="lucide:message-circle" class="qm-ab-icon"></iconify-icon>
               <span class="qm-ab-text">Social Scene</span>
             </button>
             <button type="button" class="qm-template-btn" data-template="travel-encounter" title="Phase + Enemy">
-              <span class="qm-ab-icon">&#128506;</span>
+              <iconify-icon icon="lucide:map" class="qm-ab-icon"></iconify-icon>
               <span class="qm-ab-text">Travel</span>
             </button>
           </div>
@@ -188,7 +188,7 @@
   <!-- Quest View Overlay — full-screen quest detail -->
   <div id="quest-view" class="qview-overlay">
     <header class="qview-header">
-      <button id="qview-back" class="qview-back-btn">&#8592; Back</button>
+      <button id="qview-back" class="qview-back-btn"><iconify-icon icon="lucide:arrow-left"></iconify-icon> Back</button>
       <div id="qview-title-area" class="qview-title-area"></div>
       <div id="qview-admin-btns" class="qview-admin-btns"></div>
     </header>

@@ -161,7 +161,7 @@ function buildCard(item) {
     if (item.availableInLibrary) {
       const libBadge = document.createElement("div");
       libBadge.className = "lore-library-badge";
-      libBadge.textContent = "📚";
+      libBadge.innerHTML = '<iconify-icon icon="game-icons:bookshelf"></iconify-icon>';
       libBadge.title = "Available in library";
       wrap.appendChild(libBadge);
     }

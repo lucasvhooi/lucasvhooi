@@ -27,7 +27,7 @@
 
   <!-- Hero -->
   <header class="loc-hero">
-    <a href="map.html" class="back-link" id="back-to-map">&#8592; Back to Map</a>
+    <a href="map.html" class="back-link" id="back-to-map"><iconify-icon icon="lucide:arrow-left"></iconify-icon> Back to Map</a>
     <h1 class="loc-title" id="loc-title">Loading&hellip;</h1>
     <div class="loc-stats" id="loc-stats"></div>
   </header>
@@ -39,9 +39,9 @@
       <div class="loc-feature-img-wrap" id="loc-feature-img-wrap">
         <img id="loc-feature-img" class="loc-feature-img" alt="Location" style="display:none" />
         <div id="loc-feature-img-ph" class="loc-feature-img-ph">
-          <span class="loc-feature-img-ph-icon">&#127760;</span>
+          <iconify-icon icon="lucide:globe" class="loc-feature-img-ph-icon"></iconify-icon>
         </div>
-        <label for="loc-feature-upload" id="loc-feature-upload-btn" class="loc-feature-upload-btn" style="display:none" title="Upload location image">&#128247;</label>
+        <label for="loc-feature-upload" id="loc-feature-upload-btn" class="loc-feature-upload-btn" style="display:none" title="Upload location image"><iconify-icon icon="lucide:camera"></iconify-icon></label>
         <input type="file" id="loc-feature-upload" accept="image/*" style="display:none" />
       </div>
       <div class="loc-feature-desc-wrap">
@@ -71,7 +71,7 @@
           <div id="loc-map-container" class="loc-map-container">
             <img id="loc-map-img" alt="Location map" style="display:none" />
             <div id="loc-map-placeholder" class="map-placeholder">
-              <span class="placeholder-icon">&#9788;</span>
+              <iconify-icon icon="lucide:map" class="placeholder-icon"></iconify-icon>
               <span>No map uploaded yet</span>
               <span class="placeholder-hint" id="loc-upload-hint" style="display:none">Upload one using the button above</span>
             </div>
@@ -99,7 +99,7 @@
         <div class="sec-header-row">
           <h2 class="sec-heading">NPCs <span class="dm-badge">DM Only</span></h2>
           <div style="display:flex;gap:6px;align-items:center;">
-            <button id="loc-toggle-gen-btn" class="dm-btn dm-btn-sm dm-btn-secondary">Generator ▶</button>
+            <button id="loc-toggle-gen-btn" class="dm-btn dm-btn-sm dm-btn-secondary">Generator <iconify-icon icon="lucide:chevron-right"></iconify-icon></button>
             <button id="loc-add-npc-btn" class="dm-btn dm-btn-sm">+ Add NPC</button>
           </div>
         </div>
@@ -109,7 +109,7 @@
             <span class="generator-label">Generate</span>
             <input type="number" id="gen-count" value="20" min="1" max="500" class="gen-count-input" />
             <span class="generator-label">NPCs</span>
-            <button id="gen-btn" class="dm-btn dm-btn-sm">&#9889; Generate</button>
+            <button id="gen-btn" class="dm-btn dm-btn-sm"><iconify-icon icon="lucide:zap"></iconify-icon> Generate</button>
             <button id="gen-clear-btn" class="dm-btn dm-btn-sm dm-btn-secondary">Clear All</button>
           </div>
           <p id="gen-hint" class="gen-hint">Uses this location's Main Race &amp; population for weighted generation.</p>
@@ -139,7 +139,7 @@
         <label>Image <span class="dm-hint">(shows in tooltip)</span></label>
         <div class="lm-img-row">
           <input type="text" id="lm-picture" placeholder="Paste URL or upload…" />
-          <button type="button" id="lm-upload-btn" class="dm-btn dm-btn-sm" title="Upload image">&#128247;</button>
+          <button type="button" id="lm-upload-btn" class="dm-btn dm-btn-sm" title="Upload image"><iconify-icon icon="lucide:camera"></iconify-icon></button>
         </div>
         <input type="file" id="lm-pic-file" accept="image/*" style="display:none" />
         <span id="lm-upload-status" class="lm-upload-status"></span>
@@ -261,8 +261,8 @@
   <div id="shop-modal" class="modal-overlay">
     <div class="modal-box shop-modal-box">
       <button id="shop-close" class="shop-close-btn">&times;</button>
-      <button id="sh-edit-btn" class="shop-edit-btn" style="display:none">&#9998; Edit</button>
-      <button id="sh-persist-btn" class="sh-persist-btn" style="display:none" title="Pin shop — keeps inventory across sessions">&#128204; Pin Shop</button>
+      <button id="sh-edit-btn" class="shop-edit-btn" style="display:none"><iconify-icon icon="lucide:pencil"></iconify-icon> Edit</button>
+      <button id="sh-persist-btn" class="sh-persist-btn" style="display:none" title="Pin shop — keeps inventory across sessions"><iconify-icon icon="lucide:pin"></iconify-icon> Pin Shop</button>
 
       <div class="shop-header">
         <div class="shop-type-dot" id="sh-type-dot"></div>
@@ -277,7 +277,7 @@
 
       <!-- Player-visible tavern info (no staff / tables / menu / rooms) -->
       <div id="sh-tavern-player" class="sh-tavern-player-info" style="display:none">
-        <p class="sh-player-hint">&#127867; A warm tavern — ask the staff for drinks, food or a room.</p>
+        <p class="sh-player-hint">A warm tavern — ask the staff for drinks, food or a room.</p>
       </div>
 
       <!-- Tavern section (DM only) -->
@@ -285,7 +285,7 @@
         <div id="sh-tavern-meta" class="tavern-meta-row"></div>
         <div id="sh-tavern-servants" class="tavern-servants-row"></div>
         <div class="sh-tavern-actions">
-          <button id="sh-tavern-gen-btn" class="dm-btn dm-btn-sm" style="display:none">&#9889; Generate Patrons</button>
+          <button id="sh-tavern-gen-btn" class="dm-btn dm-btn-sm" style="display:none"><iconify-icon icon="lucide:zap"></iconify-icon> Generate Patrons</button>
         </div>
         <div id="sh-tavern-seating" class="tavern-seating"></div>
         <div class="tavern-menu-section">
@@ -294,7 +294,7 @@
         </div>
         <div id="sh-tavern-rooms" class="tavern-rooms-section" style="display:none">
           <div class="tavern-rooms-header">
-            <h3 class="shop-section-title">&#127981; Rooms</h3>
+            <h3 class="shop-section-title"><iconify-icon icon="lucide:door-open"></iconify-icon> Rooms</h3>
             <span id="sh-rooms-status" class="rooms-status-badge"></span>
           </div>
           <div id="sh-rooms-grid" class="tavern-rooms-grid"></div>
@@ -304,7 +304,7 @@
       <!-- Library section -->
       <div id="sh-library-section" style="display:none">
         <div class="library-section-header">
-          <h3 class="shop-section-title">&#128218; Collection</h3>
+          <h3 class="shop-section-title"><iconify-icon icon="game-icons:bookshelf"></iconify-icon> Collection</h3>
           <div class="lib-filter-tabs" id="lib-filter-tabs">
             <button class="lib-tab active" data-filter="all">All</button>
             <button class="lib-tab" data-filter="book">Books</button>
@@ -322,7 +322,7 @@
           <h3 class="shop-section-title">Inventory</h3>
           <div class="sh-header-actions">
             <span id="sh-price-note" class="shop-price-note">Prices vary by shop</span>
-            <button id="sh-generate-btn" class="dm-btn dm-btn-sm" style="display:none">&#9889; Generate Inventory</button>
+            <button id="sh-generate-btn" class="dm-btn dm-btn-sm" style="display:none"><iconify-icon icon="lucide:zap"></iconify-icon> Generate Inventory</button>
           </div>
         </div>
         <div id="sh-rarity-filter" class="shop-rarity-filter">
@@ -374,9 +374,9 @@
             <div class="reader-page-content" id="lib-reader-page-content"></div>
           </div>
           <div class="reader-page-nav">
-            <button id="lib-reader-prev" class="reader-nav-btn">&#8592; Prev</button>
+            <button id="lib-reader-prev" class="reader-nav-btn"><iconify-icon icon="lucide:arrow-left"></iconify-icon> Prev</button>
             <span id="lib-reader-page-num" class="reader-page-num"></span>
-            <button id="lib-reader-next" class="reader-nav-btn">Next &#8594;</button>
+            <button id="lib-reader-next" class="reader-nav-btn">Next <iconify-icon icon="lucide:arrow-right"></iconify-icon></button>
           </div>
         </div>
       </div>

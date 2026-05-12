@@ -2150,16 +2150,14 @@
   border-radius: 2px 5px 5px 2px;  /* match book cover corners */
 }
 
-.lib-revealed-overlay::before {
-  content: "✓";
+.lib-revealed-overlay .lib-overlay-check {
   font-size: 28px;
   line-height: 1;
   color: #66bb6a;
-  text-shadow: 0 0 10px rgba(102,187,106,0.6);
+  filter: drop-shadow(0 0 6px rgba(102,187,106,0.6));
 }
 
-.lib-revealed-overlay::after {
-  content: "IN LORE";
+.lib-revealed-overlay .lib-overlay-text {
   font-size: 8px;
   font-weight: bold;
   letter-spacing: 0.12em;

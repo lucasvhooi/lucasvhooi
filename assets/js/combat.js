@@ -2,24 +2,24 @@
 
 // ── Conditions ────────────────────────────────────────────────────────────────
 const CONDITIONS = [
-  { id: "blinded",       label: "Blinded",      icon: "●",  color: "#9e9e9e" },
-  { id: "charmed",       label: "Charmed",       icon: "♥",  color: "#e91e8c" },
-  { id: "concentrating", label: "Conc.",         icon: "◎",  color: "#7c4dff" },
-  { id: "deafened",      label: "Deafened",      icon: "♦",  color: "#78909c" },
-  { id: "exhausted",     label: "Exhausted",     icon: "~",  color: "#795548" },
-  { id: "frightened",    label: "Frightened",    icon: "!",  color: "#ff7043" },
-  { id: "grappled",      label: "Grappled",      icon: "⛓",  color: "#ff9800" },
-  { id: "incapacitated", label: "Incap.",        icon: "✕",  color: "#9e9e9e" },
-  { id: "invisible",     label: "Invisible",     icon: "◌",  color: "#e0e0e0" },
-  { id: "paralyzed",     label: "Paralyzed",     icon: "⚡",  color: "#ffeb3b" },
-  { id: "petrified",     label: "Petrified",     icon: "◆",  color: "#a0a0a0" },
-  { id: "poisoned",      label: "Poisoned",      icon: "☠",  color: "#66bb6a" },
-  { id: "prone",         label: "Prone",         icon: "↓",  color: "#ff9800" },
-  { id: "restrained",    label: "Restrained",    icon: "⊗",  color: "#8d6e63" },
-  { id: "stunned",       label: "Stunned",       icon: "◉",  color: "#ce93d8" },
-  { id: "unconscious",   label: "Unconscious",   icon: "☁",  color: "#546e7a" },
-  { id: "raging",        label: "Raging",        icon: "▲",  color: "#ef5350" },
-  { id: "hidden",        label: "Hidden",        icon: "◐",  color: "#607d8b" },
+  { id: "blinded",       label: "Blinded",      icon: "lucide:circle",              color: "#9e9e9e" },
+  { id: "charmed",       label: "Charmed",       icon: "game-icons:hearts",          color: "#e91e8c" },
+  { id: "concentrating", label: "Conc.",         icon: "lucide:focus",               color: "#7c4dff" },
+  { id: "deafened",      label: "Deafened",      icon: "lucide:diamond",             color: "#78909c" },
+  { id: "exhausted",     label: "Exhausted",     icon: "lucide:battery-low",         color: "#795548" },
+  { id: "frightened",    label: "Frightened",    icon: "lucide:alert-circle",        color: "#ff7043" },
+  { id: "grappled",      label: "Grappled",      icon: "game-icons:chain",           color: "#ff9800" },
+  { id: "incapacitated", label: "Incap.",        icon: "lucide:x",                   color: "#9e9e9e" },
+  { id: "invisible",     label: "Invisible",     icon: "lucide:eye-off",             color: "#e0e0e0" },
+  { id: "paralyzed",     label: "Paralyzed",     icon: "lucide:zap",                 color: "#ffeb3b" },
+  { id: "petrified",     label: "Petrified",     icon: "lucide:gem",                 color: "#a0a0a0" },
+  { id: "poisoned",      label: "Poisoned",      icon: "game-icons:skull",           color: "#66bb6a" },
+  { id: "prone",         label: "Prone",         icon: "lucide:arrow-down",          color: "#ff9800" },
+  { id: "restrained",    label: "Restrained",    icon: "lucide:lock",                color: "#8d6e63" },
+  { id: "stunned",       label: "Stunned",       icon: "lucide:zap-off",             color: "#ce93d8" },
+  { id: "unconscious",   label: "Unconscious",   icon: "lucide:cloud",               color: "#546e7a" },
+  { id: "raging",        label: "Raging",        icon: "lucide:flame",               color: "#ef5350" },
+  { id: "hidden",        label: "Hidden",        icon: "lucide:ghost",               color: "#607d8b" },
 ];
 
 // ── Monster presets ───────────────────────────────────────────────────────────
@@ -247,7 +247,7 @@ function renderCombatants() {
   if (state.combatants.length === 0) {
     listEl.innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">&#9876;</div>
+        <iconify-icon icon="game-icons:crossed-swords" class="empty-icon"></iconify-icon>
         <p>No combatants yet.</p>
         <p class="empty-hint">Click <strong>+ Add Combatant</strong> to begin.</p>
       </div>`;
@@ -269,7 +269,7 @@ function buildCard(c, idx) {
     const cd = CONDITIONS.find(x => x.id === cond.id);
     if (!cd) return "";
     const roundsLabel = cond.rounds != null ? ` (${cond.rounds})` : "";
-    return `<span class="condition-pill" style="border-color:${cd.color};color:${cd.color}">${cd.icon} ${cd.label}${roundsLabel}</span>`;
+    return `<span class="condition-pill" style="border-color:${cd.color};color:${cd.color}"><iconify-icon icon="${cd.icon}"></iconify-icon> ${cd.label}${roundsLabel}</span>`;
   }).join("");
 
   const isAttacker    = attackState.attackerId === c.id;
@@ -315,7 +315,7 @@ function buildCard(c, idx) {
       <div class="card-top-row">
         <span class="card-name">${escHtml(c.name)}</span>
         <span class="card-type-badge" style="color:${col.badge};background:${col.badgeBg}">${c.type.toUpperCase()}</span>
-        ${isActive ? `<span class="card-active-badge">&#9654; Turn</span>` : ""}
+        ${isActive ? `<span class="card-active-badge"><iconify-icon icon="lucide:chevron-right"></iconify-icon> Turn</span>` : ""}
       </div>
       ${c.notes ? `<div class="card-notes">${escHtmlNl(c.notes)}</div>` : ""}
       ${!isPlayer && c.maxHp > 0 ? `
@@ -324,9 +324,9 @@ function buildCard(c, idx) {
             <div class="hp-bar-fill" style="width:${hpPct}%;background:${hpColor}"></div>
           </div>
           <span class="card-hp-text">
-            ${isDead ? `<span class="dead-label">&#9760; Dead</span>` : `${c.hp}<span class="hp-sep">/</span>${c.maxHp}`}
+            ${isDead ? `<span class="dead-label"><iconify-icon icon="game-icons:skull"></iconify-icon> Dead</span>` : `${c.hp}<span class="hp-sep">/</span>${c.maxHp}`}
           </span>
-          <span class="card-ac">&#128737; ${c.ac ?? "?"}</span>
+          <span class="card-ac"><iconify-icon icon="game-icons:shield"></iconify-icon> ${c.ac ?? "?"}</span>
         </div>
       ` : ""}
       ${statsHtml}
@@ -336,10 +336,10 @@ function buildCard(c, idx) {
     </div>
     <div class="card-actions">
       ${!isPlayer ? `<button class="card-btn hp-btn"   title="Adjust HP">HP ±</button>` : ""}
-      <button class="card-btn cond-btn" title="Conditions">&#9889;</button>
-      ${hasConds   ? `<button class="card-btn clear-fx-btn" title="Clear all conditions">&#10005; FX</button>` : ""}
-      <button class="card-btn edit-btn" title="Edit">&#9998;</button>
-      <button class="card-btn del-btn"  title="Remove">&#10005;</button>
+      <button class="card-btn cond-btn" title="Conditions"><iconify-icon icon="lucide:zap"></iconify-icon></button>
+      ${hasConds   ? `<button class="card-btn clear-fx-btn" title="Clear all conditions"><iconify-icon icon="lucide:x"></iconify-icon> FX</button>` : ""}
+      <button class="card-btn edit-btn" title="Edit"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+      <button class="card-btn del-btn"  title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
     </div>`;
 
   if (!isPlayer) {
@@ -372,8 +372,8 @@ btnStart.addEventListener("click", () => {
   if (state.combatants.length === 0) return;
   sortCombatants();
   state.currentTurn = 0;
-  addLog(`⚔  Combat started — Round ${state.round}`, "round");
-  addLog(`▶  ${state.combatants[0].name}'s turn`, "turn");
+  addLog(`Combat started — Round ${state.round}`, "round");
+  addLog(`${state.combatants[0].name}'s turn`, "turn");
   render();
 });
 
@@ -382,7 +382,7 @@ btnEnd.addEventListener("click", () => {
   state.currentTurn = -1;
   state.round = 1;
   state.combatants.forEach(c => { c.conditions = []; c.lootDropped = false; });
-  addLog("✓  Combat ended.", "info");
+  addLog("Combat ended.", "info");
   render();
 });
 
@@ -399,7 +399,7 @@ function advanceTurn() {
     addLog(`━━━  Round ${state.round}  ━━━`, "round");
   }
   const active = state.combatants[state.currentTurn];
-  addLog(`▶  ${active.name}'s turn`, "turn");
+  addLog(`${active.name}'s turn`, "turn");
   // Auto-select the new active combatant (no attack mode)
   attackMode  = false;
   attackState = { attackerId: active.id, targetId: null };
@@ -415,7 +415,7 @@ function retreatTurn() {
   }
   state.currentTurn = (state.currentTurn - 1 + state.combatants.length) % state.combatants.length;
   const active = state.combatants[state.currentTurn];
-  addLog(`◀  Back to ${active.name}'s turn`, "turn");
+  addLog(`Back to ${active.name}'s turn`, "turn");
   attackMode  = false;
   attackState = { attackerId: active.id, targetId: null };
   render();
@@ -456,7 +456,7 @@ function sortCombatants() {
 document.getElementById("btn-clear").addEventListener("click", () => {
   if (!confirm("Remove all combatants and reset the tracker?")) return;
   state = { round: 1, currentTurn: -1, combatants: [] };
-  addLog("✕  Tracker cleared.", "info");
+  addLog("Tracker cleared.", "info");
   render();
 });
 
@@ -467,7 +467,7 @@ function removeCombatant(idx) {
   state.combatants.splice(idx, 1);
   if (state.combatants.length === 0) state.currentTurn = -1;
   else if (state.currentTurn >= state.combatants.length) state.currentTurn = 0;
-  addLog(`✕  ${c.name} removed.`, "info");
+  addLog(`${c.name} removed.`, "info");
   render();
 }
 
@@ -476,7 +476,7 @@ function clearAllConditions(idx) {
   const c = state.combatants[idx];
   if (!c) return;
   c.conditions = [];
-  addLog(`✓  All conditions cleared from ${c.name}.`, "cond");
+  addLog(`All conditions cleared from ${c.name}.`, "cond");
   render();
 }
 
@@ -781,7 +781,7 @@ cmSave.addEventListener("click", () => {
         tags:     getActiveLootTags(),
       };
     }
-    addLog(`✎  ${name} updated.`, "info");
+    addLog(`${name} updated.`, "info");
   } else {
     for (let i = 0; i < count; i++) {
       const suffix  = count > 1 ? " " + (i + 1) : "";
@@ -844,14 +844,14 @@ function applyHp(isDamage) {
   if (isDamage) {
     const wasDead = c.hp <= 0;
     c.hp = Math.max(0, c.hp - amt);
-    addLog(`⚔  ${c.name} took ${amt} damage → ${c.hp}/${c.maxHp}`, "damage");
+    addLog(`${c.name} took ${amt} damage → ${c.hp}/${c.maxHp}`, "damage");
     if (c.hp === 0 && !wasDead) {
-      addLog(`☠  ${c.name} has fallen!`, "death");
+      addLog(`${c.name} has fallen!`, "death");
       if (c.type === "enemy" && !c.lootDropped) { c.lootDropped = true; addLootDrop(c); }
     }
   } else {
     c.hp = Math.min(c.maxHp, c.hp + amt);
-    addLog(`✦  ${c.name} healed ${amt} HP → ${c.hp}/${c.maxHp}`, "heal");
+    addLog(`${c.name} healed ${amt} HP → ${c.hp}/${c.maxHp}`, "heal");
   }
   hpOverlay.style.display = "none";
   hpIdx = null;
@@ -884,7 +884,7 @@ function openCondPicker(idx, anchor) {
     btn.style.color = cd.color;
     if (existing) btn.style.borderColor = cd.color;
     const roundsLabel = existing && existing.rounds != null ? ` (${existing.rounds})` : "";
-    btn.textContent = `${cd.icon} ${cd.label}${roundsLabel}`;
+    btn.innerHTML = `<iconify-icon icon="${cd.icon}"></iconify-icon> ${cd.label}${roundsLabel}`;
 
     btn.addEventListener("click", e => {
       e.stopPropagation();
@@ -892,13 +892,13 @@ function openCondPicker(idx, anchor) {
       if (conds.find(x => x.id === cd.id)) {
         // Remove
         c.conditions = conds.filter(x => x.id !== cd.id);
-        addLog(`✓  ${c.name}: ${cd.label} removed`, "cond");
+        addLog(`${c.name}: ${cd.label} removed`, "cond");
       } else {
         // Add with optional round duration
         const rounds = parseInt(condRoundsInput.value, 10);
         c.conditions = [...conds, { id: cd.id, rounds: isNaN(rounds) || rounds < 1 ? null : rounds }];
         const durLabel = (!isNaN(rounds) && rounds > 0) ? ` (${rounds} rounds)` : " (permanent)";
-        addLog(`⚠  ${c.name}: ${cd.label} applied${durLabel}`, "cond");
+        addLog(`${c.name}: ${cd.label} applied${durLabel}`, "cond");
       }
       condPicker.style.display = "none";
       condIdx = null;
@@ -1047,20 +1047,20 @@ function resolveAttack(isDamage) {
     if (target.type !== "player" && target.maxHp > 0) {
       const wasDead = target.hp <= 0;
       target.hp = Math.max(0, target.hp - amt);
-      addLog(`⚔  ${attacker ? attacker.name : "?"} dealt ${amt} damage to ${target.name} → ${target.hp}/${target.maxHp}`, "damage");
+      addLog(`${attacker ? attacker.name : "?"} dealt ${amt} damage to ${target.name} → ${target.hp}/${target.maxHp}`, "damage");
       if (target.hp === 0 && !wasDead) {
-        addLog(`☠  ${target.name} has fallen!`, "death");
+        addLog(`${target.name} has fallen!`, "death");
         if (target.type === "enemy" && !target.lootDropped) { target.lootDropped = true; addLootDrop(target); }
       }
     } else {
-      addLog(`⚔  ${attacker ? attacker.name : "?"} dealt ${amt} damage to ${target.name}`, "damage");
+      addLog(`${attacker ? attacker.name : "?"} dealt ${amt} damage to ${target.name}`, "damage");
     }
   } else {
     if (target.type !== "player" && target.maxHp > 0) {
       target.hp = Math.min(target.maxHp, target.hp + amt);
-      addLog(`✦  ${attacker ? attacker.name : "?"} healed ${target.name} for ${amt} → ${target.hp}/${target.maxHp}`, "heal");
+      addLog(`${attacker ? attacker.name : "?"} healed ${target.name} for ${amt} → ${target.hp}/${target.maxHp}`, "heal");
     } else {
-      addLog(`✦  ${attacker ? attacker.name : "?"} healed ${target.name} for ${amt}`, "heal");
+      addLog(`${attacker ? attacker.name : "?"} healed ${target.name} for ${amt}`, "heal");
     }
   }
 
@@ -1448,7 +1448,7 @@ function renderAttackRows() {
       <div class="et-atk-top-row">
         <input class="et-atk-name"   type="text" placeholder="Attack name…" value="${escHtml(atk.name)}" />
         <input class="et-atk-hit"    type="text" placeholder="+5"           value="${escHtml(atk.hit)}"  />
-        <button type="button" class="et-atk-del-btn" title="Remove">&#10005;</button>
+        <button type="button" class="et-atk-del-btn" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
       </div>
       <textarea class="et-atk-damage" placeholder="1d8+3 piercing&#10;On hit: …" rows="2">${escHtml(atk.damage)}</textarea>`;
     row.querySelector(".et-atk-name").addEventListener("input",   e => { etAttacks[i].name   = e.target.value; });
@@ -1719,8 +1719,8 @@ etSaveBtn.addEventListener("click", () => {
 
   saveTemplate(payload);
   etDeleteBtn.style.display = "";
-  etError.textContent = "✓ Saved.";
-  setTimeout(() => { if (etError.textContent === "✓ Saved.") etError.textContent = ""; }, 1500);
+  etError.innerHTML = '<iconify-icon icon="lucide:check"></iconify-icon> Saved.';
+  setTimeout(() => { if (etError.textContent.trim() === "Saved.") etError.textContent = ""; }, 1500);
 });
 
 // ── Delete template ───────────────────────────────────────────────────────────
@@ -1915,7 +1915,7 @@ function renderLootPanel() {
 
     const header = document.createElement("div");
     header.className = "loot-drop-header";
-    header.innerHTML = `<span class="loot-skull">&#9760;</span> ${escHtml(entry.enemyName)}`;
+    header.innerHTML = `<iconify-icon icon="game-icons:skull" class="loot-skull"></iconify-icon> ${escHtml(entry.enemyName)}`;
     drop.appendChild(header);
 
     if (!entry.hasAnything) {
@@ -1928,7 +1928,7 @@ function renderLootPanel() {
       if (coinStr) {
         const coinRow = document.createElement("div");
         coinRow.className = "loot-coin-row";
-        coinRow.innerHTML = `&#128176; ${coinStr}`;
+        coinRow.innerHTML = `<iconify-icon icon="game-icons:coins"></iconify-icon> ${coinStr}`;
         drop.appendChild(coinRow);
       }
       entry.items.forEach(item => {
@@ -1975,7 +1975,7 @@ function renderLootPanel() {
                     quantity:    1,
                     value:       item.price != null ? item.price : null,
                   });
-                  dropdown.innerHTML = `<span class="loot-give-ok">&#10003; Sent to ${escHtml((window._allUsers || {})[btn.dataset.id]?.username || "player")}</span>`;
+                  dropdown.innerHTML = `<span class="loot-give-ok"><iconify-icon icon="lucide:check"></iconify-icon> Sent to ${escHtml((window._allUsers || {})[btn.dataset.id]?.username || "player")}</span>`;
                   setTimeout(() => { dropdown.style.display = "none"; }, 1400);
                 } catch(err) {
                   btn.disabled = false;

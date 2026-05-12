@@ -29,7 +29,7 @@
     <h1 class="expl-hero-title page-hero__title">Characters</h1>
     <p class="expl-hero-sub page-hero__sub">People you've encountered across Enora</p>
     <div class="expl-search-wrap">
-      <input class="expl-search" type="text" id="char-search" placeholder="&#128269; Search characters…" autocomplete="off" />
+      <input class="expl-search" type="text" id="char-search" placeholder="Search characters…" autocomplete="off" />
     </div>
   </header>
 
@@ -43,21 +43,21 @@
     <div class="char-edit-box">
       <div class="char-modal-header">
         <h2 id="char-modal-title">New Character</h2>
-        <button id="char-modal-close" class="char-close-btn">&#10005;</button>
+        <button id="char-modal-close" class="char-close-btn"><iconify-icon icon="lucide:x"></iconify-icon></button>
       </div>
       <div class="char-modal-body">
         <!-- Picture -->
         <div class="char-pic-section">
           <div class="char-pic-preview" id="char-pic-preview" title="Click to upload image">
-            &#128100;
-            <div class="char-pic-upload-overlay">&#128247;</div>
+            <iconify-icon icon="lucide:user"></iconify-icon>
+            <div class="char-pic-upload-overlay"><iconify-icon icon="lucide:camera"></iconify-icon></div>
           </div>
           <input type="file" id="char-pic-file" accept="image/*" style="display:none" />
           <div class="char-pic-field">
             <label class="char-label">Picture</label>
             <div class="char-pic-url-row">
               <input type="text" id="char-picture" class="char-input" placeholder="Paste URL or click portrait to upload…" />
-              <button type="button" id="char-upload-btn" class="char-upload-btn" title="Upload image">&#128247;</button>
+              <button type="button" id="char-upload-btn" class="char-upload-btn" title="Upload image"><iconify-icon icon="lucide:camera"></iconify-icon></button>
             </div>
             <span id="char-upload-status" class="char-upload-status"></span>
           </div>
@@ -85,7 +85,7 @@
           <label class="char-label">Description</label>
           <textarea id="char-description" class="char-input char-textarea" placeholder="Describe this character…" rows="3"></textarea>
 
-          <label class="char-label char-label-dm">&#128065; DM Notes</label>
+          <label class="char-label char-label-dm"><iconify-icon icon="lucide:eye"></iconify-icon> DM Notes</label>
           <textarea id="char-notes" class="char-input char-textarea char-notes-ta" placeholder="Private DM notes…" rows="2"></textarea>
         </div>
       </div>
@@ -100,7 +100,7 @@
   <!-- Character Detail View Modal -->
   <div id="char-view-modal" class="char-modal-overlay">
     <div class="char-view-box">
-      <button id="char-view-close" class="char-close-btn">&#10005;</button>
+      <button id="char-view-close" class="char-close-btn"><iconify-icon icon="lucide:x"></iconify-icon></button>
       <div id="char-view-content" class="char-view-content"></div>
     </div>
   </div>

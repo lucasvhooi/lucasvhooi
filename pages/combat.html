@@ -27,17 +27,17 @@
   <!-- Hero bar -->
   <header class="combat-hero">
     <div class="hero-left">
-      <h1 class="combat-title">&#9876; Combat</h1>
+      <h1 class="combat-title"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Combat</h1>
       <div class="round-counter">Round <span id="round-num">1</span></div>
     </div>
     <div class="hero-center" id="turn-banner">
       <span class="turn-label">&#8212; Not in combat &#8212;</span>
     </div>
     <div class="hero-right">
-      <button id="btn-prev"  class="hero-nav-btn" disabled title="Previous Turn">&#9664;</button>
-      <button id="btn-next"  class="hero-nav-btn" disabled title="Next Turn (Space)">&#9654;</button>
-      <button id="btn-start" class="hero-start-btn">&#9876; Start Combat</button>
-      <button id="btn-end"   class="hero-end-btn" style="display:none">&#10005; End Combat</button>
+      <button id="btn-prev"  class="hero-nav-btn" disabled title="Previous Turn"><iconify-icon icon="lucide:chevron-left"></iconify-icon></button>
+      <button id="btn-next"  class="hero-nav-btn" disabled title="Next Turn (Space)"><iconify-icon icon="lucide:chevron-right"></iconify-icon></button>
+      <button id="btn-start" class="hero-start-btn"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Start Combat</button>
+      <button id="btn-end"   class="hero-end-btn" style="display:none"><iconify-icon icon="lucide:x"></iconify-icon> End Combat</button>
     </div>
   </header>
 
@@ -49,9 +49,9 @@
       <div class="overlay-header">
         <span class="overlay-title">Initiative</span>
         <div class="list-actions">
-          <button id="btn-enemy-list" class="ctrl-btn ctrl-btn-secondary">&#9760; Enemies</button>
-          <button id="btn-sort"  class="ctrl-btn ctrl-btn-secondary">&#8645;</button>
-          <button id="btn-clear" class="ctrl-btn ctrl-btn-danger">&#10005;</button>
+          <button id="btn-enemy-list" class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="game-icons:skull"></iconify-icon> Enemies</button>
+          <button id="btn-sort"  class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="lucide:arrow-up-down"></iconify-icon></button>
+          <button id="btn-clear" class="ctrl-btn ctrl-btn-danger"><iconify-icon icon="lucide:x"></iconify-icon></button>
           <button id="btn-add"   class="ctrl-btn ctrl-btn-primary">+ Add</button>
         </div>
       </div>
@@ -62,7 +62,7 @@
     <aside class="overlay-panel overlay-right">
       <div class="overlay-header">
         <span class="overlay-title">Combat Log</span>
-        <button id="btn-clear-log" class="ctrl-btn ctrl-btn-secondary">&#10005;</button>
+        <button id="btn-clear-log" class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="lucide:x"></iconify-icon></button>
       </div>
       <div id="combat-log" class="combat-log">
         <p class="log-empty">Combat log will appear here.</p>
@@ -72,8 +72,8 @@
     <!-- Right: loot panel -->
     <aside class="overlay-panel overlay-loot">
       <div class="overlay-header">
-        <span class="overlay-title">&#128176; Loot</span>
-        <button id="btn-clear-loot" class="ctrl-btn ctrl-btn-secondary">&#10005;</button>
+        <span class="overlay-title"><iconify-icon icon="game-icons:coins"></iconify-icon> Loot</span>
+        <button id="btn-clear-loot" class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="lucide:x"></iconify-icon></button>
       </div>
       <div id="loot-panel" class="loot-panel">
         <p class="loot-panel-empty">Loot drops when enemies fall.</p>
@@ -85,14 +85,14 @@
   <!-- ── Attack bar (fixed bottom — double-click a card to attack) ── -->
   <div id="field-attack-bar" class="field-attack-bar" style="display:none">
     <span class="attack-bar-attacker" id="attack-attacker-name">—</span>
-    <span class="attack-bar-arrow">&#9658;</span>
+    <iconify-icon icon="lucide:arrow-right" class="attack-bar-arrow"></iconify-icon>
     <span class="attack-bar-target" id="attack-target-name">Select a target from the list</span>
     <div class="attack-dmg-group" id="attack-dmg-group" style="display:none">
       <input type="number" id="attack-dmg-input" placeholder="DMG" min="0" />
-      <button id="attack-deal-btn" class="ctrl-btn ctrl-btn-danger">&#9876; Deal</button>
-      <button id="attack-heal-btn" class="ctrl-btn" style="background:#154a1a;color:#a5d6a7;border:1px solid #2a7a30">&#10022; Heal</button>
+      <button id="attack-deal-btn" class="ctrl-btn ctrl-btn-danger"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Deal</button>
+      <button id="attack-heal-btn" class="ctrl-btn" style="background:#154a1a;color:#a5d6a7;border:1px solid #2a7a30"><iconify-icon icon="lucide:heart"></iconify-icon> Heal</button>
     </div>
-    <button id="attack-cancel-btn" class="ctrl-btn ctrl-btn-secondary">&#10005; Cancel</button>
+    <button id="attack-cancel-btn" class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="lucide:x"></iconify-icon> Cancel</button>
   </div>
 
   <!-- ══════════════════ MODALS (position:fixed, always on top) ══════════════ -->
@@ -166,7 +166,7 @@
 
         <!-- Loot table (enemies only) -->
         <div id="cm-loot-rows" style="display:none">
-          <div class="loot-section-divider">&#128176; Loot Table</div>
+          <div class="loot-section-divider"><iconify-icon icon="game-icons:coins"></iconify-icon> Loot Table</div>
           <div class="form-row two-col">
             <label>Min Gold (gp)
               <input type="number" id="cm-loot-gp-min" value="0" min="0" max="9999" />
@@ -186,14 +186,14 @@
           <div class="form-row">
             <span class="field-label">Item Tags <span class="field-hint">click to toggle — pulls from your Items tab</span></span>
             <div class="loot-tag-grid" id="cm-loot-tags">
-              <button type="button" class="loot-tag-btn" data-tag="weapon">&#9876; Weapon</button>
-              <button type="button" class="loot-tag-btn" data-tag="armor">&#128737; Armor</button>
-              <button type="button" class="loot-tag-btn" data-tag="potion">&#9879; Potion</button>
-              <button type="button" class="loot-tag-btn" data-tag="magic">&#10024; Magic</button>
-              <button type="button" class="loot-tag-btn" data-tag="tool">&#128296; Tool</button>
-              <button type="button" class="loot-tag-btn" data-tag="food">&#127837; Food</button>
-              <button type="button" class="loot-tag-btn" data-tag="book">&#128218; Book</button>
-              <button type="button" class="loot-tag-btn" data-tag="misc">&#128230; Misc</button>
+              <button type="button" class="loot-tag-btn" data-tag="weapon"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Weapon</button>
+              <button type="button" class="loot-tag-btn" data-tag="armor"><iconify-icon icon="game-icons:shield"></iconify-icon> Armor</button>
+              <button type="button" class="loot-tag-btn" data-tag="potion"><iconify-icon icon="game-icons:potion"></iconify-icon> Potion</button>
+              <button type="button" class="loot-tag-btn" data-tag="magic"><iconify-icon icon="lucide:sparkles"></iconify-icon> Magic</button>
+              <button type="button" class="loot-tag-btn" data-tag="tool"><iconify-icon icon="lucide:hammer"></iconify-icon> Tool</button>
+              <button type="button" class="loot-tag-btn" data-tag="food"><iconify-icon icon="lucide:utensils"></iconify-icon> Food</button>
+              <button type="button" class="loot-tag-btn" data-tag="book"><iconify-icon icon="game-icons:bookshelf"></iconify-icon> Book</button>
+              <button type="button" class="loot-tag-btn" data-tag="misc"><iconify-icon icon="lucide:package"></iconify-icon> Misc</button>
             </div>
           </div>
         </div>
@@ -210,9 +210,9 @@
   <!-- HP Adjust -->
   <div id="hp-adjust-overlay" class="hp-adjust-overlay" style="display:none">
     <input type="number" id="hp-adjust-input" placeholder="Amount" min="0" />
-    <button id="hp-damage-btn" class="hp-adj-btn dmg">&#9876; Damage</button>
-    <button id="hp-heal-btn"   class="hp-adj-btn heal">&#10022; Heal</button>
-    <button id="hp-close-btn"  class="hp-adj-close">&#10005;</button>
+    <button id="hp-damage-btn" class="hp-adj-btn dmg"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Damage</button>
+    <button id="hp-heal-btn"   class="hp-adj-btn heal"><iconify-icon icon="lucide:heart"></iconify-icon> Heal</button>
+    <button id="hp-close-btn"  class="hp-adj-close"><iconify-icon icon="lucide:x"></iconify-icon></button>
   </div>
 
   <!-- Condition Picker -->
@@ -233,7 +233,7 @@
 
       <!-- Header -->
       <div class="enemy-modal-header">
-        <span class="enemy-modal-title">&#9760; Enemy Templates</span>
+        <span class="enemy-modal-title"><iconify-icon icon="game-icons:skull"></iconify-icon> Enemy Templates</span>
         <button id="enemy-modal-close" class="enemy-close-btn">&times;</button>
       </div>
 
@@ -251,7 +251,7 @@
         <!-- Right: editor -->
         <div class="enemy-editor-panel" id="enemy-editor-panel">
           <div class="enemy-editor-empty" id="enemy-editor-empty">
-            <div class="empty-icon">&#9760;</div>
+            <div class="empty-icon"><iconify-icon icon="game-icons:skull"></iconify-icon></div>
             <p>Select a template or create a new one.</p>
           </div>
 
@@ -323,7 +323,7 @@
             <!-- Attacks -->
             <div class="editor-section">
               <div class="editor-section-title-row">
-                <span class="editor-section-title">&#9876; Attacks</span>
+                <span class="editor-section-title"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Attacks</span>
                 <button type="button" id="et-add-attack-btn" class="ctrl-btn ctrl-btn-sm">+ Add Attack</button>
               </div>
               <div id="et-attacks-list" class="et-attacks-list"></div>
@@ -347,7 +347,7 @@
 
             <!-- Loot -->
             <div class="editor-section">
-              <div class="editor-section-title">&#128176; Loot Table</div>
+              <div class="editor-section-title"><iconify-icon icon="game-icons:coins"></iconify-icon> Loot Table</div>
               <div class="editor-field-row four-col">
                 <label class="editor-label">Min Gold (gp)
                   <input type="number" id="et-gp-min" value="0" min="0" max="9999" />
@@ -381,13 +381,13 @@
             <!-- Footer actions -->
             <div class="editor-footer">
               <div class="editor-footer-left">
-                <button id="et-delete-btn" class="ctrl-btn ctrl-btn-danger">&#10005; Delete</button>
+                <button id="et-delete-btn" class="ctrl-btn ctrl-btn-danger"><iconify-icon icon="lucide:x"></iconify-icon> Delete</button>
               </div>
               <div class="editor-footer-right">
-                <button id="et-save-btn" class="ctrl-btn ctrl-btn-primary">&#10003; Save Template</button>
+                <button id="et-save-btn" class="ctrl-btn ctrl-btn-primary"><iconify-icon icon="lucide:check"></iconify-icon> Save Template</button>
                 <div class="add-to-combat-group">
                   <input type="number" id="et-spawn-count" value="1" min="1" max="20" class="spawn-count-input" title="Count" />
-                  <button id="et-spawn-btn" class="ctrl-btn" style="background:#1a3a1a;color:#a5d6a7;border:1px solid #2a6a2a">&#9876; Add to Combat</button>
+                  <button id="et-spawn-btn" class="ctrl-btn" style="background:#1a3a1a;color:#a5d6a7;border:1px solid #2a6a2a"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Add to Combat</button>
                 </div>
               </div>
             </div>

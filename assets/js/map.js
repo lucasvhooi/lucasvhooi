@@ -377,7 +377,7 @@ function renderMarkers() {
       html += `<div class="tooltip-notes">${marker.notes}</div>`;
     }
     if (window.matchMedia("(pointer: coarse)").matches) {
-      html += `<div class="tooltip-tap-hint">Tap again to open →</div>`;
+      html += `<div class="tooltip-tap-hint">Tap again to open <iconify-icon icon="lucide:arrow-right"></iconify-icon></div>`;
     }
     tooltip.innerHTML = html;
 
@@ -769,10 +769,10 @@ function buildCountrySection(country, items) {
     </div>
     <div class="lp-country-right">
       ${isAdmin ? `
-        <button class="lp-icon-btn lp-edit-country" title="Edit country" data-id="${country.id}">&#9998;</button>
-        <button class="lp-icon-btn lp-del-country"  title="Delete country" data-id="${country.id}">&#128465;</button>
+        <button class="lp-icon-btn lp-edit-country" title="Edit country" data-id="${country.id}"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+        <button class="lp-icon-btn lp-del-country"  title="Delete country" data-id="${country.id}"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
       ` : ""}
-      <button class="lp-icon-btn lp-collapse-btn" title="${isCollapsed ? "Expand" : "Collapse"}">${isCollapsed ? "&#9654;" : "&#9660;"}</button>
+      <button class="lp-icon-btn lp-collapse-btn" title="${isCollapsed ? "Expand" : "Collapse"}">${isCollapsed ? '<iconify-icon icon="lucide:chevron-right"></iconify-icon>' : '<iconify-icon icon="lucide:chevron-down"></iconify-icon>'}</button>
     </div>
   `;
 
@@ -834,7 +834,7 @@ function buildUnassignedSection(items) {
       <span class="lp-country-count">${items.length}</span>
     </div>
     <div class="lp-country-right">
-      <button class="lp-icon-btn lp-collapse-btn">${isCollapsed ? "&#9654;" : "&#9660;"}</button>
+      <button class="lp-icon-btn lp-collapse-btn">${isCollapsed ? '<iconify-icon icon="lucide:chevron-right"></iconify-icon>' : '<iconify-icon icon="lucide:chevron-down"></iconify-icon>'}</button>
     </div>
   `;
 
@@ -867,7 +867,7 @@ function buildLocationItem(marker) {
       <span class="lp-item-name">${esc(marker.name)}</span>
       <span class="lp-item-type">${esc(marker.type || "")}</span>
     </div>
-    <button class="lp-item-goto" title="Focus on map">&#10148;</button>
+    <button class="lp-item-goto" title="Focus on map"><iconify-icon icon="lucide:arrow-right"></iconify-icon></button>
   `;
 
   item.querySelector(".lp-item-goto").addEventListener("click", e => {

@@ -29,7 +29,7 @@
 
   <header class="inv-hero page-hero">
     <!-- Admin-only buttons — shown via JS -->
-    <button class="manage-btn" id="manage-btn" style="display:none">&#9881; Players</button>
+    <button class="manage-btn" id="manage-btn" style="display:none"><iconify-icon icon="lucide:settings"></iconify-icon> Players</button>
     <button class="dm-btn inv-add-btn" id="add-btn" style="display:none">+ Add Item</button>
 
     <h1 class="inv-hero-title page-hero__title" id="inv-hero-title">Inventory</h1>
@@ -47,12 +47,12 @@
 
     <div class="inv-filter-tabs" id="filter-tabs">
       <button class="inv-tab active" data-filter="all">All</button>
-      <button class="inv-tab" data-filter="weapon">⚔ Weapons</button>
-      <button class="inv-tab" data-filter="armor">🛡 Armor</button>
-      <button class="inv-tab" data-filter="potion">⚗ Potions</button>
-      <button class="inv-tab" data-filter="misc">◈ Misc</button>
-      <button class="inv-tab inv-tab-lore" data-filter="books-scrolls">📚 Books & Scrolls</button>
-      <button class="inv-tab inv-tab-spells" data-filter="spells">✦ Spells</button>
+      <button class="inv-tab" data-filter="weapon"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Weapons</button>
+      <button class="inv-tab" data-filter="armor"><iconify-icon icon="game-icons:shield"></iconify-icon> Armor</button>
+      <button class="inv-tab" data-filter="potion"><iconify-icon icon="game-icons:potion"></iconify-icon> Potions</button>
+      <button class="inv-tab" data-filter="misc"><iconify-icon icon="lucide:gem"></iconify-icon> Misc</button>
+      <button class="inv-tab inv-tab-lore" data-filter="books-scrolls"><iconify-icon icon="game-icons:bookshelf"></iconify-icon> Books & Scrolls</button>
+      <button class="inv-tab inv-tab-spells" data-filter="spells"><iconify-icon icon="lucide:sparkles"></iconify-icon> Spells</button>
     </div>
   </header>
 
@@ -60,7 +60,7 @@
     <div class="inv-grid-toolbar">
       <button class="inv-view-toggle" id="inv-view-toggle" title="Toggle compact view" aria-label="Toggle compact view">
         <span class="toggle-icon-grid">⊞</span>
-        <span class="toggle-icon-list">☰</span>
+        <iconify-icon icon="lucide:list" class="toggle-icon-list"></iconify-icon>
       </button>
     </div>
     <div class="inv-grid" id="inv-grid"></div>
@@ -71,7 +71,7 @@
     <div class="inv-modal inv-modal-lg">
       <div class="inv-modal-header">
         <h2 class="inv-modal-title">Add Item to Inventory</h2>
-        <button class="inv-modal-close" data-close="add-modal">&#10005;</button>
+        <button class="inv-modal-close" data-close="add-modal"><iconify-icon icon="lucide:x"></iconify-icon></button>
       </div>
       <div class="inv-modal-body">
         <!-- Item search -->
@@ -87,12 +87,12 @@
           <div class="inv-form-row" style="margin:0">
             <label class="inv-form-label">Type</label>
             <select class="inv-form-select" id="ai-type">
-              <option value="weapon">⚔ Weapon</option>
-              <option value="armor">🛡 Armor</option>
-              <option value="potion">⚗ Potion</option>
-              <option value="book">📖 Book</option>
-              <option value="scroll">📜 Scroll</option>
-              <option value="misc" selected>◈ Misc</option>
+              <option value="weapon">Weapon</option>
+              <option value="armor">Armor</option>
+              <option value="potion">Potion</option>
+              <option value="book">Book</option>
+              <option value="scroll">Scroll</option>
+              <option value="misc" selected>Misc</option>
             </select>
           </div>
           <div class="inv-form-row" style="margin:0">
@@ -134,9 +134,9 @@
             <div class="reader-page-content" id="inv-reader-page-content"></div>
           </div>
           <div class="reader-page-nav">
-            <button id="inv-reader-prev" class="reader-nav-btn">&#8592; Prev</button>
+            <button id="inv-reader-prev" class="reader-nav-btn"><iconify-icon icon="lucide:arrow-left"></iconify-icon> Prev</button>
             <span   id="inv-reader-page-num" class="reader-page-num"></span>
-            <button id="inv-reader-next" class="reader-nav-btn">Next &#8594;</button>
+            <button id="inv-reader-next" class="reader-nav-btn">Next <iconify-icon icon="lucide:arrow-right"></iconify-icon></button>
           </div>
         </div>
       </div>
@@ -161,14 +161,14 @@
     <div class="inv-modal">
       <div class="inv-modal-header">
         <h2 class="inv-modal-title">Remove Item</h2>
-        <button class="inv-modal-close" data-close="remove-modal">&#10005;</button>
+        <button class="inv-modal-close" data-close="remove-modal"><iconify-icon icon="lucide:x"></iconify-icon></button>
       </div>
       <div class="inv-modal-body">
         <p id="remove-item-label" style="color:#aaa;font-size:14px;margin:0 0 16px"></p>
         <div id="remove-qty-row" style="display:none">
           <label class="inv-form-label">How many to remove?</label>
           <div class="remove-qty-stepper">
-            <button class="remove-qty-btn" id="remove-qty-minus">&#8722;</button>
+            <button class="remove-qty-btn" id="remove-qty-minus"><iconify-icon icon="lucide:minus"></iconify-icon></button>
             <input class="remove-qty-input" id="remove-qty-input" type="number" min="1" value="1" />
             <button class="remove-qty-btn" id="remove-qty-plus">+</button>
             <button class="remove-qty-all" id="remove-qty-all">All</button>
@@ -187,7 +187,7 @@
     <div class="inv-modal">
       <div class="inv-modal-header">
         <h2 class="inv-modal-title">Send Item</h2>
-        <button class="inv-modal-close" data-close="send-modal">&#10005;</button>
+        <button class="inv-modal-close" data-close="send-modal"><iconify-icon icon="lucide:x"></iconify-icon></button>
       </div>
       <div class="inv-modal-body">
         <p style="color:#aaa;font-size:13px;margin:0 0 14px">
@@ -208,8 +208,8 @@
   <div class="inv-overlay" id="manage-modal">
     <div class="inv-modal inv-modal-lg">
       <div class="inv-modal-header">
-        <h2 class="inv-modal-title">&#9881; Manage Players</h2>
-        <button class="inv-modal-close" data-close="manage-modal">&#10005;</button>
+        <h2 class="inv-modal-title"><iconify-icon icon="lucide:settings"></iconify-icon> Manage Players</h2>
+        <button class="inv-modal-close" data-close="manage-modal"><iconify-icon icon="lucide:x"></iconify-icon></button>
       </div>
       <div class="inv-modal-body">
         <div id="player-list-el"></div>

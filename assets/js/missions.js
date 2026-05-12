@@ -236,7 +236,7 @@ function buildGroupsInEditor() {
           <span class="blk-group-swatch" style="background:${col}"></span>
           <input type="color" class="blk-group-color-pick" value="${col}" />
         </label>
-        <button type="button" class="blk-group-del" title="Ungroup (keeps blocks)">&#10005;</button>
+        <button type="button" class="blk-group-del" title="Ungroup (keeps blocks)"><iconify-icon icon="lucide:x"></iconify-icon></button>
       </div>`;
 
     const titleInp = el.querySelector(".blk-group-title");
@@ -703,7 +703,7 @@ function renderGrid() {
 const STATUS_LABEL = { active: "Active", not_started: "Not Started", completed: "Completed" };
 const STATUS_CLASS = { active: "status-active", not_started: "status-pending", completed: "status-done" };
 
-const BLOCK_TYPE_ICON  = { text:"&#182;", phase:"&#9654;", loot:"&#127873;", boss:"&#9760;", puzzle:"&#129513;", character:"&#128100;", loreref:"&#128218;", note:"&#128196;", divider:"&#8213;" };
+const BLOCK_TYPE_ICON  = { text:'<iconify-icon icon="lucide:type"></iconify-icon>', phase:'<iconify-icon icon="lucide:chevron-right"></iconify-icon>', loot:'<iconify-icon icon="game-icons:open-treasure-chest"></iconify-icon>', boss:'<iconify-icon icon="game-icons:skull"></iconify-icon>', puzzle:'<iconify-icon icon="game-icons:puzzle"></iconify-icon>', character:'<iconify-icon icon="lucide:user"></iconify-icon>', loreref:'<iconify-icon icon="game-icons:bookshelf"></iconify-icon>', note:'<iconify-icon icon="lucide:file-text"></iconify-icon>', divider:'<iconify-icon icon="lucide:minus"></iconify-icon>' };
 const BLOCK_TYPE_LABEL = { text:"Text", phase:"Phase", loot:"Loot", boss:"Enemy", puzzle:"Puzzle", character:"Character", loreref:"Lore", note:"DM Note", divider:"Divider" };
 
 function buildBlockROContent(b) {
@@ -715,36 +715,36 @@ function buildBlockROContent(b) {
       return titleHtml + `<div class="qcro-text">${contentToHtml(b.content || "")}</div>`;
     case "phase":
       return titleHtml +
-        `<div class="qcro-phase-title">&#9654; ${esc(b.title || "Phase")}</div>` +
+        `<div class="qcro-phase-title"><iconify-icon icon="lucide:chevron-right"></iconify-icon> ${esc(b.title || "Phase")}</div>` +
         (b.description ? `<div class="qcro-text">${contentToHtml(b.description)}</div>` : "");
     case "loot": {
       const items = b.items?.length ? b.items : (b.name ? [{name:b.name,value:b.value||""}] : []);
       if (!items.length) return titleHtml;
-      return titleHtml + items.map(it => `<div class="qcro-loot-row"><span class="qcb-loot-icon">&#127873;</span><span>${esc(it.name)}</span>${it.value ? `<span class="qcb-loot-value">${esc(it.value)}</span>` : ""}</div>`).join("");
+      return titleHtml + items.map(it => `<div class="qcro-loot-row"><iconify-icon icon="game-icons:open-treasure-chest" class="qcb-loot-icon"></iconify-icon><span>${esc(it.name)}</span>${it.value ? `<span class="qcb-loot-value">${esc(it.value)}</span>` : ""}</div>`).join("");
     }
     case "boss": {
       const enemies = b.enemies?.length ? b.enemies : (b.name ? [{name:b.name,cr:b.cr||"",ac:b.ac||"",hp:b.hp||"",notes:b.notes||""}] : []);
       if (!enemies.length) return titleHtml;
-      return titleHtml + enemies.map(en => `<div class="qcro-boss-row"><span class="qcb-boss-icon">&#9760;</span><span class="qcb-boss-name">${esc(en.name)}</span>${en.cr?`<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>`:""}${en.ac?`<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>`:""}${en.hp?`<span class="qcb-boss-stat">HP ${esc(en.hp)}</span>`:""}</div>${en.notes?`<p class="qcro-text">${escBr(en.notes)}</p>`:""}`).join("");
+      return titleHtml + enemies.map(en => `<div class="qcro-boss-row"><iconify-icon icon="game-icons:skull" class="qcb-boss-icon"></iconify-icon><span class="qcb-boss-name">${esc(en.name)}</span>${en.cr?`<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>`:""}${en.ac?`<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>`:""}${en.hp?`<span class="qcb-boss-stat">HP ${esc(en.hp)}</span>`:""}</div>${en.notes?`<p class="qcro-text">${escBr(en.notes)}</p>`:""}`).join("");
     }
     case "puzzle":
       return titleHtml +
-        `<div class="qcro-phase-title">&#129513; ${esc(b.title || "Puzzle")}</div>` +
+        `<div class="qcro-phase-title"><iconify-icon icon="game-icons:puzzle"></iconify-icon> ${esc(b.title || "Puzzle")}</div>` +
         (b.description ? `<div class="qcro-text">${escBr(b.description)}</div>` : "") +
-        (b.hint ? `<div class="qcro-hint">&#128161; ${esc(b.hint)}</div>` : "") +
-        (isAdmin && b.solution ? `<div class="qcro-solution">&#128273; ${esc(b.solution)}</div>` : "");
+        (b.hint ? `<div class="qcro-hint"><iconify-icon icon="lucide:lightbulb"></iconify-icon> ${esc(b.hint)}</div>` : "") +
+        (isAdmin && b.solution ? `<div class="qcro-solution"><iconify-icon icon="lucide:key"></iconify-icon> ${esc(b.solution)}</div>` : "");
     case "character": {
       const chars = b.characters || [];
       if (!chars.length) return titleHtml;
-      return titleHtml + chars.map(ch => `<div class="qcro-char-row">${ch.picture?`<img class="char-item-pic" src="${esc(ch.picture)}" alt="">`:`<div class="char-item-pic char-item-pic-ph">&#128100;</div>`}<div><div class="char-item-name">${esc(ch.name)}</div>${ch.profession?`<div class="char-item-meta">${esc(ch.profession)}</div>`:""}</div></div>`).join("");
+      return titleHtml + chars.map(ch => `<div class="qcro-char-row">${ch.picture?`<img class="char-item-pic" src="${esc(ch.picture)}" alt="">`:`<div class="char-item-pic char-item-pic-ph"><iconify-icon icon="lucide:user"></iconify-icon></div>`}<div><div class="char-item-name">${esc(ch.name)}</div>${ch.profession?`<div class="char-item-meta">${esc(ch.profession)}</div>`:""}</div></div>`).join("");
     }
     case "note":
       if (!isAdmin || !b.content) return "";
-      return titleHtml + `<div class="qcro-note">&#128196; ${escBr(b.content)}</div>`;
+      return titleHtml + `<div class="qcro-note"><iconify-icon icon="lucide:file-text"></iconify-icon> ${escBr(b.content)}</div>`;
     case "loreref": {
       const items = b.items || [];
       if (!items.length) return titleHtml;
-      return titleHtml + items.map(it => `<div class="qcro-lore-row"><span>${it.type==="scroll"?"&#128220;":"&#128218;"}</span><span>${esc(it.title||"")}</span></div>`).join("");
+      return titleHtml + items.map(it => `<div class="qcro-lore-row"><iconify-icon icon="${it.type==="scroll"?"game-icons:scroll-unfurled":"game-icons:open-book"}"></iconify-icon><span>${esc(it.title||"")}</span></div>`).join("");
     }
     case "divider":
       return b.title ? `<div class="qcro-divider-line"><span>${esc(b.title)}</span></div>` : `<div class="qcro-divider-line"></div>`;
@@ -984,7 +984,7 @@ function buildCardChapters(blocks, cellColors) {
     if (!ch.divider && !gridHtml) return "";
     const header = ch.divider ? `
       <div class="qc-chapter-header" data-open="true">
-        <span class="qc-chapter-arrow">▼</span>
+        <iconify-icon icon="lucide:chevron-down" class="qc-chapter-arrow"></iconify-icon>
         <span class="qc-chapter-line"></span>
         ${ch.divider.title ? `<span class="qc-chapter-title">${esc(ch.divider.title)}</span>` : ""}
         <span class="qc-chapter-line"></span>
@@ -1038,12 +1038,12 @@ function buildSummaryChips(blocks) {
     else if (b.type === "loreref")   lore  += (b.items?.length || 0);
   }
   const chips = [];
-  if (phases)  chips.push(`<span class="qc-chip qc-chip-phase"><span class="qc-chip-icon">&#9654;</span><span class="qc-chip-count">${phases}</span> ${phases === 1 ? "phase" : "phases"}</span>`);
-  if (enemies) chips.push(`<span class="qc-chip qc-chip-boss"><span class="qc-chip-icon">&#9760;</span><span class="qc-chip-count">${enemies}</span> ${enemies === 1 ? "enemy" : "enemies"}</span>`);
-  if (loot)    chips.push(`<span class="qc-chip qc-chip-loot"><span class="qc-chip-icon">&#127873;</span><span class="qc-chip-count">${loot}</span> loot</span>`);
-  if (puzzles) chips.push(`<span class="qc-chip qc-chip-puzzle"><span class="qc-chip-icon">&#129513;</span><span class="qc-chip-count">${puzzles}</span> ${puzzles === 1 ? "puzzle" : "puzzles"}</span>`);
-  if (chars)   chips.push(`<span class="qc-chip qc-chip-char"><span class="qc-chip-icon">&#128100;</span><span class="qc-chip-count">${chars}</span> NPC${chars === 1 ? "" : "s"}</span>`);
-  if (lore)    chips.push(`<span class="qc-chip qc-chip-lore"><span class="qc-chip-icon">&#128218;</span><span class="qc-chip-count">${lore}</span> lore</span>`);
+  if (phases)  chips.push(`<span class="qc-chip qc-chip-phase"><iconify-icon icon="lucide:chevron-right" class="qc-chip-icon"></iconify-icon><span class="qc-chip-count">${phases}</span> ${phases === 1 ? "phase" : "phases"}</span>`);
+  if (enemies) chips.push(`<span class="qc-chip qc-chip-boss"><iconify-icon icon="game-icons:skull" class="qc-chip-icon"></iconify-icon><span class="qc-chip-count">${enemies}</span> ${enemies === 1 ? "enemy" : "enemies"}</span>`);
+  if (loot)    chips.push(`<span class="qc-chip qc-chip-loot"><iconify-icon icon="game-icons:open-treasure-chest" class="qc-chip-icon"></iconify-icon><span class="qc-chip-count">${loot}</span> loot</span>`);
+  if (puzzles) chips.push(`<span class="qc-chip qc-chip-puzzle"><iconify-icon icon="game-icons:puzzle" class="qc-chip-icon"></iconify-icon><span class="qc-chip-count">${puzzles}</span> ${puzzles === 1 ? "puzzle" : "puzzles"}</span>`);
+  if (chars)   chips.push(`<span class="qc-chip qc-chip-char"><iconify-icon icon="lucide:user" class="qc-chip-icon"></iconify-icon><span class="qc-chip-count">${chars}</span> NPC${chars === 1 ? "" : "s"}</span>`);
+  if (lore)    chips.push(`<span class="qc-chip qc-chip-lore"><iconify-icon icon="game-icons:bookshelf" class="qc-chip-icon"></iconify-icon><span class="qc-chip-count">${lore}</span> lore</span>`);
   if (!chips.length) return "";
   return `<div class="qc-summary">${chips.join("")}</div>`;
 }
@@ -1058,23 +1058,23 @@ function buildCard(q) {
     <div class="qc-accent-bar"></div>
     <div class="qc-body">
       <div class="qc-header-row">
-        ${isAdmin ? `<div class="qc-drag-handle" title="Drag to reorder quests">&#8942;&#8942;</div>` : ""}
+        ${isAdmin ? `<iconify-icon icon="lucide:grip-vertical" class="qc-drag-handle" title="Drag to reorder quests"></iconify-icon>` : ""}
         <div class="qc-title-row">
           <h3 class="qc-title">${esc(q.title || "")}</h3>
-          ${q.location ? `<div class="qc-location">&#128205; ${esc(q.location)}</div>` : ""}
+          ${q.location ? `<div class="qc-location"><iconify-icon icon="lucide:map-pin"></iconify-icon> ${esc(q.location)}</div>` : ""}
         </div>
         <div class="qc-top-row">
           <span class="qc-type-badge">${q.type === "main" ? "Main Quest" : "Side Quest"}</span>
           <span class="qc-status ${STATUS_CLASS[q.status] || ""}">${STATUS_LABEL[q.status] || "Unknown"}</span>
-          ${isAdmin && !q.discovered ? `<span class="qc-hidden-badge">&#128065; DM Only</span>` : ""}
+          ${isAdmin && !q.discovered ? `<span class="qc-hidden-badge"><iconify-icon icon="lucide:eye"></iconify-icon> DM Only</span>` : ""}
         </div>
         ${buildSummaryChips(blocks)}
       </div>
     </div>
     ${isAdmin ? `
       <div class="qc-actions">
-        <button class="qc-btn qc-edit-btn" title="Edit">&#9998;</button>
-        <button class="qc-btn qc-del-btn"  title="Delete">&#10005;</button>
+        <button class="qc-btn qc-edit-btn" title="Edit"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+        <button class="qc-btn qc-del-btn"  title="Delete"><iconify-icon icon="lucide:x"></iconify-icon></button>
       </div>` : ""}
   `;
 
@@ -1110,13 +1110,13 @@ function openQuestView(q) {
     <div class="qview-meta-row">
       <span class="qc-type-badge">${q.type === "main" ? "Main Quest" : "Side Quest"}</span>
       <span class="qc-status ${STATUS_CLASS[q.status] || ""}">${STATUS_LABEL[q.status] || ""}</span>
-      ${q.location ? `<span class="qc-location">&#128205; ${esc(q.location)}</span>` : ""}
+      ${q.location ? `<span class="qc-location"><iconify-icon icon="lucide:map-pin"></iconify-icon> ${esc(q.location)}</span>` : ""}
     </div>
   `;
 
   // Admin: edit button
   if (isAdmin) {
-    adminBtns.innerHTML = `<button class="qview-edit-btn">&#9998; Edit</button>`;
+    adminBtns.innerHTML = `<button class="qview-edit-btn"><iconify-icon icon="lucide:pencil"></iconify-icon> Edit</button>`;
     adminBtns.querySelector(".qview-edit-btn").addEventListener("click", () => {
       closeQuestView();
       openModal(q);
@@ -1270,7 +1270,7 @@ function renderBlockInCard(b, cellColors) {
     case "phase":
       return `<div class="qcb-cell qcb-cell-phase" style="${spanStyle}">${sessionPill}${titleHtml}
         <button class="qc-phase-toggle" data-open="false">
-          <span class="toggle-arrow">▶</span>
+          <iconify-icon icon="lucide:chevron-right" class="toggle-arrow"></iconify-icon>
           <span class="phase-label">${esc(b.title || "Phase")}</span>
         </button>
         <div class="qc-phase-body" style="display:none">
@@ -1285,7 +1285,7 @@ function renderBlockInCard(b, cellColors) {
       return `<div class="qcb-cell qcb-cell-loot" style="${spanStyle}">${sessionPill}${titleHtml}
         ${lootItems.map(it => `
           <div class="qcb-loot" style="${cellTxtStyle}">
-            <span class="qcb-loot-icon">&#127873;</span>
+            <iconify-icon icon="game-icons:open-treasure-chest" class="qcb-loot-icon"></iconify-icon>
             <span class="qcb-loot-name">${esc(it.name)}</span>
             ${it.value ? `<span class="qcb-loot-value">${esc(it.value)}</span>` : ""}
             ${it.description ? `<span class="qcb-loot-desc">${escBr(it.description)}</span>` : ""}
@@ -1301,7 +1301,7 @@ function renderBlockInCard(b, cellColors) {
         ${enemies.map(en => `
           <div class="qcb-boss">
             <div class="qcb-boss-header">
-              <span class="qcb-boss-icon">&#9760;</span>
+              <iconify-icon icon="game-icons:skull" class="qcb-boss-icon"></iconify-icon>
               <span class="qcb-boss-name">${esc(en.name)}</span>
               ${en.cr ? `<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>` : ""}
               ${en.ac ? `<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>` : ""}
@@ -1314,15 +1314,15 @@ function renderBlockInCard(b, cellColors) {
 
     case "note":
       if (!isAdmin || !b.content) return "";
-      return `<div class="qcb-cell qcb-cell-note" style="${spanStyle}">${sessionPill}${titleHtml}<div class="qcb-note" style="${cellTxtStyle}">&#128196; ${escBr(b.content)}</div></div>`;
+      return `<div class="qcb-cell qcb-cell-note" style="${spanStyle}">${sessionPill}${titleHtml}<div class="qcb-note" style="${cellTxtStyle}"><iconify-icon icon="lucide:file-text"></iconify-icon> ${escBr(b.content)}</div></div>`;
 
     case "puzzle":
       if (!b.description && !b.title) return "";
       return `<div class="qcb-cell qcb-cell-puzzle" style="${spanStyle}">${sessionPill}${titleHtml}
-        <div class="qcb-puzzle-header"><span class="qcb-puzzle-icon">&#129513;</span><span class="qcb-puzzle-name">${esc(b.title || "Puzzle")}</span></div>
+        <div class="qcb-puzzle-header"><iconify-icon icon="game-icons:puzzle" class="qcb-puzzle-icon"></iconify-icon><span class="qcb-puzzle-name">${esc(b.title || "Puzzle")}</span></div>
         ${b.description ? `<p class="qcb-puzzle-desc" style="${cellTxtStyle}">${escBr(b.description)}</p>` : ""}
-        ${b.hint ? `<div class="qcb-puzzle-hint">&#128161; ${esc(b.hint)}</div>` : ""}
-        ${isAdmin && b.solution ? `<div class="qcb-puzzle-solution">&#128273; ${esc(b.solution)}</div>` : ""}
+        ${b.hint ? `<div class="qcb-puzzle-hint"><iconify-icon icon="lucide:lightbulb"></iconify-icon> ${esc(b.hint)}</div>` : ""}
+        ${isAdmin && b.solution ? `<div class="qcb-puzzle-solution"><iconify-icon icon="lucide:key"></iconify-icon> ${esc(b.solution)}</div>` : ""}
       </div>`;
 
     case "divider":
@@ -1340,7 +1340,7 @@ function renderBlockInCard(b, cellColors) {
           <div class="qcb-character">
             ${ch.picture
               ? `<img class="qcb-char-pic" src="${esc(ch.picture)}" alt="${esc(ch.name)}" />`
-              : `<div class="qcb-char-pic qcb-char-pic-ph">&#128100;</div>`}
+              : `<div class="qcb-char-pic qcb-char-pic-ph"><iconify-icon icon="lucide:user"></iconify-icon></div>`}
             <div class="qcb-char-info">
               <div class="qcb-char-name">${esc(ch.name)}</div>
               ${ch.profession ? `<div class="qcb-char-meta">${esc(ch.profession)}</div>` : ""}
@@ -1356,7 +1356,7 @@ function renderBlockInCard(b, cellColors) {
       return `<div class="qcb-cell qcb-cell-loreref" style="${spanStyle}">${sessionPill}${titleHtml}
         ${loreItems.map(it => `
           <div class="qcb-loreref">
-            <span class="qcb-loreref-icon">${it.type === "scroll" ? "📜" : "📖"}</span>
+            <iconify-icon icon="${it.type === 'scroll' ? 'game-icons:scroll-unfurled' : 'game-icons:open-book'}" class="qcb-loreref-icon"></iconify-icon>
             <div class="qcb-loreref-info">
               <span class="qcb-loreref-title">${esc(it.title || "")}</span>
               ${it.writer ? `<span class="qcb-loreref-writer">by ${esc(it.writer)}</span>` : ""}
@@ -1528,7 +1528,7 @@ function showTplPreview(templateKey, x, y) {
   const tpl = BLOCK_TEMPLATES[templateKey];
   if (!tpl) return;
   const preview = getTplPreview();
-  const BLOCK_ICONS = { phase:"▶", boss:"☠", loot:"🎁", puzzle:"🧩", character:"👤", loreref:"📚", note:"📄", text:"¶", divider:"—" };
+  const BLOCK_ICONS = { phase:"lucide:chevron-right", boss:"game-icons:skull", loot:"game-icons:open-treasure-chest", puzzle:"game-icons:puzzle", character:"lucide:user", loreref:"game-icons:bookshelf", note:"lucide:file-text", text:"lucide:type", divider:"lucide:minus" };
   const BLOCK_COLORS = { phase:"#2a5c8a", boss:"#8a2a2a", loot:"#4a7a2a", puzzle:"#7a4a8a", character:"#5a4a2a", loreref:"#2a5a4a", note:"#5a5a2a", text:"#3a3a5a", divider:"#4a4a4a" };
   const rows = [];
   let col = 1, row = 1, curRow = [];
@@ -1546,7 +1546,7 @@ function showTplPreview(templateKey, x, y) {
       const color = BLOCK_COLORS[t.type] || "#3a3a3a";
       const icon = BLOCK_ICONS[t.type] || "▪";
       const flex = t.span || 1;
-      return `<div class="tpl-preview-block" style="flex:${flex};border-color:${color}"><span class="tpl-preview-icon">${icon}</span><span class="tpl-preview-label">${label}</span></div>`;
+      return `<div class="tpl-preview-block" style="flex:${flex};border-color:${color}"><iconify-icon icon="${icon || 'lucide:square'}" class="tpl-preview-icon"></iconify-icon><span class="tpl-preview-label">${label}</span></div>`;
     }).join("")}</div>`).join("");
   preview.style.display = "block";
   positionTplPreview(x, y);
@@ -1635,7 +1635,7 @@ function renderMentionDrop(richEl) {
     <div class="mention-drop-item${i === 0 ? " focused" : ""}">
       ${c.picture
         ? `<img class="mention-drop-pic" src="${esc(c.picture)}" />`
-        : `<div class="mention-drop-pic mention-drop-ph">&#128100;</div>`}
+        : `<div class="mention-drop-pic mention-drop-ph"><iconify-icon icon="lucide:user"></iconify-icon></div>`}
       <div class="mention-drop-info">
         <span class="mention-drop-name">${esc(c.name)}</span>
         ${c.profession ? `<span class="mention-drop-meta">${esc(c.profession)}</span>` : ""}
@@ -1708,7 +1708,7 @@ function getCharPopup() {
   if (!_charPopup) {
     _charPopup = document.createElement("div");
     _charPopup.className = "char-popup-overlay";
-    _charPopup.innerHTML = `<div class="char-popup-box"><button class="char-popup-close">&#10005;</button><div class="char-popup-inner"></div></div>`;
+    _charPopup.innerHTML = `<div class="char-popup-box"><button class="char-popup-close"><iconify-icon icon="lucide:x"></iconify-icon></button><div class="char-popup-inner"></div></div>`;
     _charPopup.querySelector(".char-popup-close").addEventListener("click", hideCharPopup);
     _charPopup.addEventListener("click", e => { if (e.target === _charPopup) hideCharPopup(); });
     document.body.appendChild(_charPopup);
@@ -1729,7 +1729,7 @@ function showCharacterPopup(charId) {
     <div class="char-popup-pic-wrap">
       ${c.picture
         ? `<img class="char-popup-pic" src="${esc(c.picture)}" alt="${esc(c.name)}" />`
-        : `<div class="char-popup-pic char-popup-pic-ph">&#128100;</div>`}
+        : `<div class="char-popup-pic char-popup-pic-ph"><iconify-icon icon="lucide:user"></iconify-icon></div>`}
     </div>
     <div class="char-popup-details">
       <h2 class="char-popup-name">${esc(c.name || "")}</h2>
@@ -1741,7 +1741,7 @@ function showCharacterPopup(charId) {
       ${c.description ? `<p class="char-popup-desc">${escBr(c.description)}</p>` : ""}
       ${isAdmin && c.notes ? `
         <div class="char-popup-notes">
-          <div class="char-popup-notes-label">&#128065; DM Notes</div>
+          <div class="char-popup-notes-label"><iconify-icon icon="lucide:eye"></iconify-icon> DM Notes</div>
           <p class="char-popup-notes-body">${escBr(c.notes)}</p>
         </div>` : ""}
     </div>
@@ -2209,7 +2209,7 @@ function buildBlocksEditor() {
           <div class="loot-item-row" data-idx="${idx}">
             <span class="loot-item-name">${esc(it.name)}</span>
             ${it.value ? `<span class="loot-item-value">${esc(it.value)}</span>` : ""}
-            <button type="button" class="loot-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+            <button type="button" class="loot-item-del blk-ctrl" data-idx="${idx}" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
           </div>`).join("");
         list.querySelectorAll(".loot-item-del").forEach(btn => {
           btn.addEventListener("click", () => {
@@ -2272,7 +2272,7 @@ function buildBlocksEditor() {
             ${en.cr ? `<span class="enemy-item-stat">CR ${esc(en.cr)}</span>` : ""}
             ${en.ac ? `<span class="enemy-item-stat">AC ${esc(en.ac)}</span>` : ""}
             ${en.hp ? `<span class="enemy-item-stat">HP ${esc(en.hp)}</span>` : ""}
-            <button type="button" class="enemy-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+            <button type="button" class="enemy-item-del blk-ctrl" data-idx="${idx}" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
           </div>`).join("");
         list.querySelectorAll(".enemy-item-del").forEach(btn => {
           btn.addEventListener("click", () => { block.enemies.splice(Number(btn.dataset.idx), 1); refreshEnemyList(); });
@@ -2336,10 +2336,10 @@ function buildBlocksEditor() {
       const refreshCharList = () => {
         list.innerHTML = (block.characters || []).map((ch, idx) => `
           <div class="char-item-row" data-idx="${idx}">
-            ${ch.picture ? `<img class="char-item-pic" src="${esc(ch.picture)}" alt="" />` : `<div class="char-item-pic char-item-pic-ph">&#128100;</div>`}
+            ${ch.picture ? `<img class="char-item-pic" src="${esc(ch.picture)}" alt="" />` : `<div class="char-item-pic char-item-pic-ph"><iconify-icon icon="lucide:user"></iconify-icon></div>`}
             <span class="char-item-name">${esc(ch.name)}</span>
             ${ch.profession ? `<span class="char-item-meta">${esc(ch.profession)}</span>` : ""}
-            <button type="button" class="char-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+            <button type="button" class="char-item-del blk-ctrl" data-idx="${idx}" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
           </div>`).join("");
         list.querySelectorAll(".char-item-del").forEach(btn => {
           btn.addEventListener("click", () => { block.characters.splice(Number(btn.dataset.idx), 1); refreshCharList(); });
@@ -2396,9 +2396,9 @@ function buildBlocksEditor() {
       const refreshLoreList = () => {
         list.innerHTML = (block.items || []).map((it, idx) => `
           <div class="loreref-item-row" data-idx="${idx}">
-            <span class="loreref-item-icon">${it.type === "scroll" ? "📜" : "📖"}</span>
+            <iconify-icon icon="${it.type === 'scroll' ? 'game-icons:scroll-unfurled' : 'game-icons:open-book'}" class="loreref-item-icon"></iconify-icon>
             <span class="loreref-item-name">${esc(it.title||"")}</span>
-            <button type="button" class="loreref-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+            <button type="button" class="loreref-item-del blk-ctrl" data-idx="${idx}" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
           </div>`).join("");
         list.querySelectorAll(".loreref-item-del").forEach(btn => {
           btn.addEventListener("click", () => { block.items.splice(Number(btn.dataset.idx), 1); refreshLoreList(); });
@@ -2416,7 +2416,7 @@ function buildBlocksEditor() {
             `<div class="loc-drop-item" tabindex="0"
               data-id="${esc(it.id||"")}" data-title="${esc(it.title||"")}"
               data-type="${esc(it.type||"book")}" data-writer="${esc(it.writer||"")}">
-              <span>${it.type === "scroll" ? "📜" : "📖"} ${esc(it.title)}</span>
+              <span><iconify-icon icon="${it.type === 'scroll' ? 'game-icons:scroll-unfurled' : 'game-icons:open-book'}"></iconify-icon> ${esc(it.title)}</span>
               ${it.writer ? `<span class="boss-drop-meta">${esc(it.writer)}</span>` : ""}
             </div>`
           ).join("");
@@ -2683,7 +2683,7 @@ function openConnectionPopup(connIndex, clientX, clientY) {
   if (!conn) return;
   _connPopup.innerHTML = `
     <input class="conn-popup-input" type="text" placeholder="Connection label…" value="${(conn.label || "").replace(/"/g, '&quot;')}" />
-    <button class="conn-popup-del" title="Delete connection">✕ Remove</button>
+    <button class="conn-popup-del" title="Delete connection"><iconify-icon icon="lucide:x"></iconify-icon> Remove</button>
   `;
   _connPopup.style.cssText = `display:block;position:fixed;left:${clientX}px;top:${clientY}px;z-index:9999;`;
   const inp = _connPopup.querySelector(".conn-popup-input");
@@ -2738,12 +2738,12 @@ function buildBlockEditorHtml(b, i) {
       <span class="blk-bg-swatch" style="background:${b.bgColor || 'transparent'}"></span>
       <input type="color" class="blk-bg-pick" value="${b.bgColor || '#c8903a'}" />
     </label>
-    <button type="button" class="blk-ctrl blk-bg-clear${b.bgColor ? ' visible' : ''}" title="Clear block color">&#10007;</button>`;
+    <button type="button" class="blk-ctrl blk-bg-clear${b.bgColor ? ' visible' : ''}" title="Clear block color"><iconify-icon icon="lucide:x"></iconify-icon></button>`;
   const controls = `
     <div class="blk-controls">
       ${sessionPillHtml}
       ${bgColorHtml}
-      <button type="button" class="blk-ctrl blk-del" title="Remove">&#10005;</button>
+      <button type="button" class="blk-ctrl blk-del" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
     </div>`;
 
   // Title + color row shared by all block types
@@ -2760,14 +2760,14 @@ function buildBlockEditorHtml(b, i) {
   switch (b.type) {
     case "text":
       return `
-        <div class="blk-header"><span class="blk-type-icon">&#182;</span><span class="blk-type-label">Text</span>${controls}</div>
+        <div class="blk-header"><iconify-icon icon="lucide:type" class="blk-type-icon"></iconify-icon><span class="blk-type-label">Text</span>${controls}</div>
         ${titleRow}
         ${fmtBar(b, true)}
         <div class="blk-rich-text" contenteditable="true" data-placeholder="Write something…" style="text-align:${b.textAlign||"left"}">${b.content || ""}</div>`;
 
     case "phase":
       return `
-        <div class="blk-header"><span class="blk-type-icon">&#9654;</span><span class="blk-type-label">Phase</span>${controls}</div>
+        <div class="blk-header"><iconify-icon icon="lucide:chevron-right" class="blk-type-icon"></iconify-icon><span class="blk-type-label">Phase</span>${controls}</div>
         ${titleRow}
         ${fmtBar(b, true)}
         <input class="blk-input" type="text" data-f="title" placeholder="Phase title…" value="${esc(b.title || "")}" />
@@ -2775,11 +2775,11 @@ function buildBlockEditorHtml(b, i) {
 
     case "loot":
       return `
-        <div class="blk-header"><span class="blk-type-icon">&#127873;</span><span class="blk-type-label">Loot</span>${controls}</div>
+        <div class="blk-header"><iconify-icon icon="game-icons:open-treasure-chest" class="blk-type-icon"></iconify-icon><span class="blk-type-label">Loot</span>${controls}</div>
         ${titleRow}
         ${fmtBar(b)}
         <div class="loot-search-wrap">
-          <input class="blk-input loot-search-input" type="text" placeholder="&#128269; Search items to add…" autocomplete="off" />
+          <input class="blk-input loot-search-input" type="text" placeholder="Search items to add…" autocomplete="off" />
           <div class="loot-search-drop loc-dropdown" style="display:none"></div>
         </div>
         <div class="loot-items-list">
@@ -2787,17 +2787,17 @@ function buildBlockEditorHtml(b, i) {
             <div class="loot-item-row" data-idx="${idx}">
               <span class="loot-item-name">${esc(it.name)}</span>
               ${it.value ? `<span class="loot-item-value">${esc(it.value)}</span>` : ""}
-              <button type="button" class="loot-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+              <button type="button" class="loot-item-del blk-ctrl" data-idx="${idx}" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
             </div>`).join("")}
         </div>`;
 
     case "boss":
       return `
-        <div class="blk-header"><span class="blk-type-icon">&#9760;</span><span class="blk-type-label">Enemy</span>${controls}</div>
+        <div class="blk-header"><iconify-icon icon="game-icons:skull" class="blk-type-icon"></iconify-icon><span class="blk-type-label">Enemy</span>${controls}</div>
         ${titleRow}
         ${fmtBar(b)}
         <div class="boss-search-wrap">
-          <input class="blk-input boss-search-input" type="text" placeholder="&#128269; Search creatures to add…" autocomplete="off" />
+          <input class="blk-input boss-search-input" type="text" placeholder="Search creatures to add…" autocomplete="off" />
           <div class="boss-search-drop loc-dropdown" style="display:none"></div>
         </div>
         <div class="enemy-items-list">
@@ -2807,20 +2807,20 @@ function buildBlockEditorHtml(b, i) {
               ${en.cr ? `<span class="enemy-item-stat">CR ${esc(en.cr)}</span>` : ""}
               ${en.ac ? `<span class="enemy-item-stat">AC ${esc(en.ac)}</span>` : ""}
               ${en.hp ? `<span class="enemy-item-stat">HP ${esc(en.hp)}</span>` : ""}
-              <button type="button" class="enemy-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+              <button type="button" class="enemy-item-del blk-ctrl" data-idx="${idx}" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
             </div>`).join("")}
         </div>`;
 
     case "note":
       return `
-        <div class="blk-header"><span class="blk-type-icon">&#128196;</span><span class="blk-type-label">DM Note</span>${controls}</div>
+        <div class="blk-header"><iconify-icon icon="lucide:file-text" class="blk-type-icon"></iconify-icon><span class="blk-type-label">DM Note</span>${controls}</div>
         ${titleRow}
         ${fmtBar(b)}
         <textarea class="blk-textarea blk-textarea-note" data-f="content" style="${taStyle}" placeholder="Private DM notes…" rows="3">${esc(b.content || "")}</textarea>`;
 
     case "puzzle":
       return `
-        <div class="blk-header"><span class="blk-type-icon">&#129513;</span><span class="blk-type-label">Puzzle</span>${controls}</div>
+        <div class="blk-header"><iconify-icon icon="game-icons:puzzle" class="blk-type-icon"></iconify-icon><span class="blk-type-label">Puzzle</span>${controls}</div>
         ${titleRow}
         ${fmtBar(b)}
         <input class="blk-input" type="text" data-f="title" placeholder="Puzzle name…" value="${esc(b.title || "")}" />
@@ -2830,42 +2830,42 @@ function buildBlockEditorHtml(b, i) {
 
     case "divider":
       return `
-        <div class="blk-header"><span class="blk-type-icon">&#8213;</span><span class="blk-type-label">Divider</span>${controls}</div>
+        <div class="blk-header"><iconify-icon icon="lucide:minus" class="blk-type-icon"></iconify-icon><span class="blk-type-label">Divider</span>${controls}</div>
         <input class="blk-input" type="text" data-f="title" placeholder="Divider title (optional)…" value="${esc(b.title || "")}" />
         <div class="blk-divider-preview"></div>`;
 
     case "character":
       return `
-        <div class="blk-header"><span class="blk-type-icon">&#128100;</span><span class="blk-type-label">Character</span>${controls}</div>
+        <div class="blk-header"><iconify-icon icon="lucide:user" class="blk-type-icon"></iconify-icon><span class="blk-type-label">Character</span>${controls}</div>
         ${titleRow}
         <div class="char-search-wrap">
-          <input class="blk-input char-search-input" type="text" placeholder="&#128269; Search characters to add…" autocomplete="off" />
+          <input class="blk-input char-search-input" type="text" placeholder="Search characters to add…" autocomplete="off" />
           <div class="char-search-drop loc-dropdown" style="display:none"></div>
         </div>
         <div class="char-items-list">
           ${(b.characters || []).map((ch, idx) => `
             <div class="char-item-row" data-idx="${idx}">
-              ${ch.picture ? `<img class="char-item-pic" src="${esc(ch.picture)}" alt="" />` : `<div class="char-item-pic char-item-pic-ph">&#128100;</div>`}
+              ${ch.picture ? `<img class="char-item-pic" src="${esc(ch.picture)}" alt="" />` : `<div class="char-item-pic char-item-pic-ph"><iconify-icon icon="lucide:user"></iconify-icon></div>`}
               <span class="char-item-name">${esc(ch.name)}</span>
               ${ch.profession ? `<span class="char-item-meta">${esc(ch.profession)}</span>` : ""}
-              <button type="button" class="char-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+              <button type="button" class="char-item-del blk-ctrl" data-idx="${idx}" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
             </div>`).join("")}
         </div>`;
 
     case "loreref":
       return `
-        <div class="blk-header"><span class="blk-type-icon">&#128218;</span><span class="blk-type-label">Lore</span>${controls}</div>
+        <div class="blk-header"><iconify-icon icon="game-icons:bookshelf" class="blk-type-icon"></iconify-icon><span class="blk-type-label">Lore</span>${controls}</div>
         ${titleRow}
         <div class="loreref-search-wrap">
-          <input class="blk-input loreref-search-input" type="text" placeholder="&#128269; Search lore items to add…" autocomplete="off" />
+          <input class="blk-input loreref-search-input" type="text" placeholder="Search lore items to add…" autocomplete="off" />
           <div class="loreref-search-drop loc-dropdown" style="display:none"></div>
         </div>
         <div class="loreref-items-list">
           ${(b.items || []).map((it, idx) => `
             <div class="loreref-item-row" data-idx="${idx}">
-              <span class="loreref-item-icon">${it.type === "scroll" ? "📜" : "📖"}</span>
+              <iconify-icon icon="${it.type === 'scroll' ? 'game-icons:scroll-unfurled' : 'game-icons:open-book'}" class="loreref-item-icon"></iconify-icon>
               <span class="loreref-item-name">${esc(it.title || "")}</span>
-              <button type="button" class="loreref-item-del blk-ctrl" data-idx="${idx}" title="Remove">&#10005;</button>
+              <button type="button" class="loreref-item-del blk-ctrl" data-idx="${idx}" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
             </div>`).join("")}
         </div>`;
 
@@ -3147,7 +3147,7 @@ function buildPreviewPanel() {
   );
   panel.innerHTML = `
     <div class="qm-preview-watermark">
-      <span class="qm-preview-watermark-icon">&#128065;</span>
+      <iconify-icon icon="lucide:eye" class="qm-preview-watermark-icon"></iconify-icon>
       <span>This is how players see this quest — DM notes and puzzle solutions are hidden.</span>
     </div>
     <div class="quest-card quest-${selectedType} preview-card">
@@ -3156,7 +3156,7 @@ function buildPreviewPanel() {
         <div class="qc-header-row">
           <div class="qc-title-row">
             <h3 class="qc-title">${esc(title)}</h3>
-            ${location ? `<div class="qc-location">&#128205; ${esc(location)}</div>` : ""}
+            ${location ? `<div class="qc-location"><iconify-icon icon="lucide:map-pin"></iconify-icon> ${esc(location)}</div>` : ""}
           </div>
           <div class="qc-top-row">
             <span class="qc-type-badge">${selectedType === "main" ? "Main Quest" : "Side Quest"}</span>
@@ -3172,7 +3172,7 @@ function buildPreviewPanel() {
     header.addEventListener("click", () => {
       const open = header.dataset.open === "true";
       header.dataset.open = String(!open);
-      header.querySelector(".qc-chapter-arrow").textContent = open ? "▶" : "▼";
+      header.querySelector(".qc-chapter-arrow").setAttribute("icon", open ? "lucide:chevron-right" : "lucide:chevron-down");
       header.nextElementSibling.style.display = open ? "none" : "";
     });
   });
@@ -3182,7 +3182,7 @@ function buildPreviewPanel() {
       const open = btn.dataset.open === "true";
       btn.dataset.open = String(!open);
       body.style.display = open ? "none" : "block";
-      btn.querySelector(".toggle-arrow").textContent = open ? "▶" : "▼";
+      btn.querySelector(".toggle-arrow").setAttribute("icon", open ? "lucide:chevron-right" : "lucide:chevron-down");
     });
   });
 }
@@ -3270,15 +3270,15 @@ document.querySelectorAll(".qm-template-btn").forEach(btn => {
 // SLASH COMMAND MENU
 // ═══════════════════════════════════════════════════════════════════════════
 const SLASH_ITEMS = [
-  { type: "phase",     icon: "&#9654;",    name: "Phase",      hint: "A quest step" },
-  { type: "boss",      icon: "&#9760;",    name: "Enemy",      hint: "Creature stat block" },
-  { type: "loot",      icon: "&#127873;",  name: "Loot",       hint: "Items or rewards" },
-  { type: "puzzle",    icon: "&#129513;",  name: "Puzzle",     hint: "Riddle or skill check" },
-  { type: "character", icon: "&#128100;",  name: "Character",  hint: "NPC reference" },
-  { type: "loreref",   icon: "&#128218;",  name: "Lore",       hint: "Book or scroll reference" },
-  { type: "note",      icon: "&#128196;",  name: "DM Note",    hint: "Private to you" },
-  { type: "divider",   icon: "&#8213;",    name: "Divider",    hint: "Chapter break" },
-  { type: "text",      icon: "&#182;",     name: "Text",       hint: "Paragraph" },
+  { type: "phase",     icon: '<iconify-icon icon="lucide:chevron-right"></iconify-icon>',         name: "Phase",      hint: "A quest step" },
+  { type: "boss",      icon: '<iconify-icon icon="game-icons:skull"></iconify-icon>',             name: "Enemy",      hint: "Creature stat block" },
+  { type: "loot",      icon: '<iconify-icon icon="game-icons:open-treasure-chest"></iconify-icon>', name: "Loot",     hint: "Items or rewards" },
+  { type: "puzzle",    icon: '<iconify-icon icon="game-icons:puzzle"></iconify-icon>',            name: "Puzzle",     hint: "Riddle or skill check" },
+  { type: "character", icon: '<iconify-icon icon="lucide:user"></iconify-icon>',                  name: "Character",  hint: "NPC reference" },
+  { type: "loreref",   icon: '<iconify-icon icon="game-icons:bookshelf"></iconify-icon>',         name: "Lore",       hint: "Book or scroll reference" },
+  { type: "note",      icon: '<iconify-icon icon="lucide:file-text"></iconify-icon>',             name: "DM Note",    hint: "Private to you" },
+  { type: "divider",   icon: '<iconify-icon icon="lucide:minus"></iconify-icon>',                 name: "Divider",    hint: "Chapter break" },
+  { type: "text",      icon: '<iconify-icon icon="lucide:type"></iconify-icon>',                  name: "Text",       hint: "Paragraph" },
 ];
 
 const slashState = { active: false, srcEl: null, query: "", focusedIdx: 0, blockIndex: -1 };
@@ -3437,7 +3437,7 @@ function renderLinkDrop(richEl) {
   linkState.hits = searchLinkHits(linkState.trigger, linkState.query);
   if (!linkState.hits.length) { hideLinkDrop(); return; }
   linkState.focusedIdx = 0;
-  const iconMap = { "@": "&#128100;", "#": "&#9876;", "$": "&#128218;", "^": "&#128205;" };
+  const iconMap = { "@": '<iconify-icon icon="lucide:user"></iconify-icon>', "#": '<iconify-icon icon="game-icons:crossed-swords"></iconify-icon>', "$": '<iconify-icon icon="game-icons:bookshelf"></iconify-icon>', "^": '<iconify-icon icon="lucide:map-pin"></iconify-icon>' };
 
   drop.innerHTML = linkState.hits.map((h, i) => `
     <div class="mention-drop-item${i === 0 ? " focused" : ""}">
@@ -3524,7 +3524,7 @@ function showQuestLinkPopup(questId) {
       <h2 class="char-popup-name">${esc(q.title || "")}</h2>
       <div class="char-popup-tags">
         <span class="char-popup-tag">${q.type === "main" ? "Main Quest" : "Side Quest"}</span>
-        ${q.location ? `<span class="char-popup-tag">&#128205; ${esc(q.location)}</span>` : ""}
+        ${q.location ? `<span class="char-popup-tag"><iconify-icon icon="lucide:map-pin"></iconify-icon> ${esc(q.location)}</span>` : ""}
         <span class="char-popup-tag">${STATUS_LABEL[q.status] || "Unknown"}</span>
       </div>
     </div>
@@ -3538,7 +3538,7 @@ function showLoreLinkPopup(loreId) {
   const inner = popup.querySelector(".char-popup-inner");
   inner.innerHTML = `
     <div class="char-popup-details">
-      <h2 class="char-popup-name">${l.type === "scroll" ? "📜" : "📖"} ${esc(l.title || "")}</h2>
+      <h2 class="char-popup-name"><iconify-icon icon="${l.type === 'scroll' ? 'game-icons:scroll-unfurled' : 'game-icons:open-book'}"></iconify-icon> ${esc(l.title || "")}</h2>
       <div class="char-popup-tags">
         ${l.writer ? `<span class="char-popup-tag">by ${esc(l.writer)}</span>` : ""}
       </div>
@@ -3552,7 +3552,7 @@ function showLocLinkPopup(locName) {
   const inner = popup.querySelector(".char-popup-inner");
   inner.innerHTML = `
     <div class="char-popup-details">
-      <h2 class="char-popup-name">&#128205; ${esc(locName)}</h2>
+      <h2 class="char-popup-name"><iconify-icon icon="lucide:map-pin"></iconify-icon> ${esc(locName)}</h2>
       <p class="char-popup-desc">See this location on the map.</p>
     </div>
   `;

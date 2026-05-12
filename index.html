@@ -132,6 +132,7 @@
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+  <script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script>
 </head>
 <body>
   <div class="login-wrap">
@@ -149,7 +150,7 @@
         <input class="login-input" id="login-pass" type="password" placeholder="Secret passphrase…" autocomplete="current-password" />
       </div>
 
-      <button class="login-btn" id="login-btn">&#9876; Enter the Realm</button>
+      <button class="login-btn" id="login-btn"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Enter the Realm</button>
       <div class="login-error" id="login-error"></div>
     </div>
   </div>
@@ -195,7 +196,7 @@
       } finally {
         btn.disabled = false;
         btn.classList.remove("is-loading");
-        btn.innerHTML = "&#9876; Enter the Realm";
+        btn.innerHTML = '<iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Enter the Realm';
       }
     }
 
