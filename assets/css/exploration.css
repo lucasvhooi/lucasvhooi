@@ -8,7 +8,6 @@
 .expl-search-wrap {
   display: flex;
   justify-content: center;
-  margin-top: 16px;
 }
 
 .expl-search {
@@ -28,9 +27,9 @@
 
 /* ── Main ── */
 .expl-main {
-  max-width: var(--page-width);
+  max-width: 100vw;
   margin: 0 auto;
-  padding: var(--space-lg) var(--page-padding) var(--space-2xl);
+  padding: 24px 20px 60px;
 }
 
 .expl-empty {
@@ -55,7 +54,7 @@
   border-radius: 12px;
   overflow: hidden;
   transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-  animation: cardIn 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: cardIn 0.22s ease-out both;
   position: relative;
 }
 @keyframes cardIn {
@@ -97,7 +96,6 @@
 .char-card-body {
   padding: 10px 12px 8px;
   cursor: pointer;
-  text-align: left;
 }
 .char-card-name {
   font-size: 14px;
@@ -172,10 +170,10 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 8px 40px rgba(0,0,0,0.7);
-  animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: modalIn 0.2s ease-out both;
 }
 @keyframes modalIn {
-  from { opacity: 0; transform: scale(0.95) translateY(14px); }
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
   to   { opacity: 1; transform: scale(1)    translateY(0); }
 }
 
@@ -349,7 +347,7 @@
   position: relative;
   padding: 28px 28px 24px;
   box-shadow: 0 8px 40px rgba(0,0,0,0.7);
-  animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: modalIn 0.2s ease-out both;
 }
 .char-view-box .char-close-btn {
   position: absolute; top: 14px; right: 16px;
@@ -427,13 +425,18 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .expl-hero { padding: 20px 16px 24px; }
-  .expl-search { font-size: 16px; }
+  /* Pull the add-button out of absolute positioning so it doesn't overlay the title */
+  .char-add-btn {
+    position: static;
+    display: block;
+    margin: 0 auto 12px;
+  }
+  .expl-hero { padding-top: 16px; }
 }
 @media (max-width: 600px) {
   .char-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .char-view-inner { flex-direction: column; }
-  .char-view-pic, .char-view-pic-ph { width: 100%; height: 220px; }
+  .char-view-pic, .char-view-pic-ph { width: 100%; height: 100%; }
 }
 @media (max-width: 380px) {
   .char-grid { grid-template-columns: 1fr; }
