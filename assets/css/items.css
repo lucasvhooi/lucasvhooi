@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
 }
 
 /* ── Hero ── */
@@ -25,9 +25,9 @@
 
 /* ── Main layout ── */
 .items-main {
-  max-width: 100vw;
+  max-width: var(--page-width);
   margin: 0 auto;
-  padding: 28px 20px 60px;
+  padding: var(--space-lg) var(--page-padding) var(--space-2xl);
 }
 
 /* ── Toolbar ── */
@@ -161,8 +161,8 @@
   border: 1px solid color-mix(in srgb, var(--rc) 65%, #1a1a1a);
   border-radius: 10px;
   padding: 16px 18px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  animation: fadeInUp 0.4s ease-out both;
+  transition: border-color 0.2s var(--ease-out-quart), box-shadow 0.2s var(--ease-out-quart), transform 0.18s var(--ease-out-quart);
+  animation: fadeInUp 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
   text-align: left;
   display: flex;
   flex-direction: column;
@@ -170,7 +170,8 @@
 }
 .item-card:hover {
   border-color: color-mix(in srgb, var(--rc) 70%, #1a1a1a);
-  box-shadow: 0 2px 14px rgba(0,0,0,0.4);
+  box-shadow: 0 6px 22px rgba(0,0,0,0.5);
+  transform: translateY(-2px);
 }
 
 .item-header {
@@ -584,7 +585,7 @@
 @media (max-width: 600px) {
   .items-main { padding: 16px 12px 48px; }
   .items-toolbar { gap: 8px; }
-  .items-search { width: 100%; }
+  .items-search { width: 100%; font-size: 16px; }
   .tag-filter {
     flex-wrap: nowrap;
     overflow-x: auto;

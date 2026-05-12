@@ -1,16 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
 }
 
 /* ── Hero ── */
 .spells-hero {
-  background: linear-gradient(180deg, #0d1a3a 0%, #0a1228 50%, #1a1a1a 100%);
+  background: linear-gradient(180deg, #3a1a05 0%, #2a1005 50%, #1a1a1a 100%);
   padding: 40px 20px 28px;
   text-align: center;
-  height: 20vh;
+  border-bottom: 1px solid #3a2510;
 }
 
 .spells-title {
@@ -22,7 +22,7 @@
 }
 
 .spells-subtitle {
-  color: #666;
+  color: #7a8898;
   font-size: 14px;
   margin: 0;
   font-style: italic;
@@ -42,9 +42,9 @@
 
 /* ── Main layout ── */
 .spells-main {
-  max-width: 80vw;
+  max-width: var(--page-width);
   margin: 0 auto;
-  padding: 28px 20px 60px;
+  padding: var(--space-lg) var(--page-padding) var(--space-2xl);
 }
 
 /* ── Toolbar ── */
@@ -61,8 +61,8 @@
 }
 
 .spells-search {
-  background: #111827;
-  border: 1px solid #2a3f6f;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid #3a2510;
   border-radius: 6px;
   color: var(--text);
   font-family: var(--font);
@@ -72,11 +72,11 @@
   transition: border-color 0.2s;
   width: 220px;
 }
-.spells-search:focus { border-color: #7eb8ff; }
+.spells-search:focus { border-color: var(--accent); }
 
 .spells-select {
-  background: #111827;
-  border: 1px solid #2a3f6f;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid #3a2510;
   border-radius: 6px;
   color: var(--text);
   font-family: var(--font);
@@ -87,17 +87,17 @@
   transition: border-color 0.2s;
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23667' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23665544' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
   padding-right: 28px;
 }
-.spells-select:focus { border-color: #7eb8ff; }
-.spells-select option { background: #111827; }
+.spells-select:focus { border-color: var(--accent); }
+.spells-select option { background: #1e1208; }
 
 .spells-count {
   font-size: 12px;
-  color: #556;
+  color: #7a6a58;
   font-style: italic;
   margin-left: auto;
 }
@@ -115,15 +115,15 @@
   font-size: 12px;
   padding: 4px 11px;
   border-radius: 20px;
-  border: 1px solid #2a3f6f;
+  border: 1px solid #3a2510;
   background: transparent;
-  color: #7a9abb;
+  color: #888;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
   white-space: nowrap;
 }
-.level-btn:hover  { border-color: #7eb8ff; color: #7eb8ff; }
-.level-btn.active { background: rgba(126,184,255,0.15); border-color: #7eb8ff; color: #7eb8ff; }
+.level-btn:hover  { border-color: var(--accent); color: var(--accent); }
+.level-btn.active { background: rgba(255,204,102,0.1); border-color: var(--accent); color: var(--accent); }
 
 /* ── Spells Grid ── */
 .spells-grid {
@@ -156,7 +156,7 @@
 .spells-empty-star {
   font-size: 52px;
   opacity: 0.2;
-  color: #7eb8ff;
+  color: var(--accent);
   line-height: 1;
   display: block;
   margin-bottom: 4px;
@@ -164,7 +164,7 @@
 
 .spells-empty-title {
   font-size: 20px;
-  color: #556;
+  color: #7a6a58;
   font-style: normal;
   font-family: 'IM Fell English', 'Garamond', serif;
   margin: 0;
@@ -172,7 +172,7 @@
 
 .spells-empty-hint {
   font-size: 13px;
-  color: #445;
+  color: #5a4a38;
   margin: 0;
   max-width: 260px;
   line-height: 1.55;
@@ -186,7 +186,7 @@
   border-radius: 10px;
   padding: 14px 16px;
   transition: border-color 0.2s, box-shadow 0.2s, transform 0.1s;
-  animation: fadeInUp 0.35s ease-out both;
+  animation: fadeInUp 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
   text-align: left;
   display: flex;
   flex-direction: column;
@@ -268,20 +268,20 @@
 
 .spell-stat {
   font-size: 12px;
-  color: #889;
+  color: #9a8a78;
 }
 
 .spell-stat-label {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #445;
+  color: #6a5a48;
   margin-right: 3px;
 }
 
 .spell-duration {
   font-size: 11px;
-  color: #667;
+  color: #8a7a68;
   font-style: italic;
   display: flex;
   align-items: center;
@@ -318,8 +318,8 @@
 .modal-overlay.open { display: flex; }
 
 .modal-box {
-  background: #0e1220;
-  border: 1px solid #1e2f5a;
+  background: #181008;
+  border: 1px solid #3a2510;
   border-radius: 12px;
   padding: 0;
   width: 560px;
@@ -329,14 +329,14 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.95), 0 0 0 1px rgba(100,150,255,0.06), inset 0 1px 0 rgba(255,255,255,0.02);
+  box-shadow: 0 12px 48px rgba(0,0,0,0.8);
   font-family: var(--font);
   color: var(--text);
 }
 
 .modal-header {
-  background: linear-gradient(135deg, #0c1830 0%, #080e20 100%);
-  border-bottom: 1px solid #1e2f5a;
+  background: linear-gradient(135deg, #1e1208 0%, #140c04 100%);
+  border-bottom: 1px solid #2e1c0c;
   border-radius: 12px 12px 0 0;
   padding: 16px 20px 15px;
   display: flex;
@@ -348,7 +348,7 @@
 
 .modal-header h2 {
   margin: 0;
-  color: #a0c8ff;
+  color: var(--accent);
   font-size: 1.2rem;
   font-family: 'IM Fell English', 'Garamond', serif;
   letter-spacing: 0.06em;
@@ -360,7 +360,7 @@
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
-  color: #445;
+  color: #665544;
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
@@ -368,7 +368,7 @@
   transition: color 0.15s, border-color 0.15s, background 0.15s;
   flex-shrink: 0;
 }
-.modal-close-x:hover { color: #7eb8ff; border-color: #1e2f5a; background: rgba(255,255,255,0.04); }
+.modal-close-x:hover { color: var(--text); border-color: #3a2510; background: rgba(255,255,255,0.04); }
 
 .modal-body {
   overflow-y: auto;
@@ -396,9 +396,9 @@
 }
 
 .sm-level-badge {
-  background: rgba(126,184,255,0.1);
-  border-color: rgba(126,184,255,0.4);
-  color: #7eb8ff;
+  background: rgba(255,204,102,0.1);
+  border-color: rgba(255,204,102,0.4);
+  color: var(--accent);
 }
 
 .sm-school-badge {
@@ -414,7 +414,7 @@
 .sm-classes {
   width: 100%;
   font-size: 12px;
-  color: #667;
+  color: #8a7a68;
   font-style: italic;
   margin-top: 2px;
 }
@@ -425,7 +425,7 @@
   gap: 10px;
   margin-bottom: 14px;
   background: rgba(255,255,255,0.02);
-  border: 1px solid #1a2040;
+  border: 1px solid #2a1810;
   border-radius: 8px;
   padding: 12px;
 }
@@ -436,14 +436,14 @@
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: #445;
+  color: #6a5a48;
   margin-bottom: 4px;
   display: block;
 }
 
 .sm-stat-value {
   font-size: 13px;
-  color: #c8d8f0;
+  color: var(--text);
 }
 
 .sm-comp-row {
@@ -479,14 +479,14 @@
 
 .sm-divider {
   border: none;
-  border-top: 1px solid #1a2040;
+  border-top: 1px solid #2e1c0c;
   margin: 0 0 14px;
 }
 
 .sm-description {
   font-size: 13.5px;
   line-height: 1.7;
-  color: #b0c0d8;
+  color: #c4b8aa;
 }
 
 .sm-description p {
@@ -510,8 +510,8 @@
 .condition-tooltip-box {
   position: absolute;
   z-index: 1000;
-  background: #0a0e1a;
-  border: 1px solid #2a4070;
+  background: #1e1208;
+  border: 1px solid #4a3010;
   border-radius: 8px;
   padding: 10px 13px;
   width: 280px;
@@ -523,14 +523,14 @@
 .ctt-name {
   font-family: 'IM Fell English', 'Garamond', serif;
   font-size: 14px;
-  color: #ffb84d;
+  color: var(--accent);
   margin-bottom: 6px;
 }
 
 .ctt-desc {
   font-size: 12px;
   line-height: 1.55;
-  color: #8899bb;
+  color: #aaa;
 }
 
 /* ── Spell save/bookmark button ── */
@@ -540,7 +540,7 @@
   right: 8px;
   background: transparent;
   border: none;
-  color: #334;
+  color: #554433;
   font-size: 15px;
   line-height: 1;
   cursor: pointer;
@@ -549,8 +549,8 @@
   transition: color 0.15s, background 0.15s;
   z-index: 1;
 }
-.spell-save-btn:hover        { color: #7eb8ff; background: rgba(126,184,255,0.08); }
-.spell-save-btn.saved        { color: #7eb8ff; }
+.spell-save-btn:hover        { color: var(--accent); background: rgba(255,204,102,0.08); }
+.spell-save-btn.saved        { color: var(--accent); }
 .spell-save-btn.saved:hover  { color: #ff8080; background: rgba(255,100,100,0.08); }
 
 /* ── Expand body (mobile inline expand) ── */
@@ -559,26 +559,26 @@
 .spell-expand-desc {
   font-size: 12px;
   line-height: 1.6;
-  color: #8899bb;
+  color: #aaa;
   margin-bottom: 10px;
   padding-top: 10px;
-  border-top: 1px solid rgba(100,150,255,0.12);
+  border-top: 1px solid rgba(58,37,16,0.3);
 }
 
 .spell-modal-btn {
   font-family: var(--font);
   font-size: 12px;
-  background: rgba(126,184,255,0.08);
-  border: 1px solid rgba(126,184,255,0.25);
+  background: rgba(255,204,102,0.07);
+  border: 1px solid rgba(255,204,102,0.25);
   border-radius: 6px;
-  color: #7eb8ff;
+  color: var(--accent);
   padding: 7px 0;
   cursor: pointer;
   width: calc(100% - 28px);
   text-align: center;
   transition: background 0.15s, border-color 0.15s;
 }
-.spell-modal-btn:hover { background: rgba(126,184,255,0.16); border-color: rgba(126,184,255,0.5); }
+.spell-modal-btn:hover { background: rgba(255,204,102,0.14); border-color: rgba(255,204,102,0.5); }
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
@@ -586,9 +586,9 @@
 
   /* Toolbars */
   .spells-toolbar { gap: 6px; }
-  .spells-search { width: 100%; min-width: 0; }
+  .spells-search { width: 100%; min-width: 0; font-size: 16px; }
   .level-filter { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; min-width: 0; }
-  .spells-select { flex: 1 1 0; min-width: 0; width: 0; font-size: 12px; }
+  .spells-select { flex: 1 1 0; min-width: 0; width: 0; font-size: 16px; }
   .spells-count { display: none; }
 
   /* Grid */
@@ -636,9 +636,9 @@
   .spell-card.expanded .spell-duration     { font-size: 11px; }
 
   /* Modal — centred dialog */
-  .modal-overlay { align-items: center; justify-content: center; padding: 12px; }
-  .modal-box { width: 100%; max-width: 480px; max-height: 88vh; border-radius: 12px; }
-  .modal-header { border-radius: 12px 12px 0 0; }
+  .modal-overlay { align-items: flex-end; justify-content: center; padding: 0; }
+  .modal-box { width: 100%; max-width: 100%; max-height: 88vh; border-radius: 16px 16px 0 0; }
+  .modal-header { border-radius: 16px 16px 0 0; }
   .modal-body { padding: 14px 16px 18px; }
   .sm-stat-row { grid-template-columns: 1fr 1fr; }
 }

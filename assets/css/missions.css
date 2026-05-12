@@ -21,7 +21,7 @@
    HERO
    ═══════════════════════════════════════════════════════════════════════════ */
 .quest-hero {
-  background: linear-gradient(180deg, #3a0d0d 0%, #280a0a 50%, #1a1a1a 100%);
+  background: linear-gradient(180deg, #3a1a05 0%, #2a1005 50%, #1a1a1a 100%);
 }
 
 .quest-filter-tabs {
@@ -91,24 +91,21 @@
   display: flex;
   overflow: hidden;
   box-shadow: 0 1px 6px rgba(0,0,0,0.4);
-  transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+  transition: box-shadow 0.2s var(--ease-out-quart), border-color 0.2s var(--ease-out-quart), transform 0.18s var(--ease-out-quart);
   position: relative;
   height: 120px;
 }
 .quest-card:hover {
   box-shadow: 0 6px 24px rgba(0,0,0,0.6);
   border-color: #4a3318;
+  transform: translateY(-2px);
 }
 
-/* Left colored accent bar */
-.qc-accent-bar {
-  width: 4px;
-  flex-shrink: 0;
-  background: var(--accent);
-}
-.quest-main .qc-accent-bar     { background: linear-gradient(180deg, #ffcc66, #c99a3a); }
-.quest-side .qc-accent-bar     { background: linear-gradient(180deg, #90caf9, #42a5f5); }
-.quest-completed .qc-accent-bar { background: linear-gradient(180deg, #666, #444); }
+/* Quest type top border (replaces left accent bar) */
+.qc-accent-bar { display: none; }
+.quest-main     { border-top: 3px solid #c8a45c; background: linear-gradient(180deg, rgba(200,164,92,0.04) 0%, #160d05 60%); }
+.quest-side     { border-top: 3px solid #6a9e70; background: linear-gradient(180deg, rgba(106,158,112,0.04) 0%, #160d05 60%); }
+.quest-completed { border-top: 3px solid #3a2a1a; }
 
 .qc-body {
   flex: 1;
@@ -209,9 +206,9 @@
   padding: 3px 9px;
 }
 .quest-side .qc-type-badge {
-  background: rgba(100,181,246,0.12);
-  color: #64b5f6;
-  border-color: rgba(100,181,246,0.35);
+  background: rgba(106,158,112,0.12);
+  color: #6a9e70;
+  border-color: rgba(106,158,112,0.35);
 }
 
 .qc-status {
@@ -296,23 +293,22 @@
 /* ─── Block cell wrappers ─── */
 .qcb-cell {
   position: relative;
-  background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.12));
+  background: rgba(255,255,255,0.02);
   border: 1px solid #2e1c0c;
-  border-left: 3px solid #555;
   border-radius: 8px;
   padding: 10px 12px;
   min-height: 60px;
   overflow: visible;
   transition: border-color 0.15s;
 }
-.qcb-cell-text      { border-left-color: #7a6a58; }
-.qcb-cell-phase     { border-left-color: var(--accent); background: linear-gradient(180deg, rgba(255,204,102,0.05), rgba(0,0,0,0.14)); }
-.qcb-cell-loot      { border-left-color: #ffd54f; background: linear-gradient(180deg, rgba(255,213,79,0.04), rgba(0,0,0,0.14)); }
-.qcb-cell-boss      { border-left-color: #e57373; background: linear-gradient(180deg, rgba(239,83,80,0.04), rgba(0,0,0,0.14)); }
-.qcb-cell-note      { border-left-color: #7aa27a; background: linear-gradient(180deg, rgba(122,162,122,0.05), rgba(0,0,0,0.14)); }
-.qcb-cell-puzzle    { border-left-color: #b28dfd; background: linear-gradient(180deg, rgba(156,95,255,0.05), rgba(0,0,0,0.14)); }
-.qcb-cell-character { border-left-color: #a0c4ff; background: linear-gradient(180deg, rgba(160,196,255,0.04), rgba(0,0,0,0.14)); }
-.qcb-cell-loreref   { border-left-color: #d4a574; background: linear-gradient(180deg, rgba(212,165,116,0.04), rgba(0,0,0,0.14)); }
+.qcb-cell-text      { border-color: #3a2a1a; }
+.qcb-cell-phase     { border-color: rgba(255,204,102,0.25); background: rgba(255,204,102,0.04); }
+.qcb-cell-loot      { border-color: rgba(255,213,79,0.2);   background: rgba(255,213,79,0.03); }
+.qcb-cell-boss      { border-color: rgba(239,83,80,0.25);   background: rgba(239,83,80,0.04); }
+.qcb-cell-note      { border-color: rgba(122,162,122,0.25); background: rgba(122,162,122,0.04); }
+.qcb-cell-puzzle    { border-color: rgba(156,95,255,0.22);  background: rgba(156,95,255,0.04); }
+.qcb-cell-character { border-color: rgba(160,196,255,0.2);  background: rgba(160,196,255,0.03); }
+.qcb-cell-loreref   { border-color: rgba(212,165,116,0.25); background: rgba(212,165,116,0.04); }
 
 /* Block type header — small colored label row at top of each cell */
 .qcb-type-header {
@@ -373,7 +369,7 @@
 .toggle-arrow { font-size: 9px; color: var(--accent); flex-shrink: 0; }
 .phase-label  { flex: 1; font-weight: bold; }
 .qc-phase-body {
-  border-left: 2px solid rgba(255,204,102,0.2);
+  border-left: 1px solid rgba(255,204,102,0.25);
   margin: 8px 0 0 6px;
   padding: 4px 0 2px 12px;
 }
@@ -749,12 +745,7 @@
   flex-wrap: wrap;
 }
 .qm-details-card::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 6px; bottom: 6px;
-  width: 3px;
-  background: var(--accent);
-  border-radius: 0 2px 2px 0;
+  content: none;
 }
 .qm-details-title {
   flex: 3; min-width: 160px; max-width: 280px;
@@ -808,7 +799,7 @@
   background: rgba(0,0,0,0.55);
   box-shadow: 0 0 0 3px rgba(255,204,102,0.1);
 }
-.qm-input-lg { font-size: 15px; padding: 10px 12px; }
+.qm-input-lg { font-size: 16px; padding: 10px 12px; }
 .qm-select { cursor: pointer; }
 .qm-select option { background: #181008; }
 
@@ -880,7 +871,7 @@
 }
 .quest-type-btn:hover { background: rgba(255,255,255,0.06); color: #c0b098; }
 .quest-type-btn.active[data-type="main"] { background: rgba(255,204,102,0.14); border-color: var(--accent); color: var(--accent); font-weight: bold; }
-.quest-type-btn.active[data-type="side"] { background: rgba(100,181,246,0.14); border-color: #64b5f6; color: #64b5f6; font-weight: bold; }
+.quest-type-btn.active[data-type="side"] { background: rgba(106,158,112,0.14); border-color: #6a9e70; color: #6a9e70; font-weight: bold; }
 
 /* ─── Canvas label ─── */
 .qm-canvas-label {
@@ -1852,6 +1843,11 @@
 }
 
 @media (max-width: 760px) {
+  .quest-tab {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+
   .qm-body { flex-direction: column; }
   .qm-sidebar {
     flex: 0 0 auto;

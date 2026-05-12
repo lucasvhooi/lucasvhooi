@@ -1,0 +1,201 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-12T00:00:00Z",
+  "title": "Design System: The Legends of Essolis",
+  "extensions": {
+    "colorMeta": {
+      "amber-wax-seal": {
+        "role": "primary",
+        "displayName": "Amber Wax Seal",
+        "canonical": "oklch(85% 0.15 84)",
+        "tonalRamp": ["#1a0f00", "#3d2400", "#6b4200", "#9e6100", "#c87e00", "#e8a000", "#ffcc66", "#ffe4aa"]
+      },
+      "tarnished-bronze": {
+        "role": "primary",
+        "displayName": "Tarnished Bronze",
+        "canonical": "oklch(70% 0.1 72)",
+        "tonalRamp": ["#1a1200", "#362400", "#5e3e00", "#8a5e00", "#b27e20", "#c8a45c", "#e0c080", "#f2d8a8"]
+      },
+      "old-ivory": {
+        "role": "neutral",
+        "displayName": "Old Ivory",
+        "canonical": "oklch(93% 0.018 65)",
+        "tonalRamp": ["#1a1510", "#2e2820", "#4d4540", "#726a63", "#999088", "#c5bdb6", "#f4e6d7", "#faf5ef"]
+      },
+      "deep-crypt": {
+        "role": "neutral",
+        "displayName": "Deep Crypt",
+        "canonical": "oklch(12% 0.005 40)",
+        "tonalRamp": ["#0a0908", "#111010", "#1a1a1a", "#242322", "#3a3836", "#524f4d", "#706d6b", "#8c8a88"]
+      },
+      "smoked-walnut": {
+        "role": "neutral",
+        "displayName": "Smoked Walnut",
+        "canonical": "oklch(15% 0.04 54)",
+        "tonalRamp": ["#100800", "#1c0e03", "#2c1a0a", "#3e2510", "#5a3818", "#7a5028", "#a07040", "#c89060"]
+      },
+      "crypt-surface": {
+        "role": "neutral",
+        "displayName": "Crypt Surface",
+        "canonical": "oklch(10% 0.03 50)",
+        "tonalRamp": ["#080500", "#100800", "#181008", "#221508", "#301e10", "#4a3020", "#6a5040", "#8a7060"]
+      },
+      "leather-border": {
+        "role": "neutral",
+        "displayName": "Leather Border",
+        "canonical": "oklch(22% 0.05 46)",
+        "tonalRamp": ["#100800", "#1c0e03", "#2a1505", "#3a2510", "#4e3520", "#6a4e34", "#8a6a4e", "#a88870"]
+      },
+      "hazard-red": {
+        "role": "semantic",
+        "displayName": "Hazard Red",
+        "canonical": "oklch(58% 0.2 25)",
+        "tonalRamp": ["#1a0505", "#350a0a", "#601010", "#8c1818", "#be3030", "#e05050", "#f07880", "#faaaa8"]
+      },
+      "health-green": {
+        "role": "semantic",
+        "displayName": "Health Green",
+        "canonical": "oklch(72% 0.14 145)",
+        "tonalRamp": ["#051a08", "#0e3014", "#185522", "#267a34", "#3a9e4a", "#66bb6a", "#90d090", "#b8e8b8"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Page hero titles — used in .page-hero__title. IM Fell English. Amber Wax Seal color." },
+      "headline": { "displayName": "Headline", "purpose": "Major screen headings like the login title. IM Fell English." },
+      "title": { "displayName": "Title", "purpose": "Modal headers, item names in expanded view, character names. IM Fell English. Amber or Old Ivory." },
+      "body": { "displayName": "Body", "purpose": "Card descriptions, lore entries, running prose. Garamond. Cap at 65ch in prose contexts." },
+      "label": { "displayName": "Label", "purpose": "Metadata only: badges, form field headers, rarity chips. Sans-serif, ALL CAPS, 10-11px. Never IM Fell English in all-caps." }
+    },
+    "shadows": [
+      { "name": "panel-ambient", "value": "0 4px 10px rgba(0,0,0,0.4)", "purpose": "Cards and panel containers at rest." },
+      { "name": "hero-diffuse", "value": "0 6px 14px rgba(0,0,0,0.45)", "purpose": "Hero containers and login card — always present." },
+      { "name": "card-hover", "value": "0 6px 22px rgba(0,0,0,0.5)", "purpose": "Item and character cards on :hover." },
+      { "name": "modal-drop", "value": "0 12px 48px rgba(0,0,0,0.8)", "purpose": "Modals and floating panels. Structural." },
+      { "name": "nav-bleed", "value": "0 2px 16px rgba(0,0,0,0.6)", "purpose": "Sticky nav bar. Anchors to the top of the viewport." },
+      { "name": "amber-glow-low", "value": "0 0 12px rgba(200,164,92,0.2)", "purpose": "Subtle amber glow on primary button hover and selected items." },
+      { "name": "amber-glow-high", "value": "0 0 24px rgba(200,164,92,0.5)", "purpose": "Attuned item card border glow, loading state pulse." },
+      { "name": "attune-ring", "value": "0 0 0 2px rgba(200,164,92,0.3), 0 0 18px rgba(200,164,92,0.35), inset 0 0 40px rgba(200,164,92,0.06)", "purpose": "Full attuned item card shadow system." }
+    ],
+    "motion": [
+      { "name": "ease-out-quart", "value": "cubic-bezier(0.25, 1, 0.5, 1)", "purpose": "Default easing for state transitions: nav underlines, button hover, color changes." },
+      { "name": "ease-out-expo", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Entrance animations: login card slide-in, modal open, card entrance." },
+      { "name": "login-card-in", "value": "opacity 0 -> 1, translateY(18px -> 0), 0.5s ease-out-expo", "purpose": "Login card entrance animation on page load." },
+      { "name": "login-btn-glow", "value": "box-shadow pulse 0 -> amber-glow-high -> 0, 1.4s ease-in-out infinite", "purpose": "Loading state on the login button." },
+      { "name": "card-in", "value": "opacity 0 -> 1, translateY(8px) scale(0.97) -> translateY(0) scale(1), 0.22s ease-out", "purpose": "Character card entrance when grid renders." },
+      { "name": "modal-in", "value": "opacity 0 -> 1, scale(0.96) translateY(12px) -> scale(1) translateY(0), 0.2s ease-out", "purpose": "Modal and character editor entrance." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "768px", "purpose": "Nav collapses to hamburger drawer. Section padding reduces. Touch target minimum 44px enforced." },
+      { "name": "mobile-sm", "value": "600px", "purpose": "Character grid collapses to 2 columns. Inventory modal slides up from bottom." },
+      { "name": "mobile-xs", "value": "380px", "purpose": "Character grid collapses to single column." },
+      { "name": "inventory-mobile", "value": "700px", "purpose": "Inventory-specific: grid goes single column, compact 3-column view toggle appears." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action button. Dark brown gradient with amber border. Used in modals and forms.",
+      "html": "<button class=\"ds-btn-primary\">Save Changes</button>",
+      "css": ".ds-btn-primary { background: linear-gradient(135deg, #3a2008 0%, #5a3410 100%); border: 1px solid #c8a45c; border-radius: 7px; color: #ffcc66; font-family: 'Garamond', serif; font-size: 14px; padding: 9px 22px; cursor: pointer; transition: background 0.2s, box-shadow 0.2s; } .ds-btn-primary:hover { background: linear-gradient(135deg, #4a2c0e 0%, #6a4018 100%); box-shadow: 0 0 12px rgba(200,164,92,0.2); } .ds-btn-primary:active { transform: scale(0.96); } .ds-btn-primary:disabled { opacity: 0.5; cursor: default; } .ds-btn-primary:focus-visible { outline: 2px solid #ffcc66; outline-offset: 3px; border-radius: 7px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary/cancel button. Transparent with leather border. Recedes until needed.",
+      "html": "<button class=\"ds-btn-ghost\">Cancel</button>",
+      "css": ".ds-btn-ghost { background: none; border: 1px solid #3a2510; border-radius: 7px; color: #888; font-family: 'Garamond', serif; font-size: 14px; padding: 9px 22px; cursor: pointer; transition: border-color 0.2s, color 0.2s; } .ds-btn-ghost:hover { border-color: #6a4a2a; color: #f4e6d7; } .ds-btn-ghost:active { transform: scale(0.96); } .ds-btn-ghost:focus-visible { outline: 2px solid #ffcc66; outline-offset: 3px; }"
+    },
+    {
+      "name": "DM Action Button",
+      "kind": "button",
+      "refersTo": "button-dm",
+      "description": "Admin/DM-only action. Amber ghost style — visible but not intrusive for player-facing views.",
+      "html": "<button class=\"ds-btn-dm\">+ Add Item</button>",
+      "css": ".ds-btn-dm { font-family: 'Garamond', serif; font-size: 13px; font-weight: bold; letter-spacing: 0.03em; padding: 8px 18px; background: rgba(255,204,102,0.12); border: 1px solid rgba(255,204,102,0.4); color: #ffcc66; border-radius: 6px; cursor: pointer; transition: background 0.15s, border-color 0.15s, box-shadow 0.18s, transform 0.1s; display: inline-flex; align-items: center; white-space: nowrap; } .ds-btn-dm:hover { background: rgba(255,204,102,0.22); border-color: #ffcc66; box-shadow: 0 0 14px rgba(255,204,102,0.22); } .ds-btn-dm:active { transform: scale(0.96); } .ds-btn-dm:focus-visible { outline: 2px solid #ffcc66; outline-offset: 3px; }"
+    },
+    {
+      "name": "Filter Tab",
+      "kind": "chip",
+      "refersTo": "filter-tab-active",
+      "description": "Inventory and lore filter tabs. Pill shape; amber on active. Default and active shown.",
+      "html": "<div class=\"ds-filter-tabs\"><button class=\"ds-filter-tab\">All</button><button class=\"ds-filter-tab ds-filter-tab--active\">Weapons</button><button class=\"ds-filter-tab\">Armor</button></div>",
+      "css": ".ds-filter-tabs { display: flex; gap: 6px; flex-wrap: wrap; } .ds-filter-tab { background: transparent; border: 1px solid #3a2510; border-radius: 20px; color: #888; font-family: 'Garamond', serif; font-size: 13px; padding: 5px 16px; cursor: pointer; transition: border-color 0.2s, color 0.2s, background 0.2s; } .ds-filter-tab:hover { border-color: #ffcc66; color: #ffcc66; } .ds-filter-tab--active { background: rgba(255,204,102,0.1); border-color: #ffcc66; color: #ffcc66; } .ds-filter-tab:focus-visible { outline: 2px solid #ffcc66; outline-offset: 2px; }"
+    },
+    {
+      "name": "Form Input",
+      "kind": "input",
+      "refersTo": "input-default",
+      "description": "Standard form input. Near-invisible background, leather border, amber focus. 16px font required.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-label\">Item Name</label><input class=\"ds-input\" type=\"text\" placeholder=\"Enter name…\" /></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 5px; } .ds-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #888; font-family: sans-serif; } .ds-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid #3a2510; border-radius: 8px; padding: 9px 12px; color: #f4e6d7; font-size: 16px; font-family: 'Garamond', serif; outline: none; transition: border-color 0.2s; box-sizing: border-box; } .ds-input:focus { border-color: #ffcc66; } .ds-input::placeholder { color: #555; }"
+    },
+    {
+      "name": "Item Card",
+      "kind": "card",
+      "refersTo": "item-card",
+      "description": "Inventory item card. Rarity-tinted border and background via --rc. Ambient shadow at rest, hover deepens.",
+      "html": "<div class=\"ds-item-card\"><div class=\"ds-item-card__top\"><span class=\"ds-item-card__icon\">⚔️</span><div class=\"ds-item-card__name-wrap\"><p class=\"ds-item-card__name\">Longsword +1</p><div class=\"ds-item-card__badges\"><span class=\"ds-badge ds-badge--weapon\">Weapon</span><span class=\"ds-badge ds-badge--uncommon\">Uncommon</span></div></div></div><p class=\"ds-item-card__desc\">A finely crafted blade with a keen edge, slightly enchanted.</p></div>",
+      "css": ".ds-item-card { --rc: #3a2510; background: color-mix(in srgb, var(--rc) 22%, #1a1008); border: 1px solid color-mix(in srgb, var(--rc) 65%, #1a1a1a); border-radius: 12px; overflow: hidden; padding: 14px 16px 10px; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; font-family: 'Garamond', serif; box-shadow: 0 4px 10px rgba(0,0,0,0.4); } .ds-item-card:hover { border-color: color-mix(in srgb, var(--rc) 70%, #1a1a1a); box-shadow: 0 4px 20px rgba(0,0,0,0.4); } .ds-item-card__top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; } .ds-item-card__icon { font-size: 22px; flex-shrink: 0; } .ds-item-card__name { font-family: 'IM Fell English', 'Garamond', serif; font-size: 16px; color: #f4e6d7; margin: 0 0 4px; } .ds-item-card__badges { display: flex; gap: 5px; flex-wrap: wrap; } .ds-badge { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; padding: 2px 7px; border-radius: 10px; font-family: sans-serif; } .ds-badge--weapon { background: rgba(224,80,80,0.12); border: 1px solid #e05050; color: #e05050; } .ds-badge--uncommon { background: rgba(76,175,80,0.12); border: 1px solid #4caf50; color: #4caf50; } .ds-item-card__desc { font-size: 13px; color: #999; line-height: 1.45; margin: 0; }"
+    },
+    {
+      "name": "Rarity Chip Strip",
+      "kind": "chip",
+      "refersTo": "filter-tab",
+      "description": "The five rarity chips rendered inline. Used on item cards, filter controls, and add-item modals.",
+      "html": "<div class=\"ds-rarity-chips\"><span class=\"ds-rarity-chip ds-rarity-chip--common\">Common</span><span class=\"ds-rarity-chip ds-rarity-chip--uncommon\">Uncommon</span><span class=\"ds-rarity-chip ds-rarity-chip--rare\">Rare</span><span class=\"ds-rarity-chip ds-rarity-chip--very-rare\">Very Rare</span><span class=\"ds-rarity-chip ds-rarity-chip--legendary\">Legendary</span></div>",
+      "css": ".ds-rarity-chips { display: flex; gap: 6px; flex-wrap: wrap; } .ds-rarity-chip { font-size: 11px; border-radius: 10px; padding: 1px 8px; font-family: sans-serif; letter-spacing: 0.04em; } .ds-rarity-chip--common { background: rgba(158,158,158,0.12); border: 1px solid #9e9e9e; color: #9e9e9e; } .ds-rarity-chip--uncommon { background: rgba(76,175,80,0.12); border: 1px solid #4caf50; color: #4caf50; } .ds-rarity-chip--rare { background: rgba(33,150,243,0.12); border: 1px solid #2196f3; color: #2196f3; } .ds-rarity-chip--very-rare { background: rgba(156,39,176,0.12); border: 1px solid #9c27b0; color: #9c27b0; } .ds-rarity-chip--legendary { background: rgba(255,152,0,0.12); border: 1px solid #ff9800; color: #ff9800; }"
+    },
+    {
+      "name": "Nav Link",
+      "kind": "nav",
+      "refersTo": "button-ghost",
+      "description": "Navigation link with animated underline. Animated scaleX on hover/active using ease-out-quart.",
+      "html": "<nav class=\"ds-nav-demo\"><a class=\"ds-nav-link\" href=\"#\">Inventory</a><a class=\"ds-nav-link ds-nav-link--active\" href=\"#\">Missions</a><a class=\"ds-nav-link\" href=\"#\">Lore</a></nav>",
+      "css": ".ds-nav-demo { display: flex; gap: 4px; background: linear-gradient(180deg, #2a1505 0%, #1c0e03 100%); padding: 0 16px; border-bottom: 1px solid #3a2510; } .ds-nav-link { text-decoration: none; font-size: 15px; font-family: 'Garamond', serif; letter-spacing: 0.06em; color: #c9a87a; padding: 14px 18px; display: block; position: relative; transition: color 0.2s cubic-bezier(0.25,1,0.5,1); } .ds-nav-link::after { content: ''; position: absolute; bottom: 0; left: 18px; right: 18px; height: 2px; background: #ffcc66; border-radius: 2px 2px 0 0; transform: scaleX(0); transition: transform 0.2s cubic-bezier(0.25,1,0.5,1); } .ds-nav-link:hover { color: #ffcc66; } .ds-nav-link:hover::after { transform: scaleX(1); } .ds-nav-link--active { color: #ffcc66; } .ds-nav-link--active::after { transform: scaleX(1); } .ds-nav-link:focus-visible { outline: 2px solid #ffcc66; outline-offset: -4px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Archivist's Table",
+    "overview": "This is a D&D campaign companion used during live sessions at the table. Everything on the surface has a reason to be there. The palette is deep brown and amber because those are the colors of leather bindings, ink on vellum, and a single candle over old paper — not as a genre gesture, but as the literal physical context of use. The fonts are serious without being theatrical. IM Fell English carries the weight of a world with 400 years of accumulated history; Garamond moves text without calling attention to itself. The system doesn't gesture at a fantasy world — it exists inside one.\n\nThe UI recedes where it should and surfaces what matters. Spacing and typographic contrast do the structural work; color accents signal action and status, never structure. A crowded surface is not more atmospheric — it is harder to read at 11pm when someone asks 'wait, do I have that scroll?'\n\nThis system explicitly rejects: generic SaaS dashboards (white card grids, blue primary actions, Inter/system fonts), children's fantasy aesthetics (bright primary colors, rounded bubble fonts, playful cartoonish ornaments), and anything that reads like a spreadsheet wearing a costume.",
+    "keyCharacteristics": [
+      "Single amber accent (Amber Wax Seal) against a cascade of brown-black neutrals from vault to near-void",
+      "Serif display type (IM Fell English) for headings; Garamond for body; sans-serif strictly for metadata labels and badges",
+      "Ambient shadow present at rest on cards; elevated shadow on hover; heavy structural shadow for modals",
+      "Rarity as a semantic color system (common through legendary) — five distinct hues, never repurposed",
+      "Touch-first on mobile: 44px minimum targets, 16px minimum font sizes on all inputs"
+    ],
+    "rules": [
+      { "name": "The One Voice Rule", "body": "Amber Wax Seal is used on 10% or less of any screen at rest. Reach for Old Ivory or Muted Smoke first; amber marks action and current state, nothing else.", "section": "colors" },
+      { "name": "The Rarity Covenant", "body": "The five rarity colors exist solely for item and spell rarity. Never borrow a rarity color for another status, category, or decorative role.", "section": "colors" },
+      { "name": "The Serif Hierarchy Rule", "body": "IM Fell English marks importance (headings, titles, named things). Garamond carries content (body, buttons, nav links). Sans-serif signals metadata (badges, caps labels, stat rows). Mix them only within these assignments.", "section": "typography" },
+      { "name": "The Label Case Rule", "body": "Uppercase + letter-spacing is reserved for metadata chips, form field headers, and structural labels. Running prose is never uppercased.", "section": "typography" },
+      { "name": "The Glow Restriction", "body": "The amber glow shadow is reserved for semantically active surfaces: attuned items, loading animations, confirmed selections. It is not a hover affordance for general cards or buttons.", "section": "elevation" },
+      { "name": "The Flat-By-Default Rule for Inputs", "body": "Form inputs carry no shadow at rest. Focus is communicated by the border shifting to Amber Wax Seal alone — the border change is the signal.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use Amber Wax Seal (#ffcc66) exclusively for interactive signals: active states, focus borders, action CTAs. Let Old Ivory (#f4e6d7) carry text.",
+      "Do keep the dark-to-darker gradient pattern for hero sections, nav, and modal headers (from ~#2a1505 toward #1c0e03 or #181008).",
+      "Do use IM Fell English for headings and Garamond for body text. Reserve sans-serif for metadata labels, badges, and stat chips at 10-11px.",
+      "Do enforce min-height: 44px on every interactive element rendered on mobile.",
+      "Do enforce font-size: 16px minimum on all input, select, and textarea elements to prevent iOS auto-zoom.",
+      "Do use the rarity color system (common through legendary) for item and spell rarity only.",
+      "Do use var(--ease-out-quart) or var(--ease-out-expo) for all UI transitions. No bounce, no elastic, no linear.",
+      "Do use prefers-reduced-motion to disable all animations for users who need it.",
+      "Do express depth through shadow vocabulary and color-step layering (Crypt to Walnut to Surface)."
+    ],
+    "donts": [
+      "Don't use white cards, blue primary actions, Inter/system fonts, or generic SaaS UI patterns.",
+      "Don't use children's fantasy aesthetics: bright primary colors, rounded bubble fonts, decorative illustrations that consume functional space.",
+      "Don't build anything that feels like a spreadsheet wearing a costume.",
+      "Don't apply the amber glow shadow to neutral cards or buttons at rest. The glow signals attuned items, loading states, and confirmed selections only.",
+      "Don't use border-left or border-right greater than 1px as a colored accent stripe on cards, list items, or callouts.",
+      "Don't apply background-clip: text with a gradient to create gradient text. Use Amber Wax Seal in solid form.",
+      "Don't add decoration to surfaces that are performing their function. Atmosphere comes from typography, color layering, and proportion.",
+      "Don't nest cards. A card inside a card is always a layout failure.",
+      "Don't reorder the six sections in DESIGN.md or rename their headers."
+    ]
+  }
+}

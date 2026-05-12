@@ -73,7 +73,7 @@
       border-radius: 8px;
       padding: 11px 14px;
       color: var(--text);
-      font-size: 15px;
+      font-size: 16px;
       font-family: var(--font);
       outline: none;
       transition: border-color 0.2s;
@@ -110,6 +110,25 @@
       display: none;
     }
     .login-error.show { display: block; }
+
+    /* ── Entrance ── */
+    @keyframes loginCardIn {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .login-card {
+      animation: loginCardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    /* ── Button loading state ── */
+    @keyframes loginBtnGlow {
+      0%, 100% { box-shadow: 0 0 6px rgba(200,164,92,0.15); }
+      50%       { box-shadow: 0 0 22px rgba(200,164,92,0.5); }
+    }
+    .login-btn.is-loading {
+      animation: loginBtnGlow 1.4s ease-in-out infinite;
+      cursor: wait;
+    }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
@@ -156,6 +175,7 @@
 
       btn.disabled = true;
       btn.textContent = "Checking…";
+      btn.classList.add("is-loading");
       try {
         const hash = await hashPassword(password);
         const snap = await get(ref(db, "users"));
@@ -174,6 +194,7 @@
         console.error(e);
       } finally {
         btn.disabled = false;
+        btn.classList.remove("is-loading");
         btn.innerHTML = "&#9876; Enter the Realm";
       }
     }

@@ -8,49 +8,75 @@ body {
 .login-container {
   max-width: 420px;
   width: 90%;
-  padding: 24px 20px;
-  background-color: #333;
+  padding: 32px 28px;
+  background: linear-gradient(135deg, #2c1a0a 0%, #1e1208 100%);
+  border: 1px solid #3a2510;
   border-radius: 12px;
-  box-shadow: 0 4px 12px var(--shadow);
+  box-shadow: 0 12px 48px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,204,102,0.04);
 }
 
 .login-container h1 {
-  margin: 0 0 16px;
+  margin: 0 0 20px;
+  font-family: 'IM Fell English', 'Garamond', serif;
+  color: var(--accent);
+  font-weight: normal;
+  text-align: center;
+  letter-spacing: 0.04em;
 }
 
 .login-container input[type="password"] {
   width: 100%;
-  padding: 12px;
-  border: none;
+  padding: 12px 14px;
+  background: #150e08;
+  border: 1px solid #554433;
   border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font);
   font-size: 16px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.login-container input[type="password"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(255,204,102,0.1);
 }
 
 .login-container .actions {
   display: flex;
   gap: 12px;
   justify-content: center;
-  margin: 16px 0;
+  margin: 20px 0 0;
 }
 
 .login-container button {
   flex: 1;
-  padding: 10px 14px;
-  border: none;
+  padding: 11px 14px;
+  background: rgba(255,204,102,0.12);
+  border: 1px solid rgba(255,204,102,0.4);
   border-radius: 8px;
-  background-color: #5e3b20;
-  color: var(--text);
-  font-size: 16px;
+  color: var(--accent);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  min-height: 44px;
 }
 
 .login-container button:hover {
-  background-color: #2c1a0a;
+  background: rgba(255,204,102,0.22);
+  border-color: var(--accent);
+  box-shadow: 0 0 14px rgba(255,204,102,0.2);
 }
 
 .error-message {
-  color: #ff7b7b;
-  margin-top: 8px;
+  color: #e57373;
+  margin-top: 10px;
   min-height: 20px;
+  font-size: 13px;
+  text-align: center;
+  font-family: var(--font);
 }
