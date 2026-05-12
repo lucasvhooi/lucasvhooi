@@ -91,14 +91,18 @@
   display: flex;
   overflow: hidden;
   box-shadow: 0 1px 6px rgba(0,0,0,0.4);
-  transition: box-shadow 0.2s var(--ease-out-quart), border-color 0.2s var(--ease-out-quart), transform 0.18s var(--ease-out-quart);
+  transition:
+    box-shadow 0.36s var(--ease-out-expo),
+    border-color 0.26s ease,
+    transform 0.36s var(--ease-out-expo);
   position: relative;
   height: 120px;
+  will-change: transform;
 }
 .quest-card:hover {
-  box-shadow: 0 6px 24px rgba(0,0,0,0.6);
-  border-color: #4a3318;
-  transform: translateY(-2px);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.65), 0 4px 12px rgba(0,0,0,0.4);
+  border-color: #5a3a1a;
+  transform: translateY(-6px) scale(1.015);
 }
 
 /* Quest type top border (replaces left accent bar) */

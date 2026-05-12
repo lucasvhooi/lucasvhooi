@@ -185,19 +185,23 @@
   border: 1px solid color-mix(in srgb, var(--sc) 45%, #1a1a2a);
   border-radius: 10px;
   padding: 14px 16px;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.1s;
-  animation: fadeInUp 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition:
+    border-color 0.32s var(--ease-out-expo),
+    box-shadow 0.38s var(--ease-out-expo),
+    transform 0.38s var(--ease-out-expo);
+  animation: fadeInUp 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
   text-align: left;
   display: flex;
   flex-direction: column;
   gap: 6px;
   cursor: pointer;
   position: relative;
+  will-change: transform;
 }
 .spell-card:hover {
   border-color: color-mix(in srgb, var(--sc) 80%, #1a1a2a);
-  box-shadow: 0 2px 16px rgba(0,0,0,0.45);
-  transform: translateY(-1px);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
+  transform: translateY(-7px) scale(1.02);
 }
 
 .spell-card-header {

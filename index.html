@@ -113,21 +113,37 @@
 
     /* ── Entrance ── */
     @keyframes loginCardIn {
-      from { opacity: 0; transform: translateY(18px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateY(32px) scale(0.94); filter: blur(6px); }
+      to   { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0px); }
     }
     .login-card {
-      animation: loginCardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation: loginCardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
     /* ── Button loading state ── */
     @keyframes loginBtnGlow {
       0%, 100% { box-shadow: 0 0 6px rgba(200,164,92,0.15); }
-      50%       { box-shadow: 0 0 22px rgba(200,164,92,0.5); }
+      50%       { box-shadow: 0 0 28px rgba(200,164,92,0.55); }
     }
     .login-btn.is-loading {
       animation: loginBtnGlow 1.4s ease-in-out infinite;
       cursor: wait;
+    }
+
+    /* ── Button hover lift ── */
+    .login-btn {
+      transition: background 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform  0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateY(0);
+    }
+    .login-btn:hover {
+      background: linear-gradient(135deg, #5a380f 0%, #7a4a18 100%);
+      box-shadow: 0 8px 24px rgba(200,164,92,0.28);
+      transform: translateY(-2px);
+    }
+    .login-btn:active {
+      transform: translateY(0) scale(0.97);
     }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">

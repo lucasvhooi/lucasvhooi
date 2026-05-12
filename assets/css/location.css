@@ -479,13 +479,17 @@
   border: 1px solid #3a2510;
   border-radius: 8px;
   padding: 14px 16px;
-  transition: border-color 0.2s var(--ease-out-quart), box-shadow 0.2s var(--ease-out-quart), transform 0.18s var(--ease-out-quart);
+  transition:
+    border-color 0.28s ease,
+    box-shadow 0.36s var(--ease-out-expo),
+    transform 0.36s var(--ease-out-expo);
+  will-change: transform;
 }
 
 .npc-card:hover {
-  border-color: #554433;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.45);
-  transform: translateY(-1px);
+  border-color: #5a3a20;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
+  transform: translateY(-5px) scale(1.015);
 }
 
 .npc-header {
@@ -766,13 +770,19 @@
   border-radius: 8px;
   padding: 10px 14px;
   cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  transition:
+    border-color 0.26s ease,
+    box-shadow 0.32s var(--ease-out-expo),
+    background 0.22s ease,
+    transform 0.3s var(--ease-out-expo);
+  transform: translateX(0);
 }
 
 .building-card:hover {
-  border-color: #554433;
+  border-color: #6a4a28;
   background: #2c1c0d;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 3px 8px rgba(0,0,0,0.35);
+  transform: translateX(3px);
 }
 
 .building-card.highlighted {
@@ -1707,11 +1717,18 @@
   border-radius: 8px;
   padding: 8px 12px;
   min-width: 140px;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.24s var(--ease-out-expo),
+    background 0.24s var(--ease-out-expo),
+    transform 0.28s var(--ease-out-expo),
+    box-shadow 0.28s var(--ease-out-expo);
+  transform: translateY(0);
 }
 .tavern-staff-card:hover {
   border-color: rgba(255,204,102,0.4);
   background: rgba(255,204,102,0.09);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.45);
 }
 
 .staff-card-icon {

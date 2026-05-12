@@ -45,6 +45,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
+  perspective: 1200px;
 }
 
 /* ── Character card ── */
@@ -53,18 +54,22 @@
   border: 1px solid #2e1c0c;
   border-radius: 12px;
   overflow: hidden;
-  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-  animation: cardIn 0.22s ease-out both;
+  transition:
+    transform 0.38s var(--ease-out-expo),
+    border-color 0.28s ease,
+    box-shadow 0.38s var(--ease-out-expo);
+  animation: cardIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
   position: relative;
+  will-change: transform;
 }
 @keyframes cardIn {
-  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  from { opacity: 0; transform: translateY(18px) scale(0.95); }
   to   { opacity: 1; transform: translateY(0)  scale(1); }
 }
 .char-card:hover {
-  transform: translateY(-2px);
-  border-color: #4a3020;
-  box-shadow: 0 6px 22px rgba(0,0,0,0.5);
+  transform: translateY(-8px) scale(1.025);
+  border-color: #5a3520;
+  box-shadow: 0 18px 48px rgba(0,0,0,0.68), 0 6px 16px rgba(0,0,0,0.45);
 }
 
 .char-not-encountered {
@@ -81,9 +86,9 @@
   object-position: top;
   display: block;
   cursor: pointer;
-  transition: transform 0.3s;
+  transition: transform 0.5s var(--ease-out-expo);
 }
-.char-card:hover .char-card-pic { transform: scale(1.04); }
+.char-card:hover .char-card-pic { transform: scale(1.07); }
 
 .char-card-pic-ph {
   width: 100%; height: 180px;
@@ -152,7 +157,7 @@
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.82);
+  background: rgba(0,0,0,0.76);
   z-index: 500;
   align-items: center;
   justify-content: center;
@@ -169,12 +174,12 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.7);
-  animation: modalIn 0.2s ease-out both;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.8);
+  animation: modalIn 0.48s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 @keyframes modalIn {
-  from { opacity: 0; transform: scale(0.96) translateY(12px); }
-  to   { opacity: 1; transform: scale(1)    translateY(0); }
+  from { opacity: 0; transform: scale(0.88) translateY(28px); filter: blur(6px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    filter: blur(0px); }
 }
 
 .char-modal-header {
@@ -346,8 +351,8 @@
   overflow-y: auto;
   position: relative;
   padding: 28px 28px 24px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.7);
-  animation: modalIn 0.2s ease-out both;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.8);
+  animation: modalIn 0.48s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .char-view-box .char-close-btn {
   position: absolute; top: 14px; right: 16px;
