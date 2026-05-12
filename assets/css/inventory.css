@@ -147,8 +147,8 @@
 /* ── Regular item card ──────────────────────────────────────────────────────── */
 .inv-card {
   --rc: #3a2510;
-  background: color-mix(in srgb, var(--rc) 22%, #1a1008);
-  border: 1px solid color-mix(in srgb, var(--rc) 65%, #1a1a1a);
+  background: color-mix(in srgb, var(--rc) 30%, #1a1008);
+  border: 1px solid color-mix(in srgb, var(--rc) 75%, #1a1a1a);
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -177,7 +177,7 @@
 .inv-card-attuned {
   border-color: #c8a45c !important;
   border-width: 2px !important;
-  box-shadow: 0 0 0 2px rgba(200,164,92,0.3), 0 0 22px rgba(200,164,92,0.38), inset 0 0 48px rgba(200,164,92,0.07);
+  box-shadow: 0 0 0 2px rgba(200,164,92,0.3), 0 0 22px rgba(200,164,92,0.38), inset 0 0 48px rgba(200,164,92,0.15);
   background: linear-gradient(180deg, rgba(200,164,92,0.08) 0%, transparent 60%) !important;
 }
 .inv-card-attuned:hover {
@@ -264,12 +264,12 @@
   border-radius: 10px;
   font-family: sans-serif;
 }
-.inv-badge-weapon  { background: rgba(224,80,80,0.12);   border: 1px solid #e05050; color: #e05050; }
-.inv-badge-armor   { background: rgba(80,128,224,0.12);  border: 1px solid #5080e0; color: #5080e0; }
-.inv-badge-potion  { background: rgba(80,192,80,0.12);   border: 1px solid #50c050; color: #50c050; }
-.inv-badge-scroll  { background: rgba(200,164,92,0.12);  border: 1px solid #c8a45c; color: #c8a45c; }
-.inv-badge-book    { background: rgba(156,95,255,0.12);  border: 1px solid #9c5fff; color: #9c5fff; }
-.inv-badge-misc    { background: rgba(136,136,136,0.12); border: 1px solid #888;    color: #888; }
+.inv-badge-weapon  { background: rgba(224,80,80,0.20);   border: 1px solid rgba(224,80,80,0.70);   color: #f07070; }
+.inv-badge-armor   { background: rgba(80,128,224,0.20);  border: 1px solid rgba(80,128,224,0.70);  color: #7090f0; }
+.inv-badge-potion  { background: rgba(80,192,80,0.20);   border: 1px solid rgba(80,192,80,0.70);   color: #60d060; }
+.inv-badge-scroll  { background: rgba(200,164,92,0.20);  border: 1px solid rgba(200,164,92,0.70);  color: #d8b470; }
+.inv-badge-book    { background: rgba(156,95,255,0.20);  border: 1px solid rgba(156,95,255,0.70);  color: #b07fff; }
+.inv-badge-misc    { background: rgba(136,136,136,0.20); border: 1px solid rgba(136,136,136,0.65); color: #aaa; }
 
 .inv-qty-badge {
   font-size: 11px;

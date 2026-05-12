@@ -33,6 +33,27 @@
       <span class="dm-label">DM Tools</span>
       <button id="btn-place-marker" class="dm-btn">Place Marker</button>
     </div>
+
+    <!-- Location panel open button -->
+    <button id="lp-open-btn" class="lp-open-btn">
+      <iconify-icon icon="lucide:map-pin"></iconify-icon> Locations
+    </button>
+
+    <!-- Location panel -->
+    <div id="location-panel" class="location-panel">
+      <div class="lp-resize-handle" id="lp-resize-handle"></div>
+      <div class="lp-header">
+        <span class="lp-title">Locations</span>
+        <div class="lp-header-actions">
+          <button id="lp-add-country-btn" class="lp-hdr-btn" style="display:none">+ Country</button>
+          <button id="lp-close-btn" class="lp-hdr-btn lp-hdr-close">✕</button>
+        </div>
+      </div>
+      <div class="lp-search-row">
+        <input id="lp-search" class="lp-search-input" type="text" placeholder="Search locations…">
+      </div>
+      <div id="lp-body" class="lp-body"></div>
+    </div>
   </div>
 
   <!-- Marker Form Modal -->
@@ -98,6 +119,11 @@
           <textarea id="m-notes" placeholder="Secret notes, plot hooks, etc."></textarea>
         </label>
       </div>
+      <div id="m-country-row" class="form-row">
+        <label>Country / Region
+          <select id="m-country"></select>
+        </label>
+      </div>
       <div id="modal-error" class="modal-error"></div>
       <div class="modal-actions">
         <button id="m-save" class="dm-btn">Save Marker</button>
@@ -106,6 +132,31 @@
     </div>
   </div>
 
+  <!-- Country Modal -->
+  <div id="country-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2 id="cm-modal-title">Add Country</h2>
+      <div class="form-row">
+        <label>Name <span class="required">*</span>
+          <input type="text" id="cm-name" placeholder="e.g. Arcadia" />
+        </label>
+      </div>
+      <div class="form-row">
+        <label>Description
+          <textarea id="cm-desc" placeholder="Short description (optional)…"></textarea>
+        </label>
+      </div>
+      <div class="form-row">
+        <label>Colour</label>
+        <div id="cm-color-swatches" class="country-color-row"></div>
+      </div>
+      <div id="cm-error" class="modal-error"></div>
+      <div class="modal-actions">
+        <button id="cm-save" class="dm-btn">Save</button>
+        <button id="cm-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
 
 <script type="module" src="../assets/js/map.js"></script>
   <script src="../assets/js/base.js"></script>

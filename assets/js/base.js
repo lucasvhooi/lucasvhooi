@@ -11,11 +11,16 @@
     const ls = document.createElement('script');
     ls.src = 'https://cdn.jsdelivr.net/npm/lenis@1.3.23/dist/lenis.min.js';
     ls.onload = function () {
+      const MODAL_SEL = '.inv-overlay, .modal-overlay, .char-modal-overlay, .give-panel, .ai-drop, .shop-modal-overlay';
       const lenis = new window.Lenis({
         lerp: 0.085,
         smoothWheel: true,
         touchMultiplier: 1.6,
         wheelMultiplier: 1.0,
+        // Don't intercept wheel events inside modals/overlays — let them scroll natively
+        prevent: function (node) {
+          return !!node.closest(MODAL_SEL);
+        },
       });
       function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
       requestAnimationFrame(raf);

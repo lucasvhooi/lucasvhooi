@@ -180,8 +180,8 @@
 /* ── Item Card ── */
 .item-card {
   --rc: #3a2510;
-  background: color-mix(in srgb, var(--rc) 22%, var(--panel));
-  border: 1px solid color-mix(in srgb, var(--rc) 65%, #1a1a1a);
+  background: color-mix(in srgb, var(--rc) 30%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--rc) 75%, #1a1a1a);
   border-radius: 10px;
   padding: 16px 18px;
   transition:
@@ -253,11 +253,11 @@
   letter-spacing: 0.04em;
 }
 
-.rarity-tag-common    { background: rgba(158,158,158,0.12); border-color: #9e9e9e; color: #9e9e9e; }
-.rarity-tag-uncommon  { background: rgba(76,175,80,0.12);   border-color: #4caf50; color: #4caf50; }
-.rarity-tag-rare      { background: rgba(33,150,243,0.12);  border-color: #2196f3; color: #2196f3; }
-.rarity-tag-very-rare { background: rgba(156,39,176,0.12);  border-color: #9c27b0; color: #9c27b0; }
-.rarity-tag-legendary { background: rgba(255,152,0,0.12);   border-color: #ff9800; color: #ff9800; }
+.rarity-tag-common    { background: rgba(158,158,158,0.20); border: 1px solid rgba(158,158,158,0.65); color: #bdbdbd; }
+.rarity-tag-uncommon  { background: rgba(76,175,80,0.20);   border: 1px solid rgba(76,175,80,0.70);   color: #66bb6a; }
+.rarity-tag-rare      { background: rgba(33,150,243,0.20);  border: 1px solid rgba(33,150,243,0.70);  color: #56b4ff; }
+.rarity-tag-very-rare { background: rgba(156,39,176,0.20);  border: 1px solid rgba(156,39,176,0.65);  color: #bb52d4; }
+.rarity-tag-legendary { background: rgba(255,152,0,0.20);   border: 1px solid rgba(255,152,0,0.72);   color: #ffac20; }
 
 /* ── Rarity selector (item modal) ── */
 .rarity-selector {

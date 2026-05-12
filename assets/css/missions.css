@@ -107,8 +107,8 @@
 
 /* Quest type top border (replaces left accent bar) */
 .qc-accent-bar { display: none; }
-.quest-main     { border-top: 3px solid #c8a45c; background: linear-gradient(180deg, rgba(200,164,92,0.04) 0%, #160d05 60%); }
-.quest-side     { border-top: 3px solid #6a9e70; background: linear-gradient(180deg, rgba(106,158,112,0.04) 0%, #160d05 60%); }
+.quest-main     { border-top: 3px solid #c8a45c; background: linear-gradient(180deg, rgba(200,164,92,0.09) 0%, #160d05 60%); }
+.quest-side     { border-top: 3px solid #5aab66; background: linear-gradient(180deg, rgba(90,171,102,0.09) 0%, #160d05 60%); }
 .quest-completed { border-top: 3px solid #3a2a1a; }
 
 .qc-body {
@@ -210,9 +210,9 @@
   padding: 3px 9px;
 }
 .quest-side .qc-type-badge {
-  background: rgba(106,158,112,0.12);
-  color: #6a9e70;
-  border-color: rgba(106,158,112,0.35);
+  background: rgba(90,171,102,0.18);
+  color: #5aab66;
+  border-color: rgba(90,171,102,0.50);
 }
 
 .qc-status {
@@ -224,8 +224,8 @@
   font-weight: bold;
   border: 1px solid transparent;
 }
-.status-active  { background: rgba(102,187,106,0.12); color: #66bb6a; border-color: rgba(102,187,106,0.35); }
-.status-pending { background: rgba(255,167,38,0.1);   color: #ffa726; border-color: rgba(255,167,38,0.3); }
+.status-active  { background: rgba(102,187,106,0.20); color: #6dcf72; border-color: rgba(102,187,106,0.55); }
+.status-pending { background: rgba(255,167,38,0.18);  color: #ffb840; border-color: rgba(255,167,38,0.55); }
 .status-done    { background: rgba(120,120,120,0.12); color: #888;    border-color: rgba(120,120,120,0.3); }
 
 .qc-hidden-badge {
