@@ -1,81 +1,9 @@
-<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Campaigns — Essolis</title><link rel="icon" type="image/webp" href="/Images/EssolisLogoWeb.webp"><meta property="og:image" content="/Images/EssolisLogoWeb.webp"><link rel="stylesheet" href="/assets/css/base.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet"><script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script></head> <body>   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:     #120d07;
-      --panel:  #1e1108;
-      --border: #3a2510;
-      --accent: #c8a45c;
-      --text:   #d4b483;
-      --muted:  #665540;
-      --font:   'Garamond', serif;
-      --title:  'IM Fell English', 'Garamond', serif;
-    }
-
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Campaigns — Essolis</title><link rel="icon" type="image/webp" href="/Images/EssolisLogoWeb.webp"><meta property="og:image" content="/Images/EssolisLogoWeb.webp"><link rel="stylesheet" href="/assets/css/base.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet"><script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script></head> <body> <nav> <a href="/campaigns" style="display:flex;align-items:center;flex-shrink:0;margin-right:8px"> <img src="/Images/EssolisLogo.webp" alt="Essolis Logo" class="nav-logo"> </a> <ul>  </ul> </nav>  <style>
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
-
-    .topbar {
-      background: linear-gradient(180deg, #2a1505 0%, #1c0e03 100%);
-      border-bottom: 1px solid var(--border);
-      padding: 0 28px;
-      height: 70px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.55);
-    }
-    .topbar-logo {
-      height: 50px;
-      width: auto;
-      filter: brightness(0) saturate(100%) invert(84%) sepia(63%) saturate(600%) hue-rotate(315deg) brightness(108%);
-    }
-    .topbar-brand {
-      font-family: var(--title);
-      font-size: 1.15rem;
-      color: var(--accent);
-      letter-spacing: 0.06em;
-      margin-right: auto;
-    }
-    .topbar-user {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: #c9a87a;
-    }
-    .topbar-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .topbar-username {
-      text-decoration: none;
-      color: #c9a87a;
-      transition: color 0.2s;
-    }
-    .topbar-username:hover { color: var(--accent); }
-    .topbar-btn {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      color: #555;
-      font-size: 11px;
-      padding: 3px 10px;
-      cursor: pointer;
-      font-family: var(--font);
-      transition: color 0.2s, border-color 0.2s;
-    }
-    .topbar-btn:hover { color: #d4b483; border-color: #5a3510; }
 
     .hero {
       text-align: center;
@@ -635,15 +563,13 @@
     .btn-gen-code:hover { background: linear-gradient(135deg, #5a380f 0%, #7a4a18 100%); }
 
     @media (max-width: 600px) {
-      .topbar { padding: 0 16px; }
-      .topbar-brand { display: none; }
       .main { padding: 28px 16px 60px; }
       .hero { padding: 36px 16px 28px; }
       .campaign-grid { grid-template-columns: 1fr; }
       .toolbar { flex-direction: column; align-items: stretch; }
       .toolbar-actions { justify-content: flex-end; }
     }
-  </style> <header class="topbar"> <img src="/Images/EssolisLogo.webp" alt="Essolis" class="topbar-logo"> <span class="topbar-brand">Essolis</span> <div class="topbar-user" id="topbar-user"></div> </header> <div class="hero"> <h1 class="hero-title">Choose Your Campaign</h1> <p class="hero-sub">Select a realm to enter, or forge a new one</p> </div> <main class="main"> <div class="invite-section" id="invite-section" style="display:none"> <div class="invite-section-title">Pending Invites</div> <div id="invite-list"></div> </div> <div class="toolbar"> <span class="toolbar-label" id="toolbar-label"></span> <div class="toolbar-actions"> <button class="btn-join" id="btn-join-code"> <iconify-icon icon="lucide:key-round"></iconify-icon>
+  </style> <div class="hero"> <h1 class="hero-title">Choose Your Campaign</h1> <p class="hero-sub">Select a realm to enter, or forge a new one</p> </div> <main class="main"> <div class="invite-section" id="invite-section" style="display:none"> <div class="invite-section-title">Pending Invites</div> <div id="invite-list"></div> </div> <div class="toolbar"> <span class="toolbar-label" id="toolbar-label"></span> <div class="toolbar-actions"> <button class="btn-join" id="btn-join-code"> <iconify-icon icon="lucide:key-round"></iconify-icon>
 Join by Code
 </button> <button class="btn-add" id="btn-add-campaign"> <iconify-icon icon="lucide:plus"></iconify-icon>
 Add Campaign
@@ -656,22 +582,11 @@ Join
 </button> </div> </div> </div> <script type="module">
     import { db }                                                    from "/assets/js/firebase.js";
     import { ref, get, set, push, remove, query,
-             orderByChild, equalTo }                                 from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+             orderByChild, equalTo, onValue }                        from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
     import { getSession, clearSession }                              from "/assets/js/auth.js";
 
     const session = getSession();
-    if (!session) { window.location.href = "login.html"; }
-
-    const topbarUser = document.getElementById('topbar-user');
-    topbarUser.innerHTML =
-      `<span class="topbar-dot" style="background:${session.color || '#c8a45c'}"></span>` +
-      `<a class="topbar-username" href="account.html">${escHtml(session.username)}</a>` +
-      `<button class="topbar-btn" id="btn-logout">Logout</button>`;
-
-    document.getElementById('btn-logout').addEventListener('click', () => {
-      clearSession();
-      window.location.href = 'login.html';
-    });
+    if (!session) { window.location.href = "login"; }
 
     const stateLoading   = document.getElementById('state-loading');
     const stateEmpty     = document.getElementById('state-empty');
@@ -755,7 +670,7 @@ Join
         s.campaignName = c.name || 'Campaign';
         localStorage.setItem('playerSession', JSON.stringify(s));
       }
-      window.location.href = 'inventory.html';
+      window.location.href = 'inventory';
     }
 
     function updateCount() {
@@ -826,22 +741,21 @@ Join
       }
     });
 
-    async function loadInvites() {
-      try {
-        const snap = await get(ref(db, `users/${session.id}/invites`));
-        if (!snap.exists()) return;
-        const invites = snap.val();
-        const entries = Object.entries(invites);
-        if (!entries.length) return;
+    function setupInviteListener() {
+      const section = document.getElementById('invite-section');
+      const list    = document.getElementById('invite-list');
 
-        const section = document.getElementById('invite-section');
-        const list    = document.getElementById('invite-list');
+      onValue(ref(db, `users/${session.id}/invites`), snapshot => {
+        list.innerHTML = '';
+        if (!snapshot.exists()) { section.style.display = 'none'; return; }
+
+        const entries = Object.entries(snapshot.val() || {});
+        if (!entries.length) { section.style.display = 'none'; return; }
+
         section.style.display = 'block';
-
         entries.forEach(([invId, inv]) => {
           const card = document.createElement('div');
           card.className = 'invite-card';
-          card.dataset.inviteId = invId;
           card.innerHTML = `
             <div class="invite-info">
               <div class="invite-campaign-name">${escHtml(inv.campaignName || 'Campaign')}</div>
@@ -856,7 +770,7 @@ Join
           card.querySelector('.btn-decline').addEventListener('click', () => declineInvite(invId, card));
           list.appendChild(card);
         });
-      } catch (e) { /* ignore invite load errors */ }
+      });
     }
 
     async function acceptInvite(invId, inv, card) {
@@ -880,7 +794,7 @@ Join
           updateCount();
         }
 
-        removeInviteCard(card);
+        // onValue listener handles list update automatically
       } catch (e) {
         acceptBtn.disabled  = false;
         declineBtn.disabled = false;
@@ -891,16 +805,8 @@ Join
     async function declineInvite(invId, card) {
       try {
         await remove(ref(db, `users/${session.id}/invites/${invId}`));
-        removeInviteCard(card);
+        // onValue listener handles list update automatically
       } catch (e) { /* ignore */ }
-    }
-
-    function removeInviteCard(card) {
-      card.remove();
-      const list = document.getElementById('invite-list');
-      if (!list.children.length) {
-        document.getElementById('invite-section').style.display = 'none';
-      }
     }
 
     let activeCampaignId   = null;
@@ -1139,5 +1045,5 @@ Join
     }
 
     loadCampaigns();
-    loadInvites();
-  </script>   </body> </html>
+    setupInviteListener();
+  </script>  <script src="/assets/js/base.js"></script> </body> </html>

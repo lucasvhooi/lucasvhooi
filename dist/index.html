@@ -27,14 +27,14 @@
       try {
         const snap = await get(ref(db, 'setup_complete'));
         if (!snap.val()) {
-          window.location.href = '/setup.html';
+          window.location.href = '/setup';
         } else if (getSession()) {
-          window.location.href = '/inventory.html';
+          window.location.href = '/inventory';
         } else {
-          window.location.href = '/login.html';
+          window.location.href = '/login';
         }
       } catch (e) {
-        window.location.href = '/login.html';
+        window.location.href = '/login';
       }
     })();
   </script>   </body> </html>

@@ -17,10 +17,14 @@ const firebaseConfig = {
 
 export const firebaseApp = initializeApp(firebaseConfig);
 
-initializeAppCheck(firebaseApp, {
-  provider: new ReCaptchaV3Provider("6LfVwegsAAAAAFRwgrQVA5cqRRsFX_j2gOjt26bz"),
-  isTokenAutoRefreshEnabled: true
-});
+try {
+  initializeAppCheck(firebaseApp, {
+    provider: new ReCaptchaV3Provider("6LfVwegsAAAAAFRwgrQVA5cqRRsFX_j2gOjt26bz"),
+    isTokenAutoRefreshEnabled: true
+  });
+} catch (e) {
+  console.warn("App Check init failed:", e);
+}
 
 export const db      = getDatabase(firebaseApp);
 export const storage = getStorage(firebaseApp);

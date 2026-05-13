@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Account — DnD Campaign</title><link rel="icon" type="image/webp" href="/Images/EssolisLogoWeb.webp"><meta property="og:image" content="/Images/EssolisLogoWeb.webp"><link rel="stylesheet" href="/assets/css/base.css"><link rel="stylesheet" href="/assets/css/base.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet"><script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script></head> <body>   <style>
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Account — DnD Campaign</title><link rel="icon" type="image/webp" href="/Images/EssolisLogoWeb.webp"><meta property="og:image" content="/Images/EssolisLogoWeb.webp"><link rel="stylesheet" href="/assets/css/base.css"><link rel="stylesheet" href="/assets/css/base.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet"><script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script></head> <body> <nav> <a href="/campaigns" style="display:flex;align-items:center;flex-shrink:0;margin-right:8px"> <img src="/Images/EssolisLogo.webp" alt="Essolis Logo" class="nav-logo"> </a> <ul>  </ul> </nav>  <style>
     body { display: flex; flex-direction: column; min-height: 100vh; }
 
     .account-wrap {
@@ -220,61 +220,10 @@
     }
     .confirm-cancel:hover { background: rgba(255,255,255,0.08); color: #d4b483; }
 
-    .acct-topbar {
-      background: linear-gradient(180deg, #2a1505 0%, #1c0e03 100%);
-      border-bottom: 1px solid #3a2510;
-      padding: 0 24px;
-      height: 70px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.55);
-    }
-    .acct-topbar-logo {
-      height: 50px;
-      width: auto;
-      filter: brightness(0) saturate(100%) invert(84%) sepia(63%) saturate(600%) hue-rotate(315deg) brightness(108%);
-      flex-shrink: 0;
-    }
-    .acct-topbar-title {
-      font-family: 'IM Fell English', 'Garamond', serif;
-      font-size: 1rem;
-      color: #c8a45c;
-      letter-spacing: 0.06em;
-      flex: 1;
-    }
-    .acct-back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid #3a2510;
-      border-radius: 7px;
-      color: #888;
-      font-family: 'Garamond', serif;
-      font-size: 13px;
-      padding: 5px 14px;
-      text-decoration: none;
-      cursor: pointer;
-      transition: color 0.2s, border-color 0.2s, background 0.2s;
-      white-space: nowrap;
-    }
-    .acct-back-btn:hover {
-      color: #d4b483;
-      border-color: #5a3510;
-      background: rgba(255,255,255,0.07);
-    }
-
     @media (max-width: 500px) {
       .acct-card { padding: 22px 18px 18px; }
-      .acct-topbar { padding: 0 16px; }
-      .acct-topbar-title { font-size: 0.9rem; }
     }
-  </style> <header class="acct-topbar"> <a href="campaigns.html" style="display:flex;align-items:center;flex-shrink:0"> <img src="/Images/EssolisLogo.webp" alt="Essolis" class="acct-topbar-logo"> </a> <span class="acct-topbar-title">Account Settings</span> <a href="campaigns.html" id="acct-back-btn" class="acct-back-btn"> <iconify-icon icon="lucide:arrow-left"></iconify-icon> Back
-</a> </header> <div class="account-wrap"> <div class="account-col"> <div class="acct-card" id="card-profile"> <h2 class="acct-card-title">Profile</h2> <div id="provider-row"></div> <div class="acct-field"> <label class="acct-label" for="acct-username">Username</label> <input class="acct-input" id="acct-username" type="text" maxlength="30" autocomplete="off"> <span class="acct-hint">Shown to other players. No spaces.</span> </div> <div class="acct-field"> <label class="acct-label">Profile Colour</label> <div class="color-row"> <input id="acct-color-pick" type="color"> <input id="acct-color-text" class="acct-input" type="text" maxlength="7" placeholder="#c8a45c"> </div> <span class="acct-hint">Used as your name colour across the app.</span> </div> <button class="acct-btn" id="btn-save-profile">Save Profile</button> <div class="acct-msg" id="msg-username"></div> </div> <div class="acct-card" id="card-password"> <h2 class="acct-card-title">Change Password</h2> <div class="acct-field"> <label class="acct-label" for="acct-cur-pass">Current Password</label> <input class="acct-input" id="acct-cur-pass" type="password" placeholder="Your current password" autocomplete="current-password"> </div> <div class="acct-field"> <label class="acct-label" for="acct-new-pass">New Password</label> <input class="acct-input" id="acct-new-pass" type="password" placeholder="At least 6 characters" autocomplete="new-password"> </div> <div class="acct-field"> <label class="acct-label" for="acct-new-pass2">Confirm New Password</label> <input class="acct-input" id="acct-new-pass2" type="password" placeholder="Repeat new password" autocomplete="new-password"> </div> <button class="acct-btn" id="btn-save-password">Change Password</button> <div class="acct-msg" id="msg-password"></div> </div> <div class="acct-card acct-card-danger"> <h2 class="acct-card-title">Danger Zone</h2> <p class="danger-desc">Permanently deletes your account and all associated data. This cannot be undone.</p> <button class="acct-btn-danger" id="btn-delete">Delete Account</button> <div class="acct-msg" id="msg-delete"></div> </div> </div> </div> <div class="confirm-overlay" id="confirm-overlay"> <div class="confirm-box"> <h3 class="confirm-title">Delete your account?</h3> <p class="confirm-desc">This will permanently remove your account and all your data from the realm. There is no going back.</p> <div class="confirm-actions"> <button class="confirm-cancel" id="confirm-cancel">Cancel</button> <button class="acct-btn-danger" id="confirm-delete">Yes, delete it</button> </div> </div> </div> <script type="module">
+  </style> <div class="account-wrap"> <div class="account-col"> <div class="acct-card" id="card-profile"> <h2 class="acct-card-title">Profile</h2> <div id="provider-row"></div> <div class="acct-field"> <label class="acct-label" for="acct-username">Username</label> <input class="acct-input" id="acct-username" type="text" maxlength="30" autocomplete="off"> <span class="acct-hint">Shown to other players. No spaces.</span> </div> <div class="acct-field"> <label class="acct-label">Profile Colour</label> <div class="color-row"> <input id="acct-color-pick" type="color"> <input id="acct-color-text" class="acct-input" type="text" maxlength="7" placeholder="#c8a45c"> </div> <span class="acct-hint">Used as your name colour across the app.</span> </div> <button class="acct-btn" id="btn-save-profile">Save Profile</button> <div class="acct-msg" id="msg-username"></div> </div> <div class="acct-card" id="card-password"> <h2 class="acct-card-title">Change Password</h2> <div class="acct-field"> <label class="acct-label" for="acct-cur-pass">Current Password</label> <input class="acct-input" id="acct-cur-pass" type="password" placeholder="Your current password" autocomplete="current-password"> </div> <div class="acct-field"> <label class="acct-label" for="acct-new-pass">New Password</label> <input class="acct-input" id="acct-new-pass" type="password" placeholder="At least 6 characters" autocomplete="new-password"> </div> <div class="acct-field"> <label class="acct-label" for="acct-new-pass2">Confirm New Password</label> <input class="acct-input" id="acct-new-pass2" type="password" placeholder="Repeat new password" autocomplete="new-password"> </div> <button class="acct-btn" id="btn-save-password">Change Password</button> <div class="acct-msg" id="msg-password"></div> </div> <div class="acct-card acct-card-danger"> <h2 class="acct-card-title">Danger Zone</h2> <p class="danger-desc">Permanently deletes your account and all associated data. This cannot be undone.</p> <button class="acct-btn-danger" id="btn-delete">Delete Account</button> <div class="acct-msg" id="msg-delete"></div> </div> </div> </div> <div class="confirm-overlay" id="confirm-overlay"> <div class="confirm-box"> <h3 class="confirm-title">Delete your account?</h3> <p class="confirm-desc">This will permanently remove your account and all your data from the realm. There is no going back.</p> <div class="confirm-actions"> <button class="confirm-cancel" id="confirm-cancel">Cancel</button> <button class="acct-btn-danger" id="confirm-delete">Yes, delete it</button> </div> </div> </div> <script type="module">
     import { auth, db }                                                    from "/assets/js/firebase.js";
     import { EmailAuthProvider, GoogleAuthProvider,
              reauthenticateWithCredential, reauthenticateWithPopup,
@@ -283,13 +232,7 @@
     import { saveSession, getSession, clearSession }                       from "/assets/js/auth.js";
 
     const session = getSession();
-    if (!session) { window.location.href = "login.html"; }
-
-    document.getElementById('acct-back-btn').addEventListener('click', e => {
-      e.preventDefault();
-      if (window.history.length > 1) { history.back(); }
-      else { window.location.href = 'campaigns.html'; }
-    });
+    if (!session) { window.location.href = "login"; }
 
     function showMsg(el, text, type) {
       el.textContent = text;
@@ -300,7 +243,7 @@
     let isGoogleUser = false;
 
     onAuthStateChanged(auth, user => {
-      if (!user) { window.location.href = "login.html"; return; }
+      if (!user) { window.location.href = "login"; return; }
 
       isGoogleUser = user.providerData.some(p => p.providerId === 'google.com');
 
@@ -422,7 +365,7 @@
         await remove(ref(db, `users/${uid}`));
         await deleteUser(user);
         clearSession();
-        window.location.href = '/setup.html';
+        window.location.href = '/setup';
       } catch (e) {
         overlay.classList.remove('open');
         if (e.code === 'auth/requires-recent-login') {
@@ -436,4 +379,4 @@
         confirmDelete.textContent = 'Yes, delete it';
       }
     });
-  </script>   </body> </html>
+  </script>  <script src="/assets/js/base.js"></script> </body> </html>
