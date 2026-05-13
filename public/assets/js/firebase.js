@@ -1,7 +1,9 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getDatabase }   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
-import { getStorage }    from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
-import { getAuth }       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { initializeApp }                        from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getDatabase }                          from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+import { getStorage }                           from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
+import { getAuth }                              from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { initializeAppCheck, ReCaptchaV3Provider }
+                                                from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check.js";
 
 const firebaseConfig = {
   apiKey:            "AIzaSyA5ZZtiseeYEjOytjVnBcZkDW7oELEYRqQ",
@@ -14,6 +16,12 @@ const firebaseConfig = {
 };
 
 export const firebaseApp = initializeApp(firebaseConfig);
-export const db          = getDatabase(firebaseApp);
-export const storage     = getStorage(firebaseApp);
-export const auth        = getAuth(firebaseApp);
+
+initializeAppCheck(firebaseApp, {
+  provider: new ReCaptchaV3Provider('6LdwjOgsAAAAAIsUfD9uwXLr7pJHY3it2lMs7vJe'),
+  isTokenAutoRefreshEnabled: true
+});
+
+export const db      = getDatabase(firebaseApp);
+export const storage = getStorage(firebaseApp);
+export const auth    = getAuth(firebaseApp);
