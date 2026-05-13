@@ -12,10 +12,10 @@ if (_savedLoc) {
 }
 
 // ── Transform State ──────────────────────────────────────────────────────────
-let scale = 1;
+let scale    = 1;
 let minScale = 1;
-let originX = 0;
-let originY = 0;
+let originX  = 0;
+let originY  = 0;
 
 const mapContainer = document.getElementById("map-container");
 const mapWrapper   = document.getElementById("map-wrapper");
@@ -23,159 +23,173 @@ const mapImage     = document.getElementById("map-image");
 const markerLayer  = document.getElementById("marker-layer");
 
 mapImage.draggable = false;
-mapImage.addEventListener("dragstart", (e) => e.preventDefault());
+mapImage.addEventListener("dragstart", e => e.preventDefault());
 
-// Cache container rect to avoid layout thrashing in touch hot-path
+// ── Cached values — read once, never pay layout cost again ───────────────────
 let _cachedRect = { left: 0, top: 0, width: 0, height: 0 };
 function _updateCachedRect() {
   _cachedRect = mapContainer.getBoundingClientRect();
 }
-window.addEventListener("resize", _updateCachedRect, { passive: true });
-// Will be updated once on first layout
 requestAnimationFrame(_updateCachedRect);
 
+// Natural image dimensions — set once when the image loads.
+let _imgNW = 0, _imgNH = 0;
+
+// ── Core transform ───────────────────────────────────────────────────────────
+// All writes go through here — a single compositor-friendly property.
 function updateTransform() {
-  // translate3d forces GPU compositing — only touch the composited property
-  mapWrapper.style.transform = `translate3d(${originX}px, ${originY}px, 0) scale(${scale})`;
+  mapWrapper.style.transform = `translate3d(${originX}px,${originY}px,0) scale(${scale})`;
 }
 
-// --counter-scale triggers a style recalc on every marker — only flush it
-// when the gesture ends, not on every move frame.
+// Counter-scale: keep pins a constant screen size regardless of zoom.
+// Written directly as an inline style on each marker element — avoids the
+// CSS-variable cascade that forces a style recalc on every child simultaneously.
 function flushCounterScale() {
-  mapWrapper.style.setProperty("--counter-scale", 1 / scale);
+  const t = `translate3d(-50%,-50%,0) scale(${1 / scale})`;
+  _markerEls.forEach(({ el }) => { el.style.transform = t; });
 }
 
-// Debounced flush for wheel zoom (fires 120ms after the last wheel event)
+// Debounce flush 120 ms after the last wheel tick; re-enable pointer events.
 let _wheelFlushTimer = 0;
 function scheduleCounterScaleFlush() {
   clearTimeout(_wheelFlushTimer);
-  _wheelFlushTimer = setTimeout(flushCounterScale, 120);
+  _wheelFlushTimer = setTimeout(() => {
+    flushCounterScale();
+    markerLayer.classList.remove("gesturing");
+  }, 120);
 }
 
-// rAF throttle — batch all move events into one DOM write per display frame
-let rafPending = false;
+// rAF throttle — one DOM write per display frame, regardless of event rate.
+let _rafPending = false;
 function scheduleTransform() {
-  if (rafPending) return;
-  rafPending = true;
+  if (_rafPending) return;
+  _rafPending = true;
   requestAnimationFrame(() => {
     clampToBounds();
     updateTransform();
-    rafPending = false;
+    _rafPending = false;
   });
 }
 
+// ── Fit map to container ─────────────────────────────────────────────────────
 function fitMapToContainer() {
   _updateCachedRect();
-  const containerRect = _cachedRect;
-  if (!mapImage.naturalWidth || !mapImage.naturalHeight) return;
+  if (!_imgNW || !_imgNH) return;
 
-  mapWrapper.style.width  = `${mapImage.naturalWidth}px`;
-  mapWrapper.style.height = `${mapImage.naturalHeight}px`;
-
-  const scaleX = containerRect.width  / mapImage.naturalWidth;
-  const scaleY = containerRect.height / mapImage.naturalHeight;
-
+  const scaleX = _cachedRect.width  / _imgNW;
+  const scaleY = _cachedRect.height / _imgNH;
   scale    = Math.max(scaleX, scaleY);
   minScale = scale;
 
-  const scaledWidth  = mapImage.naturalWidth  * scale;
-  const scaledHeight = mapImage.naturalHeight * scale;
-
-  originX = (containerRect.width  - scaledWidth)  / 2;
-  originY = (containerRect.height - scaledHeight) / 2;
+  originX = (_cachedRect.width  - _imgNW * scale) / 2;
+  originY = (_cachedRect.height - _imgNH * scale) / 2;
 
   clampToBounds();
   updateTransform();
   flushCounterScale();
 }
 
-if (mapImage.complete) {
+// Image load — cache natural dimensions once, size wrapper once, then fit.
+function _onImageLoad() {
+  _imgNW = mapImage.naturalWidth;
+  _imgNH = mapImage.naturalHeight;
+  // Set wrapper size once; it never changes after this.
+  mapWrapper.style.width  = `${_imgNW}px`;
+  mapWrapper.style.height = `${_imgNH}px`;
+  _updateCachedRect();
   fitMapToContainer();
-} else {
-  mapImage.addEventListener("load", fitMapToContainer);
 }
 
-window.addEventListener("resize", fitMapToContainer);
+if (mapImage.complete && mapImage.naturalWidth) {
+  _onImageLoad();
+} else {
+  mapImage.addEventListener("load", _onImageLoad);
+}
 
+// Throttle resize to one refit per frame — avoids flooding fitMapToContainer.
+let _resizeRaf = 0;
+window.addEventListener("resize", () => {
+  cancelAnimationFrame(_resizeRaf);
+  _resizeRaf = requestAnimationFrame(fitMapToContainer);
+}, { passive: true });
+
+// ── Bounds clamp ─────────────────────────────────────────────────────────────
 function clampToBounds() {
-  const scaledWidth  = mapImage.naturalWidth  * scale;
-  const scaledHeight = mapImage.naturalHeight * scale;
-
-  const minX = Math.min(0, _cachedRect.width  - scaledWidth);
-  const minY = Math.min(0, _cachedRect.height - scaledHeight);
-
+  if (!_imgNW) return;
+  const minX = Math.min(0, _cachedRect.width  - _imgNW * scale);
+  const minY = Math.min(0, _cachedRect.height - _imgNH * scale);
   originX = Math.min(0, Math.max(minX, originX));
   originY = Math.min(0, Math.max(minY, originY));
 }
 
 // ── Zoom quality ─────────────────────────────────────────────────────────────
-// Switch to nearest-neighbour during active zoom to avoid expensive resampling
-// on every frame. Quality is restored 150 ms after the last zoom event.
+// Switch to nearest-neighbour during active zoom; restore 150 ms after last event.
 let _imgQualityTimer = 0;
-function _setFastRendering() {
-  mapImage.style.imageRendering = 'pixelated';
-}
-function _restoreRendering() {
-  mapImage.style.imageRendering = '';
-}
+function _setFastRendering()        { mapImage.style.imageRendering = "pixelated"; }
+function _restoreRendering()        { mapImage.style.imageRendering = ""; }
 function _scheduleRenderingRestore() {
   clearTimeout(_imgQualityTimer);
   _imgQualityTimer = setTimeout(_restoreRendering, 150);
 }
 
-// ── Zoom ─────────────────────────────────────────────────────────────────────
+// ── Wheel zoom ────────────────────────────────────────────────────────────────
 mapContainer.addEventListener("wheel", function(e) {
   e.preventDefault();
   _setFastRendering();
   _scheduleRenderingRestore();
+
+  // Suppress marker :hover recalcs for the duration of the wheel gesture.
+  markerLayer.classList.add("gesturing");
+
   const zoomIntensity = 0.001;
   let newScale = scale * (1 - e.deltaY * zoomIntensity);
   newScale = Math.min(Math.max(newScale, minScale), 5);
 
   const mouseX = e.clientX - _cachedRect.left;
   const mouseY = e.clientY - _cachedRect.top;
-
   originX -= (mouseX - originX) * (newScale / scale - 1);
   originY -= (mouseY - originY) * (newScale / scale - 1);
-
   scale = newScale;
+
   scheduleTransform();
   scheduleCounterScaleFlush();
-});
+}, { passive: false });
 
 // ── Pan (Desktop) ─────────────────────────────────────────────────────────────
-let isDragging  = false;
-let didDrag     = false;
-let startX, startY;
+let _isDragging = false;
+let _didDrag    = false;
+let _startX, _startY;
 
 mapContainer.addEventListener("pointerdown", function(e) {
   if (e.pointerType !== "mouse" || e.button !== 0) return;
-  isDragging = true;
-  didDrag    = false;
-  startX = e.clientX;
-  startY = e.clientY;
+  _isDragging = true;
+  _didDrag    = false;
+  _startX = e.clientX;
+  _startY = e.clientY;
   mapContainer.style.cursor = placingMode ? "crosshair" : "grabbing";
   mapContainer.setPointerCapture(e.pointerId);
+  // Suppress marker hover recalcs while panning.
+  markerLayer.classList.add("gesturing");
 });
 
 mapContainer.addEventListener("pointermove", function(e) {
-  if (!isDragging) return;
-  const dx = e.clientX - startX;
-  const dy = e.clientY - startY;
-  if (Math.abs(dx) > 4 || Math.abs(dy) > 4) didDrag = true;
-  startX = e.clientX;
-  startY = e.clientY;
+  if (!_isDragging) return;
+  const dx = e.clientX - _startX;
+  const dy = e.clientY - _startY;
+  if (Math.abs(dx) > 4 || Math.abs(dy) > 4) _didDrag = true;
+  _startX = e.clientX;
+  _startY = e.clientY;
   originX += dx;
   originY += dy;
   scheduleTransform();
-});
+}, { passive: true });
 
 mapContainer.addEventListener("pointerup", function(e) {
-  if (!isDragging) return;
-  isDragging = false;
+  if (!_isDragging) return;
+  _isDragging = false;
+  markerLayer.classList.remove("gesturing");
 
-  // Place marker on clean click (no drag) in placing mode
-  if (placingMode && !didDrag && isAdmin && e.pointerType === "mouse") {
+  if (placingMode && !_didDrag && isAdmin && e.pointerType === "mouse") {
     const clickX = e.clientX - _cachedRect.left;
     const clickY = e.clientY - _cachedRect.top;
     pendingCoords   = screenToPct(clickX, clickY);
@@ -189,101 +203,87 @@ mapContainer.addEventListener("pointerup", function(e) {
 });
 
 mapContainer.addEventListener("pointercancel", function() {
-  isDragging = false;
+  _isDragging = false;
   mapContainer.style.cursor = placingMode ? "crosshair" : "grab";
+  markerLayer.classList.remove("gesturing");
 });
 
 // ── Touch Support ─────────────────────────────────────────────────────────────
 const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 if (isTouchDevice) {
-  let touchStartX = 0, touchStartY = 0;
-  let isPinching = false;
-  let initialDistance = 0;
-  let initialScale = scale;
+  let _touchStartX = 0, _touchStartY = 0;
+  let _isPinching  = false;
+  let _initDist    = 0;
+  let _initScale   = scale;
 
-  function getDistance(t1, t2) {
+  function _dist(t1, t2) {
     const dx = t1.clientX - t2.clientX;
     const dy = t1.clientY - t2.clientY;
     return Math.sqrt(dx * dx + dy * dy);
   }
 
   mapContainer.addEventListener("touchstart", function(e) {
-    if (e.target.closest('#location-panel')) return;
+    if (e.target.closest("#location-panel")) return;
     _updateCachedRect();
-    // Promote wrapper to GPU layer for the gesture duration
-    mapWrapper.style.willChange = 'transform';
-    // Disable marker hit-testing during gesture to avoid hover recalcs
-    markerLayer.style.pointerEvents = "none";
+    markerLayer.classList.add("gesturing");
     if (e.touches.length === 2) {
-      isPinching = true;
-      initialDistance = getDistance(e.touches[0], e.touches[1]);
-      initialScale = scale;
+      _isPinching = true;
+      _initDist   = _dist(e.touches[0], e.touches[1]);
+      _initScale  = scale;
       _setFastRendering();
     } else if (e.touches.length === 1) {
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
+      _touchStartX = e.touches[0].clientX;
+      _touchStartY = e.touches[0].clientY;
     }
   }, { passive: true });
 
   mapContainer.addEventListener("touchmove", function(e) {
-    if (e.target.closest('#location-panel')) return;
+    if (e.target.closest("#location-panel")) return;
     e.preventDefault();
-    if (isPinching && e.touches.length === 2) {
-      const newDistance = getDistance(e.touches[0], e.touches[1]);
-      let newScale = initialScale * (newDistance / initialDistance);
-      newScale = Math.min(Math.max(newScale, minScale), 5);
-
-      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - _cachedRect.left;
-      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - _cachedRect.top;
+    if (_isPinching && e.touches.length === 2) {
+      const newDist  = _dist(e.touches[0], e.touches[1]);
+      let newScale   = _initScale * (newDist / _initDist);
+      newScale       = Math.min(Math.max(newScale, minScale), 5);
+      const midX     = (e.touches[0].clientX + e.touches[1].clientX) / 2 - _cachedRect.left;
+      const midY     = (e.touches[0].clientY + e.touches[1].clientY) / 2 - _cachedRect.top;
       originX -= (midX - originX) * (newScale / scale - 1);
       originY -= (midY - originY) * (newScale / scale - 1);
-
       scale = newScale;
       scheduleTransform();
-    } else if (e.touches.length === 1 && !isPinching) {
-      const currentX = e.touches[0].clientX;
-      const currentY = e.touches[0].clientY;
-      originX += currentX - touchStartX;
-      originY += currentY - touchStartY;
-      touchStartX = currentX;
-      touchStartY = currentY;
+    } else if (e.touches.length === 1 && !_isPinching) {
+      const cx = e.touches[0].clientX;
+      const cy = e.touches[0].clientY;
+      originX += cx - _touchStartX;
+      originY += cy - _touchStartY;
+      _touchStartX = cx;
+      _touchStartY = cy;
       scheduleTransform();
     }
   }, { passive: false });
 
-  function onTouchDone() {
+  function _onTouchDone() {
     _restoreRendering();
-    markerLayer.style.pointerEvents = "";
+    markerLayer.classList.remove("gesturing");
     flushCounterScale();
-    // Release GPU layer after the final frame settles
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      mapWrapper.style.willChange = '';
-    }));
   }
 
-  mapContainer.addEventListener("touchcancel", onTouchDone, { passive: true });
+  mapContainer.addEventListener("touchcancel", _onTouchDone, { passive: true });
 
   mapContainer.addEventListener("touchend", function(e) {
-    if (e.touches.length < 2) isPinching = false;
-    if (e.touches.length === 0) {
-      // Restore marker interaction and sync counter-scale now that gesture is done
-      onTouchDone();
-    }
+    if (e.touches.length < 2) _isPinching = false;
+    if (e.touches.length === 0) _onTouchDone();
 
-    // Tap on empty map area — dismiss any active marker info
-    if (!placingMode && !isPinching && e.changedTouches.length === 1) {
+    if (!placingMode && !_isPinching && e.changedTouches.length === 1) {
       if (!e.target.closest(".map-marker")) {
         document.querySelectorAll(".map-marker.active").forEach(m => m.classList.remove("active"));
       }
     }
 
-    // Tap to place marker (DM on mobile)
-    if (placingMode && isAdmin && !isPinching && e.changedTouches.length === 1) {
+    if (placingMode && isAdmin && !_isPinching && e.changedTouches.length === 1) {
       const touch = e.changedTouches[0];
-      const dx = Math.abs(touch.clientX - touchStartX);
-      const dy = Math.abs(touch.clientY - touchStartY);
-      if (dx < 12 && dy < 12) {
-        const rect = mapContainer.getBoundingClientRect();
+      if (Math.abs(touch.clientX - _touchStartX) < 12 &&
+          Math.abs(touch.clientY - _touchStartY) < 12) {
+        const rect  = mapContainer.getBoundingClientRect();
         pendingCoords   = screenToPct(touch.clientX - rect.left, touch.clientY - rect.top);
         pendingCoords.x = Math.max(0, Math.min(100, pendingCoords.x));
         pendingCoords.y = Math.max(0, Math.min(100, pendingCoords.y));
@@ -294,160 +294,159 @@ if (isTouchDevice) {
 }
 
 // ── Marker System ─────────────────────────────────────────────────────────────
-const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
+const isAdmin = (() => {
+  try { return JSON.parse(localStorage.getItem("playerSession"))?.role === "admin"; }
+  catch { return false; }
+})();
+
 let markers       = [];
 let countries     = [];
 let placingMode   = false;
 let pendingCoords = null;
 let editingId     = null;
 
-// ── Country colours ───────────────────────────────────────────────────────────
 const COUNTRY_COLORS = [
   "#e74c3c","#e67e22","#f1c40f","#2ecc71","#1abc9c",
   "#3498db","#9b59b6","#e91e63","#00bcd4","#8bc34a",
   "#ff5722","#78909c"
 ];
 
-function saveMarker(marker) {
-  set(ref(db, "markers/" + marker.id), marker);
-}
+function saveMarker(marker)     { set(ref(db, "markers/" + marker.id), marker); }
+function deleteMarkerById(id)   { remove(ref(db, "markers/" + id)); }
+function generateId()           { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
-function deleteMarkerById(id) {
-  remove(ref(db, "markers/" + id));
-}
-
-function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2);
-}
-
-// Convert screen coords (relative to container) → image-percentage coords
 function screenToPct(screenX, screenY) {
-  const imageX = (screenX - originX) / scale;
-  const imageY = (screenY - originY) / scale;
   return {
-    x: (imageX / mapImage.naturalWidth)  * 100,
-    y: (imageY / mapImage.naturalHeight) * 100
+    x: ((screenX - originX) / scale / _imgNW) * 100,
+    y: ((screenY - originY) / scale / _imgNH) * 100
   };
 }
 
+// ── Differential marker rendering ─────────────────────────────────────────────
+// Tracks id → { el, hash } so unchanged markers are never touched (no DOM
+// teardown, no layout invalidation, no event-listener churn).
+const _markerEls = new Map();
+
 function renderMarkers() {
-  markerLayer.innerHTML = "";
+  const visible = new Set();
 
   markers.forEach(marker => {
     if (!isAdmin && marker.explored !== true) return;
+    visible.add(marker.id);
 
-    const el = document.createElement("div");
-    el.className          = "map-marker";
-    el.dataset.id         = marker.id;
-    el.dataset.type       = marker.type || "Other";
-    el.dataset.explored   = marker.explored !== false ? "true" : "false";
+    const hash = JSON.stringify(marker);
+    const existing = _markerEls.get(marker.id);
+    if (existing && existing.hash === hash) return; // nothing changed
 
-    // Percentage positions relative to the wrapper's natural image size
-    el.style.left = marker.x + "%";
-    el.style.top  = marker.y + "%";
+    if (existing) existing.el.remove();
 
-    // Stop pointerdown from bubbling to mapContainer (prevents drag hijack)
-    el.addEventListener("pointerdown", (e) => e.stopPropagation());
-
-    // Pin dot
-    const pin = document.createElement("div");
-    pin.className = "marker-pin";
-
-    // Tooltip
-    const tooltip = document.createElement("div");
-    tooltip.className = "marker-tooltip";
-
-    let html = `<div class="tooltip-name">${marker.name}</div>`;
-    if (marker.type) {
-      html += `<div class="tooltip-type">${marker.type}</div>`;
-    }
-    if (marker.population) {
-      html += `<div class="tooltip-row">Population: ${marker.population}</div>`;
-    }
-    if (marker.wealth) {
-      html += `<div class="tooltip-row">Wealth: ${marker.wealth}</div>`;
-    }
-    if (marker.mainRace) {
-      html += `<div class="tooltip-row">Majority: ${marker.mainRace}</div>`;
-    }
-    if (marker.religion) {
-      html += `<div class="tooltip-row">Religion: ${marker.religion}</div>`;
-    }
-    if (isAdmin && marker.notes) {
-      html += `<div class="tooltip-notes">${marker.notes}</div>`;
-    }
-    if (window.matchMedia("(pointer: coarse)").matches) {
-      html += `<div class="tooltip-tap-hint">Tap again to open <iconify-icon icon="lucide:arrow-right"></iconify-icon></div>`;
-    }
-    tooltip.innerHTML = html;
-
-    el.appendChild(pin);
-    el.appendChild(tooltip);
-
-    // DM-only edit/delete controls
-    if (isAdmin) {
-      const controls = document.createElement("div");
-      controls.className = "marker-dm-controls";
-
-      const editBtn = document.createElement("button");
-      editBtn.className   = "marker-edit-btn";
-      editBtn.textContent = "Edit";
-      editBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openEditModal(marker.id);
-      });
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className   = "marker-delete-btn";
-      deleteBtn.textContent = "Delete";
-      deleteBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (!confirm(`Delete "${marker.name}"? This cannot be undone.`)) return;
-        deleteMarkerById(marker.id);
-      });
-
-      controls.appendChild(editBtn);
-      controls.appendChild(deleteBtn);
-      el.appendChild(controls);
-    }
-
-    // Click / tap → navigate to location page
-    // On mobile: first tap shows info tooltip, second tap navigates
-    el.addEventListener("click", () => {
-      const isMobile = window.matchMedia("(pointer: coarse)").matches;
-      if (isMobile) {
-        if (el.classList.contains("active")) {
-          // Second tap — navigate
-          sessionStorage.setItem("lastLocationId", marker.id);
-          window.location.href = `location.html?id=${marker.id}`;
-        } else {
-          // First tap — show info, deactivate any other open marker
-          document.querySelectorAll(".map-marker.active").forEach(m => m.classList.remove("active"));
-          el.classList.add("active");
-        }
-      } else {
-        sessionStorage.setItem("lastLocationId", marker.id);
-        window.location.href = `location.html?id=${marker.id}`;
-      }
-    });
-
+    const el = _buildMarkerEl(marker);
+    _markerEls.set(marker.id, { el, hash });
     markerLayer.appendChild(el);
   });
+
+  // Remove markers that were deleted or are no longer visible.
+  _markerEls.forEach((data, id) => {
+    if (!visible.has(id)) {
+      data.el.remove();
+      _markerEls.delete(id);
+    }
+  });
+
+  // Apply correct counter-scale to newly added elements.
+  flushCounterScale();
+}
+
+function _buildMarkerEl(marker) {
+  const el = document.createElement("div");
+  el.className        = "map-marker";
+  el.dataset.id       = marker.id;
+  el.dataset.type     = marker.type || "Other";
+  el.dataset.explored = marker.explored !== false ? "true" : "false";
+  el.style.left       = marker.x + "%";
+  el.style.top        = marker.y + "%";
+  // Initial transform — flushCounterScale will update this correctly.
+  el.style.transform  = `translate3d(-50%,-50%,0) scale(${1 / scale})`;
+
+  // Stop pointerdown from bubbling to mapContainer (prevents drag hijack).
+  el.addEventListener("pointerdown", e => e.stopPropagation());
+
+  // Pin
+  const pin = document.createElement("div");
+  pin.className = "marker-pin";
+
+  // Tooltip
+  const tooltip = document.createElement("div");
+  tooltip.className = "marker-tooltip";
+  let html = `<div class="tooltip-name">${esc(marker.name)}</div>`;
+  if (marker.type)                html += `<div class="tooltip-type">${esc(marker.type)}</div>`;
+  if (marker.population)         html += `<div class="tooltip-row">Population: ${esc(marker.population)}</div>`;
+  if (marker.wealth)             html += `<div class="tooltip-row">Wealth: ${esc(marker.wealth)}</div>`;
+  if (marker.mainRace)           html += `<div class="tooltip-row">Majority: ${esc(marker.mainRace)}</div>`;
+  if (marker.religion)           html += `<div class="tooltip-row">Religion: ${esc(marker.religion)}</div>`;
+  if (isAdmin && marker.notes)   html += `<div class="tooltip-notes">${esc(marker.notes)}</div>`;
+  if (window.matchMedia("(pointer: coarse)").matches) {
+    html += `<div class="tooltip-tap-hint">Tap again to open <iconify-icon icon="lucide:arrow-right"></iconify-icon></div>`;
+  }
+  tooltip.innerHTML = html;
+
+  el.appendChild(pin);
+  el.appendChild(tooltip);
+
+  // DM controls
+  if (isAdmin) {
+    const controls = document.createElement("div");
+    controls.className = "marker-dm-controls";
+
+    const editBtn = document.createElement("button");
+    editBtn.className   = "marker-edit-btn";
+    editBtn.textContent = "Edit";
+    editBtn.addEventListener("click", e => { e.stopPropagation(); openEditModal(marker.id); });
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className   = "marker-delete-btn";
+    deleteBtn.textContent = "Delete";
+    deleteBtn.addEventListener("click", e => {
+      e.stopPropagation();
+      if (!confirm(`Delete "${marker.name}"? This cannot be undone.`)) return;
+      deleteMarkerById(marker.id);
+    });
+
+    controls.appendChild(editBtn);
+    controls.appendChild(deleteBtn);
+    el.appendChild(controls);
+  }
+
+  // Click / tap
+  el.addEventListener("click", () => {
+    if (window.matchMedia("(pointer: coarse)").matches) {
+      if (el.classList.contains("active")) {
+        sessionStorage.setItem("lastLocationId", marker.id);
+        window.location.href = `location.html?id=${marker.id}`;
+      } else {
+        document.querySelectorAll(".map-marker.active").forEach(m => m.classList.remove("active"));
+        el.classList.add("active");
+      }
+    } else {
+      sessionStorage.setItem("lastLocationId", marker.id);
+      window.location.href = `location.html?id=${marker.id}`;
+    }
+  });
+
+  return el;
 }
 
 // ── Place Mode ────────────────────────────────────────────────────────────────
 const btnPlaceMarker = document.getElementById("btn-place-marker");
 
-// Stop toolbar events from bubbling to the map container
 const dmToolbar = document.getElementById("dm-toolbar");
 if (dmToolbar) {
-  dmToolbar.addEventListener("click",       (e) => e.stopPropagation());
-  dmToolbar.addEventListener("pointerdown", (e) => e.stopPropagation());
+  dmToolbar.addEventListener("click",       e => e.stopPropagation());
+  dmToolbar.addEventListener("pointerdown", e => e.stopPropagation());
 }
 
-// Banner shown at bottom of map when placing mode is active
 const placingBanner = document.createElement("div");
-placingBanner.id = "placing-banner";
+placingBanner.id          = "placing-banner";
 placingBanner.textContent = "Click anywhere on the map to place a marker";
 mapContainer.appendChild(placingBanner);
 
@@ -461,34 +460,28 @@ if (btnPlaceMarker) {
   });
 }
 
-// Placing is handled in pointerup above.
-
 // ── Marker Modal ──────────────────────────────────────────────────────────────
-const markerModal  = document.getElementById("marker-modal");
-const modalTitle   = document.getElementById("modal-title");
-const mName        = document.getElementById("m-name");
-const mType        = document.getElementById("m-type");
-const mPopulation  = document.getElementById("m-population");
-const mWealth      = document.getElementById("m-wealth");
-const mMainRace    = document.getElementById("m-main-race");
-const mReligion    = document.getElementById("m-religion");
-const mExplored    = document.getElementById("m-explored");
-const mNotes       = document.getElementById("m-notes");
-const modalError   = document.getElementById("modal-error");
-const mSave        = document.getElementById("m-save");
-const mCancel      = document.getElementById("m-cancel");
+const markerModal = document.getElementById("marker-modal");
+const modalTitle  = document.getElementById("modal-title");
+const mName       = document.getElementById("m-name");
+const mType       = document.getElementById("m-type");
+const mPopulation = document.getElementById("m-population");
+const mWealth     = document.getElementById("m-wealth");
+const mMainRace   = document.getElementById("m-main-race");
+const mReligion   = document.getElementById("m-religion");
+const mExplored   = document.getElementById("m-explored");
+const mNotes      = document.getElementById("m-notes");
+const modalError  = document.getElementById("modal-error");
+const mSave       = document.getElementById("m-save");
+const mCancel     = document.getElementById("m-cancel");
 
 function openPlaceModal() {
-  editingId = null;
+  editingId             = null;
   modalTitle.textContent = "Place Marker";
-  mName.value       = "";
+  mName.value = mPopulation.value = mWealth.value = mReligion.value = mNotes.value = "";
   mType.value       = "City";
-  mPopulation.value = "";
-  mWealth.value     = "";
   mMainRace.value   = "";
-  mReligion.value   = "";
   mExplored.checked = false;
-  mNotes.value      = "";
   modalError.textContent = "";
   populateCountrySelect("");
   markerModal.classList.add("open");
@@ -498,18 +491,17 @@ function openPlaceModal() {
 function openEditModal(id) {
   const marker = markers.find(m => m.id === id);
   if (!marker) return;
-
-  editingId = id;
-  modalTitle.textContent  = "Edit Marker";
-  mName.value             = marker.name       || "";
-  mType.value             = marker.type       || "City";
-  mPopulation.value       = marker.population || "";
-  mWealth.value           = marker.wealth     || "";
-  mMainRace.value         = marker.mainRace   || "";
-  mReligion.value         = marker.religion   || "";
-  mExplored.checked       = marker.explored   === true;
-  mNotes.value            = marker.notes      || "";
-  modalError.textContent  = "";
+  editingId              = id;
+  modalTitle.textContent = "Edit Marker";
+  mName.value            = marker.name       || "";
+  mType.value            = marker.type       || "City";
+  mPopulation.value      = marker.population || "";
+  mWealth.value          = marker.wealth     || "";
+  mMainRace.value        = marker.mainRace   || "";
+  mReligion.value        = marker.religion   || "";
+  mExplored.checked      = marker.explored   === true;
+  mNotes.value           = marker.notes      || "";
+  modalError.textContent = "";
   populateCountrySelect(marker.countryId || "");
   markerModal.classList.add("open");
   mName.focus();
@@ -534,13 +526,9 @@ function closeMarkerModal(wasEditing) {
 
 mSave.addEventListener("click", () => {
   const name = mName.value.trim();
-  if (!name) {
-    modalError.textContent = "Name is required.";
-    return;
-  }
+  if (!name) { modalError.textContent = "Name is required."; return; }
 
   const wasEditing = !!editingId;
-
   if (wasEditing) {
     const existing = markers.find(m => m.id === editingId);
     if (existing) {
@@ -573,32 +561,19 @@ mSave.addEventListener("click", () => {
       y:          pendingCoords.y
     });
   }
-
   closeMarkerModal(wasEditing);
 });
 
 mCancel.addEventListener("click", () => closeMarkerModal(!!editingId));
-
-// Close modal on overlay click
-markerModal.addEventListener("click", (e) => {
-  if (e.target === markerModal) closeMarkerModal(!!editingId);
-});
-
-// Allow Enter to submit the form
-mName.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") mSave.click();
-});
-
+markerModal.addEventListener("click", e => { if (e.target === markerModal) closeMarkerModal(!!editingId); });
+mName.addEventListener("keydown", e => { if (e.key === "Enter") mSave.click(); });
 
 // ── Show DM Toolbar ───────────────────────────────────────────────────────────
-if (isAdmin && dmToolbar) {
-  dmToolbar.style.display = "flex";
-}
+if (isAdmin && dmToolbar) dmToolbar.style.display = "flex";
 
 // ── Firebase Live Sync ────────────────────────────────────────────────────────
 onValue(markersRef, snapshot => {
-  const data = snapshot.val();
-  markers = data ? Object.values(data) : [];
+  markers = snapshot.val() ? Object.values(snapshot.val()) : [];
   renderMarkers();
   renderLocationList();
 });
@@ -620,18 +595,16 @@ onValue(countriesRef, snapshot => {
   const data = snapshot.val();
   countries = data ? Object.values(data) : [];
 
-  // One-time seed on first load when the list is empty
   if (!_countriesSeeded && countries.length === 0) {
     _countriesSeeded = true;
     DEFAULT_COUNTRIES.forEach(c => {
       const id = generateId();
       set(ref(db, `countries/${id}`), { id, name: c.name, color: c.color, description: null });
     });
-    return; // onValue fires again once the writes land
+    return;
   }
   _countriesSeeded = true;
 
-  // Collapse all countries by default on first load
   if (!_defaultCollapseApplied) {
     _defaultCollapseApplied = true;
     countries.forEach(c => collapsedCountries.add(c.id));
@@ -643,30 +616,23 @@ onValue(countriesRef, snapshot => {
 });
 
 // ── Location Panel ────────────────────────────────────────────────────────────
-const locationPanel  = document.getElementById("location-panel");
-const lpOpenBtn      = document.getElementById("lp-open-btn");
-const lpCloseBtn     = document.getElementById("lp-close-btn");
-const lpBody         = document.getElementById("lp-body");
-const lpSearch       = document.getElementById("lp-search");
+const locationPanel   = document.getElementById("location-panel");
+const lpOpenBtn       = document.getElementById("lp-open-btn");
+const lpCloseBtn      = document.getElementById("lp-close-btn");
+const lpBody          = document.getElementById("lp-body");
+const lpSearch        = document.getElementById("lp-search");
 const lpAddCountryBtn = document.getElementById("lp-add-country-btn");
-const lpResizeHandle = document.getElementById("lp-resize-handle");
+const lpResizeHandle  = document.getElementById("lp-resize-handle");
 
 let lpSearchQuery = "";
-const collapsedCountries = new Set();  // ids of collapsed country sections
+const collapsedCountries    = new Set();
 let _defaultCollapseApplied = false;
 
-// Show admin-only panel controls
-if (isAdmin) {
-  lpAddCountryBtn.style.display = "inline-flex";
-}
+if (isAdmin) lpAddCountryBtn.style.display = "inline-flex";
 
-// Prevent clicks/drags on the button and panel from bubbling into the map's
-// pointerdown handler (which would call setPointerCapture and swallow the click).
-lpOpenBtn.addEventListener("pointerdown",      e => e.stopPropagation());
-locationPanel.addEventListener("pointerdown",  e => e.stopPropagation());
-
-// Prevent scrolling inside the panel from zooming the map.
-locationPanel.addEventListener("wheel", e => e.stopPropagation(), { passive: true });
+lpOpenBtn.addEventListener("pointerdown",     e => e.stopPropagation());
+locationPanel.addEventListener("pointerdown", e => e.stopPropagation());
+locationPanel.addEventListener("wheel",       e => e.stopPropagation(), { passive: true });
 
 lpOpenBtn.addEventListener("click", e => {
   e.stopPropagation();
@@ -685,72 +651,55 @@ lpSearch.addEventListener("input", () => {
 });
 
 // ── Panel resize ──────────────────────────────────────────────────────────────
-let isResizing       = false;
-let resizeStartX     = 0;
-let resizeStartWidth = 0;
-const LP_MIN = 200;
-const LP_MAX = 520;
+let _isResizing       = false;
+let _resizeStartX     = 0;
+let _resizeStartWidth = 0;
+const LP_MIN = 200, LP_MAX = 520;
 
 lpResizeHandle.addEventListener("pointerdown", e => {
-  isResizing       = true;
-  resizeStartX     = e.clientX;
-  resizeStartWidth = locationPanel.offsetWidth;
+  _isResizing       = true;
+  _resizeStartX     = e.clientX;
+  _resizeStartWidth = locationPanel.offsetWidth;
   document.body.style.userSelect = "none";
   lpResizeHandle.setPointerCapture(e.pointerId);
   e.stopPropagation();
 });
-
 lpResizeHandle.addEventListener("pointermove", e => {
-  if (!isResizing) return;
-  const dx = resizeStartX - e.clientX;
-  const w  = Math.min(LP_MAX, Math.max(LP_MIN, resizeStartWidth + dx));
+  if (!_isResizing) return;
+  const w = Math.min(LP_MAX, Math.max(LP_MIN, _resizeStartWidth + (_resizeStartX - e.clientX)));
   locationPanel.style.width = w + "px";
 });
-
-lpResizeHandle.addEventListener("pointerup",     () => { isResizing = false; document.body.style.userSelect = ""; });
-lpResizeHandle.addEventListener("pointercancel", () => { isResizing = false; document.body.style.userSelect = ""; });
+lpResizeHandle.addEventListener("pointerup",     () => { _isResizing = false; document.body.style.userSelect = ""; });
+lpResizeHandle.addEventListener("pointercancel", () => { _isResizing = false; document.body.style.userSelect = ""; });
 
 // ── Render location list ──────────────────────────────────────────────────────
 function renderLocationList() {
   lpBody.innerHTML = "";
 
-  const visibleMarkers = markers.filter(m => {
+  const vis = markers.filter(m => {
     if (!isAdmin && m.explored !== true) return false;
     if (!lpSearchQuery) return true;
     return (m.name || "").toLowerCase().includes(lpSearchQuery)
         || (m.type || "").toLowerCase().includes(lpSearchQuery);
   });
 
-  if (visibleMarkers.length === 0) {
+  if (vis.length === 0) {
     lpBody.innerHTML = `<p class="lp-empty">${lpSearchQuery ? "No matches found." : "No locations added yet."}</p>`;
     return;
   }
 
-  // Group by country
-  const groups = [];
-  countries.forEach(c => {
-    const items = visibleMarkers.filter(m => m.countryId === c.id);
-    groups.push({ type: "country", country: c, items });
-  });
-  const unassigned = visibleMarkers.filter(m => !m.countryId || !countries.find(c => c.id === m.countryId));
-  if (unassigned.length > 0) {
-    groups.push({ type: "unassigned", items: unassigned });
-  }
-
-  // If no countries exist at all, render a flat list
   if (countries.length === 0) {
-    visibleMarkers.forEach(m => lpBody.appendChild(buildLocationItem(m)));
+    vis.forEach(m => lpBody.appendChild(buildLocationItem(m)));
     return;
   }
 
-  groups.forEach(group => {
-    if (group.items.length === 0 && lpSearchQuery) return; // hide empty groups when searching
+  const groups = countries.map(c => ({ type: "country", country: c, items: vis.filter(m => m.countryId === c.id) }));
+  const unassigned = vis.filter(m => !m.countryId || !countries.find(c => c.id === m.countryId));
+  if (unassigned.length > 0) groups.push({ type: "unassigned", items: unassigned });
 
-    if (group.type === "country") {
-      lpBody.appendChild(buildCountrySection(group.country, group.items));
-    } else {
-      lpBody.appendChild(buildUnassignedSection(group.items));
-    }
+  groups.forEach(g => {
+    if (g.items.length === 0 && lpSearchQuery) return;
+    lpBody.appendChild(g.type === "country" ? buildCountrySection(g.country, g.items) : buildUnassignedSection(g.items));
   });
 }
 
@@ -769,16 +718,17 @@ function buildCountrySection(country, items) {
     </div>
     <div class="lp-country-right">
       ${isAdmin ? `
-        <button class="lp-icon-btn lp-edit-country" title="Edit country" data-id="${country.id}"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
-        <button class="lp-icon-btn lp-del-country"  title="Delete country" data-id="${country.id}"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
+        <button class="lp-icon-btn lp-edit-country" title="Edit" data-id="${country.id}"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+        <button class="lp-icon-btn lp-del-country"  title="Delete" data-id="${country.id}"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
       ` : ""}
-      <button class="lp-icon-btn lp-collapse-btn" title="${isCollapsed ? "Expand" : "Collapse"}">${isCollapsed ? '<iconify-icon icon="lucide:chevron-right"></iconify-icon>' : '<iconify-icon icon="lucide:chevron-down"></iconify-icon>'}</button>
-    </div>
-  `;
+      <button class="lp-icon-btn lp-collapse-btn">${isCollapsed
+        ? '<iconify-icon icon="lucide:chevron-right"></iconify-icon>'
+        : '<iconify-icon icon="lucide:chevron-down"></iconify-icon>'}</button>
+    </div>`;
 
   if (country.description) {
     const desc = document.createElement("div");
-    desc.className = "lp-country-desc";
+    desc.className   = "lp-country-desc";
     desc.textContent = country.description;
     header.appendChild(desc);
   }
@@ -787,31 +737,19 @@ function buildCountrySection(country, items) {
   itemsWrap.className = "lp-country-items" + (isCollapsed ? " collapsed" : "");
   items.forEach(m => itemsWrap.appendChild(buildLocationItem(m)));
 
-  // Collapse toggle
   header.querySelector(".lp-collapse-btn").addEventListener("click", e => {
     e.stopPropagation();
-    if (collapsedCountries.has(country.id)) {
-      collapsedCountries.delete(country.id);
-    } else {
-      collapsedCountries.add(country.id);
-    }
+    collapsedCountries.has(country.id) ? collapsedCountries.delete(country.id) : collapsedCountries.add(country.id);
     renderLocationList();
   });
 
-  // Edit country
   if (isAdmin) {
-    header.querySelector(".lp-edit-country").addEventListener("click", e => {
-      e.stopPropagation();
-      openCountryModal(country.id);
-    });
+    header.querySelector(".lp-edit-country").addEventListener("click", e => { e.stopPropagation(); openCountryModal(country.id); });
     header.querySelector(".lp-del-country").addEventListener("click", e => {
       e.stopPropagation();
       if (!confirm(`Delete country "${country.name}"? Markers will become unassigned.`)) return;
       remove(ref(db, `countries/${country.id}`));
-      // Clear countryId from markers
-      markers.filter(m => m.countryId === country.id).forEach(m => {
-        set(ref(db, `markers/${m.id}/countryId`), null);
-      });
+      markers.filter(m => m.countryId === country.id).forEach(m => set(ref(db, `markers/${m.id}/countryId`), null));
     });
   }
 
@@ -834,10 +772,10 @@ function buildUnassignedSection(items) {
       <span class="lp-country-count">${items.length}</span>
     </div>
     <div class="lp-country-right">
-      <button class="lp-icon-btn lp-collapse-btn">${isCollapsed ? '<iconify-icon icon="lucide:chevron-right"></iconify-icon>' : '<iconify-icon icon="lucide:chevron-down"></iconify-icon>'}</button>
-    </div>
-  `;
-
+      <button class="lp-icon-btn lp-collapse-btn">${isCollapsed
+        ? '<iconify-icon icon="lucide:chevron-right"></iconify-icon>'
+        : '<iconify-icon icon="lucide:chevron-down"></iconify-icon>'}</button>
+    </div>`;
 
   const itemsWrap = document.createElement("div");
   itemsWrap.className = "lp-country-items" + (isCollapsed ? " collapsed" : "");
@@ -845,9 +783,7 @@ function buildUnassignedSection(items) {
 
   header.querySelector(".lp-collapse-btn").addEventListener("click", e => {
     e.stopPropagation();
-    collapsedCountries.has("__unassigned__")
-      ? collapsedCountries.delete("__unassigned__")
-      : collapsedCountries.add("__unassigned__");
+    collapsedCountries.has("__unassigned__") ? collapsedCountries.delete("__unassigned__") : collapsedCountries.add("__unassigned__");
     renderLocationList();
   });
 
@@ -859,7 +795,6 @@ function buildUnassignedSection(items) {
 function buildLocationItem(marker) {
   const item = document.createElement("div");
   item.className = "lp-item";
-
   const explored = marker.explored === true;
   item.innerHTML = `
     <div class="lp-item-dot ${explored ? "lp-dot-explored" : "lp-dot-unexplored"}"></div>
@@ -867,36 +802,27 @@ function buildLocationItem(marker) {
       <span class="lp-item-name">${esc(marker.name)}</span>
       <span class="lp-item-type">${esc(marker.type || "")}</span>
     </div>
-    <button class="lp-item-goto" title="Focus on map"><iconify-icon icon="lucide:arrow-right"></iconify-icon></button>
-  `;
+    <button class="lp-item-goto" title="Focus on map"><iconify-icon icon="lucide:arrow-right"></iconify-icon></button>`;
 
-  item.querySelector(".lp-item-goto").addEventListener("click", e => {
-    e.stopPropagation();
-    focusMarker(marker);
-  });
-
+  item.querySelector(".lp-item-goto").addEventListener("click", e => { e.stopPropagation(); focusMarker(marker); });
   item.addEventListener("click", () => {
     sessionStorage.setItem("lastLocationId", marker.id);
     window.location.href = `location.html?id=${marker.id}`;
   });
-
   return item;
 }
 
 function focusMarker(marker) {
   _updateCachedRect();
-  const imageX = (marker.x / 100) * mapImage.naturalWidth;
-  const imageY = (marker.y / 100) * mapImage.naturalHeight;
-  originX = _cachedRect.width  / 2 - imageX * scale;
-  originY = _cachedRect.height / 2 - imageY * scale;
+  originX = _cachedRect.width  / 2 - (marker.x / 100) * _imgNW * scale;
+  originY = _cachedRect.height / 2 - (marker.y / 100) * _imgNH * scale;
   clampToBounds();
   updateTransform();
 
-  // Flash the pin
   const pin = markerLayer.querySelector(`[data-id="${marker.id}"] .marker-pin`);
   if (pin) {
     pin.classList.remove("focused");
-    void pin.offsetWidth; // force reflow to restart animation
+    void pin.offsetWidth;
     pin.classList.add("focused");
     setTimeout(() => pin.classList.remove("focused"), 1400);
   }
@@ -904,71 +830,60 @@ function focusMarker(marker) {
 
 function esc(str) {
   return String(str ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 // ── Country Modal ─────────────────────────────────────────────────────────────
-const countryModal   = document.getElementById("country-modal");
-const cmModalTitle   = document.getElementById("cm-modal-title");
-const cmName         = document.getElementById("cm-name");
-const cmDesc         = document.getElementById("cm-desc");
+const countryModal    = document.getElementById("country-modal");
+const cmModalTitle    = document.getElementById("cm-modal-title");
+const cmName          = document.getElementById("cm-name");
+const cmDesc          = document.getElementById("cm-desc");
 const cmColorSwatches = document.getElementById("cm-color-swatches");
-const cmError        = document.getElementById("cm-error");
-const cmSave         = document.getElementById("cm-save");
-const cmCancel       = document.getElementById("cm-cancel");
+const cmError         = document.getElementById("cm-error");
+const cmSave          = document.getElementById("cm-save");
+const cmCancel        = document.getElementById("cm-cancel");
 
-let editingCountryId  = null;
-let selectedCountryColor = COUNTRY_COLORS[0];
+let _editingCountryId    = null;
+let _selectedCountryColor = COUNTRY_COLORS[0];
 
 lpAddCountryBtn.addEventListener("click", () => openCountryModal(null));
 
 function openCountryModal(id) {
-  editingCountryId = id;
-  const existing   = id ? countries.find(c => c.id === id) : null;
-  cmModalTitle.textContent     = existing ? "Edit Country" : "Add Country";
-  cmName.value                 = existing ? (existing.name  || "") : "";
-  cmDesc.value                 = existing ? (existing.description || "") : "";
-  selectedCountryColor         = existing ? (existing.color || COUNTRY_COLORS[0]) : COUNTRY_COLORS[0];
-  cmError.textContent          = "";
-  buildCountryColorSwatches();
+  _editingCountryId = id;
+  const existing    = id ? countries.find(c => c.id === id) : null;
+  cmModalTitle.textContent = existing ? "Edit Country" : "Add Country";
+  cmName.value             = existing?.name        || "";
+  cmDesc.value             = existing?.description || "";
+  _selectedCountryColor    = existing?.color || COUNTRY_COLORS[0];
+  cmError.textContent      = "";
+  _buildColorSwatches();
   countryModal.classList.add("open");
   cmName.focus();
 }
 
-function buildCountryColorSwatches() {
+function _buildColorSwatches() {
   cmColorSwatches.innerHTML = "";
   COUNTRY_COLORS.forEach(color => {
     const sw = document.createElement("div");
-    sw.className = "country-color-swatch" + (color === selectedCountryColor ? " selected" : "");
+    sw.className = "country-color-swatch" + (color === _selectedCountryColor ? " selected" : "");
     sw.style.background = color;
     sw.title = color;
     sw.addEventListener("click", () => {
-      selectedCountryColor = color;
-      cmColorSwatches.querySelectorAll(".country-color-swatch").forEach(s =>
-        s.classList.toggle("selected", s.title === color));
+      _selectedCountryColor = color;
+      cmColorSwatches.querySelectorAll(".country-color-swatch").forEach(s => s.classList.toggle("selected", s.title === color));
     });
     cmColorSwatches.appendChild(sw);
   });
 }
 
-function closeCountryModal() {
-  countryModal.classList.remove("open");
-  editingCountryId = null;
-}
+function closeCountryModal() { countryModal.classList.remove("open"); _editingCountryId = null; }
 
 cmSave.addEventListener("click", () => {
   const name = cmName.value.trim();
   if (!name) { cmError.textContent = "Name is required."; return; }
-  const id = editingCountryId || generateId();
-  set(ref(db, `countries/${id}`), {
-    id,
-    name,
-    color:       selectedCountryColor,
-    description: cmDesc.value.trim() || null
-  });
+  const id = _editingCountryId || generateId();
+  set(ref(db, `countries/${id}`), { id, name, color: _selectedCountryColor, description: cmDesc.value.trim() || null });
   closeCountryModal();
 });
 

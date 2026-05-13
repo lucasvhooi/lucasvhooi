@@ -625,7 +625,7 @@
   }
   .tag-filter::-webkit-scrollbar { display: none; }
 
-  .modal-overlay { align-items: flex-end; }
+  .modal-overlay { align-items: center; }
   .modal-box {
     width: 100%;
     max-width: 100%;

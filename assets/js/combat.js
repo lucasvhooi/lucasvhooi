@@ -455,7 +455,7 @@ function sortCombatants() {
 // ── Clear all ─────────────────────────────────────────────────────────────────
 document.getElementById("btn-clear").addEventListener("click", () => {
   if (!confirm("Remove all combatants and reset the tracker?")) return;
-  state = { round: 1, currentTurn: -1, combatants: [] };
+  state = { round: 1, currentTurn: -1, combatants: [], logEntries: [], lootLog: [] };
   addLog("Tracker cleared.", "info");
   render();
 });
