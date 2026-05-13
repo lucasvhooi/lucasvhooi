@@ -31,16 +31,6 @@
 
   const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
 
-  // Wrap nav logo in a link back to campaign selector
-  const navLogo = document.querySelector('nav .nav-logo');
-  if (navLogo && navLogo.parentElement.tagName !== 'A') {
-    const a = document.createElement('a');
-    a.href = 'campaigns.html';
-    a.style.cssText = 'display:flex;align-items:center;flex-shrink:0';
-    navLogo.parentNode.insertBefore(a, navLogo);
-    a.appendChild(navLogo);
-  }
-
   // Highlight the current page's nav link
   const links   = document.querySelectorAll("nav a");
   const current = window.location.pathname.split("/").pop();
@@ -67,10 +57,12 @@
   }
 
   // Show logged-in user + logout in nav (right side)
+  // Skip if the page already injected its own right-side content via the nav-right slot
   try {
     const s = JSON.parse(localStorage.getItem("playerSession"));
     const navUl = document.querySelector("nav ul");
-    if (s && navUl) {
+    const navHasSlotContent = !!document.querySelector("nav > div");
+    if (s && navUl && !navHasSlotContent) {
       const li = document.createElement("li");
       li.style.marginLeft = "auto";
       li.innerHTML =
