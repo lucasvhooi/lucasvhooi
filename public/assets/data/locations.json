@@ -1,0 +1,729 @@
+{
+    "continents": {
+        "Gelonus": {
+            "name": "Gelonus",
+            "description": "A continent rich in history and culture.",
+            "map": "Images/Maps/map.webp",
+            "locations": {
+                "Frostholm": {
+                    "Encountered": "yes",
+                    "name": "Capital) Frostholm",
+                    "population": "5.7K",
+                    "wealth": "High",
+                    "map": "Images/Maps/Gelonus/FrostholmMap.webp",
+                    "description": "The capital of Gelonus."
+                },
+                "Beckinsdale": {
+                    "name": "1) Beckinsdale",
+                    "Encountered": "yes",
+                    "population": "76",
+                    "wealth": "Medium",
+                    "map": "Images/Maps/Gelonus/BeckinsdaleMap.webp",
+                    "description": null
+                },
+                "Yarn": {
+                    "name": "2) Yarn",
+                    "Encountered": "yes",
+                    "population": "15",
+                    "wealth": "Poor",
+                    "map": "Images/Maps/Gelonus/YarnMap.webp",
+                    "description": null
+                },
+                "The Eroded Caverns": {
+                    "name": "3) The Eroded Caverns",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": "Images/Maps/Gelonus/ErodedCaverns.webp",
+                    "description": null
+                },
+                "Azmos Roots": {
+                    "name": "4) Azmos Roots",
+                    "Encountered": "yes",
+                    "population": null,
+                    "wealth": null,
+                    "map": "Images/Maps/Gelonus/AzmosRootsMap.webp",
+                    "description": null
+                },
+                "Hocus Lookout": {
+                    "name": "5) Hocus Lookout",
+                    "Encountered": "yes",
+                    "population": null,
+                    "wealth": null,
+                    "map": "Images/Maps/Gelonus/HocusLookoutMap.webp",
+                    "description": null
+                },
+                "Mirstone": {
+                    "name": "6) Mirstone",
+                    "Encountered": "yes",
+                    "population": "84",
+                    "wealth": "Rich",
+                    "map": "Images/Maps/Gelonus/MirstoneMap.webp",
+                    "description": null
+                },
+                "Onyx Hollow": {
+                    "name": "7) Onyx Hollow",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Deadly Delves": {
+                    "name": "8) Deadly Delves",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "The Drunk Bard": {
+                    "name": "9) The Drunk Bard",
+                    "Encountered": "yes",
+                    "population": "Mixed",
+                    "wealth": "Mixed",
+                    "map": "Images/Maps/Gelonus/DrunkenBard.webp",
+                    "description": null
+                },
+                "Pirn Farms": {
+                    "name": "10) Pirn Farms",
+                    "Encountered": "yes",
+                    "population": null,
+                    "wealth": null,
+                    "map": "Images/Maps/Gelonus/PirnFarmsMap.webp",
+                    "description": null
+                },
+                "Thaunburg Mine": {
+                    "name": "11) Thaunburg Mine",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": "Images/Maps/map.webp",
+                    "description": null
+                },
+                "Ruthorham": {
+                    "name": "12) Ruthorham",
+                    "Encountered": "yes",
+                    "population": "103",
+                    "wealth": "Medium",
+                    "map": "Images/Maps/Gelonus/RuthorhamMap.webp",
+                    "description": null
+                },
+                "Boundary Sanctuary": {
+                    "name": "13) Boundary Sanctuary",
+                    "Encountered": "yes",
+                    "population": null,
+                    "wealth": null,
+                    "map": "Images/Maps/Gelonus/BoundarySanctuaryMap.webp",
+                    "description": null
+                }
+            }
+        },
+        "Arcadia": {
+            "name": "Arcadia",
+            "description": "The largest and most populous continent.",
+            "map": "Images/Maps/map.webp",
+            "locations": {
+                "eldoria": {
+                    "name": "Capital) Eldoria",
+                    "Encountered": "yes",
+                    "population": null,
+                    "wealth": null,
+                    "map": "Images/Maps/Arcadia/EldoriaMap.webp",
+                    "description": null
+                },
+                "silverwyn": {
+                    "name": "Second City) Silverwyn",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia1": {
+                    "name": "1) Silverleaf",
+                    "Encountered": "yes",
+                    "population": 330,
+                    "wealth": "Rich",
+                    "map": "Images/Maps/Arcadia/SilverleafMap.webp",
+                    "description": "Nestled deep within the whispering trees of the Velowynn Forest, Silverleaf is a tranquil elven town bathed in perpetual moonlight. Graceful spires and gabled rooftops rise from the earth as though grown from the roots themselves, each structure adorned with delicate silver-leaf motifs that shimmer with ethereal light. A crystal-clear river meanders gently through the heart of town, crossed by mossy stone bridges and lined with glowing flora that sway as if alive. At night, the town radiates a soft glow, as magical lanterns awaken and the buildings hum with quiet enchantments. From the melodic bustle of Moonshade Market to the sacred hush of the Temple of Elenya, Silverleaf is a haven of harmony and mysticism. Here, elven artisans, rangers, weavers, and spellwrights live in tune with nature, their lives steeped in ancient tradition and quiet wonder. Whether you're seeking rare herbs, arcane wisdom, or a moment of serenity beneath the moon\u2019s gaze, Silverleaf welcomes all with open arms\u2014though few ever wish to leave its dreamlike embrace."
+                },
+                "Arcadia2": {
+                    "name": "2) Elarion Ruins",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia3": {
+                    "name": "3) Faenwyn",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia4": {
+                    "name": "4) Aelwyn's Depths",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia5": {
+                    "name": "5) Nimriel",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia6": {
+                    "name": "6) Winter\u2019s Rest",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia7": {
+                    "name": "7) Aelwen",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia8": {
+                    "name": "8) HeimdallsVigil",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia9": {
+                    "name": "9) The Celestial Bastion",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia10": {
+                    "name": "10) Aurora Watch",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia11": {
+                    "name": "11) Myrinel",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia12": {
+                    "name": "12) Sylvanroot Mines",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia13": {
+                    "name": "13) Zhar'oth's Layer",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia14": {
+                    "name": "14) Silverspire Vein",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia15": {
+                    "name": "15) Lothiel",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia16": {
+                    "name": "16) Runestone Remnants of Urd",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia17": {
+                    "name": "17) L\u00faminasyl",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": "A luminous settlement where bioluminescent flora light up twilight streets."
+                },
+                "Arcadia18": {
+                    "name": "18) Echoes of Ymir",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": "Ruins that seem to hum with the memory of the primordial giant, a reminder of the world\u2019s chaotic birth."
+                },
+                "Arcadia19": {
+                    "name": "19) Labyrinth\u2019s Remnant",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia20": {
+                    "name": "20) Lorithien Vale",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": "A mystical settlement named for its ethereal beauty and the softly glowing flora that light its nights."
+                },
+                "Arcadia21": {
+                    "name": "21) Windrider Vale",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": "Perched in a breezy valley, this village is famed for its soaring bridges and airy, open spaces."
+                },
+                "Arcadia22": {
+                    "name": "22) Aurora\u2019s Veil ",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": "A secret passage where gentle, shifting lights evoke a sense of ancient wonder."
+                },
+                "Arcadia23": {
+                    "name": "23) Eldertree Glen",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": "A serene village dominated by a massive, ancient tree believed to be the guardian of its people."
+                },
+                "Arcadia24": {
+                    "name": "24) Lorithien Hollow",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": "A secret village nestled in a hidden glen, alive with glowing flora and ethereal beauty."
+                },
+                "Arcadia25": {
+                    "name": "25) The Everflame Talisman",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia26": {
+                    "name": "26) Old Olympus",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia27": {
+                    "name": "27) Olympus\u2019 Edge",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia28": {
+                    "name": "28) Bifr\u00f6st\u2019s Remnants",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia29": {
+                    "name": "29) Ares' Crucible",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Arcadia30": {
+                    "name": "30) Aelorian Beacon",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": "Radiating soft luminescence, this majestic tower\u2019s delicate arches and runic inscriptions inspire both awe and steadfast courage."
+                },
+                "Arcadia31": {
+                    "name": "31) Sylvan Watch",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": "An elegant watchtower rising from the heart of an ancient forest, its intricate carvings echoing timeless elven lore."
+                }
+            }
+        },
+        "Elysium Colony": {
+            "name": "Elysium Colony",
+            "description": "The largest and most populous continent.",
+            "map": "Images/Maps/map.webp",
+            "locations": {
+                "apollo": {
+                    "name": "Capital) Apollo",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "delphoria": {
+                    "name": "Second City) Delphoria",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                }
+            }
+        },
+        "Thule": {
+            "name": "Thule",
+            "description": "The largest and most populous continent.",
+            "map": "Images/Maps/map.webp",
+            "locations": {
+                "demeteron": {
+                    "name": "Capital) Demeteron",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "ironhold": {
+                    "name": "Second City) Ironhold",
+                    "population": 4076,
+                    "wealth": "Rich",
+                    "map": "Images/Maps/Thule/Ironhold.webp",
+                    "description": "Built atop a colossal stalagmite deep within the Stonecradle Peaks, Ironhold is a fortress-city carved into the mountain itself. Home to around 4,000 dwarves, halflings, and cliffborn vikings, it is a stronghold of stone, steel, and unshakable pride. There is only one way in and one way out\u2014a narrow, winding tunnel guarded day and night. Its blacksteel gates have never fallen, earning Ironhold the title of \u201cthe Impenetrable Spine.\u201d Dwarves forge legendary weapons in molten halls, halflings trade in spice and song, and viking clans watch from their fire-lit longhalls etched into the mountain walls. Though hidden from the world, Ironhold's name is spoken with awe\u2014and caution\u2014wherever warriors gather."
+                },
+                "emberstone": {
+                    "name": "Third City) Emberstone",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Thule14": {
+                    "name": "14) Sanctum Salora",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": "",
+                    "map": null,
+                    "description": ""
+                },
+                "Thule36": {
+                    "name": "36) Varghelm",
+                    "Encountered": "no",
+                    "population": 428,
+                    "wealth": "Poor",
+                    "map": "Images/Maps/Thule/Verghelm.webp",
+                    "description": "Perched high on the jagged cliffs of the northern coast, Varghelm is a rugged coastal town built into wind-blasted stone and frostbitten soil. Its wooden structures cling to the rock like stubborn roots, lashed by icy winds and the constant roar of the sea below. Wide, looping paths connect stone-walled districts, and a massive longhall towers above the rest\u2014overlooking both the settlement and the endless horizon of crashing waves. Founded by sea-raiders and wolf-cloaked wanderers, Varghelm has grown into a hardened yet proud community. Fishers and frost-smiths labor by day, while skalds sing of storms and sacrifice by firelight at night. The townsfolk revere old gods\u2014some giant-blooded, some bestial\u2014and speak of a time when the sea was a path, not a prison. They say the cliffs remember the first screams of battle\u2026 and the last songs of those who never returned from the sea."
+                }
+            }
+        },
+        "Hermesia": {
+            "name": "Hermesia",
+            "description": "The largest and most populous continent.",
+            "map": "Images/Maps/map.webp",
+            "locations": {
+                "thalassia": {
+                    "name": "Capital) Thalassia",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "valerium": {
+                    "name": "Second City) Valerium",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "mythoisa": {
+                    "name": "Third City) Mythoisa",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                }
+            }
+        },
+        "Pythos": {
+            "name": "Pythos",
+            "description": "The largest and most populous continent.",
+            "map": "Images/Maps/map.webp",
+            "locations": {
+                "stromwatch": {
+                    "name": "Capital) Stormwatch",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "hestia": {
+                    "name": "Second City) Hestia",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "solstoria": {
+                    "name": "Third City) Solstoria",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                }
+            }
+        },
+        "Elysium": {
+            "name": "Elysium",
+            "description": "The largest and most populous continent.",
+            "map": "Images/Maps/map.webp",
+            "locations": {
+                "thundertop": {
+                    "name": "Capital) Thundertop",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "lumindale": {
+                    "name": "Second City) Lumindale",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "pyronia": {
+                    "name": "Third City) Pyronia",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "celestria": {
+                    "name": "Fourth City) Celestria",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "astralon": {
+                    "name": "Fifth City) Astralon",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                }
+            }
+        },
+        "Noxus": {
+            "name": "Noxus",
+            "description": "The largest and most populous continent.",
+            "map": "Images/Maps/map.webp",
+            "locations": {
+                "panthos": {
+                    "name": "Capital) Panthos",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus1": {
+                    "name": "1)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus2": {
+                    "name": "2)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus3": {
+                    "name": "3)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus4": {
+                    "name": "4)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus5": {
+                    "name": "5)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus6": {
+                    "name": "6)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus7": {
+                    "name": "7)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus8": {
+                    "name": "8)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus9": {
+                    "name": "9)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus10": {
+                    "name": "10)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus11": {
+                    "name": "11)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus12": {
+                    "name": "12)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus13": {
+                    "name": "13)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                },
+                "Noxus14": {
+                    "name": "14)",
+                    "population": null,
+                    "wealth": null,
+                    "map": null,
+                    "description": null
+                }
+            }
+        },
+        "Atlantis": {
+            "name": "Atlantis",
+            "description": "The largest and most populous continent.",
+            "map": "Images/Maps/map.webp",
+            "locations": {}
+        },
+        "Dimentions": {
+            "name": "Dimentions",
+            "description": "The largest and most populous continent.",
+            "map": "Images/Maps/map.webp",
+            "locations": {
+                "spiritrealm": {
+                    "name": "Spirit realm",
+                    "Encountered": "yes",
+                    "population": "Unkown",
+                    "wealth": "Unkown",
+                    "map": "Images/Maps/map.webp",
+                    "description": "Unkown"
+                },
+                "thehollowveil": {
+                    "name": "The Hollow Veil",
+                    "Encountered": "no",
+                    "population": "8.3M",
+                    "wealth": "Medium",
+                    "map": "Images/Maps/map.webp",
+                    "description": "Thailand's capital, known for its temples and nightlife."
+                },
+                "etherwhite": {
+                    "name": "Etherwhite",
+                    "Encountered": "no",
+                    "population": null,
+                    "wealth": "Medium",
+                    "map": "Images/Maps/map.webp",
+                    "description": "Thailand's capital, known for its temples and nightlife."
+                }
+            }
+        },
+        "Other": {
+            "name": "Other",
+            "description": "Other places.",
+            "map": "Images/Maps/BoatLayoutPartyView.webp",
+            "locations": {
+                "crestfallen": {
+                    "name": "The Crestfallen",
+                    "Encountered": "yes",
+                    "population": "+-30",
+                    "wealth": "poor",
+                    "map": "Images/Maps/BoatLayoutPartyView.webp",
+                    "description": "The notorious pirate ship Crestfallen, led by the fearsome Captain Morgan Dredge, is a name whispered in every port and feared across the seas."
+                },
+                "silverleafmoonmap": {
+                    "name": "Starpath Map",
+                    "Encountered": "yes",
+                    "population": "",
+                    "wealth": "",
+                    "map": "Images/Maps/Other/StarpathMap.webp",
+                    "description": "They picked up the Starpath Map from a quiet stall in Silverleaf, its shelves stacked with odd silver-inked charts. By day the parchment looks blank, but at night under the moon it shows faint glowing lines \u2014 secret paths and hidden trails no other map reveals."
+                }
+            }
+        }
+    }
+}

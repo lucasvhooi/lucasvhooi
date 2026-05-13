@@ -1,0 +1,49 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="DnD Campaign" showNav={false}>
+  <style is:inline>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #120d07;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .logo {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      filter: brightness(0) saturate(100%) invert(84%) sepia(63%) saturate(600%) hue-rotate(315deg) brightness(108%);
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.2; transform: scale(1);    }
+      50%       { opacity: 0.5; transform: scale(1.06); }
+    }
+  </style>
+
+  <img class="logo" src="/Images/EssolisLogo.webp" alt="">
+
+  <script is:inline type="module">
+    import { db }         from "/assets/js/firebase.js";
+    import { ref, get }   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { getSession } from "/assets/js/auth.js";
+
+    (async () => {
+      try {
+        const snap = await get(ref(db, 'setup_complete'));
+        if (!snap.val()) {
+          window.location.href = '/setup.html';
+        } else if (getSession()) {
+          window.location.href = '/inventory.html';
+        } else {
+          window.location.href = '/login.html';
+        }
+      } catch (e) {
+        window.location.href = '/login.html';
+      }
+    })();
+  </script>
+</Layout>

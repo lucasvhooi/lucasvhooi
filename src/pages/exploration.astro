@@ -1,0 +1,86 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Characters — DnD Campaign" showCampaignTabs={true} activePage="exploration" extraCSS={['/assets/css/exploration.css']}>
+
+  <header class="expl-hero page-hero">
+    <button id="char-add-btn" class="dm-btn char-add-btn page-hero__add-btn" style="display:none">+ New Character</button>
+    <h1 class="expl-hero-title page-hero__title">Characters</h1>
+    <p class="expl-hero-sub page-hero__sub">People you've encountered across Enora</p>
+    <div class="expl-search-wrap">
+      <input class="expl-search" type="text" id="char-search" placeholder="Search characters…" autocomplete="off" />
+    </div>
+  </header>
+
+  <main class="expl-main">
+    <div id="char-grid" class="char-grid"></div>
+    <p id="char-empty" class="expl-empty" style="display:none">No characters found.</p>
+  </main>
+
+  <!-- Character Editor Modal -->
+  <div id="char-modal" class="char-modal-overlay">
+    <div class="char-edit-box">
+      <div class="char-modal-header">
+        <h2 id="char-modal-title">New Character</h2>
+        <button id="char-modal-close" class="char-close-btn"><iconify-icon icon="lucide:x"></iconify-icon></button>
+      </div>
+      <div class="char-modal-body">
+        <div class="char-pic-section">
+          <div class="char-pic-preview" id="char-pic-preview" title="Click to upload image">
+            <iconify-icon icon="lucide:user"></iconify-icon>
+            <div class="char-pic-upload-overlay"><iconify-icon icon="lucide:camera"></iconify-icon></div>
+          </div>
+          <input type="file" id="char-pic-file" accept="image/*" style="display:none" />
+          <div class="char-pic-field">
+            <label class="char-label">Picture</label>
+            <div class="char-pic-url-row">
+              <input type="text" id="char-picture" class="char-input" placeholder="Paste URL or click portrait to upload…" />
+              <button type="button" id="char-upload-btn" class="char-upload-btn" title="Upload image"><iconify-icon icon="lucide:camera"></iconify-icon></button>
+            </div>
+            <span id="char-upload-status" class="char-upload-status"></span>
+          </div>
+        </div>
+        <div class="char-fields">
+          <label class="char-label">Name <span class="required">*</span></label>
+          <input type="text" id="char-name" class="char-input" placeholder="Character name…" />
+
+          <div class="char-fields-row">
+            <div class="char-field-group">
+              <label class="char-label">Profession</label>
+              <input type="text" id="char-profession" class="char-input" placeholder="e.g. Blacksmith" />
+            </div>
+            <div class="char-field-group">
+              <label class="char-label">Race</label>
+              <input type="text" id="char-race" class="char-input" placeholder="e.g. Human" />
+            </div>
+            <div class="char-field-group char-field-age">
+              <label class="char-label">Age</label>
+              <input type="text" id="char-age" class="char-input" placeholder="e.g. 35" />
+            </div>
+          </div>
+
+          <label class="char-label">Description</label>
+          <textarea id="char-description" class="char-input char-textarea" placeholder="Describe this character…" rows="3"></textarea>
+
+          <label class="char-label char-label-dm"><iconify-icon icon="lucide:eye"></iconify-icon> DM Notes</label>
+          <textarea id="char-notes" class="char-input char-textarea char-notes-ta" placeholder="Private DM notes…" rows="2"></textarea>
+        </div>
+      </div>
+      <div id="char-error" class="char-error"></div>
+      <div class="char-modal-footer">
+        <button id="char-cancel" class="char-cancel-btn">Cancel</button>
+        <button id="char-save" class="dm-btn">Save Character</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Character Detail View Modal -->
+  <div id="char-view-modal" class="char-modal-overlay">
+    <div class="char-view-box">
+      <button id="char-view-close" class="char-close-btn"><iconify-icon icon="lucide:x"></iconify-icon></button>
+      <div id="char-view-content" class="char-view-content"></div>
+    </div>
+  </div>
+
+  <script is:inline type="module" src="/assets/js/exploration.js"></script>
+</Layout>

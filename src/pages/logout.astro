@@ -1,0 +1,17 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Signing out…" showNav={false}>
+  <style is:inline>
+    body { background: #120d07; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+    p { color: #888; font-family: sans-serif; font-size: 14px; }
+  </style>
+  <p>Signing out…</p>
+  <script is:inline type="module">
+    import { auth }    from "/assets/js/firebase.js";
+    import { signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    localStorage.removeItem('playerSession');
+    localStorage.removeItem('isAdmin');
+    signOut(auth).finally(() => { window.location.href = 'login.html'; });
+  </script>
+</Layout>

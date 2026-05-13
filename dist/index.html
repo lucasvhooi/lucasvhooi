@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>DnD Campaign</title><link rel="icon" type="image/webp" href="/Images/EssolisLogoWeb.webp"><meta property="og:image" content="/Images/EssolisLogoWeb.webp"><link rel="stylesheet" href="/assets/css/base.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet"><script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script></head> <body>   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #120d07;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .logo {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      filter: brightness(0) saturate(100%) invert(84%) sepia(63%) saturate(600%) hue-rotate(315deg) brightness(108%);
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.2; transform: scale(1);    }
+      50%       { opacity: 0.5; transform: scale(1.06); }
+    }
+  </style> <img class="logo" src="/Images/EssolisLogo.webp" alt=""> <script type="module">
+    import { db }         from "/assets/js/firebase.js";
+    import { ref, get }   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { getSession } from "/assets/js/auth.js";
+
+    (async () => {
+      try {
+        const snap = await get(ref(db, 'setup_complete'));
+        if (!snap.val()) {
+          window.location.href = '/setup.html';
+        } else if (getSession()) {
+          window.location.href = '/inventory.html';
+        } else {
+          window.location.href = '/login.html';
+        }
+      } catch (e) {
+        window.location.href = '/login.html';
+      }
+    })();
+  </script>   </body> </html>

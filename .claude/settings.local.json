@@ -21,7 +21,9 @@
       "Bash(sed -n '23,30p' \"C:/Users/lhooi/Documents/Github Projects/lucasvhooi/assets/css/missions.css\")",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\" -Recurse)",
       "Bash(Select-Object FullName)",
-      "Bash(python *)"
+      "Bash(python *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)"
     ]
   }
 }

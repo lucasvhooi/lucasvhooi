@@ -1,0 +1,439 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Account — DnD Campaign</title><link rel="icon" type="image/webp" href="/Images/EssolisLogoWeb.webp"><meta property="og:image" content="/Images/EssolisLogoWeb.webp"><link rel="stylesheet" href="/assets/css/base.css"><link rel="stylesheet" href="/assets/css/base.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet"><script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script></head> <body>   <style>
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+
+    .account-wrap {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 16px 60px;
+    }
+
+    .account-col {
+      width: 100%;
+      max-width: 460px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .acct-card {
+      background: linear-gradient(160deg, #1e1108 0%, #150d05 100%);
+      border: 1px solid #3a2510;
+      border-radius: 14px;
+      padding: 28px 28px 24px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.6);
+    }
+
+    .acct-card-title {
+      font-family: 'IM Fell English', 'Garamond', serif;
+      font-size: 1.1rem;
+      color: #c8a45c;
+      letter-spacing: 0.04em;
+      margin: 0 0 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #2a1a08;
+    }
+
+    .acct-field { margin-bottom: 16px; }
+    .acct-field:last-of-type { margin-bottom: 0; }
+
+    .acct-label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 6px;
+    }
+
+    .acct-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid #3a2510;
+      border-radius: 8px;
+      padding: 11px 14px;
+      color: #d4b483;
+      font-size: 15px;
+      font-family: 'Garamond', serif;
+      outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+    .acct-input:focus { border-color: #c8a45c; }
+    .acct-input:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .acct-hint {
+      font-size: 11px;
+      color: #555;
+      margin-top: 5px;
+      font-style: italic;
+    }
+
+    .color-row { display: flex; align-items: center; gap: 10px; }
+    .color-row input[type="color"] {
+      width: 42px; height: 40px;
+      padding: 2px 4px;
+      border-radius: 6px;
+      border: 1px solid #3a2510;
+      background: rgba(255,255,255,0.04);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .color-row .acct-input { flex: 1; }
+
+    .acct-btn {
+      margin-top: 18px;
+      background: linear-gradient(135deg, #4a2c0a 0%, #6b3e10 100%);
+      border: 1px solid #c8a45c;
+      border-radius: 8px;
+      color: #c8a45c;
+      font-family: 'IM Fell English', 'Garamond', serif;
+      font-size: 15px;
+      letter-spacing: 0.06em;
+      padding: 11px 22px;
+      cursor: pointer;
+      transition: background 0.25s, box-shadow 0.25s, transform 0.2s;
+    }
+    .acct-btn:hover {
+      background: linear-gradient(135deg, #5a380f 0%, #7a4a18 100%);
+      box-shadow: 0 0 18px rgba(200,164,92,0.22);
+      transform: translateY(-1px);
+    }
+    .acct-btn:active  { transform: translateY(0) scale(0.98); }
+    .acct-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .acct-btn-danger {
+      margin-top: 4px;
+      background: rgba(180,40,40,0.12);
+      border: 1px solid rgba(200,60,60,0.45);
+      border-radius: 8px;
+      color: #e07070;
+      font-family: 'IM Fell English', 'Garamond', serif;
+      font-size: 15px;
+      letter-spacing: 0.06em;
+      padding: 11px 22px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    }
+    .acct-btn-danger:hover {
+      background: rgba(200,50,50,0.22);
+      border-color: #e07070;
+      transform: translateY(-1px);
+    }
+    .acct-btn-danger:active  { transform: translateY(0) scale(0.98); }
+    .acct-btn-danger:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .acct-msg {
+      font-size: 13px;
+      padding: 9px 12px;
+      border-radius: 6px;
+      margin-top: 14px;
+      display: none;
+    }
+    .acct-msg.show  { display: block; }
+    .acct-msg.ok    { background: rgba(60,180,60,0.1);  border: 1px solid rgba(80,200,80,0.3);  color: #70d070; }
+    .acct-msg.err   { background: rgba(200,50,50,0.12); border: 1px solid rgba(200,50,50,0.3);  color: #e07070; }
+
+    .provider-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #3a2510;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 6px;
+    }
+
+    .acct-card-danger {
+      border-color: rgba(200,60,60,0.25);
+    }
+    .acct-card-danger .acct-card-title {
+      color: #e07070;
+      border-color: rgba(200,60,60,0.2);
+    }
+    .danger-desc {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .confirm-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .confirm-overlay.open { display: flex; }
+
+    .confirm-box {
+      background: linear-gradient(160deg, #1e1108 0%, #150d05 100%);
+      border: 1px solid rgba(200,60,60,0.4);
+      border-radius: 14px;
+      padding: 32px 28px;
+      max-width: 380px;
+      width: 100%;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.9);
+      animation: confirmIn 0.3s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    @keyframes confirmIn {
+      from { opacity: 0; transform: scale(0.92) translateY(16px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0); }
+    }
+
+    .confirm-title {
+      font-family: 'IM Fell English', 'Garamond', serif;
+      font-size: 1.2rem;
+      color: #e07070;
+      margin: 0 0 10px;
+    }
+    .confirm-desc {
+      font-size: 13px;
+      color: #888;
+      line-height: 1.6;
+      margin: 0 0 20px;
+    }
+    .confirm-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .confirm-actions .acct-btn-danger { margin-top: 0; flex: 1; }
+    .confirm-cancel {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid #3a2510;
+      border-radius: 8px;
+      color: #888;
+      font-family: 'Garamond', serif;
+      font-size: 15px;
+      padding: 11px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .confirm-cancel:hover { background: rgba(255,255,255,0.08); color: #d4b483; }
+
+    .acct-topbar {
+      background: linear-gradient(180deg, #2a1505 0%, #1c0e03 100%);
+      border-bottom: 1px solid #3a2510;
+      padding: 0 24px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.55);
+    }
+    .acct-topbar-logo {
+      height: 50px;
+      width: auto;
+      filter: brightness(0) saturate(100%) invert(84%) sepia(63%) saturate(600%) hue-rotate(315deg) brightness(108%);
+      flex-shrink: 0;
+    }
+    .acct-topbar-title {
+      font-family: 'IM Fell English', 'Garamond', serif;
+      font-size: 1rem;
+      color: #c8a45c;
+      letter-spacing: 0.06em;
+      flex: 1;
+    }
+    .acct-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid #3a2510;
+      border-radius: 7px;
+      color: #888;
+      font-family: 'Garamond', serif;
+      font-size: 13px;
+      padding: 5px 14px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+      white-space: nowrap;
+    }
+    .acct-back-btn:hover {
+      color: #d4b483;
+      border-color: #5a3510;
+      background: rgba(255,255,255,0.07);
+    }
+
+    @media (max-width: 500px) {
+      .acct-card { padding: 22px 18px 18px; }
+      .acct-topbar { padding: 0 16px; }
+      .acct-topbar-title { font-size: 0.9rem; }
+    }
+  </style> <header class="acct-topbar"> <a href="campaigns.html" style="display:flex;align-items:center;flex-shrink:0"> <img src="/Images/EssolisLogo.webp" alt="Essolis" class="acct-topbar-logo"> </a> <span class="acct-topbar-title">Account Settings</span> <a href="campaigns.html" id="acct-back-btn" class="acct-back-btn"> <iconify-icon icon="lucide:arrow-left"></iconify-icon> Back
+</a> </header> <div class="account-wrap"> <div class="account-col"> <div class="acct-card" id="card-profile"> <h2 class="acct-card-title">Profile</h2> <div id="provider-row"></div> <div class="acct-field"> <label class="acct-label" for="acct-username">Username</label> <input class="acct-input" id="acct-username" type="text" maxlength="30" autocomplete="off"> <span class="acct-hint">Shown to other players. No spaces.</span> </div> <div class="acct-field"> <label class="acct-label">Profile Colour</label> <div class="color-row"> <input id="acct-color-pick" type="color"> <input id="acct-color-text" class="acct-input" type="text" maxlength="7" placeholder="#c8a45c"> </div> <span class="acct-hint">Used as your name colour across the app.</span> </div> <button class="acct-btn" id="btn-save-profile">Save Profile</button> <div class="acct-msg" id="msg-username"></div> </div> <div class="acct-card" id="card-password"> <h2 class="acct-card-title">Change Password</h2> <div class="acct-field"> <label class="acct-label" for="acct-cur-pass">Current Password</label> <input class="acct-input" id="acct-cur-pass" type="password" placeholder="Your current password" autocomplete="current-password"> </div> <div class="acct-field"> <label class="acct-label" for="acct-new-pass">New Password</label> <input class="acct-input" id="acct-new-pass" type="password" placeholder="At least 6 characters" autocomplete="new-password"> </div> <div class="acct-field"> <label class="acct-label" for="acct-new-pass2">Confirm New Password</label> <input class="acct-input" id="acct-new-pass2" type="password" placeholder="Repeat new password" autocomplete="new-password"> </div> <button class="acct-btn" id="btn-save-password">Change Password</button> <div class="acct-msg" id="msg-password"></div> </div> <div class="acct-card acct-card-danger"> <h2 class="acct-card-title">Danger Zone</h2> <p class="danger-desc">Permanently deletes your account and all associated data. This cannot be undone.</p> <button class="acct-btn-danger" id="btn-delete">Delete Account</button> <div class="acct-msg" id="msg-delete"></div> </div> </div> </div> <div class="confirm-overlay" id="confirm-overlay"> <div class="confirm-box"> <h3 class="confirm-title">Delete your account?</h3> <p class="confirm-desc">This will permanently remove your account and all your data from the realm. There is no going back.</p> <div class="confirm-actions"> <button class="confirm-cancel" id="confirm-cancel">Cancel</button> <button class="acct-btn-danger" id="confirm-delete">Yes, delete it</button> </div> </div> </div> <script type="module">
+    import { auth, db }                                                    from "/assets/js/firebase.js";
+    import { EmailAuthProvider, GoogleAuthProvider,
+             reauthenticateWithCredential, reauthenticateWithPopup,
+             updatePassword, deleteUser, onAuthStateChanged }              from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { ref, get, set, remove }                                       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { saveSession, getSession, clearSession }                       from "/assets/js/auth.js";
+
+    const session = getSession();
+    if (!session) { window.location.href = "login.html"; }
+
+    document.getElementById('acct-back-btn').addEventListener('click', e => {
+      e.preventDefault();
+      if (window.history.length > 1) { history.back(); }
+      else { window.location.href = 'campaigns.html'; }
+    });
+
+    function showMsg(el, text, type) {
+      el.textContent = text;
+      el.className = 'acct-msg show ' + type;
+    }
+    function clearMsg(el) { el.className = 'acct-msg'; }
+
+    let isGoogleUser = false;
+
+    onAuthStateChanged(auth, user => {
+      if (!user) { window.location.href = "login.html"; return; }
+
+      isGoogleUser = user.providerData.some(p => p.providerId === 'google.com');
+
+      const providerRow = document.getElementById('provider-row');
+      providerRow.innerHTML = isGoogleUser
+        ? `<div class="provider-badge"><svg width="14" height="14" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4c-7.7 0-14.4 4.2-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.5 35.5 26.9 36.5 24 36.5c-5.2 0-9.6-3.5-11.2-8.2l-6.5 5C9.7 39.7 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.8l6.2 5.2C41.2 35.8 44 30.3 44 24c0-1.3-.1-2.7-.4-4z"/></svg> Signed in with Google</div>`
+        : `<div class="provider-badge"><iconify-icon icon="lucide:mail" style="font-size:13px"></iconify-icon> Email & Password</div>`;
+
+      if (isGoogleUser) {
+        document.getElementById('card-password').style.display = 'none';
+      }
+    });
+
+    const usernameInput = document.getElementById('acct-username');
+    const colorPick     = document.getElementById('acct-color-pick');
+    const colorText     = document.getElementById('acct-color-text');
+
+    usernameInput.value = session.username || '';
+    const initColor = session.color || '#c8a45c';
+    colorPick.value = initColor;
+    colorText.value = initColor;
+
+    colorPick.addEventListener('input', () => { colorText.value = colorPick.value; });
+    colorText.addEventListener('input', () => {
+      if (/^#[0-9a-fA-F]{6}$/.test(colorText.value)) colorPick.value = colorText.value;
+    });
+
+    document.getElementById('btn-save-profile').addEventListener('click', async () => {
+      const msgEl = document.getElementById('msg-username');
+      clearMsg(msgEl);
+      const btn = document.getElementById('btn-save-profile');
+
+      const newName  = usernameInput.value.trim();
+      const newColor = /^#[0-9a-fA-F]{6}$/.test(colorText.value) ? colorText.value : (session.color || '#c8a45c');
+
+      if (!newName)            { showMsg(msgEl, 'Username cannot be empty.', 'err'); return; }
+      if (/\s/.test(newName))  { showMsg(msgEl, 'Username cannot contain spaces.', 'err'); return; }
+      if (newName.length < 2)  { showMsg(msgEl, 'Username must be at least 2 characters.', 'err'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      try {
+        await set(ref(db, `users/${session.id}/username`), newName);
+        await set(ref(db, `users/${session.id}/color`), newColor);
+        const updated = { ...session, username: newName, color: newColor };
+        saveSession(updated);
+        showMsg(msgEl, 'Profile saved.', 'ok');
+        const navName = document.querySelector('nav [data-username]');
+        if (navName) navName.textContent = newName;
+      } catch (e) {
+        showMsg(msgEl, 'Failed to save. Try again.', 'err');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save Profile';
+      }
+    });
+
+    document.getElementById('btn-save-password').addEventListener('click', async () => {
+      const msgEl = document.getElementById('msg-password');
+      clearMsg(msgEl);
+      const btn = document.getElementById('btn-save-password');
+
+      const curPass  = document.getElementById('acct-cur-pass').value;
+      const newPass  = document.getElementById('acct-new-pass').value;
+      const newPass2 = document.getElementById('acct-new-pass2').value;
+
+      if (!curPass || !newPass || !newPass2) { showMsg(msgEl, 'Please fill in all fields.', 'err'); return; }
+      if (newPass.length < 6)               { showMsg(msgEl, 'New password must be at least 6 characters.', 'err'); return; }
+      if (newPass !== newPass2)             { showMsg(msgEl, 'New passwords do not match.', 'err'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Updating…';
+      try {
+        const user       = auth.currentUser;
+        const credential = EmailAuthProvider.credential(user.email, curPass);
+        await reauthenticateWithCredential(user, credential);
+        await updatePassword(user, newPass);
+        showMsg(msgEl, 'Password changed successfully.', 'ok');
+        document.getElementById('acct-cur-pass').value  = '';
+        document.getElementById('acct-new-pass').value  = '';
+        document.getElementById('acct-new-pass2').value = '';
+      } catch (e) {
+        if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+          showMsg(msgEl, 'Current password is incorrect.', 'err');
+        } else {
+          showMsg(msgEl, 'Failed to update password: ' + e.message, 'err');
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Change Password';
+      }
+    });
+
+    const overlay       = document.getElementById('confirm-overlay');
+    const confirmDelete = document.getElementById('confirm-delete');
+
+    document.getElementById('btn-delete').addEventListener('click', () => {
+      overlay.classList.add('open');
+    });
+    document.getElementById('confirm-cancel').addEventListener('click', () => {
+      overlay.classList.remove('open');
+    });
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) overlay.classList.remove('open');
+    });
+
+    confirmDelete.addEventListener('click', async () => {
+      const msgEl = document.getElementById('msg-delete');
+      confirmDelete.disabled = true;
+      confirmDelete.textContent = 'Deleting…';
+      try {
+        const user = auth.currentUser;
+        const uid  = user.uid;
+
+        if (isGoogleUser) {
+          await reauthenticateWithPopup(user, new GoogleAuthProvider());
+        }
+
+        await remove(ref(db, `users/${uid}`));
+        await deleteUser(user);
+        clearSession();
+        window.location.href = '/setup.html';
+      } catch (e) {
+        overlay.classList.remove('open');
+        if (e.code === 'auth/requires-recent-login') {
+          showMsg(msgEl, 'Please log out and log back in, then try again.', 'err');
+        } else if (e.code === 'auth/popup-closed-by-user') {
+          // user cancelled Google re-auth — silently ignore
+        } else {
+          showMsg(msgEl, 'Could not delete account: ' + e.message, 'err');
+        }
+        confirmDelete.disabled = false;
+        confirmDelete.textContent = 'Yes, delete it';
+      }
+    });
+  </script>   </body> </html>
