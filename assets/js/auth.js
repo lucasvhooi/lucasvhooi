@@ -1,6 +1,9 @@
 'use strict';
 
-/** SHA-256 a string, returns lowercase hex */
+import { auth }                from "./firebase.js";
+import { signOut as _signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+/** SHA-256 a string — kept for the inventory password-change flow */
 export async function hashPassword(pwd) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
   return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
@@ -15,7 +18,6 @@ export function getSession() {
 /** Persist a session object { id, username, role, color } */
 export function saveSession(data) {
   localStorage.setItem('playerSession', JSON.stringify(data));
-  // Keep legacy isAdmin flag so existing pages keep working
   if (data.role === 'admin') {
     localStorage.setItem('isAdmin', 'true');
   } else {
@@ -23,16 +25,19 @@ export function saveSession(data) {
   }
 }
 
-/** Wipe session */
+/** Wipe local session */
 export function clearSession() {
   localStorage.removeItem('playerSession');
   localStorage.removeItem('isAdmin');
 }
 
-/**
- * Redirect to login if no session, otherwise return the session.
- * Call at the top of any page that requires authentication.
- */
+/** Sign out of Firebase Auth and wipe the local session */
+export async function signOutUser() {
+  clearSession();
+  try { await _signOut(auth); } catch (_) {}
+}
+
+/** Redirect to login if no session, otherwise return the session */
 export function requireLogin() {
   const s = getSession();
   if (!s) { window.location.href = 'login.html'; return null; }

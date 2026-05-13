@@ -123,8 +123,8 @@
       <p class="login-sub">The Legends of Essolis</p>
 
       <div class="login-field">
-        <label class="login-label" for="login-user">Username</label>
-        <input class="login-input" id="login-user" type="text" placeholder="Your adventurer name…" autocomplete="username" />
+        <label class="login-label" for="login-user">Email</label>
+        <input class="login-input" id="login-user" type="email" placeholder="your@email.com" autocomplete="email" />
       </div>
       <div class="login-field">
         <label class="login-label" for="login-pass">Password</label>
@@ -137,42 +137,42 @@
   </div>
 
   <script type="module">
-    import { db }                    from "../assets/js/firebase.js";
-    import { ref, get }              from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
-    import { hashPassword, saveSession, getSession } from "../assets/js/auth.js";
+    import { auth, db }                            from "../assets/js/firebase.js";
+    import { signInWithEmailAndPassword }          from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { ref, get }                            from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { saveSession, getSession }             from "../assets/js/auth.js";
 
-    // If already logged in, skip
     if (getSession()) window.location.href = "inventory.html";
 
-    const btn   = document.getElementById("login-btn");
-    const err   = document.getElementById("login-error");
-    const uInp  = document.getElementById("login-user");
-    const pInp  = document.getElementById("login-pass");
+    const btn  = document.getElementById("login-btn");
+    const err  = document.getElementById("login-error");
+    const eInp = document.getElementById("login-user");
+    const pInp = document.getElementById("login-pass");
 
     async function doLogin() {
       err.classList.remove("show");
-      const username = uInp.value.trim();
+      const email    = eInp.value.trim();
       const password = pInp.value;
-      if (!username || !password) { showErr("Please enter both username and password."); return; }
+      if (!email || !password) { showErr("Please enter your email and password."); return; }
 
       btn.disabled = true;
       btn.textContent = "Checking…";
       try {
-        const hash = await hashPassword(password);
-        const snap = await get(ref(db, "users"));
-        const data = snap.val();
-        if (!data) { showErr("No accounts found. Ask your DM."); return; }
+        const cred    = await signInWithEmailAndPassword(auth, email, password);
+        const uid     = cred.user.uid;
+        const snap    = await get(ref(db, `users/${uid}`));
+        const profile = snap.val();
+        if (!profile) { showErr("Account has no profile. Ask your DM."); return; }
 
-        const user = Object.values(data).find(u =>
-          u.username?.toLowerCase() === username.toLowerCase() && u.passwordHash === hash
-        );
-        if (!user) { showErr("Wrong username or password."); return; }
-
-        saveSession({ id: user.id, username: user.username, role: user.role || "player", color: user.color || "#c8a45c" });
+        saveSession({ id: uid, username: profile.username, role: profile.role || "player", color: profile.color || "#c8a45c" });
         window.location.href = "inventory.html";
-      } catch(e) {
-        showErr("Connection error. Please try again.");
-        console.error(e);
+      } catch (e) {
+        if (e.code === "auth/invalid-credential" || e.code === "auth/wrong-password" || e.code === "auth/user-not-found") {
+          showErr("Wrong email or password.");
+        } else {
+          showErr("Connection error. Please try again.");
+          console.error(e);
+        }
       } finally {
         btn.disabled = false;
         btn.innerHTML = '<iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Enter the Realm';
@@ -182,7 +182,7 @@
     function showErr(msg) { err.textContent = msg; err.classList.add("show"); }
 
     btn.addEventListener("click", doLogin);
-    [uInp, pInp].forEach(el => el.addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); }));
+    [eInp, pInp].forEach(el => el.addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); }));
   </script>
 </body>
 </html>
