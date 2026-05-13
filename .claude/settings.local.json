@@ -23,7 +23,8 @@
       "Bash(Select-Object FullName)",
       "Bash(python *)",
       "Bash(npm install *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(dir \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\" /b)"
     ]
   }
 }

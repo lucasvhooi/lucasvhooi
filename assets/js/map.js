@@ -8,6 +8,8 @@ const countriesRef = ref(db, "countries");
 // ── Remember last location — redirect if user came back from a location ───────
 const _savedLoc = sessionStorage.getItem("lastLocationId");
 if (_savedLoc) {
+  sessionStorage.setItem("mapRedirected", "1");
+  sessionStorage.removeItem("lastLocationId");
   window.location.replace("location.html?id=" + _savedLoc);
 }
 

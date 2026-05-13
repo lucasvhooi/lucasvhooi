@@ -259,7 +259,7 @@ import Layout from '../layouts/Layout.astro';
     import { auth, db }                                              from "/assets/js/firebase.js";
     import { createUserWithEmailAndPassword, GoogleAuthProvider,
              signInWithPopup }                                       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { ref, set }                                              from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { ref, get, set }                                         from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
     import { saveSession, getSession }                               from "/assets/js/auth.js";
 
     const screenLoading = document.getElementById('screen-loading');
@@ -267,12 +267,16 @@ import Layout from '../layouts/Layout.astro';
     const screenDone    = document.getElementById('screen-done');
     const errEl         = document.getElementById('setup-error');
 
-    if (getSession()) {
-      window.location.href = '/login';
-    } else {
+    async function init() {
+      if (getSession()) { window.location.href = '/campaigns'; return; }
+      try {
+        const snap = await get(ref(db, 'setup_complete'));
+        if (snap.val()) { window.location.href = '/login'; return; }
+      } catch (e) { /* show setup if Firebase check fails */ }
       screenLoading.style.display = 'none';
       screenSetup.style.display   = 'block';
     }
+    init();
 
     function randomColor() {
       const h = Math.floor(Math.random() * 360);
@@ -298,6 +302,7 @@ import Layout from '../layouts/Layout.astro';
         const color = randomColor();
         const profile = { username: cred.user.displayName || 'Adventurer', role: 'player', color };
         await set(ref(db, `users/${uid}`), profile);
+        await set(ref(db, 'setup_complete'), true);
         saveSession({ id: uid, ...profile });
         showDone();
       } catch (e) {
@@ -332,6 +337,7 @@ import Layout from '../layouts/Layout.astro';
         const color = randomColor();
         const profile = { username: name, role: 'player', color };
         await set(ref(db, `users/${uid}`), profile);
+        await set(ref(db, 'setup_complete'), true);
         saveSession({ id: uid, ...profile });
         showDone();
       } catch (e) {

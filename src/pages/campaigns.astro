@@ -702,7 +702,7 @@ import Layout from '../layouts/Layout.astro';
   <script is:inline type="module">
     import { db }                                                    from "/assets/js/firebase.js";
     import { ref, get, set, push, remove, query,
-             orderByChild, equalTo }                                 from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+             orderByChild, equalTo, onValue }                        from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
     import { getSession, clearSession }                              from "/assets/js/auth.js";
 
     const session = getSession();
@@ -861,22 +861,21 @@ import Layout from '../layouts/Layout.astro';
       }
     });
 
-    async function loadInvites() {
-      try {
-        const snap = await get(ref(db, `users/${session.id}/invites`));
-        if (!snap.exists()) return;
-        const invites = snap.val();
-        const entries = Object.entries(invites);
-        if (!entries.length) return;
+    function setupInviteListener() {
+      const section = document.getElementById('invite-section');
+      const list    = document.getElementById('invite-list');
 
-        const section = document.getElementById('invite-section');
-        const list    = document.getElementById('invite-list');
+      onValue(ref(db, `users/${session.id}/invites`), snapshot => {
+        list.innerHTML = '';
+        if (!snapshot.exists()) { section.style.display = 'none'; return; }
+
+        const entries = Object.entries(snapshot.val() || {});
+        if (!entries.length) { section.style.display = 'none'; return; }
+
         section.style.display = 'block';
-
         entries.forEach(([invId, inv]) => {
           const card = document.createElement('div');
           card.className = 'invite-card';
-          card.dataset.inviteId = invId;
           card.innerHTML = `
             <div class="invite-info">
               <div class="invite-campaign-name">${escHtml(inv.campaignName || 'Campaign')}</div>
@@ -891,7 +890,7 @@ import Layout from '../layouts/Layout.astro';
           card.querySelector('.btn-decline').addEventListener('click', () => declineInvite(invId, card));
           list.appendChild(card);
         });
-      } catch (e) { /* ignore invite load errors */ }
+      });
     }
 
     async function acceptInvite(invId, inv, card) {
@@ -915,7 +914,7 @@ import Layout from '../layouts/Layout.astro';
           updateCount();
         }
 
-        removeInviteCard(card);
+        // onValue listener handles list update automatically
       } catch (e) {
         acceptBtn.disabled  = false;
         declineBtn.disabled = false;
@@ -926,16 +925,8 @@ import Layout from '../layouts/Layout.astro';
     async function declineInvite(invId, card) {
       try {
         await remove(ref(db, `users/${session.id}/invites/${invId}`));
-        removeInviteCard(card);
+        // onValue listener handles list update automatically
       } catch (e) { /* ignore */ }
-    }
-
-    function removeInviteCard(card) {
-      card.remove();
-      const list = document.getElementById('invite-list');
-      if (!list.children.length) {
-        document.getElementById('invite-section').style.display = 'none';
-      }
     }
 
     let activeCampaignId   = null;
@@ -1174,6 +1165,6 @@ import Layout from '../layouts/Layout.astro';
     }
 
     loadCampaigns();
-    loadInvites();
+    setupInviteListener();
   </script>
 </Layout>
