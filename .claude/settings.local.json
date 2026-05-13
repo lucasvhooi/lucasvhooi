@@ -24,7 +24,8 @@
       "Bash(python *)",
       "Bash(npm install *)",
       "Bash(npm run *)",
-      "Bash(dir \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\" /b)"
+      "Bash(dir \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\" /b)",
+      "Bash(git add *)"
     ]
   }
 }
