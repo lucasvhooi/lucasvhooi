@@ -1,8 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
 ---
 <Layout title="Combat — DnD Campaign" showCampaignTabs={true} activePage="combat" extraCSS={['/assets/css/combat.css']}>
-
+<Navbar 
+  showCampaignTabs={true}
+  activePage="map"
+/>
   <!-- Hero bar -->
   <header class="combat-hero">
     <div class="hero-left">

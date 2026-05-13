@@ -6,18 +6,18 @@ interface Props {
 const { showCampaignTabs = false, activePage = '' } = Astro.props;
 
 const navLinks = [
-  { href: '/missions.html',    label: 'Missions',    page: 'missions',    dmOnly: false },
-  { href: '/exploration.html', label: 'Characters',  page: 'exploration', dmOnly: false },
-  { href: '/items.html',       label: 'Items',       page: 'items',       dmOnly: true  },
-  { href: '/map.html',         label: 'Map',         page: 'map',         dmOnly: false },
-  { href: '/lore.html',        label: 'Lore',        page: 'lore',        dmOnly: false },
-  { href: '/combat.html',      label: 'Combat',      page: 'combat',      dmOnly: true  },
-  { href: '/inventory.html',   label: 'Inventory',   page: 'inventory',   dmOnly: false },
-  { href: '/spells.html',      label: 'Spells',      page: 'spells',      dmOnly: false },
+  { href: '/missions',    label: 'Missions',    page: 'missions',    dmOnly: false },
+  { href: '/exploration', label: 'Characters',  page: 'exploration', dmOnly: false },
+  { href: '/items',       label: 'Items',       page: 'items',       dmOnly: true  },
+  { href: '/map',         label: 'Map',         page: 'map',         dmOnly: false },
+  { href: '/lore',        label: 'Lore',        page: 'lore',        dmOnly: false },
+  { href: '/combat',      label: 'Combat',      page: 'combat',      dmOnly: true  },
+  { href: '/inventory',   label: 'Inventory',   page: 'inventory',   dmOnly: false },
+  { href: '/spells',      label: 'Spells',      page: 'spells',      dmOnly: false },
 ];
 ---
 <nav>
-  <a href="/campaigns.html" style="display:flex;align-items:center;flex-shrink:0;margin-right:8px">
+  <a href="/campaigns" style="display:flex;align-items:center;flex-shrink:0;margin-right:8px">
     <img src="/Images/EssolisLogo.webp" alt="Essolis Logo" class="nav-logo" />
   </a>
   <ul>

@@ -52,7 +52,7 @@
   if (!isAdmin) {
     const navUl = document.querySelector("nav ul");
     const invLi = navUl && Array.from(navUl.querySelectorAll("a"))
-      .find(a => a.getAttribute("href") === "inventory.html")?.closest("li");
+      .find(a => a.getAttribute("href") === "/inventory")?.closest("li");
     if (invLi) navUl.insertBefore(invLi, navUl.firstChild);
   }
 
@@ -66,15 +66,15 @@
       li.innerHTML =
         '<span style="display:flex;align-items:center;gap:6px;padding:6px 10px">' +
           '<span style="width:8px;height:8px;border-radius:50%;background:' + (s.color || '#c8a45c') + ';flex-shrink:0"></span>' +
-          '<a href="account.html" data-username class="nav-username-link">' + s.username + '</a>' +
-          '<button onclick="window.location.href=\'logout.html\'" ' +
+          '<a href="/account" data-username class="nav-username-link">' + s.username + '</a>' +
+          '<button onclick="window.location.href=\'/logout\'" ' +
             'style="background:none;border:1px solid #3a2510;border-radius:5px;color:#555;font-size:11px;padding:2px 8px;cursor:pointer;margin-left:2px">Logout</button>' +
         '</span>';
       navUl.appendChild(li);
     } else if (!s && navUl) {
       const li = document.createElement("li");
       li.style.marginLeft = "auto";
-      li.innerHTML = '<a href="login.html" style="font-size:13px;color:#888">Login</a>';
+      li.innerHTML = '<a href="/login" style="font-size:13px;color:#888">Login</a>';
       navUl.appendChild(li);
     }
   } catch(e) { /* ignore */ }

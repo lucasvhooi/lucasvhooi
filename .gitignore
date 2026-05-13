@@ -1,1 +1,18 @@
-.aider*
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment & secrets
+.env
+.env.*
+*.env
+*service-account*.json
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+*.suo
+*.user

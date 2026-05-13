@@ -245,7 +245,7 @@ import Layout from '../layouts/Layout.astro';
       <button class="btn-setup" id="btn-setup">Create Account</button>
       <div class="setup-error" id="setup-error"></div>
 
-      <p class="setup-footer">Already have an account? <a href="/login.html">Sign in</a></p>
+      <p class="setup-footer">Already have an account? <a href="/login">Sign in</a></p>
     </div>
   </div>
 
@@ -268,7 +268,7 @@ import Layout from '../layouts/Layout.astro';
     const errEl         = document.getElementById('setup-error');
 
     if (getSession()) {
-      window.location.href = '/login.html';
+      window.location.href = '/login';
     } else {
       screenLoading.style.display = 'none';
       screenSetup.style.display   = 'block';
@@ -350,7 +350,7 @@ import Layout from '../layouts/Layout.astro';
     function showDone() {
       screenSetup.style.display = 'none';
       screenDone.style.display  = 'block';
-      setTimeout(() => { window.location.href = '/campaigns.html'; }, 1800);
+      setTimeout(() => { window.location.href = '/campaigns'; }, 1800);
     }
 
     function showErr(msg) { errEl.textContent = msg; errEl.classList.add('show'); }

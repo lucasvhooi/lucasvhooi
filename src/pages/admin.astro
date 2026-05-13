@@ -141,10 +141,82 @@ import Layout from '../layouts/Layout.astro';
     .empty-users { color: #555; font-size: 13px; font-style: italic; padding: 12px 0; }
 
     .loading { color: #555; font-size: 13px; padding: 12px 0; }
+
+    .invite-card {
+      background: linear-gradient(160deg, #0e1a10 0%, #0a1209 100%);
+      border: 1px solid rgba(100,180,120,0.25);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 36px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .invite-label-block { flex: 1; min-width: 160px; }
+    .invite-card-title { font-size: 13px; color: #6dbf7a; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+    .invite-code-display {
+      font-family: monospace;
+      font-size: 1.1rem;
+      color: var(--text);
+      letter-spacing: 0.1em;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid #2e1c0a;
+      border-radius: 6px;
+      padding: 6px 12px;
+      display: inline-block;
+      min-width: 120px;
+    }
+    .invite-input-row { display: flex; gap: 8px; align-items: center; }
+    .invite-input {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid #3a2510;
+      border-radius: 7px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: monospace;
+      outline: none;
+      width: 180px;
+      transition: border-color 0.2s;
+    }
+    .invite-input:focus { border-color: #6dbf7a; }
+    .btn-invite {
+      background: rgba(100,180,120,0.1);
+      border: 1px solid rgba(100,180,120,0.35);
+      border-radius: 7px;
+      color: #6dbf7a;
+      font-size: 13px;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      white-space: nowrap;
+    }
+    .btn-invite:hover { background: rgba(100,180,120,0.18); border-color: rgba(100,180,120,0.6); }
+    .btn-invite:disabled { opacity: 0.5; cursor: not-allowed; }
+    .invite-msg { font-size: 12px; margin-top: 6px; }
+    .invite-msg.ok  { color: #6dbf7a; }
+    .invite-msg.err { color: #e07070; }
   </style>
 
   <h1 class="admin-title">User Management</h1>
   <p class="admin-sub">Create and remove player accounts. Only the DM can access this page.</p>
+
+  <p class="section-label">Invite Code</p>
+  <div class="invite-card">
+    <div class="invite-label-block">
+      <div class="invite-card-title">Current code</div>
+      <span class="invite-code-display" id="invite-current">Loading…</span>
+    </div>
+    <div>
+      <div class="invite-input-row">
+        <input class="invite-input" id="invite-new" type="text" placeholder="New code…" maxlength="40" />
+        <button class="btn-invite" id="btn-invite-save">Save</button>
+        <button class="btn-invite" id="btn-invite-gen" title="Generate random code">↺</button>
+      </div>
+      <div class="invite-msg" id="invite-msg"></div>
+    </div>
+  </div>
 
   <p class="section-label">Add New User</p>
   <div class="create-card">
@@ -197,8 +269,47 @@ import Layout from '../layouts/Layout.astro';
 
     const session = getSession();
     if (!session || session.role !== 'admin') {
-      window.location.href = 'inventory.html';
+      window.location.href = 'inventory';
     }
+
+    // ── Invite code management ─────────────────────────────────────────────
+    const inviteDisplay = document.getElementById('invite-current');
+    const inviteInput   = document.getElementById('invite-new');
+    const inviteMsg     = document.getElementById('invite-msg');
+
+    async function loadInviteCode() {
+      const snap = await get(ref(db, 'settings/invite_code'));
+      inviteDisplay.textContent = snap.val() || '(none set)';
+    }
+    loadInviteCode();
+
+    function randomCode() {
+      return Math.random().toString(36).slice(2, 8).toUpperCase() +
+             Math.random().toString(36).slice(2, 6).toUpperCase();
+    }
+
+    document.getElementById('btn-invite-gen').addEventListener('click', () => {
+      inviteInput.value = randomCode();
+    });
+
+    document.getElementById('btn-invite-save').addEventListener('click', async () => {
+      const code = inviteInput.value.trim();
+      if (!code) { inviteMsg.textContent = 'Enter a code first.'; inviteMsg.className = 'invite-msg err'; return; }
+      const btn = document.getElementById('btn-invite-save');
+      btn.disabled = true;
+      try {
+        await set(ref(db, 'settings/invite_code'), code);
+        inviteDisplay.textContent = code;
+        inviteInput.value = '';
+        inviteMsg.textContent = 'Saved.';
+        inviteMsg.className = 'invite-msg ok';
+      } catch {
+        inviteMsg.textContent = 'Failed to save.';
+        inviteMsg.className = 'invite-msg err';
+      }
+      btn.disabled = false;
+      setTimeout(() => { inviteMsg.textContent = ''; inviteMsg.className = 'invite-msg'; }, 3000);
+    });
 
     let secondaryApp;
     try   { secondaryApp = getApp('dm-secondary'); }

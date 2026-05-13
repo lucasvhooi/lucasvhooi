@@ -189,7 +189,7 @@ import Layout from '../layouts/Layout.astro';
 
       <div class="login-error" id="login-error"></div>
 
-      <p class="login-footer">No account? <a href="register.html">Create one</a></p>
+      <p class="login-footer">No account? <a href="register">Create one</a></p>
     </div>
   </div>
 
@@ -200,7 +200,7 @@ import Layout from '../layouts/Layout.astro';
     import { ref, get, set }                                     from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
     import { saveSession, getSession }                           from "/assets/js/auth.js";
 
-    if (getSession()) window.location.href = "campaigns.html";
+    if (getSession()) window.location.href = "campaigns";
 
     const btn    = document.getElementById("login-btn");
     const btnG   = document.getElementById("btn-google");
@@ -220,7 +220,7 @@ import Layout from '../layouts/Layout.astro';
         const profile = await fetchProfile(cred.user.uid);
         if (!profile) { showErr("Account has no profile. Ask your DM."); return; }
         saveSession({ id: cred.user.uid, username: profile.username, role: profile.role || "player", color: profile.color || "#c8a45c" });
-        window.location.href = "campaigns.html";
+        window.location.href = "campaigns";
       } catch (e) {
         if (["auth/invalid-credential","auth/wrong-password","auth/user-not-found"].includes(e.code)) {
           showErr("Wrong email or password.");
@@ -245,7 +245,7 @@ import Layout from '../layouts/Layout.astro';
         }
 
         saveSession({ id: uid, username: profile.username, role: profile.role || "player", color: profile.color || "#c8a45c" });
-        window.location.href = "campaigns.html";
+        window.location.href = "campaigns";
       } catch (e) {
         if (e.code !== "auth/popup-closed-by-user") showErr("Google sign-in failed. Please try again.");
       } finally {
