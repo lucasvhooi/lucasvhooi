@@ -57,16 +57,18 @@
   }
 
   // Show logged-in user + logout in nav (right side)
+  // Skip if the page already injected its own right-side content via the nav-right slot
   try {
     const s = JSON.parse(localStorage.getItem("playerSession"));
     const navUl = document.querySelector("nav ul");
-    if (s && navUl) {
+    const navHasSlotContent = !!document.querySelector("nav > div");
+    if (s && navUl && !navHasSlotContent) {
       const li = document.createElement("li");
       li.style.marginLeft = "auto";
       li.innerHTML =
         '<span style="display:flex;align-items:center;gap:6px;padding:6px 10px">' +
           '<span style="width:8px;height:8px;border-radius:50%;background:' + (s.color || '#c8a45c') + ';flex-shrink:0"></span>' +
-          '<a href="inventory.html" style="font-size:13px;padding:0;color:#c9a87a;text-decoration:none">' + s.username + '</a>' +
+          '<a href="account.html" data-username class="nav-username-link">' + s.username + '</a>' +
           '<button onclick="window.location.href=\'logout.html\'" ' +
             'style="background:none;border:1px solid #3a2510;border-radius:5px;color:#555;font-size:11px;padding:2px 8px;cursor:pointer;margin-left:2px">Logout</button>' +
         '</span>';

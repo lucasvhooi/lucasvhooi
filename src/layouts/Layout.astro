@@ -1,0 +1,41 @@
+---
+import Navbar from '../components/Navbar.astro';
+
+interface Props {
+  title?: string;
+  showCampaignTabs?: boolean;
+  activePage?: string;
+  extraCSS?: string[];
+  showNav?: boolean;
+  bodyClass?: string;
+}
+
+const {
+  title = 'Essolis — DnD Campaign',
+  showCampaignTabs = false,
+  activePage = '',
+  extraCSS = [],
+  showNav = true,
+  bodyClass = '',
+} = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <link rel="icon" type="image/webp" href="/Images/EssolisLogoWeb.webp" />
+  <meta property="og:image" content="/Images/EssolisLogoWeb.webp" />
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  {extraCSS.map(css => <link rel="stylesheet" href={css} />)}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet" />
+  <script is:inline src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script>
+</head>
+<body class={bodyClass || undefined}>
+  {showNav && <Navbar showCampaignTabs={showCampaignTabs} activePage={activePage} />}
+  <slot />
+  {showNav && <script is:inline src="/assets/js/base.js"></script>}
+</body>
+</html>

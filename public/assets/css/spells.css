@@ -1,0 +1,648 @@
+@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* ── Hero ── */
+.spells-hero {
+  background: linear-gradient(180deg, #3a1a05 0%, #2a1005 50%, #1a1a1a 100%);
+  padding: 40px 20px 28px;
+  text-align: center;
+  border-bottom: 1px solid #3a2510;
+}
+
+.spells-title {
+  font-family: 'IM Fell English', 'Garamond', serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: var(--accent);
+  margin: 0 0 8px;
+  letter-spacing: 0.03em;
+}
+
+.spells-subtitle {
+  color: #7a8898;
+  font-size: 14px;
+  margin: 0;
+  font-style: italic;
+}
+
+/* ── Seed status ── */
+.seed-status {
+  max-width: 1100px;
+  margin: 0 auto 12px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  font-size: 13px;
+  color: #aaa;
+}
+
+/* ── Main layout ── */
+.spells-main {
+  max-width: 100vw;
+  margin: 0 auto;
+  padding: var(--space-lg) var(--page-padding) var(--space-2xl);
+}
+
+/* ── Toolbar ── */
+.spells-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.spells-toolbar-row2 {
+  margin-bottom: 20px;
+}
+
+.spells-search {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid #3a2510;
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 8px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 220px;
+}
+.spells-search:focus { border-color: var(--accent); }
+
+.spells-select {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid #3a2510;
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23665544' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+.spells-select:focus { border-color: var(--accent); }
+.spells-select option { background: #1e1208; }
+
+.spells-count {
+  font-size: 12px;
+  color: #7a6a58;
+  font-style: italic;
+  margin-left: auto;
+}
+
+/* ── Level filter pills ── */
+.level-filter {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.level-btn {
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 4px 11px;
+  border-radius: 20px;
+  border: 1px solid #3a2510;
+  background: transparent;
+  color: #888;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.level-btn:hover  { border-color: var(--accent); color: var(--accent); }
+.level-btn.active { background: rgba(255,204,102,0.1); border-color: var(--accent); color: var(--accent); }
+
+/* ── Spells Grid ── */
+.spells-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+
+.spells-empty {
+  color: #444;
+  font-style: italic;
+  font-size: 14px;
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px 0;
+  min-height: 55vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spells-empty-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.spells-empty-star {
+  font-size: 52px;
+  opacity: 0.2;
+  color: var(--accent);
+  line-height: 1;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.spells-empty-title {
+  font-size: 20px;
+  color: #7a6a58;
+  font-style: normal;
+  font-family: 'IM Fell English', 'Garamond', serif;
+  margin: 0;
+}
+
+.spells-empty-hint {
+  font-size: 13px;
+  color: #5a4a38;
+  margin: 0;
+  max-width: 260px;
+  line-height: 1.55;
+}
+
+/* ── Spell Card ── */
+.spell-card {
+  --sc: #4a6fa5;
+  background: color-mix(in srgb, var(--sc) 18%, #12141c);
+  border: 1px solid color-mix(in srgb, var(--sc) 60%, #1a1a2a);
+  border-radius: 10px;
+  padding: 14px 16px;
+  transition:
+    border-color 0.32s var(--ease-out-expo),
+    box-shadow 0.38s var(--ease-out-expo),
+    transform 0.38s var(--ease-out-expo);
+  animation: fadeInUp 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: pointer;
+  position: relative;
+  will-change: transform;
+}
+.spell-card:hover {
+  border-color: color-mix(in srgb, var(--sc) 80%, #1a1a2a);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
+  transform: translateY(-7px) scale(1.02);
+}
+
+.spell-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.spell-name {
+  font-family: 'IM Fell English', 'Garamond', serif;
+  font-size: 15px;
+  color: var(--text);
+  font-weight: normal;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.spell-school-badge {
+  font-size: 11px;
+  font-family: sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--sc);
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.spell-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.spell-level-badge {
+  font-size: 10px;
+  font-family: sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: color-mix(in srgb, var(--sc) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sc) 50%, transparent);
+  border-radius: 10px;
+  padding: 2px 8px;
+  color: color-mix(in srgb, var(--sc) 100%, #fff 30%);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.spell-classes {
+  font-size: 11px;
+  color: #556;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.spell-card-stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.spell-stat {
+  font-size: 12px;
+  color: #9a8a78;
+}
+
+.spell-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6a5a48;
+  margin-right: 3px;
+}
+
+.spell-duration {
+  font-size: 11px;
+  color: #8a7a68;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.conc-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(255, 200, 80, 0.15);
+  border: 1px solid rgba(255, 200, 80, 0.4);
+  font-size: 9px;
+  color: #ffc850;
+  font-family: sans-serif;
+  font-weight: bold;
+  flex-shrink: 0;
+  font-style: normal;
+}
+
+/* ── Modal overlay ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+
+.modal-box {
+  background: #181008;
+  border: 1px solid #3a2510;
+  border-radius: 12px;
+  padding: 0;
+  width: 560px;
+  max-width: min(96vw, 560px);
+  max-height: 92vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.8);
+  font-family: var(--font);
+  color: var(--text);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #1e1208 0%, #140c04 100%);
+  border-bottom: 1px solid #2e1c0c;
+  border-radius: 12px 12px 0 0;
+  padding: 16px 20px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: var(--accent);
+  font-size: 1.2rem;
+  font-family: 'IM Fell English', 'Garamond', serif;
+  letter-spacing: 0.06em;
+  text-align: left;
+  flex: 1;
+}
+
+.modal-close-x {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #665544;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+.modal-close-x:hover { color: var(--text); border-color: #3a2510; background: rgba(255,255,255,0.04); }
+
+.modal-body {
+  overflow-y: auto;
+  padding: 18px 22px 20px;
+  flex: 1;
+}
+
+/* ── Spell modal content ── */
+.sm-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+  align-items: center;
+}
+
+.sm-badge {
+  font-size: 11px;
+  font-family: sans-serif;
+  letter-spacing: 0.05em;
+  border-radius: 10px;
+  padding: 3px 10px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.sm-level-badge {
+  background: rgba(255,204,102,0.1);
+  border-color: rgba(255,204,102,0.4);
+  color: var(--accent);
+}
+
+.sm-school-badge {
+  /* color/bg/border set inline by JS */
+}
+
+.sm-conc-badge {
+  background: rgba(255,200,80,0.1);
+  border-color: rgba(255,200,80,0.35);
+  color: #ffc850;
+}
+
+.sm-classes {
+  width: 100%;
+  font-size: 12px;
+  color: #8a7a68;
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.sm-stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid #2a1810;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.sm-stat-item { text-align: left; }
+
+.sm-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #6a5a48;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.sm-stat-value {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.sm-comp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.comp-badge {
+  font-family: sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.comp-v { background: rgba(126,184,255,0.15); border: 1px solid rgba(126,184,255,0.4); color: #7eb8ff; }
+.comp-s { background: rgba(100,210,140,0.15); border: 1px solid rgba(100,210,140,0.4); color: #64d28c; }
+.comp-m { background: rgba(220,170,80,0.15);  border: 1px solid rgba(220,170,80,0.4);  color: #dcaa50; }
+
+.comp-material {
+  font-size: 12px;
+  color: #667;
+  font-style: italic;
+}
+
+.sm-divider {
+  border: none;
+  border-top: 1px solid #2e1c0c;
+  margin: 0 0 14px;
+}
+
+.sm-description {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: #c4b8aa;
+}
+
+.sm-description p {
+  margin: 0 0 10px;
+}
+.sm-description p:last-child { margin-bottom: 0; }
+
+/* ── Condition tag (inline in descriptions) ── */
+.condition-tag {
+  color: #ffb84d;
+  border-bottom: 1px dashed rgba(255,184,77,0.5);
+  cursor: help;
+  transition: color 0.15s, border-color 0.15s;
+}
+.condition-tag:hover {
+  color: #ffd080;
+  border-bottom-color: #ffd080;
+}
+
+/* ── Condition tooltip floating box ── */
+.condition-tooltip-box {
+  position: absolute;
+  z-index: 1000;
+  background: #1e1208;
+  border: 1px solid #4a3010;
+  border-radius: 8px;
+  padding: 10px 13px;
+  width: 280px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.85);
+  pointer-events: none;
+  font-family: var(--font);
+}
+
+.ctt-name {
+  font-family: 'IM Fell English', 'Garamond', serif;
+  font-size: 14px;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.ctt-desc {
+  font-size: 12px;
+  line-height: 1.55;
+  color: #aaa;
+}
+
+/* ── Spell save/bookmark button ── */
+.spell-save-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: #554433;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 3px 5px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+  z-index: 1;
+}
+.spell-save-btn:hover        { color: var(--accent); background: rgba(255,204,102,0.08); }
+.spell-save-btn.saved        { color: var(--accent); }
+.spell-save-btn.saved:hover  { color: #ff8080; background: rgba(255,100,100,0.08); }
+
+/* ── Expand body (mobile inline expand) ── */
+.spell-expand-body { display: none; }
+
+.spell-expand-desc {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #aaa;
+  margin-bottom: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(58,37,16,0.3);
+}
+
+.spell-modal-btn {
+  font-family: var(--font);
+  font-size: 12px;
+  background: rgba(255,204,102,0.07);
+  border: 1px solid rgba(255,204,102,0.25);
+  border-radius: 6px;
+  color: var(--accent);
+  padding: 7px 0;
+  cursor: pointer;
+  width: calc(100% - 28px);
+  text-align: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+.spell-modal-btn:hover { background: rgba(255,204,102,0.14); border-color: rgba(255,204,102,0.5); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .spells-main { max-width: 100%; padding: 10px 8px 48px; overflow-x: hidden; }
+
+  /* Toolbars */
+  .spells-toolbar { gap: 6px; }
+  .spells-search { width: 100%; min-width: 0; font-size: 16px; }
+  .level-filter { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; min-width: 0; }
+  .spells-select { flex: 1 1 0; min-width: 0; width: 0; font-size: 16px; }
+  .spells-count { display: none; }
+
+  /* Grid */
+  .spells-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+
+  /* Compact card */
+  .spell-card { padding: 7px 8px; gap: 3px; border-radius: 7px; }
+  .spell-name { font-size: 12px; line-height: 1.2; }
+  .spell-school-badge { font-size: 9px; }
+  .spell-level-badge { font-size: 9px; padding: 1px 5px; }
+  .spell-classes { display: none; }
+  .spell-card-stats { display: none; }
+  .spell-duration { font-size: 10px; }
+
+  /* Expand body — hidden until card is expanded */
+  .spell-expand-body {
+    display: block;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.2s ease 0.05s;
+  }
+
+  /* Expanded card — spans both columns, shows more */
+  .spell-card.expanded {
+    grid-column: 1 / -1;
+    padding: 12px 14px 12px 14px;
+    gap: 5px;
+    border-color: color-mix(in srgb, var(--sc) 65%, #1a1a2a);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.55);
+  }
+  .spell-card.expanded .spell-expand-body {
+    max-height: 320px;
+    opacity: 1;
+    pointer-events: auto;
+    margin-top: 6px;
+  }
+  .spell-card.expanded .spell-name  { font-size: 15px; }
+  .spell-card.expanded .spell-school-badge { font-size: 10px; }
+  .spell-card.expanded .spell-level-badge  { font-size: 10px; padding: 2px 8px; }
+  .spell-card.expanded .spell-classes      { display: block; }
+  .spell-card.expanded .spell-card-stats   { display: flex; }
+  .spell-card.expanded .spell-duration     { font-size: 11px; }
+
+  /* Modal — centred dialog */
+  .modal-overlay { align-items: center; justify-content: center; padding: 0; }
+  .modal-box { width: 95vw; max-width: 100%; max-height: 88vh; border-radius: 16px 16px 0 0; }
+  .modal-header { border-radius: 16px 16px 0 0; }
+  .modal-body { padding: 14px 16px 18px; }
+  .sm-stat-row { grid-template-columns: 1fr 1fr; }
+}
