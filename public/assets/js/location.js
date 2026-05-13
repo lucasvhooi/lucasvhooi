@@ -13,8 +13,14 @@ if (!locationId) {
   document.getElementById("loc-title").textContent = "Location not found";
 }
 
-// Remember this location so the Map tab can return here
-if (locationId) sessionStorage.setItem("lastLocationId", locationId);
+// Remember this location so the Map tab can return here.
+// If we just got here via a map redirect, don't re-set the flag (breaks the loop).
+const _wasMapRedirected = sessionStorage.getItem("mapRedirected");
+if (_wasMapRedirected) {
+  sessionStorage.removeItem("mapRedirected");
+} else if (locationId) {
+  sessionStorage.setItem("lastLocationId", locationId);
+}
 
 // "Back to Map" clears the saved location so map.html shows the actual map
 document.getElementById("back-to-map")?.addEventListener("click", () => {
