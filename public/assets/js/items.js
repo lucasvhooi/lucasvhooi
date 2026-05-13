@@ -3,7 +3,10 @@ import { ref, set, remove, onValue, get }  from "https://www.gstatic.com/firebas
 import { parseTags, formatGold } from "./item-utils.js";
 import { openGivePanel }              from "./give-to-player.js";
 
-const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
+const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
+const isAdmin = _session?.role === 'admin';
+const cid = _session?.campaignId;
+if (!cid) { window.location.href = '/campaigns'; throw new Error('No campaign selected'); }
 
 const RARITY_KEYWORDS = new Set(["common", "uncommon", "rare", "very rare", "legendary"]);
 
@@ -25,7 +28,7 @@ function getItemRarity(item) {
   return "common";
 }
 
-const itemsRef = ref(db, "items");
+const itemsRef = ref(db, `campaigns/${cid}/items`);
 
 let items       = [];
 let activeTag   = null;
@@ -235,7 +238,7 @@ function renderItems() {
       card.querySelector(".item-del-btn").addEventListener("click", e => {
         e.stopPropagation();
         if (!confirm(`Delete "${item.name}"? This cannot be undone.`)) return;
-        remove(ref(db, `items/${item.id}`));
+        remove(ref(db, `campaigns/${cid}/items/${item.id}`));
       });
       card.querySelector(".item-give-btn").addEventListener("click", e => {
         e.stopPropagation();
@@ -349,7 +352,7 @@ imSave.addEventListener("click", async () => {
   const requiresAttunement = document.getElementById("im-requires-attunement").checked || false;
   const abilities          = cleanAbilities.length ? cleanAbilities : null;
 
-  await set(ref(db, `items/${id}`), {
+  await set(ref(db, `campaigns/${cid}/items/${id}`), {
     id, name, description, price,
     rarity: selectedRarity,
     tags:   cleanTags,
@@ -360,7 +363,7 @@ imSave.addEventListener("click", async () => {
   });
 
   // Sync changes into any inventory copies that came from this item
-  const invSnap = await get(ref(db, "inventory"));
+  const invSnap = await get(ref(db, `campaigns/${cid}/inventory`));
   if (invSnap.exists()) {
     const allInv = invSnap.val();
     for (const [uid, userInv] of Object.entries(allInv)) {
@@ -368,7 +371,7 @@ imSave.addEventListener("click", async () => {
         const matchById   = invItem.sourceItemId === id;
         const matchByName = !invItem.sourceItemId && existing && invItem.name === existing.name;
         if (matchById || matchByName) {
-          await set(ref(db, `inventory/${uid}/${key}`), {
+          await set(ref(db, `campaigns/${cid}/inventory/${uid}/${key}`), {
             ...invItem,
             name,
             description,
@@ -403,7 +406,7 @@ async function deleteTag(tag) {
     const newTags = parseTags(item.tags)
       .filter(t => t !== tag && !RARITY_KEYWORDS.has(t))
       .join(", ") || null;
-    await set(ref(db, `items/${item.id}/tags`), newTags);
+    await set(ref(db, `campaigns/${cid}/items/${item.id}/tags`), newTags);
   }
 
   if (activeTag === tag) {

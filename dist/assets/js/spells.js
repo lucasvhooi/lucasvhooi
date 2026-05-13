@@ -7,6 +7,8 @@ const _session = (() => {
 })();
 const isAdmin = _session?.role === 'admin';
 const _userId = _session?.id || null;
+const cid = _session?.campaignId;
+if (!cid) { window.location.href = '/campaigns'; throw new Error('No campaign selected'); }
 
 // ── Condition data (from Conditions.txt) ──────────────────────────────────────
 const CONDITIONS = {
@@ -108,7 +110,7 @@ function levelShort(level) {
 }
 
 // ── Spellbook (saved spells) ───────────────────────────────────────────────────
-const spellbookRef = _userId ? ref(db, `spellbook/${_userId}`) : null;
+const spellbookRef = _userId ? ref(db, `campaigns/${cid}/spellbook/${_userId}`) : null;
 let savedSpellIds  = new Set();
 
 if (spellbookRef) {
@@ -126,9 +128,9 @@ if (spellbookRef) {
 async function toggleSaveSpell(spellId) {
   if (!_userId) return;
   if (savedSpellIds.has(spellId)) {
-    await remove(ref(db, `spellbook/${_userId}/${spellId}`));
+    await remove(ref(db, `campaigns/${cid}/spellbook/${_userId}/${spellId}`));
   } else {
-    await set(ref(db, `spellbook/${_userId}/${spellId}`), { savedAt: Date.now() });
+    await set(ref(db, `campaigns/${cid}/spellbook/${_userId}/${spellId}`), { savedAt: Date.now() });
   }
 }
 

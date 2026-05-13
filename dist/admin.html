@@ -91,6 +91,42 @@
     .form-msg.error   { background: rgba(200,50,50,0.12); border: 1px solid rgba(200,50,50,0.3); color: #e07070; display: block; }
     .form-msg.success { background: rgba(50,180,80,0.1);  border: 1px solid rgba(50,180,80,0.3);  color: #6dbf7a; display: block; }
 
+    .cred-box {
+      margin-top: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid #3a2510;
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: none;
+    }
+    .cred-box.show { display: block; }
+    .cred-box-title { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin: 0 0 10px; }
+    .cred-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+    .cred-row:last-child { margin-bottom: 0; }
+    .cred-label { font-size: 11px; color: #666; width: 64px; flex-shrink: 0; }
+    .cred-val {
+      font-family: monospace;
+      font-size: 13px;
+      color: var(--accent);
+      background: rgba(200,164,92,0.08);
+      border: 1px solid rgba(200,164,92,0.2);
+      border-radius: 5px;
+      padding: 4px 10px;
+      flex: 1;
+      word-break: break-all;
+    }
+    .btn-copy {
+      background: none;
+      border: 1px solid #3a2510;
+      border-radius: 5px;
+      color: #888;
+      font-size: 11px;
+      padding: 4px 8px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .btn-copy:hover { color: var(--accent); border-color: var(--accent); }
+
     .user-list { display: flex; flex-direction: column; gap: 10px; }
 
     .user-row {
@@ -193,8 +229,53 @@
     .invite-msg { font-size: 12px; margin-top: 6px; }
     .invite-msg.ok  { color: #6dbf7a; }
     .invite-msg.err { color: #e07070; }
-  </style> <h1 class="admin-title">User Management</h1> <p class="admin-sub">Create and remove player accounts. Only the DM can access this page.</p> <p class="section-label">Invite Code</p> <div class="invite-card"> <div class="invite-label-block"> <div class="invite-card-title">Current code</div> <span class="invite-code-display" id="invite-current">Loading…</span> </div> <div> <div class="invite-input-row"> <input class="invite-input" id="invite-new" type="text" placeholder="New code…" maxlength="40"> <button class="btn-invite" id="btn-invite-save">Save</button> <button class="btn-invite" id="btn-invite-gen" title="Generate random code">↺</button> </div> <div class="invite-msg" id="invite-msg"></div> </div> </div> <p class="section-label">Add New User</p> <div class="create-card"> <div class="form-grid"> <div class="field full"> <label for="f-email">Email</label> <input id="f-email" type="email" placeholder="player@example.com" autocomplete="off"> </div> <div class="field"> <label for="f-username">Display Name</label> <input id="f-username" type="text" placeholder="Aragorn" autocomplete="off"> </div> <div class="field"> <label for="f-password">Temporary Password</label> <input id="f-password" type="password" placeholder="Share with player" autocomplete="new-password"> </div> <div class="field"> <label for="f-role">Role</label> <select id="f-role"> <option value="player">Player</option> <option value="admin">DM / Admin</option> </select> </div> <div class="field"> <label>Player Colour</label> <div class="color-row"> <input id="f-color-pick" type="color" value="#c8a45c"> <input id="f-color-text" type="text" value="#c8a45c" maxlength="7" placeholder="#c8a45c"> </div> </div> </div> <button class="btn-create" id="btn-create"> <iconify-icon icon="lucide:user-plus"></iconify-icon> Create Account
-</button> <div class="form-msg" id="form-msg"></div> </div> <p class="section-label">Existing Users</p> <div class="user-list" id="user-list"> <p class="loading">Loading…</p> </div> <script type="module">
+
+    .migrate-card {
+      background: linear-gradient(160deg, #0e1215 0%, #090d10 100%);
+      border: 1px solid rgba(90,140,200,0.25);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 36px;
+    }
+    .migrate-card-title { font-size: 13px; color: #7eb8ff; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 4px; }
+    .migrate-card-sub   { font-size: 12px; color: #555; margin: 0 0 18px; }
+    .migrate-row        { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px; }
+    .migrate-row .field { flex: 1; min-width: 180px; }
+    .migrate-nodes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 16px;
+      margin-bottom: 16px;
+    }
+    .migrate-node-check { display: flex; align-items: center; gap: 7px; font-size: 13px; color: #aaa; cursor: pointer; }
+    .migrate-node-check input[type="checkbox"] { accent-color: #7eb8ff; width: 14px; height: 14px; cursor: pointer; }
+    .migrate-options { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #aaa; margin-bottom: 16px; }
+    .migrate-options input[type="checkbox"] { accent-color: #e07070; cursor: pointer; }
+    .btn-migrate {
+      background: rgba(90,140,200,0.1);
+      border: 1px solid rgba(90,140,200,0.35);
+      border-radius: 8px;
+      color: #7eb8ff;
+      font-size: 14px;
+      padding: 11px 20px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-migrate:hover { background: rgba(90,140,200,0.18); border-color: rgba(90,140,200,0.6); }
+    .btn-migrate:disabled { opacity: 0.4; cursor: not-allowed; }
+    .migrate-status {
+      margin-top: 12px;
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: none;
+      white-space: pre-wrap;
+    }
+    .migrate-status.running { background: rgba(90,140,200,0.1); border: 1px solid rgba(90,140,200,0.3); color: #7eb8ff; display: block; }
+    .migrate-status.done    { background: rgba(50,180,80,0.1);  border: 1px solid rgba(50,180,80,0.3);  color: #6dbf7a; display: block; }
+    .migrate-status.error   { background: rgba(200,50,50,0.12); border: 1px solid rgba(200,50,50,0.3);  color: #e07070; display: block; }
+  </style> <h1 class="admin-title">User Management</h1> <p class="admin-sub">Create and remove player accounts. Only the DM can access this page.</p> <p class="section-label">Invite Code</p> <div class="invite-card"> <div class="invite-label-block"> <div class="invite-card-title">Current code</div> <span class="invite-code-display" id="invite-current">Loading…</span> </div> <div> <div class="invite-input-row"> <input class="invite-input" id="invite-new" type="text" placeholder="New code…" maxlength="40"> <button class="btn-invite" id="btn-invite-save">Save</button> <button class="btn-invite" id="btn-invite-gen" title="Generate random code">↺</button> </div> <div class="invite-msg" id="invite-msg"></div> </div> </div> <p class="section-label">Add New User</p> <div class="create-card"> <div class="form-grid"> <div class="field full"> <label for="f-email">Email <span style="color:#666;font-size:10px;text-transform:none;letter-spacing:0">(leave blank to auto-generate placeholder)</span></label> <input id="f-email" type="email" placeholder="player@example.com  —  optional" autocomplete="off"> </div> <div class="field"> <label for="f-username">Display Name</label> <input id="f-username" type="text" placeholder="Aragorn" autocomplete="off"> </div> <div class="field"> <label for="f-password">Temporary Password <span style="color:#666;font-size:10px;text-transform:none;letter-spacing:0">(auto-generated if blank)</span></label> <input id="f-password" type="password" placeholder="optional" autocomplete="new-password"> </div> <div class="field"> <label for="f-role">Role</label> <select id="f-role"> <option value="player">Player</option> <option value="admin">DM / Admin</option> </select> </div> <div class="field"> <label>Player Colour</label> <div class="color-row"> <input id="f-color-pick" type="color" value="#c8a45c"> <input id="f-color-text" type="text" value="#c8a45c" maxlength="7" placeholder="#c8a45c"> </div> </div> </div> <button class="btn-create" id="btn-create"> <iconify-icon icon="lucide:user-plus"></iconify-icon> Create Account
+</button> <div class="form-msg" id="form-msg"></div> <div class="cred-box" id="cred-box"> <p class="cred-box-title">Share these login details with the player</p> <div class="cred-row"> <span class="cred-label">Email</span> <span class="cred-val" id="cred-email"></span> <button class="btn-copy" data-target="cred-email">Copy</button> </div> <div class="cred-row"> <span class="cred-label">Password</span> <span class="cred-val" id="cred-pw"></span> <button class="btn-copy" data-target="cred-pw">Copy</button> </div> </div> </div> <p class="section-label">Existing Users</p> <div class="user-list" id="user-list"> <p class="loading">Loading…</p> </div> <p class="section-label" style="margin-top:40px">Migrate Legacy Data</p> <div class="migrate-card"> <p class="migrate-card-title">Copy root data into a campaign</p> <p class="migrate-card-sub">Copies top-level Firebase nodes (lore, spells, items, etc.) into the selected campaign. Run this once after creating your first campaign to preserve existing data.</p> <div class="migrate-row"> <div class="field"> <label for="mg-campaign">Target Campaign</label> <select id="mg-campaign"> <option value="">— select campaign —</option> </select> </div> </div> <p style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#666;margin:0 0 8px">Nodes to copy</p> <div class="migrate-nodes" id="mg-nodes"> <label class="migrate-node-check"><input type="checkbox" value="quests" checked> quests</label> <label class="migrate-node-check"><input type="checkbox" value="markers" checked> markers</label> <label class="migrate-node-check"><input type="checkbox" value="countries" checked> countries</label> <label class="migrate-node-check"><input type="checkbox" value="items" checked> items</label> <label class="migrate-node-check"><input type="checkbox" value="inventory" checked> inventory</label> <label class="migrate-node-check"><input type="checkbox" value="lore" checked> lore</label> <label class="migrate-node-check"><input type="checkbox" value="spells" disabled style="opacity:0.4"> spells (global — not migrated)</label> <label class="migrate-node-check"><input type="checkbox" value="spellbook" checked> spellbook</label> <label class="migrate-node-check"><input type="checkbox" value="characters" checked> characters</label> <label class="migrate-node-check"><input type="checkbox" value="enemyTemplates" checked> enemyTemplates</label> <label class="migrate-node-check"><input type="checkbox" value="attunements" checked> attunements</label> <label class="migrate-node-check"><input type="checkbox" value="locations" checked> locations</label> </div> <div class="migrate-options"> <input type="checkbox" id="mg-delete-after"> <label for="mg-delete-after" style="cursor:pointer">Delete originals from root after copying</label> </div> <button class="btn-migrate" id="btn-migrate">Run Migration</button> <div class="migrate-status" id="mg-status"></div> </div> <script type="module">
     import { firebaseApp, auth, db }               from "/assets/js/firebase.js";
     import { getSession }                          from "/assets/js/auth.js";
     import { initializeApp, getApp }               from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -292,7 +373,22 @@
 
     async function deleteUser(uid) {
       if (!confirm('Remove this user? They will no longer be able to log in.')) return;
-      await remove(ref(db, `users/${uid}`));
+      try {
+        const campaignsSnap = await get(ref(db, 'campaigns'));
+        if (campaignsSnap.exists()) {
+          const removals = [];
+          for (const [campId, camp] of Object.entries(campaignsSnap.val())) {
+            if (camp.members && camp.members[uid]) {
+              removals.push(remove(ref(db, `campaigns/${campId}/members/${uid}`)));
+            }
+          }
+          await Promise.all(removals);
+        }
+        await remove(ref(db, `users/${uid}`));
+      } catch (e) {
+        alert('Failed to remove user: ' + e.message);
+        return;
+      }
       loadUsers();
     }
 
@@ -303,17 +399,51 @@
       msgEl.className = 'form-msg ' + type;
     }
 
+    const credBox   = document.getElementById('cred-box');
+    const credEmail = document.getElementById('cred-email');
+    const credPw    = document.getElementById('cred-pw');
+
+    credBox.querySelectorAll('.btn-copy').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const text = document.getElementById(btn.dataset.target).textContent;
+        navigator.clipboard.writeText(text).then(() => {
+          btn.textContent = 'Copied!';
+          setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+        });
+      });
+    });
+
+    function randStr(len) {
+      let s = '';
+      while (s.length < len) s += Math.random().toString(36).slice(2);
+      return s.slice(0, len);
+    }
+
     document.getElementById('btn-create').addEventListener('click', async () => {
       msgEl.className = 'form-msg';
+      credBox.classList.remove('show');
 
-      const email    = document.getElementById('f-email').value.trim();
+      let email    = document.getElementById('f-email').value.trim();
       const username = document.getElementById('f-username').value.trim();
-      const password = document.getElementById('f-password').value;
-      const role     = document.getElementById('f-role').value;
-      const color    = colorText.value || '#c8a45c';
+      let password = document.getElementById('f-password').value;
+      const role   = document.getElementById('f-role').value;
+      const color  = colorText.value || '#c8a45c';
 
-      if (!email || !username || !password) { showMsg('Please fill in all fields.', 'error'); return; }
-      if (password.length < 6)              { showMsg('Password must be at least 6 characters.', 'error'); return; }
+      if (!username) { showMsg('Display name is required.', 'error'); return; }
+
+      // Require both or neither
+      if (!!email !== !!password) {
+        showMsg('Provide both email and password, or leave both blank for a placeholder account.', 'error');
+        return;
+      }
+      if (password && password.length < 6) { showMsg('Password must be at least 6 characters.', 'error'); return; }
+
+      let isPlaceholder = false;
+      if (!email) {
+        isPlaceholder = true;
+        email    = `temp-${randStr(6)}@essolis.internal`;
+        password = randStr(12);
+      }
 
       const btn = document.getElementById('btn-create');
       btn.disabled = true;
@@ -325,7 +455,14 @@
         await set(ref(db, `users/${uid}`), { username, role, color });
         await secondarySignOut(secondaryAuth);
 
-        showMsg(`Account created for ${username}. Share their email and password with them.`, 'success');
+        if (isPlaceholder) {
+          showMsg(`Placeholder account created for ${username}. Share the login details below.`, 'success');
+          credEmail.textContent = email;
+          credPw.textContent    = password;
+          credBox.classList.add('show');
+        } else {
+          showMsg(`Account created for ${username}.`, 'success');
+        }
         document.getElementById('f-email').value    = '';
         document.getElementById('f-username').value = '';
         document.getElementById('f-password').value = '';
@@ -346,6 +483,75 @@
     function esc(s) {
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
+
+    // ── Migration tool ─────────────────────────────────────────────────────────
+    const mgCampaign = document.getElementById('mg-campaign');
+    const mgStatus   = document.getElementById('mg-status');
+    const btnMigrate = document.getElementById('btn-migrate');
+
+    async function loadCampaignsForMigration() {
+      const snap = await get(ref(db, 'campaigns'));
+      if (!snap.exists()) return;
+      for (const [id, camp] of Object.entries(snap.val())) {
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = camp.name || id;
+        mgCampaign.appendChild(opt);
+      }
+    }
+    loadCampaignsForMigration();
+
+    btnMigrate.addEventListener('click', async () => {
+      const targetId = mgCampaign.value;
+      if (!targetId) { mgStatus.textContent = 'Select a campaign first.'; mgStatus.className = 'migrate-status error'; return; }
+
+      const nodes = [...document.querySelectorAll('#mg-nodes input[type="checkbox"]:checked')].map(cb => cb.value);
+      if (nodes.length === 0) { mgStatus.textContent = 'Select at least one node to copy.'; mgStatus.className = 'migrate-status error'; return; }
+
+      const deleteAfter = document.getElementById('mg-delete-after').checked;
+      if (deleteAfter && !confirm('This will permanently delete the selected nodes from the root after copying. Are you sure?')) return;
+
+      btnMigrate.disabled = true;
+      mgStatus.className = 'migrate-status running';
+      mgStatus.textContent = 'Starting migration…\n';
+
+      const lines = ['Starting migration…'];
+      const setStatus = () => { mgStatus.textContent = lines.join('\n'); };
+
+      try {
+        for (const node of nodes) {
+          lines.push(`Copying /${node}…`);
+          setStatus();
+          const snap = await get(ref(db, node));
+          if (!snap.exists()) { lines[lines.length - 1] += ' (empty, skipped)'; setStatus(); continue; }
+          await set(ref(db, `campaigns/${targetId}/${node}`), snap.val());
+          lines[lines.length - 1] += ' done';
+          setStatus();
+        }
+
+        if (deleteAfter) {
+          lines.push('\nDeleting originals from root…');
+          setStatus();
+          for (const node of nodes) {
+            const snap = await get(ref(db, node));
+            if (!snap.exists()) continue;
+            await remove(ref(db, node));
+            lines.push(`  /${node} deleted`);
+            setStatus();
+          }
+        }
+
+        lines.push('\nMigration complete!');
+        mgStatus.className = 'migrate-status done';
+        setStatus();
+      } catch (e) {
+        lines.push('\nError: ' + e.message);
+        mgStatus.className = 'migrate-status error';
+        setStatus();
+      } finally {
+        btnMigrate.disabled = false;
+      }
+    });
 
     loadUsers();
   </script>   </body> </html>

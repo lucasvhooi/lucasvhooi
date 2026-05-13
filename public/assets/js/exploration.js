@@ -2,9 +2,12 @@
 import { db }                              from "./firebase.js";
 import { ref, set, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
-const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
+const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
+const isAdmin = _session?.role === 'admin';
+const cid = _session?.campaignId;
+if (!cid) { window.location.href = '/campaigns'; throw new Error('No campaign selected'); }
 
-const charactersRef = ref(db, "characters");
+const charactersRef = ref(db, `campaigns/${cid}/characters`);
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let characters  = [];
@@ -94,7 +97,7 @@ function buildCard(c) {
   if (isAdmin) {
     card.querySelector(".char-encounter-btn").addEventListener("click", e => {
       e.stopPropagation();
-      set(ref(db, `characters/${c.id}/encountered`), !c.encountered);
+      set(ref(db, `campaigns/${cid}/characters/${c.id}/encountered`), !c.encountered);
     });
     card.querySelector(".char-edit-btn").addEventListener("click", e => {
       e.stopPropagation();
@@ -102,7 +105,7 @@ function buildCard(c) {
     });
     card.querySelector(".char-del-btn").addEventListener("click", e => {
       e.stopPropagation();
-      if (confirm(`Delete "${c.name}"?`)) remove(ref(db, `characters/${c.id}`));
+      if (confirm(`Delete "${c.name}"?`)) remove(ref(db, `campaigns/${cid}/characters/${c.id}`));
     });
   }
 
@@ -255,7 +258,7 @@ charSave.addEventListener("click", async () => {
     encountered: existing ? (existing.encountered ?? false) : false,
   };
 
-  await set(ref(db, `characters/${payload.id}`), payload);
+  await set(ref(db, `campaigns/${cid}/characters/${payload.id}`), payload);
   closeEditModal();
 });
 

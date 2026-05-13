@@ -621,23 +621,23 @@ Join
     }
 
     function buildCard(id, c) {
-      const role        = c.members?.[session.id] || 'player';
-      const memberCount = Object.keys(c.members || {}).length;
-      const isDM        = role === 'dm';
+      const initialRole  = c.members?.[session.id] || 'player';
+      const initialCount = Object.keys(c.members || {}).length;
+      const initialIsDM  = initialRole === 'dm' || session.role === 'admin';
 
       const card = document.createElement('div');
       card.className = 'campaign-card';
       card.innerHTML = `
         <div class="campaign-card-header">
           <span class="campaign-name">${escHtml(c.name || 'Untitled Campaign')}</span>
-          <span class="campaign-role-badge ${isDM ? 'badge-dm' : 'badge-player'}">${isDM ? 'DM' : 'Player'}</span>
+          <span class="campaign-role-badge ${initialIsDM ? 'badge-dm' : 'badge-player'}">${initialIsDM ? 'DM' : 'Player'}</span>
         </div>
         ${c.world ? `<span class="campaign-world">${escHtml(c.world)}</span>` : ''}
         ${c.description ? `<p class="campaign-desc">${escHtml(c.description)}</p>` : ''}
         <div class="campaign-meta">
-          <span class="campaign-meta-item">
+          <span class="campaign-meta-item member-count-item">
             <iconify-icon icon="lucide:users" style="font-size:13px"></iconify-icon>
-            ${memberCount} member${memberCount !== 1 ? 's' : ''}
+            <span class="member-count-text">${initialCount} member${initialCount !== 1 ? 's' : ''}</span>
           </span>
           ${c.createdAt ? `<span class="campaign-meta-item">
             <iconify-icon icon="lucide:calendar" style="font-size:13px"></iconify-icon>
@@ -646,7 +646,7 @@ Join
         </div>
         <div class="campaign-card-actions">
           <button class="btn-enter">Enter Campaign →</button>
-          ${isDM ? `<button class="btn-invite-card" title="Invite Players"><iconify-icon icon="lucide:user-plus"></iconify-icon></button>` : ''}
+          <button class="btn-invite-card" title="Invite Players" style="display:${initialIsDM ? 'flex' : 'none'}"><iconify-icon icon="lucide:user-plus"></iconify-icon></button>
         </div>
       `;
 
@@ -654,12 +654,31 @@ Join
         e.stopPropagation();
         enterCampaign(id, c);
       });
-      if (isDM) {
-        card.querySelector('.btn-invite-card').addEventListener('click', e => {
-          e.stopPropagation();
-          openInviteModal(id, c.name || 'Untitled Campaign');
-        });
-      }
+      card.querySelector('.btn-invite-card').addEventListener('click', e => {
+        e.stopPropagation();
+        openInviteModal(id, c.name || 'Untitled Campaign');
+      });
+
+      // Live listener: keeps member count and role badge in sync with DB
+      onValue(ref(db, `campaigns/${id}/members`), snap => {
+        const members = snap.val() || {};
+        const count   = Object.keys(members).length;
+        const role    = members[session.id] || 'player';
+        const isDM    = role === 'dm' || session.role === 'admin';
+
+        const countEl = card.querySelector('.member-count-text');
+        if (countEl) countEl.textContent = count + ' member' + (count !== 1 ? 's' : '');
+
+        const badge = card.querySelector('.campaign-role-badge');
+        if (badge) {
+          badge.textContent  = isDM ? 'DM' : 'Player';
+          badge.className    = 'campaign-role-badge ' + (isDM ? 'badge-dm' : 'badge-player');
+        }
+
+        const inviteBtn = card.querySelector('.btn-invite-card');
+        if (inviteBtn) inviteBtn.style.display = isDM ? 'flex' : 'none';
+      });
+
       return card;
     }
 

@@ -2,9 +2,22 @@
 import { db }                          from "./firebase.js";
 import { ref, set, push, onValue }     from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
-// ── Live users list ───────────────────────────────────────────────────────────
-let allUsers = {};
-onValue(ref(db, "users"), snap => { allUsers = snap.val() || {}; });
+const _gSession = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
+const _gCid = _gSession?.campaignId;
+
+// ── Live users + campaign members + display names ─────────────────────────────
+let allUsers        = {};
+let _gMembers       = {};
+let _gDisplayNames  = {};
+onValue(ref(db, "users"),                               snap => { allUsers       = snap.val() || {}; });
+if (_gCid) {
+  onValue(ref(db, `campaigns/${_gCid}/members`),      snap => { _gMembers       = snap.val() || {}; });
+  onValue(ref(db, `campaigns/${_gCid}/displayNames`), snap => { _gDisplayNames  = snap.val() || {}; });
+}
+
+function _gDisplayName(uid) {
+  return _gDisplayNames[uid] || allUsers[uid]?.username || uid;
+}
 
 // ── Floating give panel (singleton) ──────────────────────────────────────────
 let panelEl = null;
@@ -44,15 +57,19 @@ export function openGivePanel(anchor, itemData) {
   feedback.className = "give-panel-feedback";
 
   const list = panel.querySelector(".give-panel-list");
-  const players = Object.values(allUsers).sort((a, b) => (a.username || "").localeCompare(b.username || ""));
+  const hasMembers = Object.keys(_gMembers).length > 0;
+  const players = Object.entries(allUsers)
+    .filter(([uid]) => !hasMembers || uid in _gMembers)
+    .map(([uid, u]) => ({ uid, ...u }))
+    .sort((a, b) => _gDisplayName(a.uid).localeCompare(_gDisplayName(b.uid)));
 
   if (!players.length) {
-    list.innerHTML = `<p class="give-panel-empty">No player accounts found.</p>`;
+    list.innerHTML = `<p class="give-panel-empty">No players in this campaign.</p>`;
   } else {
     list.innerHTML = players.map(u => `
-      <button class="give-panel-player" data-id="${escAttr(u.id)}" style="--pc:${escAttr(u.color || '#888')}">
+      <button class="give-panel-player" data-id="${escAttr(u.uid)}" style="--pc:${escAttr(u.color || '#888')}">
         <span class="give-panel-dot"></span>
-        <span class="give-panel-name">${escHtml(u.username)}</span>
+        <span class="give-panel-name">${escHtml(_gDisplayName(u.uid))}</span>
         <span class="give-panel-role">${u.role === "admin" ? "DM" : "Player"}</span>
       </button>`).join("");
 
@@ -65,7 +82,7 @@ export function openGivePanel(anchor, itemData) {
         btn.disabled = true;
         try {
           await giveToInventory(uid, itemData);
-          feedback.innerHTML = `<iconify-icon icon="lucide:check"></iconify-icon> Sent to ${user.username.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}`;
+          feedback.innerHTML = `<iconify-icon icon="lucide:check"></iconify-icon> Sent to ${escHtml(_gDisplayName(uid))}`;
           feedback.className = "give-panel-feedback success";
           setTimeout(hidePanel, 1200);
         } catch(e) {
@@ -89,7 +106,7 @@ export function openGivePanel(anchor, itemData) {
 
 async function giveToInventory(playerId, itemData) {
   const session = JSON.parse(localStorage.getItem("playerSession") || "{}");
-  const newRef  = push(ref(db, `inventory/${playerId}`));
+  const newRef  = push(ref(db, `campaigns/${_gCid}/inventory/${playerId}`));
   const payload = {
     id:           newRef.key,
     name:         itemData.name        || "Item",

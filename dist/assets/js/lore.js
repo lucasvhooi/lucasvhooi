@@ -2,10 +2,13 @@ import { db }                          from "./firebase.js";
 import { ref, set, remove, onValue, push, get } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { openGivePanel }              from "./give-to-player.js";
 
-const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
+const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
+const isAdmin = _session?.role === 'admin';
+const cid = _session?.campaignId;
+if (!cid) { window.location.href = '/campaigns'; throw new Error('No campaign selected'); }
 
 // ── Firebase ──────────────────────────────────────────────────────────────────
-const loreRef = ref(db, "lore");
+const loreRef = ref(db, `campaigns/${cid}/lore`);
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let loreItems    = [];
@@ -132,7 +135,7 @@ function buildCard(item) {
     delBtn.textContent = "Delete";
     delBtn.addEventListener("click", e => {
       e.stopPropagation();
-      if (confirm(`Delete "${item.title}"?`)) remove(ref(db, `lore/${item.id}`));
+      if (confirm(`Delete "${item.title}"?`)) remove(ref(db, `campaigns/${cid}/lore/${item.id}`));
     });
     wrap.appendChild(delBtn);
 
@@ -174,7 +177,7 @@ function buildCard(item) {
     visBtn.textContent = item.discovered ? "Hide" : "Show";
     visBtn.addEventListener("click", e => {
       e.stopPropagation();
-      set(ref(db, `lore/${item.id}/discovered`), !item.discovered);
+      set(ref(db, `campaigns/${cid}/lore/${item.id}/discovered`), !item.discovered);
     });
     dmBar.appendChild(visBtn);
     wrap.appendChild(dmBar);
@@ -372,10 +375,10 @@ lmSave.addEventListener("click", async () => {
     availableInLibrary: lmAvailableInLibrary.checked,
   };
 
-  await set(ref(db, `lore/${payload.id}`), payload);
+  await set(ref(db, `campaigns/${cid}/lore/${payload.id}`), payload);
 
   // Sync into any inventory copies of this lore item
-  const invSnap = await get(ref(db, "inventory"));
+  const invSnap = await get(ref(db, `campaigns/${cid}/inventory`));
   if (invSnap.exists()) {
     const oldTitle = editingId ? (loreItems.find(i => i.id === editingId)?.title ?? null) : null;
     for (const [uid, userInv] of Object.entries(invSnap.val())) {
@@ -383,7 +386,7 @@ lmSave.addEventListener("click", async () => {
         const matchById   = invItem.sourceItemId === payload.id;
         const matchByName = !invItem.sourceItemId && oldTitle && invItem.name === oldTitle;
         if (matchById || matchByName) {
-          await set(ref(db, `inventory/${uid}/${key}`), {
+          await set(ref(db, `campaigns/${cid}/inventory/${uid}/${key}`), {
             ...invItem,
             name:        payload.title,
             description: payload.writer ? `Written by ${payload.writer}` : null,
@@ -589,7 +592,7 @@ async function seedDefaultLore() {
 
   for (const item of DEFAULT_LORE) {
     const id = push(loreRef).key;
-    await set(ref(db, `lore/${id}`), { ...item, id });
+    await set(ref(db, `campaigns/${cid}/lore/${id}`), { ...item, id });
   }
 
   if (btn) { btn.disabled = false; btn.textContent = "Seed Default Lore"; }
@@ -781,7 +784,7 @@ async function seedItemLore() {
 
   for (const item of ITEM_LORE) {
     const id = push(loreRef).key;
-    await set(ref(db, `lore/${id}`), { ...item, id });
+    await set(ref(db, `campaigns/${cid}/lore/${id}`), { ...item, id });
   }
 
   if (btn) { btn.disabled = false; btn.textContent = "Seed Item Lore"; }

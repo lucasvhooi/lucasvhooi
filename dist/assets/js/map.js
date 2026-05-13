@@ -2,8 +2,12 @@
 import { db }                                     from "./firebase.js";
 import { ref, set, remove, onValue }              from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
-const markersRef   = ref(db, "markers");
-const countriesRef = ref(db, "countries");
+const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
+const _cid = _session?.campaignId;
+if (!_cid) { window.location.href = '/campaigns'; throw new Error('No campaign selected'); }
+
+const markersRef   = ref(db, `campaigns/${_cid}/markers`);
+const countriesRef = ref(db, `campaigns/${_cid}/countries`);
 
 // ── Remember last location — redirect if user came back from a location ───────
 const _savedLoc = sessionStorage.getItem("lastLocationId");
@@ -42,6 +46,10 @@ let _imgNW = 0, _imgNH = 0;
 function updateTransform() {
   mapWrapper.style.transform = `translate3d(${originX}px,${originY}px,0) scale(${scale})`;
 }
+
+// ── Marker element map — declared here so flushCounterScale can reference it
+// even when the image loads synchronously from cache before line 330 is reached.
+const _markerEls = new Map();
 
 // Counter-scale: keep pins a constant screen size regardless of zoom.
 // Written directly as an inline style on each marker element — avoids the
@@ -313,8 +321,8 @@ const COUNTRY_COLORS = [
   "#ff5722","#78909c"
 ];
 
-function saveMarker(marker)     { set(ref(db, "markers/" + marker.id), marker); }
-function deleteMarkerById(id)   { remove(ref(db, "markers/" + id)); }
+function saveMarker(marker)     { set(ref(db, `campaigns/${_cid}/markers/${marker.id}`), marker); }
+function deleteMarkerById(id)   { remove(ref(db, `campaigns/${_cid}/markers/${id}`)); }
 function generateId()           { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
 function screenToPct(screenX, screenY) {
@@ -327,8 +335,8 @@ function screenToPct(screenX, screenY) {
 // ── Differential marker rendering ─────────────────────────────────────────────
 // Tracks id → { el, hash } so unchanged markers are never touched (no DOM
 // teardown, no layout invalidation, no event-listener churn).
-const _markerEls = new Map();
-
+// (_markerEls is declared near the top of the file so flushCounterScale can
+//  use it before this section is reached during module evaluation.)
 function renderMarkers() {
   const visible = new Set();
 
@@ -601,7 +609,7 @@ onValue(countriesRef, snapshot => {
     _countriesSeeded = true;
     DEFAULT_COUNTRIES.forEach(c => {
       const id = generateId();
-      set(ref(db, `countries/${id}`), { id, name: c.name, color: c.color, description: null });
+      set(ref(db, `campaigns/${_cid}/countries/${id}`), { id, name: c.name, color: c.color, description: null });
     });
     return;
   }
@@ -750,8 +758,8 @@ function buildCountrySection(country, items) {
     header.querySelector(".lp-del-country").addEventListener("click", e => {
       e.stopPropagation();
       if (!confirm(`Delete country "${country.name}"? Markers will become unassigned.`)) return;
-      remove(ref(db, `countries/${country.id}`));
-      markers.filter(m => m.countryId === country.id).forEach(m => set(ref(db, `markers/${m.id}/countryId`), null));
+      remove(ref(db, `campaigns/${_cid}/countries/${country.id}`));
+      markers.filter(m => m.countryId === country.id).forEach(m => set(ref(db, `campaigns/${_cid}/markers/${m.id}/countryId`), null));
     });
   }
 
@@ -885,7 +893,7 @@ cmSave.addEventListener("click", () => {
   const name = cmName.value.trim();
   if (!name) { cmError.textContent = "Name is required."; return; }
   const id = _editingCountryId || generateId();
-  set(ref(db, `countries/${id}`), { id, name, color: _selectedCountryColor, description: cmDesc.value.trim() || null });
+  set(ref(db, `campaigns/${_cid}/countries/${id}`), { id, name, color: _selectedCountryColor, description: cmDesc.value.trim() || null });
   closeCountryModal();
 });
 

@@ -9,11 +9,13 @@ const session = getSession();
 if (!session) { window.location.href = "login.html"; }
 
 const isAdmin     = session.role === "admin";
+const cid = session.campaignId;
+if (!cid) { window.location.href = "campaigns"; throw new Error('No campaign selected'); }
 const usersRef    = ref(db, "users");
-const inventoryRef = ref(db, "inventory");
+const inventoryRef = ref(db, `campaigns/${cid}/inventory`);
 
 let allItemsDb = [];
-onValue(ref(db, "items"), snap => { allItemsDb = snap.val() ? Object.values(snap.val()) : []; });
+onValue(ref(db, `campaigns/${cid}/items`), snap => { allItemsDb = snap.val() ? Object.values(snap.val()) : []; });
 
 let selectedItemDb = null;
 
@@ -28,6 +30,8 @@ let activeFilter = "all";
 let sendItemId   = null;
 let sendItemOwner = null;
 let selectedSendTarget = null;
+let allMembers      = {};
+let allDisplayNames = {};
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 const heroTitle      = document.getElementById("inv-hero-title");
@@ -51,7 +55,7 @@ onValue(inventoryRef, snap => {
   renderGrid();
 });
 
-onValue(ref(db, "attunements"), snap => {
+onValue(ref(db, `campaigns/${cid}/attunements`), snap => {
   allAttunements = snap.val() || {};
   renderGrid();
 });
@@ -61,29 +65,102 @@ onValue(ref(db, "spells"), snap => {
   if (activeFilter === "spells") renderGrid();
 });
 
-onValue(ref(db, "spellbook"), snap => {
+onValue(ref(db, `campaigns/${cid}/spellbook`), snap => {
   allSpellbooks = snap.val() || {};
   if (activeFilter === "spells") renderGrid();
 });
+
+onValue(ref(db, `campaigns/${cid}/members`), snap => {
+  allMembers = snap.val() || {};
+  renderPlayerSelector();
+});
+
+onValue(ref(db, `campaigns/${cid}/displayNames`), snap => {
+  allDisplayNames = snap.val() || {};
+  renderPlayerSelector();
+  renderGrid();
+});
+
+function getDisplayName(uid) {
+  return allDisplayNames[uid] || allUsers[uid]?.username || uid;
+}
 
 // ── Player selector ───────────────────────────────────────────────────────────
 function renderPlayerSelector() {
   if (!isAdmin) return;
   playerSelector.style.display = "inline-flex";
+
+  const hasMembers = Object.keys(allMembers).length > 0;
   const userList = Object.entries(allUsers)
+    .filter(([uid]) => !hasMembers || uid in allMembers)
     .map(([uid, u]) => ({ uid, ...u }))
-    .sort((a, b) => (a.username || "").localeCompare(b.username || ""));
+    .sort((a, b) => getDisplayName(a.uid).localeCompare(getDisplayName(b.uid)));
+
   playerSelect.innerHTML = userList
-    .map(u => `<option value="${esc(u.uid)}" ${u.uid === viewingId ? "selected" : ""}>${esc(u.username)}${u.role === "admin" ? " (DM)" : ""}</option>`)
+    .map(u => `<option value="${esc(u.uid)}" ${u.uid === viewingId ? "selected" : ""}>${esc(getDisplayName(u.uid))}${u.role === "admin" ? " (DM)" : ""}</option>`)
     .join("");
-  // Populate add-item target select
+
   const aiTarget = document.getElementById("ai-target");
   aiTarget.innerHTML = userList
-    .filter(u => u.uid !== session.id || isAdmin)
-    .map(u => `<option value="${esc(u.uid)}">${esc(u.username)}</option>`)
+    .map(u => `<option value="${esc(u.uid)}">${esc(getDisplayName(u.uid))}</option>`)
     .join("");
-  // Default add-item target to currently viewed player
   aiTarget.value = viewingId;
+
+  // Pencil button — add once, keep it
+  if (!playerSelector.querySelector(".btn-rename-player")) {
+    const renameBtn = document.createElement("button");
+    renameBtn.className = "btn-rename-player";
+    renameBtn.title = "Set character name";
+    renameBtn.innerHTML = '<iconify-icon icon="lucide:pencil"></iconify-icon>';
+    renameBtn.style.cssText = "background:none;border:1px solid #3a2510;border-radius:6px;color:#888;padding:5px 9px;cursor:pointer;font-size:14px;display:inline-flex;align-items:center;flex-shrink:0;transition:color 0.2s,border-color 0.2s";
+    renameBtn.addEventListener("mouseover", () => { renameBtn.style.color = "var(--accent)"; renameBtn.style.borderColor = "var(--accent)"; });
+    renameBtn.addEventListener("mouseout",  () => { renameBtn.style.color = "#888"; renameBtn.style.borderColor = "#3a2510"; });
+    renameBtn.addEventListener("click", openRenameModal);
+    playerSelector.appendChild(renameBtn);
+  }
+}
+
+function openRenameModal() {
+  const uid      = viewingId;
+  const current  = allDisplayNames[uid] || "";
+  const realName = allUsers[uid]?.username || uid;
+
+  const overlay = document.createElement("div");
+  overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px";
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(160deg,#1e1108 0%,#150d05 100%);border:1px solid #3a2510;border-radius:14px;padding:28px;width:100%;max-width:360px;box-shadow:0 8px 48px rgba(0,0,0,0.9)">
+      <div style="font-family:'IM Fell English',serif;font-size:1.25rem;color:var(--accent);margin-bottom:4px">Character Name</div>
+      <div style="font-size:12px;color:#666;margin-bottom:18px">Sets the in-campaign display name for <strong style="color:#aaa">${esc(realName)}</strong></div>
+      <input id="rn-input" type="text" value="${esc(current)}" placeholder="${esc(realName)}"
+        style="width:100%;background:rgba(255,255,255,0.04);border:1px solid #3a2510;border-radius:8px;padding:11px 14px;color:var(--text);font-size:15px;font-family:var(--font);outline:none;box-sizing:border-box;margin-bottom:14px;transition:border-color 0.2s">
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button id="rn-cancel" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid #2e1c0a;border-radius:8px;color:#888;font-size:14px;font-family:var(--font);padding:10px;cursor:pointer">Cancel</button>
+        <button id="rn-save" style="flex:1;background:linear-gradient(135deg,#4a2c0a,#6b3e10);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:14px;font-family:var(--font);padding:10px;cursor:pointer">Save</button>
+      </div>
+      ${current ? `<button id="rn-reset" style="width:100%;background:none;border:1px solid #3a1a1a;border-radius:8px;color:#7a3030;font-size:12px;font-family:var(--font);padding:8px;cursor:pointer">Reset to username</button>` : ""}
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const input = overlay.querySelector("#rn-input");
+  input.focus(); input.select();
+  input.addEventListener("focus", () => { input.style.borderColor = "var(--accent)"; });
+  input.addEventListener("blur",  () => { input.style.borderColor = "#3a2510"; });
+
+  async function doSave() {
+    const name = input.value.trim();
+    if (name) await set(ref(db, `campaigns/${cid}/displayNames/${uid}`), name);
+    else      await remove(ref(db, `campaigns/${cid}/displayNames/${uid}`));
+    overlay.remove();
+  }
+
+  overlay.querySelector("#rn-save").addEventListener("click", doSave);
+  overlay.querySelector("#rn-cancel").addEventListener("click", () => overlay.remove());
+  overlay.querySelector("#rn-reset")?.addEventListener("click", async () => {
+    await remove(ref(db, `campaigns/${cid}/displayNames/${uid}`));
+    overlay.remove();
+  });
+  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+  input.addEventListener("keydown", e => { if (e.key === "Enter") doSave(); if (e.key === "Escape") overlay.remove(); });
 }
 
 playerSelect.addEventListener("change", () => {
@@ -94,7 +171,7 @@ playerSelect.addEventListener("change", () => {
 // ── Render inventory grid ─────────────────────────────────────────────────────
 function renderGrid() {
   const owner = allUsers[viewingId];
-  const ownerName = owner ? owner.username : (viewingId === session.id ? session.username : "Unknown");
+  const ownerName = getDisplayName(viewingId) || (viewingId === session.id ? session.username : "Unknown");
   const ownerColor = owner ? owner.color : session.color;
 
   if (viewingId === session.id) {
@@ -236,7 +313,7 @@ function buildBookCard(item, ownerId) {
   const color  = bookColor(item);
   const title  = esc(item.name || "");
   const author = getAuthor(item);
-  const giverName = item.givenBy && allUsers[item.givenBy] ? allUsers[item.givenBy].username : (item.givenBy === "admin" ? "DM" : null);
+  const giverName = item.givenBy && allUsers[item.givenBy] ? getDisplayName(item.givenBy) : (item.givenBy === "admin" ? "DM" : null);
 
   wrap.innerHTML = `
     <div class="book-cover inv-book-cover" style="--cover-color:${color}">
@@ -263,7 +340,7 @@ function buildScrollCard(item, ownerId) {
   wrap.className = "inv-lore-card inv-scroll-card";
   const title  = esc(item.name || "");
   const author = getAuthor(item);
-  const giverName = item.givenBy && allUsers[item.givenBy] ? allUsers[item.givenBy].username : (item.givenBy === "admin" ? "DM" : null);
+  const giverName = item.givenBy && allUsers[item.givenBy] ? getDisplayName(item.givenBy) : (item.givenBy === "admin" ? "DM" : null);
 
   wrap.innerHTML = `
     <div class="scroll-cover inv-scroll-cover">
@@ -300,7 +377,7 @@ function buildGenericCard(item, ownerId) {
   card.className = "inv-card";
   card.dataset.type = item.type || "misc";
 
-  const giverName = item.givenBy && allUsers[item.givenBy] ? allUsers[item.givenBy].username : (item.givenBy === "admin" ? "DM" : null);
+  const giverName = item.givenBy && allUsers[item.givenBy] ? getDisplayName(item.givenBy) : (item.givenBy === "admin" ? "DM" : null);
   const rarity      = item.rarity || null;
   const rarityColor = rarity ? (RARITY_COLORS[rarity] || "#9e9e9e") : null;
 
@@ -369,12 +446,12 @@ function buildGenericCard(item, ownerId) {
           setTimeout(() => { attBtn.textContent = "Attune"; attBtn.style.color = ""; }, 2000);
           return;
         }
-        await set(ref(db, `attunements/${ownerId}/${attKey}`), { name: item.name, type: item.type, rarity: item.rarity || null, timestamp: Date.now() });
+        await set(ref(db, `campaigns/${cid}/attunements/${ownerId}/${attKey}`), { name: item.name, type: item.type, rarity: item.rarity || null, timestamp: Date.now() });
       });
     }
     if (unattBtn) {
       unattBtn.addEventListener("click", async () => {
-        await remove(ref(db, `attunements/${ownerId}/${attKey}`));
+        await remove(ref(db, `campaigns/${cid}/attunements/${ownerId}/${attKey}`));
       });
     }
   }
@@ -518,7 +595,7 @@ document.getElementById("ai-save").addEventListener("click", async () => {
   if (!target) { errEl.textContent = "Select a player."; errEl.classList.add("show"); return; }
   errEl.classList.remove("show");
 
-  const itemRef = push(ref(db, `inventory/${target}`));
+  const itemRef = push(ref(db, `campaigns/${cid}/inventory/${target}`));
   await set(itemRef, {
     id:           itemRef.key,
     name:         selectedItemDb.name,
@@ -672,9 +749,9 @@ document.getElementById("send-confirm").addEventListener("click", async () => {
   for (const id of ids) {
     const item = ownerItems[id];
     if (!item) continue;
-    const newRef = push(ref(db, `inventory/${selectedSendTarget}`));
+    const newRef = push(ref(db, `campaigns/${cid}/inventory/${selectedSendTarget}`));
     await set(newRef, { ...item, id: newRef.key, givenBy: sendItemOwner, timestamp: Date.now() });
-    await remove(ref(db, `inventory/${sendItemOwner}/${id}`));
+    await remove(ref(db, `campaigns/${cid}/inventory/${sendItemOwner}/${id}`));
   }
   closeModal("send-modal");
 });
@@ -736,10 +813,10 @@ document.getElementById("remove-confirm").addEventListener("click", async () => 
     if (!it) continue;
     const qty = it.quantity || 1;
     if (qty <= remaining) {
-      await remove(ref(db, `inventory/${removeOwner}/${id}`));
+      await remove(ref(db, `campaigns/${cid}/inventory/${removeOwner}/${id}`));
       remaining -= qty;
     } else {
-      await set(ref(db, `inventory/${removeOwner}/${id}/quantity`), qty - remaining);
+      await set(ref(db, `campaigns/${cid}/inventory/${removeOwner}/${id}/quantity`), qty - remaining);
       remaining = 0;
     }
   }
@@ -779,8 +856,8 @@ function renderPlayerList() {
       btn.textContent = "Removing…";
       await Promise.all([
         remove(ref(db, `users/${uid}`)),
-        remove(ref(db, `inventory/${uid}`)),
-        remove(ref(db, `attunements/${uid}`)),
+        remove(ref(db, `campaigns/${cid}/inventory/${uid}`)),
+        remove(ref(db, `campaigns/${cid}/attunements/${uid}`)),
       ]);
       delete allUsers[uid];
       renderPlayerList();
@@ -930,7 +1007,7 @@ document.getElementById("qe-save").addEventListener("click", async () => {
 
   if (_qeSourceId) {
     const master = allItemsDb.find(i => i.id === _qeSourceId);
-    await set(ref(db, `items/${_qeSourceId}`), {
+    await set(ref(db, `campaigns/${cid}/items/${_qeSourceId}`), {
       ...(master || {}),
       name, description, price, rarity: _qeRarity, tags: cleanTags,
       shopAvailable, requiresAttunement, abilities,
@@ -938,7 +1015,7 @@ document.getElementById("qe-save").addEventListener("click", async () => {
     for (const [uid, userInv] of Object.entries(allInventory)) {
       for (const [key, invItem] of Object.entries(userInv || {})) {
         if (invItem.sourceItemId === _qeSourceId || (!invItem.sourceItemId && master && invItem.name === master.name)) {
-          await set(ref(db, `inventory/${uid}/${key}`), {
+          await set(ref(db, `campaigns/${cid}/inventory/${uid}/${key}`), {
             ...invItem,
             name, description, rarity: _qeRarity, tags: cleanTags,
             requiresAttunement, abilities,
@@ -951,7 +1028,7 @@ document.getElementById("qe-save").addEventListener("click", async () => {
   } else {
     const invItem = (allInventory[_qeOwnerId] || {})[_qeInvItemId];
     if (invItem) {
-      await set(ref(db, `inventory/${_qeOwnerId}/${_qeInvItemId}`), {
+      await set(ref(db, `campaigns/${cid}/inventory/${_qeOwnerId}/${_qeInvItemId}`), {
         ...invItem,
         name, description, rarity: _qeRarity, tags: cleanTags,
         requiresAttunement, abilities,
@@ -1138,7 +1215,7 @@ function buildSavedSpellCard(spell, canUnsave) {
   if (canUnsave) {
     card.querySelector('.btn-unsave').addEventListener('click', e => {
       e.stopPropagation();
-      remove(ref(db, `spellbook/${viewingId}/${spell.id}`));
+      remove(ref(db, `campaigns/${cid}/spellbook/${viewingId}/${spell.id}`));
     });
   }
 

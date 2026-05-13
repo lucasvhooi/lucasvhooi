@@ -1259,6 +1259,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   border-radius: 0 0 7px 7px;
+  margin: 20px;
 }
 .blk-body::-webkit-scrollbar       { width: 4px; }
 .blk-body::-webkit-scrollbar-track { background: transparent; }

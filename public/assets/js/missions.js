@@ -3,9 +3,12 @@ import { db }                              from "./firebase.js";
 import { ref, set, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { formatGold }                      from "./item-utils.js";
 
-const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
-const questsRef  = ref(db, "quests");
-const markersRef = ref(db, "markers");
+const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
+const isAdmin = _session?.role === 'admin';
+const cid = _session?.campaignId;
+if (!cid) { window.location.href = '/campaigns'; throw new Error('No campaign selected'); }
+const questsRef  = ref(db, `campaigns/${cid}/quests`);
+const markersRef = ref(db, `campaigns/${cid}/markers`);
 
 // ── Monster preset list (mirrored from combat.js) ─────────────────────────────
 const MONSTER_PRESETS = [
@@ -327,22 +330,22 @@ function hexToRgba(hex, alpha) {
 }
 
 
-onValue(ref(db, "enemyTemplates"), snap => {
+onValue(ref(db, `campaigns/${cid}/enemyTemplates`), snap => {
   const data = snap.val();
   firebaseTemplates = data ? Object.values(data) : [];
 });
 
-onValue(ref(db, "items"), snap => {
+onValue(ref(db, `campaigns/${cid}/items`), snap => {
   const data = snap.val();
   allItems = data ? Object.values(data) : [];
 });
 
-onValue(ref(db, "lore"), snap => {
+onValue(ref(db, `campaigns/${cid}/lore`), snap => {
   const data = snap.val();
   allLoreItems = data ? Object.values(data) : [];
 });
 
-onValue(ref(db, "characters"), snap => {
+onValue(ref(db, `campaigns/${cid}/characters`), snap => {
   const data = snap.val();
   allCharacters = data ? Object.values(data) : [];
 });
@@ -1085,7 +1088,7 @@ function buildCard(q) {
     card.querySelector(".qc-edit-btn").addEventListener("click", e => { e.stopPropagation(); openModal(q); });
     card.querySelector(".qc-del-btn").addEventListener("click",  e => {
       e.stopPropagation();
-      if (confirm(`Delete "${q.title}"?`)) remove(ref(db, `quests/${q.id}`));
+      if (confirm(`Delete "${q.title}"?`)) remove(ref(db, `campaigns/${cid}/quests/${q.id}`));
     });
     initQuestCardDrag(card, q.id);
   }
@@ -1233,7 +1236,7 @@ function reorderQuests(srcId, targetId) {
   ids.splice(srcIdx, 1);
   ids.splice(tgtIdx, 0, srcId);
   // Write new order values to Firebase
-  ids.forEach((id, i) => set(ref(db, `quests/${id}/order`), i));
+  ids.forEach((id, i) => set(ref(db, `campaigns/${cid}/quests/${id}/order`), i));
 }
 
 function renderBlockInCard(b, cellColors) {
@@ -1453,7 +1456,7 @@ qmSave.addEventListener("click", async () => {
     connections: currentConnections.length > 0 ? currentConnections : null,
     groups:      currentGroups.length > 0 ? currentGroups : null,
   };
-  await set(ref(db, `quests/${payload.id}`), payload);
+  await set(ref(db, `campaigns/${cid}/quests/${payload.id}`), payload);
   // Clear local draft on successful save
   if (draftKey) { try { localStorage.removeItem(draftKey); } catch {} }
   hasUnsavedChanges = false;

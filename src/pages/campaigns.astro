@@ -743,7 +743,7 @@ import Layout from '../layouts/Layout.astro';
     function buildCard(id, c) {
       const initialRole  = c.members?.[session.id] || 'player';
       const initialCount = Object.keys(c.members || {}).length;
-      const initialIsDM  = initialRole === 'dm';
+      const initialIsDM  = initialRole === 'dm' || session.role === 'admin';
 
       const card = document.createElement('div');
       card.className = 'campaign-card';
@@ -784,7 +784,7 @@ import Layout from '../layouts/Layout.astro';
         const members = snap.val() || {};
         const count   = Object.keys(members).length;
         const role    = members[session.id] || 'player';
-        const isDM    = role === 'dm';
+        const isDM    = role === 'dm' || session.role === 'admin';
 
         const countEl = card.querySelector('.member-count-text');
         if (countEl) countEl.textContent = count + ' member' + (count !== 1 ? 's' : '');
