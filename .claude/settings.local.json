@@ -25,7 +25,12 @@
       "Bash(npm install *)",
       "Bash(npm run *)",
       "Bash(dir \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\" /b)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Skill(impeccable)",
+      "Bash(Get-ChildItem -Path . -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(cp \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\\\\public\\\\assets\\\\css\\\\combat.css\" \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\\\\dist\\\\assets\\\\css\\\\combat.css\")",
+      "Bash(cp \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\\\\public\\\\assets\\\\css\\\\inventory.css\" \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\\\\dist\\\\assets\\\\css\\\\inventory.css\")"
     ]
   }
 }

@@ -382,6 +382,7 @@ function buildGenericCard(item, ownerId) {
   const rarityColor = rarity ? (RARITY_COLORS[rarity] || "#9e9e9e") : null;
 
   if (rarityColor) card.style.setProperty("--rc", rarityColor);
+  if (rarity) card.dataset.rarity = rarity.toLowerCase().replace(/\s+/g, '-');
 
   const effectiveType = item._etype || "misc";
 

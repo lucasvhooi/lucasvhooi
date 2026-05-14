@@ -1,5 +1,40 @@
 @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
 
+/* ── Atmospheric ambient animations ─────────────────────────────────────────── */
+@keyframes inv-uncommon-breath {
+  0%, 100% { opacity: 0.04; }
+  50%       { opacity: 0.09; }
+}
+@keyframes inv-rare-drift {
+  0%, 100% { opacity: 0.04; }
+  50%       { opacity: 0.11; }
+}
+@keyframes inv-vrare-shimmer {
+  0%,  100% { opacity: 0.05; }
+  40%        { opacity: 0.15; }
+  70%        { opacity: 0.08; }
+}
+@keyframes inv-legendary-pulse {
+  0%, 100% { opacity: 0.07; }
+  50%       { opacity: 0.22; }
+}
+@keyframes inv-attuned-breath {
+  0%, 100% {
+    box-shadow:
+      0 0 0 2px rgba(200,164,92,0.32),
+      0 0 18px rgba(200,164,92,0.28),
+      0 4px 14px rgba(0,0,0,0.45),
+      inset 0 0 40px rgba(200,164,92,0.06);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(200,164,92,0.55),
+      0 0 30px rgba(200,164,92,0.45),
+      0 6px 20px rgba(0,0,0,0.55),
+      inset 0 0 52px rgba(200,164,92,0.11);
+  }
+}
+
 /* ── Hero ───────────────────────────────────────────────────────────────────── */
 .inv-hero {
   background: linear-gradient(180deg, #3a1a05 0%, #2a1005 50%, #1a1a1a 100%);
@@ -103,10 +138,9 @@
   background: #3a2510;
 }
 
-/* Books & Scrolls tab — separated with a left gap */
+/* Books & Scrolls tab — separated with a pseudo-element divider */
 .inv-tab-lore {
   margin-left: 10px;
-  border-left: 1px solid #3a2510;
   position: relative;
 }
 .inv-tab-lore::before {
@@ -147,12 +181,13 @@
 /* ── Regular item card ──────────────────────────────────────────────────────── */
 .inv-card {
   --rc: #3a2510;
-  background: color-mix(in srgb, var(--rc) 30%, #1a1008);
-  border: 1px solid color-mix(in srgb, var(--rc) 75%, #1a1a1a);
+  background: color-mix(in srgb, var(--rc) 38%, #1a1008);
+  border: 1px solid color-mix(in srgb, var(--rc) 80%, #1a1a1a);
   border-radius: 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.45), 0 1px 4px rgba(0,0,0,0.3);
   transition:
     border-color 0.32s var(--ease-out-expo),
     box-shadow 0.38s var(--ease-out-expo),
@@ -162,6 +197,35 @@
   will-change: transform;
   transform-origin: center bottom;
 }
+
+/* Atmospheric ambient layer — rarity aura radiates from top */
+.inv-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse 90% 55% at 50% 0%, var(--rc) 0%, transparent 72%);
+  opacity: 0.05;
+  transition: opacity 0.55s var(--ease-out-expo);
+}
+.inv-card:hover::before { opacity: 0.12; }
+
+/* Rarity-specific ambient breathing animations */
+.inv-card[data-rarity="uncommon"]::before {
+  animation: inv-uncommon-breath 4.5s ease-in-out infinite;
+}
+.inv-card[data-rarity="rare"]::before {
+  animation: inv-rare-drift 4s ease-in-out infinite;
+}
+.inv-card[data-rarity="very-rare"]::before {
+  animation: inv-vrare-shimmer 5.5s ease-in-out infinite;
+}
+.inv-card[data-rarity="legendary"]::before {
+  animation: inv-legendary-pulse 4s ease-in-out infinite;
+}
+
 .inv-card:hover {
   border-color: color-mix(in srgb, var(--rc) 80%, #c8a45c22);
   box-shadow:
@@ -177,12 +241,17 @@
 .inv-card-attuned {
   border-color: #c8a45c !important;
   border-width: 2px !important;
-  box-shadow: 0 0 0 2px rgba(200,164,92,0.3), 0 0 22px rgba(200,164,92,0.38), inset 0 0 48px rgba(200,164,92,0.15);
   background: linear-gradient(180deg, rgba(200,164,92,0.08) 0%, transparent 60%) !important;
+  animation: inv-attuned-breath 3.2s ease-in-out infinite;
 }
 .inv-card-attuned:hover {
   border-color: #e0c070 !important;
-  box-shadow: 0 0 0 2px rgba(224,192,112,0.45), 0 0 32px rgba(200,164,92,0.55), 0 16px 44px rgba(0,0,0,0.6), inset 0 0 48px rgba(200,164,92,0.12) !important;
+  animation-play-state: paused;
+  box-shadow:
+    0 0 0 2px rgba(224,192,112,0.50),
+    0 0 36px rgba(200,164,92,0.58),
+    0 16px 44px rgba(0,0,0,0.6),
+    inset 0 0 52px rgba(200,164,92,0.12) !important;
 }
 
 .inv-card-body {
@@ -192,6 +261,8 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .inv-card-top {
@@ -214,7 +285,7 @@
 
 .inv-item-name {
   font-family: 'IM Fell English', 'Garamond', serif;
-  font-size: 16px;
+  font-size: 17px;
   color: var(--text);
   margin: 0 0 4px;
   line-height: 1.3;
@@ -1113,6 +1184,38 @@
   border-color: rgba(255,204,102,0.4);
 }
 
+/* ── Quick-edit modal layout ── */
+#qe-modal .modal-box {
+  width: 800px;
+  max-width: min(96vw, 800px);
+}
+
+.qe-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 24px;
+  margin-bottom: 4px;
+}
+
+.qe-col { display: flex; flex-direction: column; min-width: 0; }
+
+/* Bigger description textarea */
+.qe-desc-row textarea { min-height: 130px; }
+
+/* Bigger ability description inputs */
+#qe-abilities-list .im-ability-desc-input { min-height: 72px; }
+
+/* Abilities row — divider separating identity/mechanics columns from abilities */
+.qe-layout + .form-row {
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #2a1810;
+}
+
+@media (max-width: 680px) {
+  .qe-layout { grid-template-columns: 1fr; }
+}
+
 /* ── Quick-edit modal form ── */
 .qe-abilities-list {
   display: flex;
@@ -1338,4 +1441,12 @@
   color: #aaa;
   margin-top: 2px;
   line-height: 1.45;
+}
+
+/* ── Motion sensitivity ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .inv-card::before { transition: none; animation: none !important; }
+  .inv-card[data-rarity]::before { animation: none !important; }
+  .inv-card-attuned { animation: none !important; box-shadow: 0 0 0 2px rgba(200,164,92,0.4), 0 0 22px rgba(200,164,92,0.38), inset 0 0 48px rgba(200,164,92,0.12); }
+  .inv-card { transition: none; }
 }

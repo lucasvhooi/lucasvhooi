@@ -8,7 +8,8 @@
 
   // ── Lenis smooth scroll ────────────────────────────────────────────────────
   if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
-      !document.body.classList.contains('map-page')) {
+      !document.body.classList.contains('map-page') &&
+      !document.body.classList.contains('combat-page')) {
     const ls = document.createElement('script');
     ls.src = 'https://cdn.jsdelivr.net/npm/lenis@1.3.23/dist/lenis.min.js';
     ls.onload = function () {

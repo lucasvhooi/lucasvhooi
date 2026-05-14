@@ -1,12 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Navbar from '../components/Navbar.astro';
 ---
-<Layout title="Combat — DnD Campaign" showCampaignTabs={true} activePage="combat" extraCSS={['/assets/css/combat.css']}>
-<Navbar 
-  showCampaignTabs={true}
-  activePage="map"
-/>
+<Layout title="Combat — DnD Campaign" showCampaignTabs={true} activePage="combat" extraCSS={['/assets/css/combat.css']} bodyClass="combat-page">
   <!-- Hero bar -->
   <header class="combat-hero">
     <div class="hero-left">
@@ -384,7 +379,9 @@ import Navbar from '../components/Navbar.astro';
 
     window._giveItemToPlayer = async (playerId, itemData) => {
       const session = JSON.parse(localStorage.getItem("playerSession") || "{}");
-      const newRef = push(ref(db, `inventory/${playerId}`));
+      const cid = session.campaignId;
+      if (!cid) throw new Error("No campaign selected");
+      const newRef = push(ref(db, `campaigns/${cid}/inventory/${playerId}`));
       await set(newRef, {
         id:          newRef.key,
         name:        itemData.name        || "Item",
@@ -392,6 +389,7 @@ import Navbar from '../components/Navbar.astro';
         description: itemData.description || null,
         quantity:    itemData.quantity    || 1,
         value:       itemData.value != null ? itemData.value + " gp" : null,
+        rarity:      itemData.rarity      || null,
         content:     null,
         givenBy:     session.id           || "admin",
         timestamp:   Date.now(),
@@ -422,4 +420,54 @@ import Navbar from '../components/Navbar.astro';
     });
   </script>
   <script is:inline src="/assets/js/combat.js"></script>
+
+  <!-- Framer Motion: staggered card entry + HP change animation -->
+  <script>
+    import { animate } from 'framer-motion/dom';
+
+    const listEl = document.getElementById('combatant-list');
+    if (listEl) {
+      let batch: HTMLElement[] = [];
+      let timer: ReturnType<typeof setTimeout> | null = null;
+
+      const observer = new MutationObserver(mutations => {
+        for (const m of mutations) {
+          for (const node of m.addedNodes) {
+            if (
+              node.nodeType === 1 &&
+              (node as HTMLElement).classList?.contains('combatant-card')
+            ) {
+              const card = node as HTMLElement;
+              // Suppress CSS slideIn; Framer Motion owns entry
+              card.style.animation = 'none';
+              card.style.opacity = '0';
+              card.style.transform = 'translateY(8px) scale(0.97)';
+              batch.push(card);
+            }
+          }
+        }
+
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          const cards = batch.splice(0);
+          if (!cards.length) return;
+
+          cards.forEach((card, i) => {
+            const delay = cards.length > 1 ? i * 0.05 : 0;
+            animate(card, { opacity: 1, y: 0, scale: 1 }, {
+              duration: 0.28,
+              delay,
+              ease: [0.16, 1, 0.3, 1],
+            });
+            // Re-enable CSS cardBreath after entry animation completes
+            setTimeout(() => {
+              card.style.removeProperty('animation');
+            }, (0.28 + delay) * 1000 + 40);
+          });
+        }, 16);
+      });
+
+      observer.observe(listEl, { childList: true });
+    }
+  </script>
 </Layout>

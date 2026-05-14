@@ -131,10 +131,10 @@ const MONSTER_PRESETS = [
 
 // ── Type colours ──────────────────────────────────────────────────────────────
 const TYPE_COLORS = {
-  player: { border: "#ffcc66", bg: "rgba(255,204,102,0.05)", activeBg: "rgba(80,55,0,0.45)",   badge: "#c9a030", badgeBg: "rgba(255,204,102,0.14)" },
-  enemy:  { border: "#e57373", bg: "rgba(229,115,115,0.05)", activeBg: "rgba(60,8,8,0.6)",      badge: "#ef5350", badgeBg: "rgba(229,115,115,0.14)" },
-  ally:   { border: "#81c784", bg: "rgba(129,199,132,0.05)", activeBg: "rgba(0,40,10,0.45)",    badge: "#66bb6a", badgeBg: "rgba(129,199,132,0.14)" },
-  npc:    { border: "#64b5f6", bg: "rgba(100,181,246,0.05)", activeBg: "rgba(0,25,60,0.45)",    badge: "#42a5f5", badgeBg: "rgba(100,181,246,0.14)" },
+  player: { border: "#ffcc66", bg: "rgba(255,204,102,0.11)", activeBg: "rgba(80,55,0,0.45)",   badge: "#c9a030", badgeBg: "rgba(255,204,102,0.14)" },
+  enemy:  { border: "#e57373", bg: "rgba(229,115,115,0.11)", activeBg: "rgba(60,8,8,0.6)",      badge: "#ef5350", badgeBg: "rgba(229,115,115,0.14)" },
+  ally:   { border: "#81c784", bg: "rgba(129,199,132,0.11)", activeBg: "rgba(0,40,10,0.45)",    badge: "#66bb6a", badgeBg: "rgba(129,199,132,0.14)" },
+  npc:    { border: "#64b5f6", bg: "rgba(100,181,246,0.11)", activeBg: "rgba(0,25,60,0.45)",    badge: "#42a5f5", badgeBg: "rgba(100,181,246,0.14)" },
 };
 
 // ── Attack state (card-based) ─────────────────────────────────────────────────
@@ -1953,13 +1953,14 @@ function renderLootPanel() {
           // Close all other dropdowns
           document.querySelectorAll(".loot-give-dropdown").forEach(d => d.style.display = "none");
           if (isOpen) return;
-          const users = Object.values(window._allUsers || {})
+          const users = Object.entries(window._allUsers || {})
+            .map(([uid, u]) => ({ uid, ...u }))
             .sort((a, b) => (a.username || "").localeCompare(b.username || ""));
           if (!users.length) {
             dropdown.innerHTML = `<span class="loot-give-empty">No players found</span>`;
           } else {
             dropdown.innerHTML = users.map(u =>
-              `<button class="loot-give-player" data-id="${escHtml(u.id)}" style="--pc:${u.color || '#888'}">
+              `<button class="loot-give-player" data-id="${escHtml(u.uid)}" style="--pc:${u.color || '#888'}">
                 <span class="loot-give-dot"></span>
                 <span>${escHtml(u.username)}</span>
               </button>`).join("");
@@ -1974,6 +1975,7 @@ function renderLootPanel() {
                     description: item.description || null,
                     quantity:    1,
                     value:       item.price != null ? item.price : null,
+                    rarity:      item.rarity || null,
                   });
                   dropdown.innerHTML = `<span class="loot-give-ok"><iconify-icon icon="lucide:check"></iconify-icon> Sent to ${escHtml((window._allUsers || {})[btn.dataset.id]?.username || "player")}</span>`;
                   setTimeout(() => { dropdown.style.display = "none"; }, 1400);

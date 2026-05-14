@@ -1,10 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
 
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 6px var(--type-color), 0 2px 14px rgba(0,0,0,0.5); }
-  50%       { box-shadow: 0 0 18px var(--type-color), 0 4px 24px rgba(0,0,0,0.8); }
-}
-
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(8px) scale(0.97); }
   to   { opacity: 1; transform: translateY(0)   scale(1); }
@@ -13,6 +8,37 @@
 @keyframes logFade {
   from { opacity: 0; transform: translateY(-3px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Atmospheric card animations ─────────────────────────────────────────── */
+@keyframes cardBreath {
+  0%, 100% { box-shadow: 0 2px 8px rgba(0,0,0,0.42); }
+  50%       { box-shadow: 0 5px 18px rgba(0,0,0,0.58); }
+}
+
+@keyframes activeCardGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 2px var(--type-color),
+      0 0 14px color-mix(in srgb, var(--type-color) 30%, transparent),
+      0 5px 22px rgba(0,0,0,0.70);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px var(--type-color),
+      0 0 24px color-mix(in srgb, var(--type-color) 45%, transparent),
+      0 8px 32px rgba(0,0,0,0.85);
+  }
+}
+
+@keyframes turnNameIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes combatHeroBreath {
+  0%, 100% { opacity: 0.65; }
+  50%       { opacity: 1; }
 }
 
 /* ── Page layout ─────────────────────────────────────────────────────────── */
@@ -52,13 +78,14 @@ body {
 }
 
 .round-counter {
-  font-size: 12px;
-  color: #aaa;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid #3a2510;
+  font-size: 13px;
+  color: var(--accent);
+  background: rgba(200,164,92,0.07);
+  border: 1px solid rgba(200,164,92,0.35);
   border-radius: 20px;
   padding: 3px 14px;
   white-space: nowrap;
+  letter-spacing: 0.03em;
 }
 
 .hero-center {
@@ -75,9 +102,12 @@ body {
 
 .turn-name {
   font-family: 'IM Fell English', 'Garamond', serif;
-  font-size: 20px;
+  font-size: clamp(1.3rem, 2.4vw, 1.75rem);
   font-weight: normal;
+  color: var(--accent);
+  letter-spacing: 0.04em;
   margin: 0 6px;
+  animation: turnNameIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .hero-right {
@@ -130,14 +160,14 @@ body {
   min-height: 0;
   display: flex;
   overflow: hidden;
-  background-color: #0a0502;
+  background-color: var(--bg);
 }
 
 /* ── Side panels ─────────────────────────────────────────────────────────── */
 .overlay-panel {
   display: flex;
   flex-direction: column;
-  background: #0a0502;
+  background: var(--bg);
   overflow: hidden;
 }
 
@@ -194,20 +224,46 @@ body {
 
 /* ── Combatant Card ───────────────────────────────────────────────────────── */
 .combatant-card {
-  background: var(--type-bg, rgba(255,255,255,0.02));
+  background: var(--type-bg, rgba(0, 255, 21, 0.02));
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 8px;
   padding: 10px 12px 10px 10px;
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
-  transition: border-color 0.2s, background 0.2s, opacity 0.3s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.42);
+  animation:
+    slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both,
+    cardBreath 7s ease-in-out 0.4s infinite;
+  transition: border-color 0.22s var(--ease-out-expo), background 0.22s var(--ease-out-expo), opacity 0.3s;
   position: relative;
   cursor: pointer;
 }
+
+/* Type-color atmospheric layer — very restrained ambient tint from top */
+.combatant-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse 80% 45% at 50% 0%, var(--type-color) 0%, transparent 68%);
+  opacity: 0.04;
+  transition: opacity 0.45s var(--ease-out-expo);
+}
+
+/* Card layout children appear above the atmospheric layer */
+.card-left, .card-body, .card-actions {
+  position: relative;
+  z-index: 1;
+}
+
 .combatant-card:hover:not(.active):not(.is-attacker):not(.is-target) {
   background: rgba(255,255,255,0.04);
+}
+.combatant-card:hover:not(.active):not(.is-attacker):not(.is-target)::before {
+  opacity: 0.07;
 }
 
 .combatant-card.is-attacker {
@@ -237,10 +293,11 @@ body {
 .combatant-card.is-target .card-name { color: #e57373; }
 
 .combatant-card.active {
-  background: var(--type-active-bg, rgba(255,255,255,0.08)) !important;
+  background: color-mix(in srgb, var(--type-color) 12%, #100800) !important;
   border-color: var(--type-color) !important;
-  box-shadow: 0 0 0 1px var(--type-color), 0 2px 16px rgba(0,0,0,0.6);
+  animation: activeCardGlow 5s ease-in-out infinite;
 }
+.combatant-card.active::before { opacity: 0.15; }
 .combatant-card.active.is-attacker {
   box-shadow: 0 0 0 3px #42a5f5, 0 2px 16px rgba(0,0,0,0.6) !important;
 }
@@ -291,7 +348,9 @@ body {
 .combatant-card.dead {
   opacity: 0.4;
   filter: grayscale(0.6);
+  animation: cardBreath 7s ease-in-out 0.4s infinite;
 }
+.combatant-card.dead::before { opacity: 0; }
 
 /* ── Card initiative circle ── */
 .card-left {
@@ -1391,6 +1450,10 @@ body {
 }
 
 .loot-item-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
   font-size: 11px;
   color: #bbb;
   padding: 3px 0;
@@ -1401,8 +1464,7 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
-  justify-content: space-between;
-  min-width: 0;
+  flex-shrink: 0;
 }
 
 .loot-item-name {
@@ -1431,22 +1493,22 @@ body {
 
 .loot-give-btn {
   background: none;
-  border: 1px solid #3a5a2a;
+  border: 1px solid rgba(200,164,92,0.35);
   border-radius: 4px;
-  color: #8bc87a;
+  color: #c8a45c;
   font-size: 11px;
   padding: 1px 5px;
   cursor: pointer;
   flex-shrink: 0;
   line-height: 1.4;
-  transition: background 0.12s;
+  transition: background 0.12s, border-color 0.12s;
 }
-.loot-give-btn:hover { background: rgba(100,180,80,0.15); }
+.loot-give-btn:hover { background: rgba(200,164,92,0.12); border-color: rgba(200,164,92,0.65); }
 
 .loot-give-dropdown {
-  margin-top: 4px;
-  background: #1a1a14;
-  border: 1px solid #3a3020;
+  flex-basis: 100%;
+  background: #140c05;
+  border: 1px solid #3a2510;
   border-radius: 5px;
   overflow: hidden;
   z-index: 100;
@@ -1462,10 +1524,11 @@ body {
   border: none;
   border-bottom: 1px solid rgba(255,255,255,0.05);
   color: #ccc;
-  font-size: 12px;
+  font-family: var(--font);
+  font-size: 13px;
   cursor: pointer;
   text-align: left;
-  transition: background 0.1s;
+  transition: background 0.15s;
 }
 .loot-give-player:last-child { border-bottom: none; }
 .loot-give-player:hover { background: rgba(200,164,92,0.12); }
@@ -1703,4 +1766,13 @@ body {
   .editor-field-row.six-col   { grid-template-columns: 1fr 1fr 1fr; }
   .editor-field-row.three-col { grid-template-columns: 1fr 1fr; }
   .et-attack-row { grid-template-columns: 1fr 60px 1fr auto; gap: 4px; }
+}
+
+/* ── Motion sensitivity ──────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .combatant-card { animation: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.42); }
+  .combatant-card::before { transition: none; animation: none; }
+  .combatant-card.active { animation: none !important; }
+  .combatant-card.is-attack-mode { animation: none !important; }
+  .turn-name { animation: none; }
 }

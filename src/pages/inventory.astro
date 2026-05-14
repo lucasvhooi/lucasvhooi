@@ -196,53 +196,64 @@ import Layout from '../layouts/Layout.astro';
         <button class="modal-close-x" id="qe-close-btn">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="form-row">
-          <label>Name <span class="req">*</span>
-            <input type="text" id="qe-name" placeholder="e.g. Health Potion" />
-          </label>
-        </div>
-        <div class="form-row">
-          <label>Description
-            <textarea id="qe-desc" rows="3" placeholder="What does this item do or look like?"></textarea>
-          </label>
-        </div>
-        <div class="form-row">
-          <label>Base Price (gp) <span class="req">*</span>
-            <input type="number" id="qe-price" placeholder="e.g. 50" min="0" step="0.01" />
-          </label>
-        </div>
-        <div class="form-row">
-          <label>Tags</label>
-          <div class="im-tag-picker-row">
-            <div class="im-tag-chips" id="qe-tag-chips"></div>
-            <button type="button" id="qe-tag-add-btn" class="im-tag-add-btn">+ New Tag</button>
+        <div class="qe-layout">
+          <!-- Left column: identity -->
+          <div class="qe-col">
+            <div class="form-row">
+              <label>Name <span class="req">*</span>
+                <input type="text" id="qe-name" placeholder="e.g. Health Potion" />
+              </label>
+            </div>
+            <div class="form-row qe-desc-row">
+              <label>Description
+                <textarea id="qe-desc" rows="6" placeholder="What does this item do or look like?"></textarea>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>Tags</label>
+              <div class="im-tag-picker-row">
+                <div class="im-tag-chips" id="qe-tag-chips"></div>
+                <button type="button" id="qe-tag-add-btn" class="im-tag-add-btn">+ New Tag</button>
+              </div>
+              <input type="text" id="qe-tag-new-input" class="im-tag-new-input" placeholder="New tag name…" style="display:none" />
+            </div>
           </div>
-          <input type="text" id="qe-tag-new-input" class="im-tag-new-input" placeholder="New tag name…" style="display:none" />
-        </div>
-        <div class="form-row">
-          <label>Rarity</label>
-          <div class="rarity-selector" id="qe-rarity-selector">
-            <button type="button" class="rarity-sel-btn" data-rarity="common">Common</button>
-            <button type="button" class="rarity-sel-btn" data-rarity="uncommon">Uncommon</button>
-            <button type="button" class="rarity-sel-btn" data-rarity="rare">Rare</button>
-            <button type="button" class="rarity-sel-btn" data-rarity="very rare">Very Rare</button>
-            <button type="button" class="rarity-sel-btn" data-rarity="legendary">Legendary</button>
+
+          <!-- Right column: mechanics -->
+          <div class="qe-col">
+            <div class="form-row">
+              <label>Base Price (gp) <span class="req">*</span>
+                <input type="number" id="qe-price" placeholder="e.g. 50" min="0" step="0.01" />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>Rarity</label>
+              <div class="rarity-selector" id="qe-rarity-selector">
+                <button type="button" class="rarity-sel-btn" data-rarity="common">Common</button>
+                <button type="button" class="rarity-sel-btn" data-rarity="uncommon">Uncommon</button>
+                <button type="button" class="rarity-sel-btn" data-rarity="rare">Rare</button>
+                <button type="button" class="rarity-sel-btn" data-rarity="very rare">Very Rare</button>
+                <button type="button" class="rarity-sel-btn" data-rarity="legendary">Legendary</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="checkbox-label">
+                <input type="checkbox" id="qe-shop-available" checked />
+                <span class="checkbox-box"></span>
+                Available in shop
+              </label>
+            </div>
+            <div class="form-row">
+              <label class="checkbox-label">
+                <input type="checkbox" id="qe-requires-attunement" />
+                <span class="checkbox-box"></span>
+                Requires Attunement
+              </label>
+            </div>
           </div>
         </div>
-        <div class="form-row">
-          <label class="checkbox-label">
-            <input type="checkbox" id="qe-shop-available" checked />
-            <span class="checkbox-box"></span>
-            Available in shop (players can buy this item)
-          </label>
-        </div>
-        <div class="form-row">
-          <label class="checkbox-label">
-            <input type="checkbox" id="qe-requires-attunement" />
-            <span class="checkbox-box"></span>
-            Requires Attunement
-          </label>
-        </div>
+
+        <!-- Full-width: abilities -->
         <div class="form-row">
           <label>Abilities</label>
           <div id="qe-abilities-list" class="im-abilities-list"></div>
@@ -277,4 +288,59 @@ import Layout from '../layouts/Layout.astro';
   <div id="condition-tooltip" class="condition-tooltip-box" style="display:none"></div>
 
   <script is:inline type="module" src="/assets/js/inventory.js"></script>
+
+  <!-- Framer Motion: staggered card reveal on filter/render -->
+  <script>
+    import { animate } from 'framer-motion/dom';
+
+    const grid = document.getElementById('inv-grid');
+    if (grid) {
+      let batch: HTMLElement[] = [];
+      let rebuilding = false;
+      let timer: ReturnType<typeof setTimeout> | null = null;
+
+      const observer = new MutationObserver(mutations => {
+        for (const m of mutations) {
+          // Large removal signals a full grid rebuild
+          if (m.removedNodes.length > 2) {
+            rebuilding = true;
+            batch = [];
+          }
+
+          for (const node of m.addedNodes) {
+            const el = node as HTMLElement;
+            if (
+              node.nodeType === 1 &&
+              (el.classList?.contains('inv-card') || el.classList?.contains('spell-card'))
+            ) {
+              if (rebuilding) {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(6px) scale(0.98)';
+                batch.push(el);
+              }
+            }
+          }
+        }
+
+        if (!rebuilding) return;
+
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          const cards = batch.splice(0);
+          rebuilding = false;
+          if (!cards.length) return;
+
+          cards.forEach((card, i) => {
+            animate(card, { opacity: 1, y: 0, scale: 1 }, {
+              duration: 0.24,
+              delay: Math.min(i * 0.04, 0.4),
+              ease: [0.16, 1, 0.3, 1],
+            });
+          });
+        }, 20);
+      });
+
+      observer.observe(grid, { childList: true });
+    }
+  </script>
 </Layout>

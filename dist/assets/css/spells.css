@@ -185,6 +185,7 @@
   border: 1px solid color-mix(in srgb, var(--sc) 60%, #1a1a2a);
   border-radius: 10px;
   padding: 14px 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.45), 0 1px 4px rgba(0,0,0,0.3);
   transition:
     border-color 0.32s var(--ease-out-expo),
     box-shadow 0.38s var(--ease-out-expo),
@@ -197,11 +198,33 @@
   cursor: pointer;
   position: relative;
   will-change: transform;
+  overflow: hidden;
 }
+
+/* School-color atmospheric aura — radiates subtly from top */
+.spell-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse 85% 50% at 50% 0%, var(--sc) 0%, transparent 70%);
+  opacity: 0.06;
+  transition: opacity 0.5s var(--ease-out-expo);
+}
+.spell-card:hover::before { opacity: 0.14; }
+
+/* All spell card content appears above the aura layer */
+.spell-card > * { position: relative; z-index: 1; }
+
 .spell-card:hover {
   border-color: color-mix(in srgb, var(--sc) 80%, #1a1a2a);
-  box-shadow: 0 14px 40px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
-  transform: translateY(-7px) scale(1.02);
+  box-shadow:
+    0 16px 44px rgba(0,0,0,0.65),
+    0 4px 14px rgba(0,0,0,0.45),
+    0 0 0 1px rgba(200,164,92,0.04);
+  transform: translateY(-7px) scale(1.015);
 }
 
 .spell-card-header {
