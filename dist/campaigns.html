@@ -259,21 +259,6 @@
       gap: 8px;
     }
 
-    .btn-enter {
-      flex: 1;
-      background: rgba(200,164,92,0.08);
-      border: 1px solid rgba(200,164,92,0.25);
-      border-radius: 8px;
-      color: var(--accent);
-      font-family: var(--title);
-      font-size: 14px;
-      letter-spacing: 0.06em;
-      padding: 10px;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-    }
-    .btn-enter:hover { background: rgba(200,164,92,0.15); border-color: rgba(200,164,92,0.5); }
-
     .btn-invite-card {
       background: rgba(200,164,92,0.06);
       border: 1px solid rgba(200,164,92,0.2);
@@ -562,6 +547,52 @@
     }
     .btn-gen-code:hover { background: linear-gradient(135deg, #5a380f 0%, #7a4a18 100%); }
 
+    .btn-edit-card {
+      background: rgba(200,164,92,0.06);
+      border: 1px solid rgba(200,164,92,0.2);
+      border-radius: 8px;
+      color: var(--muted);
+      padding: 10px 13px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-edit-card:hover { background: rgba(200,164,92,0.12); color: var(--accent); border-color: rgba(200,164,92,0.4); }
+
+    .btn-delete-card {
+      background: rgba(200,50,50,0.06);
+      border: 1px solid rgba(200,50,50,0.2);
+      border-radius: 8px;
+      color: #7a5050;
+      padding: 10px 13px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-delete-card:hover { background: rgba(200,50,50,0.14); color: #e07070; border-color: rgba(200,50,50,0.4); }
+
+    .btn-modal-danger {
+      flex: 1;
+      background: rgba(200,50,50,0.12);
+      border: 1px solid rgba(200,50,50,0.35);
+      border-radius: 8px;
+      color: #e07070;
+      font-family: var(--title);
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-modal-danger:hover { background: rgba(200,50,50,0.22); }
+    .btn-modal-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+
     @media (max-width: 600px) {
       .main { padding: 28px 16px 60px; }
       .hero { padding: 36px 16px 28px; }
@@ -579,9 +610,13 @@ Add Campaign
 Create
 </button> </div> </div> </div>  <div class="modal-overlay" id="modal-invite"> <div class="modal-box"> <div class="modal-header"> <h2 class="modal-title">Invite Players</h2> <button class="modal-close" id="invite-modal-close">✕</button> </div> <div class="modal-tabs"> <button class="modal-tab active" data-tab="username">By Username</button> <button class="modal-tab" data-tab="code">Invite Code</button> </div> <div class="modal-tab-content active" id="tab-username"> <div class="modal-field"> <label class="modal-label">Player Username</label> <div class="invite-row"> <input class="modal-input" id="invite-username" type="text" placeholder="adventurer_of_doom" autocomplete="off"> <button class="btn-send" id="btn-send-invite">Send</button> </div> </div> <div class="invite-feedback" id="invite-feedback"></div> </div> <div class="modal-tab-content" id="tab-code"> <div id="code-display-area"></div> </div> </div> </div>  <div class="modal-overlay" id="modal-join"> <div class="modal-box" style="max-width:380px"> <div class="modal-header"> <h2 class="modal-title">Join Campaign</h2> <button class="modal-close" id="join-modal-close">✕</button> </div> <div class="modal-error" id="join-error"></div> <div class="modal-field"> <label class="modal-label">Invite Code</label> <input class="modal-input" id="join-code-input" type="text" placeholder="XXXX-XXXX" autocomplete="off" style="text-transform:uppercase;letter-spacing:0.1em"> </div> <div class="modal-footer"> <button class="btn-cancel" id="join-cancel">Cancel</button> <button class="btn-add" id="btn-join-submit" style="justify-content:center;flex:1"> <iconify-icon icon="lucide:log-in"></iconify-icon>
 Join
-</button> </div> </div> </div> <script type="module">
+</button> </div> </div> </div>  <div class="modal-overlay" id="modal-edit"> <div class="modal-box"> <div class="modal-header"> <h2 class="modal-title">Edit Campaign</h2> <button class="modal-close" id="edit-modal-close">✕</button> </div> <div class="modal-error" id="edit-modal-error"></div> <div class="modal-field"> <label class="modal-label" for="e-name">Campaign Name <span style="color:#e07070">*</span></label> <input class="modal-input" id="e-name" type="text" maxlength="60" autocomplete="off"> </div> <div class="modal-field"> <label class="modal-label" for="e-world">World / Setting</label> <input class="modal-input" id="e-world" type="text" placeholder="Faerûn, Eberron, homebrew…" maxlength="60" autocomplete="off"> </div> <div class="modal-field"> <label class="modal-label" for="e-desc">Description</label> <textarea class="modal-textarea" id="e-desc" maxlength="300"></textarea> </div> <div class="modal-footer"> <button class="btn-cancel" id="edit-cancel">Cancel</button> <button class="btn-add" id="btn-save-edit" style="justify-content:center;flex:1"> <iconify-icon icon="lucide:save"></iconify-icon>
+Save
+</button> </div> </div> </div>  <div class="modal-overlay" id="modal-delete"> <div class="modal-box" style="max-width:400px"> <div class="modal-header"> <h2 class="modal-title" style="color:#e07070">Delete Campaign</h2> <button class="modal-close" id="delete-modal-close">✕</button> </div> <p style="font-size:14px;color:#8a7060;line-height:1.65;margin-bottom:22px">
+This will permanently delete <strong id="delete-campaign-name" style="color:var(--accent)"></strong> and all its data. This action cannot be undone.
+</p> <div class="modal-footer"> <button class="btn-cancel" id="delete-cancel">Cancel</button> <button class="btn-modal-danger" id="btn-confirm-delete">Delete Campaign</button> </div> </div> </div> <script type="module">
     import { db }                                                    from "/assets/js/firebase.js";
-    import { ref, get, set, push, remove, query,
+    import { ref, get, set, push, remove, update, query,
              orderByChild, equalTo, onValue }                        from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
     import { getSession, clearSession }                              from "/assets/js/auth.js";
 
@@ -598,6 +633,16 @@ Join
       try {
         const snap = await get(ref(db, 'campaigns'));
         const all  = snap.val() || {};
+
+        // Silently delete campaigns with 0 members that are older than 24 hours
+        const dayMs = 24 * 60 * 60 * 1000;
+        const now   = Date.now();
+        Object.entries(all).forEach(([id, c]) => {
+          const memberCount = Object.keys(c.members || {}).length;
+          if (memberCount === 0 && c.createdAt && (now - c.createdAt) > dayMs) {
+            remove(ref(db, `campaigns/${id}`)).catch(() => {});
+          }
+        });
 
         const mine = Object.entries(all).filter(([, c]) =>
           c.members && c.members[session.id]
@@ -627,13 +672,17 @@ Join
 
       const card = document.createElement('div');
       card.className = 'campaign-card';
+      card.dataset.campaignId    = id;
+      card.dataset.campaignName  = c.name  || '';
+      card.dataset.campaignWorld = c.world || '';
+      card.dataset.campaignDesc  = c.description || '';
       card.innerHTML = `
         <div class="campaign-card-header">
           <span class="campaign-name">${escHtml(c.name || 'Untitled Campaign')}</span>
           <span class="campaign-role-badge ${initialIsDM ? 'badge-dm' : 'badge-player'}">${initialIsDM ? 'DM' : 'Player'}</span>
         </div>
-        ${c.world ? `<span class="campaign-world">${escHtml(c.world)}</span>` : ''}
-        ${c.description ? `<p class="campaign-desc">${escHtml(c.description)}</p>` : ''}
+        <span class="campaign-world" style="display:${c.world ? 'inline' : 'none'}">${c.world ? escHtml(c.world) : ''}</span>
+        <p class="campaign-desc" style="display:${c.description ? 'block' : 'none'}">${c.description ? escHtml(c.description) : ''}</p>
         <div class="campaign-meta">
           <span class="campaign-meta-item member-count-item">
             <iconify-icon icon="lucide:users" style="font-size:13px"></iconify-icon>
@@ -645,18 +694,25 @@ Join
           </span>` : ''}
         </div>
         <div class="campaign-card-actions">
-          <button class="btn-enter">Enter Campaign →</button>
           <button class="btn-invite-card" title="Invite Players" style="display:${initialIsDM ? 'flex' : 'none'}"><iconify-icon icon="lucide:user-plus"></iconify-icon></button>
+          <button class="btn-edit-card"   title="Edit Campaign"   style="display:${initialIsDM ? 'flex' : 'none'}"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+          <button class="btn-delete-card" title="Delete Campaign"  style="display:${initialIsDM ? 'flex' : 'none'}"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
         </div>
       `;
 
-      card.querySelector('.btn-enter').addEventListener('click', e => {
-        e.stopPropagation();
-        enterCampaign(id, c);
-      });
+      card.addEventListener('click', () => enterCampaign(id, c));
+
       card.querySelector('.btn-invite-card').addEventListener('click', e => {
         e.stopPropagation();
         openInviteModal(id, c.name || 'Untitled Campaign');
+      });
+      card.querySelector('.btn-edit-card').addEventListener('click', e => {
+        e.stopPropagation();
+        openEditModal(id, card);
+      });
+      card.querySelector('.btn-delete-card').addEventListener('click', e => {
+        e.stopPropagation();
+        openDeleteConfirm(id, card);
       });
 
       // Live listener: keeps member count and role badge in sync with DB
@@ -677,6 +733,12 @@ Join
 
         const inviteBtn = card.querySelector('.btn-invite-card');
         if (inviteBtn) inviteBtn.style.display = isDM ? 'flex' : 'none';
+
+        const editBtn = card.querySelector('.btn-edit-card');
+        if (editBtn) editBtn.style.display = isDM ? 'flex' : 'none';
+
+        const deleteBtn = card.querySelector('.btn-delete-card');
+        if (deleteBtn) deleteBtn.style.display = isDM ? 'flex' : 'none';
       });
 
       return card;
@@ -1062,6 +1124,114 @@ Join
         });
       });
     }
+
+    // ── Edit Campaign ────────────────────────────────────────────
+    let editTargetId   = null;
+    let editTargetCard = null;
+
+    function openEditModal(id, card) {
+      editTargetId   = id;
+      editTargetCard = card;
+      document.getElementById('e-name').value  = card.dataset.campaignName  || '';
+      document.getElementById('e-world').value = card.dataset.campaignWorld || '';
+      document.getElementById('e-desc').value  = card.dataset.campaignDesc  || '';
+      document.getElementById('edit-modal-error').classList.remove('show');
+      document.getElementById('modal-edit').classList.add('open');
+      setTimeout(() => document.getElementById('e-name').focus(), 80);
+    }
+
+    function closeEditModal() { document.getElementById('modal-edit').classList.remove('open'); }
+
+    document.getElementById('edit-modal-close').addEventListener('click', closeEditModal);
+    document.getElementById('edit-cancel').addEventListener('click', closeEditModal);
+    document.getElementById('modal-edit').addEventListener('click', e => {
+      if (e.target === document.getElementById('modal-edit')) closeEditModal();
+    });
+
+    document.getElementById('btn-save-edit').addEventListener('click', async () => {
+      const name  = document.getElementById('e-name').value.trim();
+      const world = document.getElementById('e-world').value.trim();
+      const desc  = document.getElementById('e-desc').value.trim();
+      const errEl = document.getElementById('edit-modal-error');
+
+      if (!name) {
+        errEl.textContent = 'Campaign name is required.';
+        errEl.classList.add('show');
+        return;
+      }
+
+      const btn = document.getElementById('btn-save-edit');
+      btn.disabled = true;
+      btn.innerHTML = '<iconify-icon icon="lucide:loader-2"></iconify-icon> Saving…';
+
+      try {
+        await update(ref(db, `campaigns/${editTargetId}`), {
+          name,
+          world:       world || null,
+          description: desc  || null,
+        });
+
+        if (editTargetCard) {
+          editTargetCard.querySelector('.campaign-name').textContent = name;
+          editTargetCard.dataset.campaignName  = name;
+
+          const worldEl = editTargetCard.querySelector('.campaign-world');
+          if (worldEl) { worldEl.textContent = world; worldEl.style.display = world ? 'inline' : 'none'; }
+          editTargetCard.dataset.campaignWorld = world;
+
+          const descEl = editTargetCard.querySelector('.campaign-desc');
+          if (descEl) { descEl.textContent = desc; descEl.style.display = desc ? 'block' : 'none'; }
+          editTargetCard.dataset.campaignDesc = desc;
+        }
+
+        closeEditModal();
+      } catch (e) {
+        errEl.textContent = 'Failed to save. Please try again.';
+        errEl.classList.add('show');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<iconify-icon icon="lucide:save"></iconify-icon> Save';
+      }
+    });
+
+    // ── Delete Campaign ──────────────────────────────────────────
+    let deleteTargetId   = null;
+    let deleteTargetCard = null;
+
+    function openDeleteConfirm(id, card) {
+      deleteTargetId   = id;
+      deleteTargetCard = card;
+      document.getElementById('delete-campaign-name').textContent = card.dataset.campaignName || 'this campaign';
+      document.getElementById('modal-delete').classList.add('open');
+    }
+
+    function closeDeleteModal() { document.getElementById('modal-delete').classList.remove('open'); }
+
+    document.getElementById('delete-modal-close').addEventListener('click', closeDeleteModal);
+    document.getElementById('delete-cancel').addEventListener('click', closeDeleteModal);
+    document.getElementById('modal-delete').addEventListener('click', e => {
+      if (e.target === document.getElementById('modal-delete')) closeDeleteModal();
+    });
+
+    document.getElementById('btn-confirm-delete').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-confirm-delete');
+      btn.disabled = true;
+      btn.textContent = 'Deleting…';
+
+      try {
+        await remove(ref(db, `campaigns/${deleteTargetId}`));
+        if (deleteTargetCard) deleteTargetCard.remove();
+        updateCount();
+        if (grid.children.length === 0) {
+          stateCampaigns.style.display = 'none';
+          stateEmpty.style.display = 'block';
+        }
+        closeDeleteModal();
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = 'Delete Campaign';
+      }
+    });
 
     loadCampaigns();
     setupInviteListener();

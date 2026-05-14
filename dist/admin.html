@@ -174,6 +174,110 @@
 
     .loading { color: #555; font-size: 13px; padding: 12px 0; }
 
+    .user-item { display: flex; flex-direction: column; }
+
+    .btn-edit {
+      background: none;
+      border: 1px solid #3a2510;
+      border-radius: 6px;
+      color: #664;
+      font-size: 12px;
+      padding: 5px 8px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .btn-edit:hover { border-color: var(--accent); color: var(--accent); }
+
+    .user-edit-panel {
+      display: none;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid #3a2510;
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      padding: 16px;
+    }
+    .user-edit-panel.open { display: block; }
+
+    .edit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .edit-actions { display: flex; gap: 8px; align-items: center; }
+
+    .btn-edit-save {
+      background: linear-gradient(135deg, #2a1c06 0%, #3a2810 100%);
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      color: var(--accent);
+      font-size: 13px;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-edit-save:hover { background: linear-gradient(135deg, #3a2810 0%, #4a3818 100%); }
+    .btn-edit-save:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-edit-cancel {
+      background: none;
+      border: 1px solid #3a2510;
+      border-radius: 6px;
+      color: #666;
+      font-size: 13px;
+      padding: 7px 14px;
+      cursor: pointer;
+    }
+    .btn-edit-cancel:hover { border-color: #666; color: #999; }
+
+    .edit-msg { font-size: 12px; margin-left: 4px; }
+    .edit-msg.ok  { color: #6dbf7a; }
+    .edit-msg.err { color: #e07070; }
+
+    .ep-divider { height: 1px; background: #2e1c0a; margin: 16px 0; }
+    .ep-section-label {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #666;
+      margin: 0 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ep-placeholder-badge {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(200,164,92,0.12);
+      border: 1px solid rgba(200,164,92,0.25);
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .ep-current-email {
+      font-size: 11px;
+      color: #555;
+      font-family: monospace;
+      margin: -6px 0 12px;
+    }
+    .ep-creds-note { font-size: 12px; color: #555; font-style: italic; }
+    .btn-update-creds, .btn-set-creds {
+      background: linear-gradient(135deg, #0d1a0e 0%, #122014 100%);
+      border: 1px solid rgba(100,180,120,0.4);
+      border-radius: 6px;
+      color: #6dbf7a;
+      font-size: 13px;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-update-creds:hover, .btn-set-creds:hover { background: linear-gradient(135deg, #152314 0%, #1a2e1a 100%); }
+    .btn-update-creds:disabled, .btn-set-creds:disabled { opacity: 0.4; cursor: not-allowed; }
+
     .invite-card {
       background: linear-gradient(160deg, #0e1a10 0%, #0a1209 100%);
       border: 1px solid rgba(100,180,120,0.25);
@@ -279,7 +383,8 @@
     import { firebaseApp, auth, db }               from "/assets/js/firebase.js";
     import { getSession }                          from "/assets/js/auth.js";
     import { initializeApp, getApp }               from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signOut as secondarySignOut }
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+             updateEmail, updatePassword, signOut as secondarySignOut }
                                                    from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { ref, get, set, remove }               from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
@@ -353,21 +458,209 @@
       }
 
       Object.entries(data).forEach(([uid, u]) => {
-        const row = document.createElement('div');
-        row.className = 'user-row';
-        row.innerHTML =
-          `<span class="user-dot" style="background:${u.color || '#c8a45c'}"></span>` +
-          `<div class="user-info">` +
-            `<div class="user-name">${esc(u.username || '—')}</div>` +
-            `<div class="user-meta">${esc(uid)}</div>` +
-          `</div>` +
-          `<span class="user-role ${u.role === 'admin' ? 'admin' : 'player'}">${u.role === 'admin' ? 'DM' : 'Player'}</span>` +
-          `<button class="btn-delete" data-uid="${esc(uid)}">Remove</button>`;
-        listEl.appendChild(row);
-      });
+        const color         = u.color || '#c8a45c';
+        const isPlaceholder = !!u._tempEmail;
+        const item          = document.createElement('div');
+        item.className = 'user-item';
 
-      listEl.querySelectorAll('.btn-delete').forEach(btn => {
-        btn.addEventListener('click', () => deleteUser(btn.dataset.uid));
+        const credSection = isPlaceholder
+          ? `<div class="ep-divider"></div>` +
+            `<p class="ep-section-label">Login Credentials <span class="ep-placeholder-badge">placeholder</span></p>` +
+            `<p class="ep-current-email">Current login: ${esc(u._tempEmail)}</p>` +
+            `<div class="edit-grid" style="grid-template-columns:1fr 1fr">` +
+              `<div class="field"><label>New Email</label><input class="ep-new-email" type="email" placeholder="player@example.com" autocomplete="off" /></div>` +
+              `<div class="field"><label>New Password</label><input class="ep-new-pw" type="password" placeholder="min. 6 characters" autocomplete="new-password" /></div>` +
+            `</div>` +
+            `<div class="edit-actions" style="margin-top:10px">` +
+              `<button class="btn-update-creds">Update Login</button>` +
+              `<span class="edit-creds-msg edit-msg"></span>` +
+            `</div>`
+          : `<div class="ep-divider"></div>` +
+            `<p class="ep-section-label">Login Credentials</p>` +
+            `<p class="ep-creds-note" style="margin-bottom:12px">No login credentials set. Enter an email and password to create a Firebase Auth account — all inventory and campaign data will be migrated to the new account automatically.</p>` +
+            `<div class="edit-grid" style="grid-template-columns:1fr 1fr">` +
+              `<div class="field"><label>Email</label><input class="ep-new-email" type="email" placeholder="player@example.com" autocomplete="off" /></div>` +
+              `<div class="field"><label>Password</label><input class="ep-new-pw" type="password" placeholder="min. 6 characters" autocomplete="new-password" /></div>` +
+            `</div>` +
+            `<div class="edit-actions" style="margin-top:10px">` +
+              `<button class="btn-set-creds">Set Credentials</button>` +
+              `<span class="edit-creds-msg edit-msg"></span>` +
+            `</div>`;
+
+        item.innerHTML =
+          `<div class="user-row" style="border-radius:10px 10px var(--br,10px) var(--br,10px)">` +
+            `<span class="user-dot" style="background:${esc(color)}"></span>` +
+            `<div class="user-info">` +
+              `<div class="user-name">${esc(u.username || '—')}</div>` +
+              `<div class="user-meta">${esc(uid)}</div>` +
+            `</div>` +
+            `<span class="user-role ${u.role === 'admin' ? 'admin' : 'player'}">${u.role === 'admin' ? 'DM' : 'Player'}</span>` +
+            `<button class="btn-edit" data-uid="${esc(uid)}" title="Edit"><iconify-icon icon="lucide:pencil" style="pointer-events:none"></iconify-icon></button>` +
+            `<button class="btn-delete" data-uid="${esc(uid)}">Remove</button>` +
+          `</div>` +
+          `<div class="user-edit-panel" id="ep-${esc(uid)}">` +
+            `<div class="edit-grid">` +
+              `<div class="field">` +
+                `<label>Display Name</label>` +
+                `<input class="ep-name" type="text" value="${esc(u.username || '')}" />` +
+              `</div>` +
+              `<div class="field">` +
+                `<label>Role</label>` +
+                `<select class="ep-role">` +
+                  `<option value="player"${u.role !== 'admin' ? ' selected' : ''}>Player</option>` +
+                  `<option value="admin"${u.role === 'admin' ? ' selected' : ''}>DM / Admin</option>` +
+                `</select>` +
+              `</div>` +
+              `<div class="field">` +
+                `<label>Colour</label>` +
+                `<div class="color-row">` +
+                  `<input class="ep-color-pick" type="color" value="${esc(color)}" />` +
+                  `<input class="ep-color-text" type="text" value="${esc(color)}" maxlength="7" />` +
+                `</div>` +
+              `</div>` +
+            `</div>` +
+            `<div class="edit-actions">` +
+              `<button class="btn-edit-save" data-uid="${esc(uid)}">Save</button>` +
+              `<button class="btn-edit-cancel" data-uid="${esc(uid)}">Cancel</button>` +
+              `<span class="edit-msg"></span>` +
+            `</div>` +
+            credSection +
+          `</div>`;
+        listEl.appendChild(item);
+
+        const panel = item.querySelector('.user-edit-panel');
+        const row   = item.querySelector('.user-row');
+
+        item.querySelector('.btn-edit').addEventListener('click', () => {
+          const open = panel.classList.toggle('open');
+          row.style.setProperty('--br', open ? '0px' : '10px');
+        });
+
+        item.querySelector('.btn-edit-cancel').addEventListener('click', () => {
+          panel.classList.remove('open');
+          row.style.setProperty('--br', '10px');
+        });
+
+        const pick = item.querySelector('.ep-color-pick');
+        const text = item.querySelector('.ep-color-text');
+        pick.addEventListener('input', () => { text.value = pick.value; });
+        text.addEventListener('input', () => {
+          if (/^#[0-9a-fA-F]{6}$/.test(text.value)) pick.value = text.value;
+        });
+
+        item.querySelector('.btn-edit-save').addEventListener('click', async () => {
+          const saveBtn = item.querySelector('.btn-edit-save');
+          const msgEl   = item.querySelector('.edit-msg');
+          const name    = item.querySelector('.ep-name').value.trim();
+          const role    = item.querySelector('.ep-role').value;
+          const clr     = text.value || '#c8a45c';
+
+          if (!name) { msgEl.textContent = 'Name required.'; msgEl.className = 'edit-msg err'; return; }
+
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Saving…';
+          try {
+            const existing = (await get(ref(db, `users/${uid}`))).val() || {};
+            await set(ref(db, `users/${uid}`), { ...existing, username: name, role, color: clr });
+            msgEl.textContent = 'Saved!';
+            msgEl.className = 'edit-msg ok';
+            setTimeout(loadUsers, 800);
+          } catch(e) {
+            msgEl.textContent = 'Error: ' + e.message;
+            msgEl.className = 'edit-msg err';
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save';
+          }
+        });
+
+        item.querySelector('.btn-delete').addEventListener('click', () => deleteUser(uid));
+
+        if (isPlaceholder) {
+          item.querySelector('.btn-update-creds').addEventListener('click', async () => {
+            const updateBtn = item.querySelector('.btn-update-creds');
+            const credsMsg  = item.querySelector('.edit-creds-msg');
+            const newEmail  = item.querySelector('.ep-new-email').value.trim();
+            const newPw     = item.querySelector('.ep-new-pw').value;
+
+            if (!newEmail || !newPw) { credsMsg.textContent = 'Enter both email and password.'; credsMsg.className = 'edit-creds-msg edit-msg err'; return; }
+            if (newPw.length < 6)   { credsMsg.textContent = 'Password must be at least 6 characters.'; credsMsg.className = 'edit-creds-msg edit-msg err'; return; }
+
+            updateBtn.disabled = true;
+            updateBtn.textContent = 'Updating…';
+            try {
+              const signedIn = await signInWithEmailAndPassword(secondaryAuth, u._tempEmail, u._tempPw);
+              await updateEmail(signedIn.user, newEmail);
+              await updatePassword(signedIn.user, newPw);
+              await secondarySignOut(secondaryAuth);
+
+              const existing = (await get(ref(db, `users/${uid}`))).val() || {};
+              delete existing._tempEmail;
+              delete existing._tempPw;
+              await set(ref(db, `users/${uid}`), existing);
+
+              credsMsg.textContent = 'Login updated!';
+              credsMsg.className = 'edit-creds-msg edit-msg ok';
+              setTimeout(loadUsers, 900);
+            } catch(e) {
+              credsMsg.textContent = 'Error: ' + e.message;
+              credsMsg.className = 'edit-creds-msg edit-msg err';
+              updateBtn.disabled = false;
+              updateBtn.textContent = 'Update Login';
+            }
+          });
+        } else {
+          item.querySelector('.btn-set-creds').addEventListener('click', async () => {
+            const setBtn   = item.querySelector('.btn-set-creds');
+            const credsMsg = item.querySelector('.edit-creds-msg');
+            const newEmail = item.querySelector('.ep-new-email').value.trim();
+            const newPw    = item.querySelector('.ep-new-pw').value;
+
+            if (!newEmail || !newPw) { credsMsg.textContent = 'Enter both email and password.'; credsMsg.className = 'edit-creds-msg edit-msg err'; return; }
+            if (newPw.length < 6)   { credsMsg.textContent = 'Password must be at least 6 characters.'; credsMsg.className = 'edit-creds-msg edit-msg err'; return; }
+
+            setBtn.disabled = true;
+            setBtn.textContent = 'Creating…';
+            try {
+              // Create the real Firebase Auth account
+              const cred   = await createUserWithEmailAndPassword(secondaryAuth, newEmail, newPw);
+              const newUid = cred.user.uid;
+              await secondarySignOut(secondaryAuth);
+
+              // Copy user profile to new UID
+              const userData = (await get(ref(db, `users/${uid}`))).val() || {};
+              delete userData._tempEmail;
+              delete userData._tempPw;
+              await set(ref(db, `users/${newUid}`), userData);
+
+              // Migrate per-user campaign data
+              const campsSnap = await get(ref(db, 'campaigns'));
+              if (campsSnap.exists()) {
+                for (const [campId, camp] of Object.entries(campsSnap.val())) {
+                  for (const node of ['inventory', 'spellbook', 'members', 'displayNames']) {
+                    if (camp[node] && camp[node][uid] !== undefined) {
+                      await set(ref(db, `campaigns/${campId}/${node}/${newUid}`), camp[node][uid]);
+                      await remove(ref(db, `campaigns/${campId}/${node}/${uid}`));
+                    }
+                  }
+                }
+              }
+
+              // Delete old UID record
+              await remove(ref(db, `users/${uid}`));
+
+              credsMsg.textContent = 'Account created — data migrated to new UID.';
+              credsMsg.className = 'edit-creds-msg edit-msg ok';
+              setTimeout(loadUsers, 1200);
+            } catch(e) {
+              credsMsg.textContent = e.code === 'auth/email-already-in-use'
+                ? 'That email already has an account.'
+                : 'Error: ' + e.message;
+              credsMsg.className = 'edit-creds-msg edit-msg err';
+              setBtn.disabled = false;
+              setBtn.textContent = 'Set Credentials';
+            }
+          });
+        }
       });
     }
 
@@ -452,7 +745,9 @@
       try {
         const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
         const uid  = cred.user.uid;
-        await set(ref(db, `users/${uid}`), { username, role, color });
+        const userData = { username, role, color };
+        if (isPlaceholder) { userData._tempEmail = email; userData._tempPw = password; }
+        await set(ref(db, `users/${uid}`), userData);
         await secondarySignOut(secondaryAuth);
 
         if (isPlaceholder) {

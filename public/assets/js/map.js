@@ -110,10 +110,10 @@ function _onImageLoad() {
   fitMapToContainer();
 }
 
+// Always keep listener so it re-fires when src changes (e.g. after map upload).
+mapImage.addEventListener("load", _onImageLoad);
 if (mapImage.complete && mapImage.naturalWidth) {
   _onImageLoad();
-} else {
-  mapImage.addEventListener("load", _onImageLoad);
 }
 
 // Throttle resize to one refit per frame — avoids flooding fitMapToContainer.
@@ -915,5 +915,77 @@ function populateCountrySelect(selectedId) {
     opt.style.color = c.color || "";
     if (c.id === selectedId) opt.selected = true;
     mCountry.appendChild(opt);
+  });
+}
+
+// ── Custom Map (IndexedDB — stored locally per device) ────────────────────────
+const _IDB_DB    = 'essolis-maps';
+const _IDB_STORE = 'maps';
+
+function _openMapDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(_IDB_DB, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(_IDB_STORE);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+async function _getStoredMap(campaignId) {
+  const idb = await _openMapDB();
+  return new Promise((resolve, reject) => {
+    const req = idb.transaction(_IDB_STORE, 'readonly').objectStore(_IDB_STORE).get(campaignId);
+    req.onsuccess = e => resolve(e.target.result || null);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+async function _storeMap(campaignId, blob) {
+  const idb = await _openMapDB();
+  return new Promise((resolve, reject) => {
+    const req = idb.transaction(_IDB_STORE, 'readwrite').objectStore(_IDB_STORE).put(blob, campaignId);
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+// On load: restore custom map from IndexedDB if one was saved for this campaign.
+_getStoredMap(_cid).then(blob => {
+  if (blob) mapImage.src = URL.createObjectURL(blob);
+}).catch(() => {});
+
+const btnUploadMap = document.getElementById("btn-upload-map");
+const mapFileInput = document.getElementById("map-file-input");
+
+if (isAdmin && btnUploadMap) {
+  btnUploadMap.addEventListener("click", () => mapFileInput.click());
+
+  mapFileInput.addEventListener("change", async () => {
+    const file = mapFileInput.files[0];
+    mapFileInput.value = "";
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file.");
+      return;
+    }
+
+    btnUploadMap.disabled = true;
+    btnUploadMap.innerHTML = '<iconify-icon icon="lucide:loader-2" style="font-size:14px;margin-right:5px"></iconify-icon>Saving…';
+
+    try {
+      await _storeMap(_cid, file);
+      mapImage.src = URL.createObjectURL(file);
+      btnUploadMap.innerHTML = '<iconify-icon icon="lucide:check" style="font-size:14px;margin-right:5px"></iconify-icon>Map Loaded!';
+      setTimeout(() => {
+        btnUploadMap.innerHTML = '<iconify-icon icon="lucide:image-up" style="font-size:14px;margin-right:5px"></iconify-icon>Upload Map';
+      }, 2500);
+    } catch (e) {
+      console.error("Map save failed:", e);
+      btnUploadMap.innerHTML = '<iconify-icon icon="lucide:image-up" style="font-size:14px;margin-right:5px"></iconify-icon>Upload Map';
+      alert("Failed to save map. Please try again.");
+    } finally {
+      btnUploadMap.disabled = false;
+    }
   });
 }
