@@ -5,8 +5,16 @@ import Layout from '../layouts/Layout.astro';
 
   <div id="map-container">
     <div id="map-wrapper">
-      <img id="map-image" src="/Images/Maps/map.webp" alt="Map">
+      <img id="map-image" alt="Map">
       <div id="marker-layer"></div>
+    </div>
+
+    <div id="map-empty" class="map-empty-state">
+      <div class="map-empty-inner">
+        <iconify-icon icon="lucide:map" style="font-size:48px;opacity:0.2"></iconify-icon>
+        <p class="map-empty-title">No map uploaded</p>
+        <p class="map-empty-hint">The DM can upload a map using the Upload Map button above</p>
+      </div>
     </div>
 
     <!-- DM Toolbar -->

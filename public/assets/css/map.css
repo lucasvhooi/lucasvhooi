@@ -19,6 +19,42 @@ body.map-page {
   contain: layout paint;
 }
 
+/* ── Empty state (no map uploaded yet) ── */
+.map-empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.map-empty-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 40px;
+}
+
+.map-empty-title {
+  font-family: 'IM Fell English', 'Garamond', serif;
+  font-size: 1.3rem;
+  color: #444;
+  margin: 0;
+}
+
+.map-empty-hint {
+  font-size: 13px;
+  color: #333;
+  font-style: italic;
+  margin: 0;
+  max-width: 280px;
+  line-height: 1.5;
+}
+
 #map-wrapper {
   position: absolute;
   top: 0;

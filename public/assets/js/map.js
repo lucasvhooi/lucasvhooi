@@ -950,8 +950,12 @@ async function _storeMap(campaignId, blob) {
 }
 
 // On load: restore custom map from IndexedDB if one was saved for this campaign.
+const _mapEmptyEl = document.getElementById('map-empty');
 _getStoredMap(_cid).then(blob => {
-  if (blob) mapImage.src = URL.createObjectURL(blob);
+  if (blob) {
+    mapImage.src = URL.createObjectURL(blob);
+    if (_mapEmptyEl) _mapEmptyEl.style.display = 'none';
+  }
 }).catch(() => {});
 
 const btnUploadMap = document.getElementById("btn-upload-map");
@@ -976,6 +980,7 @@ if (isAdmin && btnUploadMap) {
     try {
       await _storeMap(_cid, file);
       mapImage.src = URL.createObjectURL(file);
+      if (_mapEmptyEl) _mapEmptyEl.style.display = 'none';
       btnUploadMap.innerHTML = '<iconify-icon icon="lucide:check" style="font-size:14px;margin-right:5px"></iconify-icon>Map Loaded!';
       setTimeout(() => {
         btnUploadMap.innerHTML = '<iconify-icon icon="lucide:image-up" style="font-size:14px;margin-right:5px"></iconify-icon>Upload Map';

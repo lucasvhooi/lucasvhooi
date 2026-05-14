@@ -205,9 +205,12 @@ function renderItems() {
 
     const rarity      = getItemRarity(item);
     const rarityColor = RARITY_COLORS[rarity] || "#9e9e9e";
+    const raritySlug  = rarity.replace(/\s+/g, '-');
+    const rarityLabel = rarity.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     const tags = parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t));
 
     card.style.setProperty("--rc", rarityColor);
+    card.dataset.rarity = raritySlug;
 
     card.innerHTML = `
       ${isAdmin ? `<button class="lore-card-give-btn item-give-btn">+</button>` : ""}
@@ -215,7 +218,10 @@ function renderItems() {
         <div class="item-name">${item.name}</div>
         <div class="item-price-badge">${formatGold(item.price)}</div>
       </div>
-      ${tags.length ? `<div class="item-tags">${tags.map(t => `<span class="item-tag">${t}</span>`).join("")}</div>` : ""}
+      <div class="item-tags">
+        <span class="item-tag rarity-tag-${raritySlug}">${rarityLabel}</span>
+        ${tags.map(t => `<span class="item-tag">${t}</span>`).join("")}
+      </div>
       ${item.description ? `<p class="item-desc">${item.description}</p>` : ""}
       ${isAdmin ? `
         <div class="item-actions">

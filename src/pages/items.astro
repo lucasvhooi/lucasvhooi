@@ -25,57 +25,65 @@ import Layout from '../layouts/Layout.astro';
         <button class="modal-close-x" id="im-close-btn">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="form-row">
+        <!-- Name: full width -->
+        <div class="form-row im-name-row">
           <label>Name <span class="req">*</span>
             <input type="text" id="im-name" placeholder="e.g. Health Potion" />
           </label>
         </div>
-        <div class="form-row">
-          <label>Description
-            <textarea id="im-desc" rows="3" placeholder="What does this item do or look like?"></textarea>
-          </label>
-        </div>
-        <div class="form-row">
-          <label>Base Price (gp) <span class="req">*</span>
-            <input type="number" id="im-price" placeholder="e.g. 50" min="0" step="0.01" />
-          </label>
-        </div>
-        <div class="form-row">
-          <label>Tags</label>
-          <div class="im-tag-picker-row">
-            <div class="im-tag-chips" id="im-tag-chips"></div>
-            <button type="button" id="im-tag-add-btn" class="im-tag-add-btn">+ New Tag</button>
+        <!-- Two-column body -->
+        <div class="im-form-grid">
+          <div class="im-col-left">
+            <div class="form-row">
+              <label>Description
+                <textarea id="im-desc" rows="7" placeholder="What does this item do or look like?"></textarea>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>Abilities</label>
+              <div id="im-abilities-list" class="im-abilities-list"></div>
+              <button type="button" id="im-ability-add-btn" class="im-ability-add-btn">+ Add Ability</button>
+            </div>
           </div>
-          <input type="text" id="im-tag-new-input" class="im-tag-new-input" placeholder="New tag name…" style="display:none" />
-        </div>
-        <div class="form-row">
-          <label>Rarity</label>
-          <div class="rarity-selector" id="im-rarity-selector">
-            <button type="button" class="rarity-sel-btn" data-rarity="common">Common</button>
-            <button type="button" class="rarity-sel-btn" data-rarity="uncommon">Uncommon</button>
-            <button type="button" class="rarity-sel-btn" data-rarity="rare">Rare</button>
-            <button type="button" class="rarity-sel-btn" data-rarity="very rare">Very Rare</button>
-            <button type="button" class="rarity-sel-btn" data-rarity="legendary">Legendary</button>
+          <div class="im-col-right">
+            <div class="form-row">
+              <label>Base Price (gp) <span class="req">*</span>
+                <input type="number" id="im-price" placeholder="e.g. 50" min="0" step="0.01" />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>Tags</label>
+              <div class="im-tag-picker-row">
+                <div class="im-tag-chips" id="im-tag-chips"></div>
+                <button type="button" id="im-tag-add-btn" class="im-tag-add-btn">+ New Tag</button>
+              </div>
+              <input type="text" id="im-tag-new-input" class="im-tag-new-input" placeholder="New tag name…" style="display:none" />
+            </div>
+            <div class="form-row">
+              <label>Rarity</label>
+              <div class="rarity-selector" id="im-rarity-selector">
+                <button type="button" class="rarity-sel-btn" data-rarity="common">Common</button>
+                <button type="button" class="rarity-sel-btn" data-rarity="uncommon">Uncommon</button>
+                <button type="button" class="rarity-sel-btn" data-rarity="rare">Rare</button>
+                <button type="button" class="rarity-sel-btn" data-rarity="very rare">Very Rare</button>
+                <button type="button" class="rarity-sel-btn" data-rarity="legendary">Legendary</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="checkbox-label">
+                <input type="checkbox" id="im-shop-available" checked />
+                <span class="checkbox-box"></span>
+                Available in shop
+              </label>
+            </div>
+            <div class="form-row">
+              <label class="checkbox-label">
+                <input type="checkbox" id="im-requires-attunement" />
+                <span class="checkbox-box"></span>
+                Requires Attunement
+              </label>
+            </div>
           </div>
-        </div>
-        <div class="form-row">
-          <label class="checkbox-label">
-            <input type="checkbox" id="im-shop-available" checked />
-            <span class="checkbox-box"></span>
-            Available in shop (players can buy this item)
-          </label>
-        </div>
-        <div class="form-row">
-          <label class="checkbox-label">
-            <input type="checkbox" id="im-requires-attunement" />
-            <span class="checkbox-box"></span>
-            Requires Attunement
-          </label>
-        </div>
-        <div class="form-row">
-          <label>Abilities</label>
-          <div id="im-abilities-list" class="im-abilities-list"></div>
-          <button type="button" id="im-ability-add-btn" class="im-ability-add-btn">+ Add Ability</button>
         </div>
         <div id="im-error" class="modal-error"></div>
       </div>
@@ -87,4 +95,60 @@ import Layout from '../layouts/Layout.astro';
   </div>
 
   <script is:inline type="module" src="/assets/js/items.js"></script>
+
+  <!-- Framer Motion: staggered card entry on filter/search rebuild -->
+  <script>
+    import { animate } from 'framer-motion/dom';
+
+    const grid = document.getElementById('items-grid');
+    if (grid) {
+      let batch: HTMLElement[] = [];
+      let rebuilding = false;
+      let timer: ReturnType<typeof setTimeout> | null = null;
+
+      const observer = new MutationObserver(mutations => {
+        for (const m of mutations) {
+          if (m.removedNodes.length > 2) {
+            rebuilding = true;
+            batch = [];
+          }
+
+          for (const node of m.addedNodes) {
+            const el = node as HTMLElement;
+            if (node.nodeType === 1 && el.classList?.contains('item-card')) {
+              if (rebuilding) {
+                el.style.animation = 'none';
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(8px) scale(0.97)';
+                batch.push(el);
+              }
+            }
+          }
+        }
+
+        if (!rebuilding) return;
+
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          const cards = batch.splice(0);
+          rebuilding = false;
+          if (!cards.length) return;
+
+          cards.forEach((card, i) => {
+            const delay = Math.min(i * 0.04, 0.4);
+            animate(card, { opacity: 1, y: 0, scale: 1 }, {
+              duration: 0.28,
+              delay,
+              ease: [0.16, 1, 0.3, 1],
+            });
+            setTimeout(() => {
+              card.style.removeProperty('animation');
+            }, (0.28 + delay) * 1000 + 40);
+          });
+        }, 20);
+      });
+
+      observer.observe(grid, { childList: true });
+    }
+  </script>
 </Layout>
