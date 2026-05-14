@@ -778,9 +778,10 @@ import Layout from '../layouts/Layout.astro';
   </div>
 
   <script is:inline type="module">
-    import { db }                                                    from "/assets/js/firebase.js";
+    import { db, auth }                                              from "/assets/js/firebase.js";
     import { ref, get, set, push, remove, update, query,
              orderByChild, equalTo, onValue }                        from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { onAuthStateChanged }                                    from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { getSession, clearSession }                              from "/assets/js/auth.js";
 
     const session = getSession();
@@ -1396,7 +1397,14 @@ import Layout from '../layouts/Layout.astro';
       }
     });
 
-    loadCampaigns();
-    setupInviteListener();
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        loadCampaigns();
+        setupInviteListener();
+      } else {
+        clearSession();
+        window.location.href = "login";
+      }
+    });
   </script>
 </Layout>
