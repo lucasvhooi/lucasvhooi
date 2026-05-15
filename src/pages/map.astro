@@ -5,8 +5,25 @@ import Layout from '../layouts/Layout.astro';
 
   <div id="map-container">
     <div id="map-wrapper">
-      <img id="map-image" src="/Images/Maps/map.webp" alt="Map">
+      <img id="map-image" src="" alt="Map" style="display:none">
       <div id="marker-layer"></div>
+    </div>
+
+    <!-- Map empty state (shown when no maps have been uploaded yet) -->
+    <div id="map-empty-state" class="map-empty-state" style="display:none">
+      <div id="map-empty-dm">
+        <iconify-icon icon="lucide:image-plus" class="map-empty-icon"></iconify-icon>
+        <h2 class="map-empty-title">No Map Yet</h2>
+        <p class="map-empty-sub">Upload a map image to get this campaign started</p>
+        <button id="map-empty-upload-btn" class="dm-btn">
+          <iconify-icon icon="lucide:upload" style="margin-right:6px"></iconify-icon>Upload Map
+        </button>
+      </div>
+      <div id="map-empty-player">
+        <iconify-icon icon="lucide:map" class="map-empty-icon map-empty-icon-dim"></iconify-icon>
+        <h2 class="map-empty-title map-empty-title-dim">No Map Yet</h2>
+        <p class="map-empty-sub map-empty-sub-dim">Your DM hasn't uploaded a map for this campaign yet.</p>
+      </div>
     </div>
 
     <!-- DM Toolbar -->

@@ -98,11 +98,11 @@ function fitMapToContainer() {
 function _onImageLoad() {
   _imgNW = mapImage.naturalWidth;
   _imgNH = mapImage.naturalHeight;
-  // Set wrapper size once; it never changes after this.
   mapWrapper.style.width  = `${_imgNW}px`;
   mapWrapper.style.height = `${_imgNH}px`;
   _updateCachedRect();
   fitMapToContainer();
+  mapImage.style.display = "block";
 }
 
 if (mapImage.complete && mapImage.naturalWidth) {
@@ -167,6 +167,7 @@ let _startX, _startY;
 
 mapContainer.addEventListener("pointerdown", function(e) {
   if (e.pointerType !== "mouse" || e.button !== 0) return;
+  if (e.target.closest("#map-empty-state")) return;
   _isDragging = true;
   _didDrag    = false;
   _startX = e.clientX;
@@ -229,6 +230,7 @@ if (isTouchDevice) {
 
   mapContainer.addEventListener("touchstart", function(e) {
     if (e.target.closest("#location-panel")) return;
+    if (e.target.closest("#map-empty-state")) return;
     _updateCachedRect();
     markerLayer.classList.add("gesturing");
     if (e.touches.length === 2) {
@@ -308,21 +310,45 @@ const session  = getSession();
 const mapsRef  = ref(db, "maps");
 let uploadedMaps   = [];
 let _mapsModalOpen = false;
+let _mapInitialized = false;
 
-// Restore last-viewed map from localStorage
-const _savedMapUrl = localStorage.getItem("currentMapUrl");
-if (_savedMapUrl) {
-  mapImage.src = _savedMapUrl;
-  mapImage.addEventListener("error", () => {
-    localStorage.removeItem("currentMapUrl");
-    mapImage.src = "/Images/Maps/map.webp";
-  }, { once: true });
+// Per-campaign localStorage key so switching campaigns doesn't carry over old maps
+function _mapKey()       { return `currentMapUrl_${session?.campaignId || "default"}`; }
+function _getMapUrl()    { return localStorage.getItem(_mapKey()); }
+function _setMapUrl(url) { url ? localStorage.setItem(_mapKey(), url) : localStorage.removeItem(_mapKey()); }
+
+function _updateMapState() {
+  const emptyState  = document.getElementById("map-empty-state");
+  const emptyDm     = document.getElementById("map-empty-dm");
+  const emptyPlayer = document.getElementById("map-empty-player");
+
+  if (uploadedMaps.length === 0) {
+    _mapInitialized           = false;
+    _setMapUrl(null);
+    mapImage.style.display    = "none";
+    emptyState.style.display  = "flex";
+    emptyDm.style.display     = isAdmin ? "flex" : "none";
+    emptyPlayer.style.display = isAdmin ? "none" : "flex";
+    return;
+  }
+
+  emptyState.style.display = "none";
+
+  if (!_mapInitialized) {
+    _mapInitialized  = true;
+    const savedUrl   = _getMapUrl();
+    const validSaved = savedUrl && uploadedMaps.find(m => m.url === savedUrl);
+    const urlToUse   = validSaved ? savedUrl : uploadedMaps[0].url;
+    if (!validSaved) _setMapUrl(urlToUse);
+    mapImage.src = urlToUse;
+  }
 }
 
 onValue(mapsRef, snap => {
   uploadedMaps = snap.val()
     ? Object.values(snap.val()).sort((a, b) => b.timestamp - a.timestamp)
     : [];
+  _updateMapState();
   if (_mapsModalOpen) _renderMapsGrid();
 });
 
@@ -998,20 +1024,24 @@ function _renderMapsGrid() {
         if (m.storagePath) await deleteObject(storageRef(storage, m.storagePath));
       } catch (_) {}
       await remove(ref(db, `maps/${m.id}`));
-      if (mapImage.src === m.url) _setCurrentMap("/Images/Maps/map.webp");
+      if (mapImage.src === m.url) { _setMapUrl(null); _mapInitialized = false; }
     });
     mapsGrid.appendChild(card);
   });
 }
 
 function _setCurrentMap(url) {
-  localStorage.setItem("currentMapUrl", url);
+  _mapInitialized = true;
+  _setMapUrl(url);
   mapImage.src = url;
   _renderMapsGrid();
   _closeMapsModal();
 }
 
 mapsUploadBtn.addEventListener("click", () => mapsFileInput.click());
+
+const mapEmptyUploadBtn = document.getElementById("map-empty-upload-btn");
+if (mapEmptyUploadBtn) mapEmptyUploadBtn.addEventListener("click", _openMapsModal);
 
 mapsFileInput.addEventListener("change", async () => {
   const file = mapsFileInput.files[0];
