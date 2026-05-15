@@ -110,6 +110,11 @@ if (mapImage.complete && mapImage.naturalWidth) {
 } else {
   mapImage.addEventListener("load", _onImageLoad);
 }
+mapImage.addEventListener("error", () => {
+  _setMapUrl(null);
+  _mapInitialized = false;
+  _updateMapState();
+});
 
 // Throttle resize to one refit per frame — avoids flooding fitMapToContainer.
 let _resizeRaf = 0;
@@ -346,7 +351,13 @@ function _updateMapState() {
   }
 }
 
+// If Firebase doesn't respond within 5 s (e.g. App Check blocking on mobile),
+// call _updateMapState with an empty list so the empty state is shown.
+let _firebaseReady = false;
+setTimeout(() => { if (!_firebaseReady) _updateMapState(); }, 5000);
+
 onValue(mapsRef, snap => {
+  _firebaseReady = true;
   uploadedMaps = snap.val()
     ? Object.values(snap.val()).sort((a, b) => b.timestamp - a.timestamp)
     : [];

@@ -33,11 +33,12 @@ import Layout from '../layouts/Layout.astro';
 
     (async () => {
       try {
-        const snap = await get(ref(db, 'setup_complete'));
+        const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000));
+        const snap = await Promise.race([get(ref(db, 'setup_complete')), timeout]);
         if (!snap.val()) {
           window.location.href = '/setup';
         } else if (getSession()) {
-          window.location.href = '/inventory';
+          window.location.href = '/campaigns';
         } else {
           window.location.href = '/login';
         }
