@@ -275,6 +275,11 @@ body.map-page {
   cursor: pointer;
   font-weight: bold;
   transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-sizing: border-box;
 }
 
 .dm-btn:hover {
@@ -1116,7 +1121,10 @@ body.map-page {
 /* ── Map Empty State ── */
 .map-empty-state {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1124,6 +1132,12 @@ body.map-page {
   padding: 24px;
   box-sizing: border-box;
   pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .map-empty-state {
+    padding-top: 70px;
+  }
 }
 
 #map-empty-dm,
