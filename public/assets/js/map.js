@@ -6,7 +6,6 @@ import { ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject }
 import { getSession }                             from "./auth.js";
 
 const markersRef   = ref(db, "markers");
-const countriesRef = ref(db, "countries");
 
 // ── Remember last location — redirect if user came back from a location ───────
 const _savedLoc = sessionStorage.getItem("lastLocationId");
@@ -312,9 +311,10 @@ const isAdmin = (() => {
   catch { return false; }
 })();
 
-const session   = getSession();
-const _cid      = session?.campaignId || "default";
-const mapsRef   = ref(db, `campaigns/${_cid}/maps`);
+const session      = getSession();
+const _cid         = session?.campaignId || "default";
+const mapsRef      = ref(db, `campaigns/${_cid}/maps`);
+const countriesRef = ref(db, `campaigns/${_cid}/countries`);
 let uploadedMaps   = [];
 let _mapsModalOpen = false;
 let _mapInitialized = false;
@@ -638,32 +638,8 @@ onValue(markersRef, snapshot => {
   renderLocationList();
 });
 
-const DEFAULT_COUNTRIES = [
-  { name: "Gelonus",         color: "#e74c3c" },
-  { name: "Elysium Coloney", color: "#e67e22" },
-  { name: "Arcadia",         color: "#2ecc71" },
-  { name: "Thule",           color: "#3498db" },
-  { name: "Hermesia",        color: "#9b59b6" },
-  { name: "Elysium",         color: "#1abc9c" },
-  { name: "Noxus",           color: "#e91e63" },
-  { name: "Pythos",          color: "#f1c40f" },
-];
-
-let _countriesSeeded = false;
-
 onValue(countriesRef, snapshot => {
-  const data = snapshot.val();
-  countries = data ? Object.values(data) : [];
-
-  if (!_countriesSeeded && countries.length === 0) {
-    _countriesSeeded = true;
-    DEFAULT_COUNTRIES.forEach(c => {
-      const id = generateId();
-      set(ref(db, `countries/${id}`), { id, name: c.name, color: c.color, description: null });
-    });
-    return;
-  }
-  _countriesSeeded = true;
+  countries = snapshot.val() ? Object.values(snapshot.val()) : [];
 
   if (!_defaultCollapseApplied) {
     _defaultCollapseApplied = true;
@@ -807,8 +783,8 @@ function buildCountrySection(country, items) {
     header.querySelector(".lp-edit-country").addEventListener("click", e => { e.stopPropagation(); openCountryModal(country.id); });
     header.querySelector(".lp-del-country").addEventListener("click", e => {
       e.stopPropagation();
-      if (!confirm(`Delete country "${country.name}"? Markers will become unassigned.`)) return;
-      remove(ref(db, `countries/${country.id}`));
+      if (!confirm(`Delete region "${country.name}"? Markers will become unassigned.`)) return;
+      remove(ref(db, `campaigns/${_cid}/countries/${country.id}`));
       markers.filter(m => m.countryId === country.id).forEach(m => set(ref(db, `markers/${m.id}/countryId`), null));
     });
   }
@@ -912,7 +888,7 @@ lpAddCountryBtn.addEventListener("click", () => openCountryModal(null));
 function openCountryModal(id) {
   _editingCountryId = id;
   const existing    = id ? countries.find(c => c.id === id) : null;
-  cmModalTitle.textContent = existing ? "Edit Country" : "Add Country";
+  cmModalTitle.textContent = existing ? "Edit Region" : "Add Region";
   cmName.value             = existing?.name        || "";
   cmDesc.value             = existing?.description || "";
   _selectedCountryColor    = existing?.color || COUNTRY_COLORS[0];
@@ -943,7 +919,7 @@ cmSave.addEventListener("click", () => {
   const name = cmName.value.trim();
   if (!name) { cmError.textContent = "Name is required."; return; }
   const id = _editingCountryId || generateId();
-  set(ref(db, `countries/${id}`), { id, name, color: _selectedCountryColor, description: cmDesc.value.trim() || null });
+  set(ref(db, `campaigns/${_cid}/countries/${id}`), { id, name, color: _selectedCountryColor, description: cmDesc.value.trim() || null });
   closeCountryModal();
 });
 
@@ -1041,6 +1017,7 @@ function _setCurrentMap(url) {
   _mapInitialized = true;
   _setMapUrl(url);
   mapImage.src = url;
+  document.getElementById("map-empty-state").style.display = "none";
   _renderMapsGrid();
   _closeMapsModal();
 }
