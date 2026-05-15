@@ -82,8 +82,10 @@
   } catch(e) { /* ignore */ }
 
   // ── Hamburger menu ────────────────────────────────────────────────────────
+  // Only show when there are actual nav links (not just the user/login li)
   const nav = document.querySelector("nav");
-  if (nav) {
+  const _navLiCount = document.querySelectorAll("nav ul li").length;
+  if (nav && _navLiCount > 1) {
     const burger = document.createElement("button");
     burger.className = "nav-hamburger";
     burger.setAttribute("aria-label", "Toggle navigation");

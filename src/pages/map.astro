@@ -55,7 +55,7 @@ import Layout from '../layouts/Layout.astro';
       <div class="lp-header">
         <span class="lp-title">Locations</span>
         <div class="lp-header-actions">
-          <button id="lp-add-country-btn" class="lp-hdr-btn" style="display:none">+ Country</button>
+          <button id="lp-add-country-btn" class="lp-hdr-btn" style="display:none">+ Region</button>
           <button id="lp-close-btn" class="lp-hdr-btn lp-hdr-close">✕</button>
         </div>
       </div>
@@ -130,7 +130,7 @@ import Layout from '../layouts/Layout.astro';
         </label>
       </div>
       <div id="m-country-row" class="form-row">
-        <label>Country / Region
+        <label>Region
           <select id="m-country"></select>
         </label>
       </div>
@@ -145,7 +145,7 @@ import Layout from '../layouts/Layout.astro';
   <!-- Country Modal -->
   <div id="country-modal" class="modal-overlay">
     <div class="modal-box">
-      <h2 id="cm-modal-title">Add Country</h2>
+      <h2 id="cm-modal-title">Add Region</h2>
       <div class="form-row">
         <label>Name <span class="required">*</span>
           <input type="text" id="cm-name" placeholder="e.g. Arcadia" />
