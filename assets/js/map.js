@@ -1041,6 +1041,7 @@ function _setCurrentMap(url) {
   _mapInitialized = true;
   _setMapUrl(url);
   mapImage.src = url;
+  document.getElementById("map-empty-state").style.display = "none";
   _renderMapsGrid();
   _closeMapsModal();
 }
