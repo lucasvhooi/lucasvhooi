@@ -237,11 +237,15 @@ import Layout from '../layouts/Layout.astro';
       try {
         const cred = await signInWithPopup(auth, new GoogleAuthProvider());
         const uid  = cred.user.uid;
-        let profile = await fetchProfile(uid);
+        const profile = await fetchProfile(uid);
 
         if (!profile) {
-          profile = { username: cred.user.displayName || "Adventurer", role: "player", color: randomColor() };
-          await set(ref(db, `users/${uid}`), profile);
+          // No profile means this Google account was never registered via invite.
+          // Sign them out and send to register so the invite code is checked.
+          await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js")
+            .then(m => m.signOut(auth)).catch(() => {});
+          window.location.href = "register";
+          return;
         }
 
         saveSession({ id: uid, username: profile.username, role: profile.role || "player", color: profile.color || "#c8a45c" });

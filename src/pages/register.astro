@@ -242,7 +242,7 @@ import Layout from '../layouts/Layout.astro';
     import { ref, get, set }                                     from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
     import { saveSession, getSession }                           from "/assets/js/auth.js";
 
-    if (getSession()) window.location.href = "inventory";
+    if (getSession()) window.location.href = "campaigns";
 
     function randomColor() {
       const h = Math.floor(Math.random() * 360);

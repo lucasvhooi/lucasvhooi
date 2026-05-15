@@ -502,8 +502,13 @@ import Layout from '../layouts/Layout.astro';
     import { ref, get, set, remove }               from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     const session = getSession();
-    if (!session || session.role !== 'admin') {
-      window.location.href = 'inventory';
+    if (!session) { window.location.href = 'campaigns'; throw new Error(); }
+
+    // Verify admin role against Firebase, not just localStorage
+    const roleSnap = await get(ref(db, `users/${session.id}/role`));
+    if (roleSnap.val() !== 'admin') {
+      window.location.href = 'campaigns';
+      throw new Error();
     }
 
     // ── Invite code management ─────────────────────────────────────────────
