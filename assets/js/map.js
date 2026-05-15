@@ -1038,15 +1038,13 @@ function _setCurrentMap(url) {
   _closeMapsModal();
 }
 
-mapsUploadBtn.addEventListener("click", () => mapsFileInput.click());
-
-const mapEmptyUploadBtn = document.getElementById("map-empty-upload-btn");
-if (mapEmptyUploadBtn) mapEmptyUploadBtn.addEventListener("click", _openMapsModal);
+// Upload buttons are <label for="maps-file-input"> — no JS click handler needed.
 
 mapsFileInput.addEventListener("change", async () => {
   const file = mapsFileInput.files[0];
   if (!file) return;
   mapsFileInput.value = "";
+  if (!_mapsModalOpen) _openMapsModal();
 
   if (!file.type.startsWith("image/")) {
     mapsErrorEl.textContent = "Please select an image file."; return;

@@ -15,9 +15,9 @@ import Layout from '../layouts/Layout.astro';
         <iconify-icon icon="lucide:image-plus" class="map-empty-icon"></iconify-icon>
         <h2 class="map-empty-title">No Map Yet</h2>
         <p class="map-empty-sub">Upload a map image to get this campaign started</p>
-        <button id="map-empty-upload-btn" class="dm-btn">
+        <label id="map-empty-upload-btn" class="dm-btn" for="maps-file-input">
           <iconify-icon icon="lucide:upload" style="margin-right:6px"></iconify-icon>Upload Map
-        </button>
+        </label>
       </div>
       <div id="map-empty-player">
         <iconify-icon icon="lucide:map" class="map-empty-icon map-empty-icon-dim"></iconify-icon>
@@ -164,6 +164,10 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </div>
 
+  <!-- File input lives here, off-screen — NOT display:none so iOS Safari activates it via label -->
+  <input type="file" id="maps-file-input" accept="image/*"
+         style="position:fixed;left:-200vw;top:0;width:1px;height:1px;opacity:0">
+
   <!-- Maps Gallery Modal -->
   <div id="maps-modal" class="modal-overlay">
     <div class="modal-box maps-modal-box">
@@ -172,10 +176,9 @@ import Layout from '../layouts/Layout.astro';
         <button id="maps-close-btn" class="maps-close">&times;</button>
       </div>
       <div class="maps-upload-row" id="maps-upload-row">
-        <input type="file" id="maps-file-input" accept="image/*" style="display:none">
-        <button class="dm-btn" id="maps-upload-btn">
+        <label class="dm-btn" id="maps-upload-btn" for="maps-file-input">
           <iconify-icon icon="lucide:upload" style="margin-right:4px"></iconify-icon>Upload Map
-        </button>
+        </label>
         <div class="maps-progress" id="maps-upload-progress" style="display:none">
           <div class="maps-progress-track">
             <div class="maps-progress-fill" id="maps-progress-fill"></div>
