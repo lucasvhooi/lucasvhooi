@@ -1,13 +1,12 @@
 // ── Firebase ──────────────────────────────────────────────────────────────────
-import { db }                                     from "./firebase.js";
+import { db, storage }                            from "./firebase.js";
 import { ref, set, remove, onValue }              from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+import { ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject }
+                                                  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
+import { getSession }                             from "./auth.js";
 
-const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
-const _cid = _session?.campaignId;
-if (!_cid) { window.location.href = '/campaigns'; throw new Error('No campaign selected'); }
-
-const markersRef   = ref(db, `campaigns/${_cid}/markers`);
-const countriesRef = ref(db, `campaigns/${_cid}/countries`);
+const markersRef   = ref(db, "markers");
+const countriesRef = ref(db, "countries");
 
 // ── Remember last location — redirect if user came back from a location ───────
 const _savedLoc = sessionStorage.getItem("lastLocationId");
@@ -46,10 +45,6 @@ let _imgNW = 0, _imgNH = 0;
 function updateTransform() {
   mapWrapper.style.transform = `translate3d(${originX}px,${originY}px,0) scale(${scale})`;
 }
-
-// ── Marker element map — declared here so flushCounterScale can reference it
-// even when the image loads synchronously from cache before line 330 is reached.
-const _markerEls = new Map();
 
 // Counter-scale: keep pins a constant screen size regardless of zoom.
 // Written directly as an inline style on each marker element — avoids the
@@ -103,18 +98,23 @@ function fitMapToContainer() {
 function _onImageLoad() {
   _imgNW = mapImage.naturalWidth;
   _imgNH = mapImage.naturalHeight;
-  // Set wrapper size once; it never changes after this.
   mapWrapper.style.width  = `${_imgNW}px`;
   mapWrapper.style.height = `${_imgNH}px`;
   _updateCachedRect();
   fitMapToContainer();
+  mapImage.style.display = "block";
 }
 
-// Always keep listener so it re-fires when src changes (e.g. after map upload).
-mapImage.addEventListener("load", _onImageLoad);
 if (mapImage.complete && mapImage.naturalWidth) {
   _onImageLoad();
+} else {
+  mapImage.addEventListener("load", _onImageLoad);
 }
+mapImage.addEventListener("error", () => {
+  _setMapUrl(null);
+  _mapInitialized = false;
+  _updateMapState();
+});
 
 // Throttle resize to one refit per frame — avoids flooding fitMapToContainer.
 let _resizeRaf = 0;
@@ -172,6 +172,7 @@ let _startX, _startY;
 
 mapContainer.addEventListener("pointerdown", function(e) {
   if (e.pointerType !== "mouse" || e.button !== 0) return;
+  if (e.target.closest("#map-empty-state")) return;
   _isDragging = true;
   _didDrag    = false;
   _startX = e.clientX;
@@ -234,6 +235,7 @@ if (isTouchDevice) {
 
   mapContainer.addEventListener("touchstart", function(e) {
     if (e.target.closest("#location-panel")) return;
+    if (e.target.closest("#map-empty-state")) return;
     _updateCachedRect();
     markerLayer.classList.add("gesturing");
     if (e.touches.length === 2) {
@@ -249,6 +251,7 @@ if (isTouchDevice) {
 
   mapContainer.addEventListener("touchmove", function(e) {
     if (e.target.closest("#location-panel")) return;
+    if (e.target.closest("#map-empty-state")) return;
     e.preventDefault();
     if (_isPinching && e.touches.length === 2) {
       const newDist  = _dist(e.touches[0], e.touches[1]);
@@ -309,6 +312,53 @@ const isAdmin = (() => {
   catch { return false; }
 })();
 
+const session   = getSession();
+const _cid      = session?.campaignId || "default";
+const mapsRef   = ref(db, `campaigns/${_cid}/maps`);
+let uploadedMaps   = [];
+let _mapsModalOpen = false;
+let _mapInitialized = false;
+
+// Per-campaign localStorage key so switching campaigns doesn't carry over old maps
+function _mapKey()       { return `currentMapUrl_${session?.campaignId || "default"}`; }
+function _getMapUrl()    { return localStorage.getItem(_mapKey()); }
+function _setMapUrl(url) { url ? localStorage.setItem(_mapKey(), url) : localStorage.removeItem(_mapKey()); }
+
+function _updateMapState() {
+  const emptyState  = document.getElementById("map-empty-state");
+  const emptyDm     = document.getElementById("map-empty-dm");
+  const emptyPlayer = document.getElementById("map-empty-player");
+
+  if (uploadedMaps.length === 0) {
+    _mapInitialized           = false;
+    _setMapUrl(null);
+    mapImage.style.display    = "none";
+    emptyState.style.display  = "flex";
+    emptyDm.style.display     = isAdmin ? "flex" : "none";
+    emptyPlayer.style.display = isAdmin ? "none" : "flex";
+    return;
+  }
+
+  emptyState.style.display = "none";
+
+  if (!_mapInitialized) {
+    _mapInitialized  = true;
+    const savedUrl   = _getMapUrl();
+    const validSaved = savedUrl && uploadedMaps.find(m => m.url === savedUrl);
+    const urlToUse   = validSaved ? savedUrl : uploadedMaps[0].url;
+    if (!validSaved) _setMapUrl(urlToUse);
+    mapImage.src = urlToUse;
+  }
+}
+
+onValue(mapsRef, snap => {
+  uploadedMaps = snap.val()
+    ? Object.values(snap.val()).sort((a, b) => b.timestamp - a.timestamp)
+    : [];
+  _updateMapState();
+  if (_mapsModalOpen) _renderMapsGrid();
+});
+
 let markers       = [];
 let countries     = [];
 let placingMode   = false;
@@ -321,8 +371,8 @@ const COUNTRY_COLORS = [
   "#ff5722","#78909c"
 ];
 
-function saveMarker(marker)     { set(ref(db, `campaigns/${_cid}/markers/${marker.id}`), marker); }
-function deleteMarkerById(id)   { remove(ref(db, `campaigns/${_cid}/markers/${id}`)); }
+function saveMarker(marker)     { set(ref(db, "markers/" + marker.id), marker); }
+function deleteMarkerById(id)   { remove(ref(db, "markers/" + id)); }
 function generateId()           { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
 function screenToPct(screenX, screenY) {
@@ -335,8 +385,8 @@ function screenToPct(screenX, screenY) {
 // ── Differential marker rendering ─────────────────────────────────────────────
 // Tracks id → { el, hash } so unchanged markers are never touched (no DOM
 // teardown, no layout invalidation, no event-listener churn).
-// (_markerEls is declared near the top of the file so flushCounterScale can
-//  use it before this section is reached during module evaluation.)
+const _markerEls = new Map();
+
 function renderMarkers() {
   const visible = new Set();
 
@@ -609,7 +659,7 @@ onValue(countriesRef, snapshot => {
     _countriesSeeded = true;
     DEFAULT_COUNTRIES.forEach(c => {
       const id = generateId();
-      set(ref(db, `campaigns/${_cid}/countries/${id}`), { id, name: c.name, color: c.color, description: null });
+      set(ref(db, `countries/${id}`), { id, name: c.name, color: c.color, description: null });
     });
     return;
   }
@@ -758,8 +808,8 @@ function buildCountrySection(country, items) {
     header.querySelector(".lp-del-country").addEventListener("click", e => {
       e.stopPropagation();
       if (!confirm(`Delete country "${country.name}"? Markers will become unassigned.`)) return;
-      remove(ref(db, `campaigns/${_cid}/countries/${country.id}`));
-      markers.filter(m => m.countryId === country.id).forEach(m => set(ref(db, `campaigns/${_cid}/markers/${m.id}/countryId`), null));
+      remove(ref(db, `countries/${country.id}`));
+      markers.filter(m => m.countryId === country.id).forEach(m => set(ref(db, `markers/${m.id}/countryId`), null));
     });
   }
 
@@ -893,7 +943,7 @@ cmSave.addEventListener("click", () => {
   const name = cmName.value.trim();
   if (!name) { cmError.textContent = "Name is required."; return; }
   const id = _editingCountryId || generateId();
-  set(ref(db, `campaigns/${_cid}/countries/${id}`), { id, name, color: _selectedCountryColor, description: cmDesc.value.trim() || null });
+  set(ref(db, `countries/${id}`), { id, name, color: _selectedCountryColor, description: cmDesc.value.trim() || null });
   closeCountryModal();
 });
 
@@ -918,76 +968,149 @@ function populateCountrySelect(selectedId) {
   });
 }
 
-// ── Custom Map (IndexedDB — stored locally per device) ────────────────────────
-const _IDB_DB    = 'essolis-maps';
-const _IDB_STORE = 'maps';
+// ── Maps Gallery ──────────────────────────────────────────────────────────────
+const mapsModal        = document.getElementById("maps-modal");
+const mapsGrid         = document.getElementById("maps-grid");
+const mapsFileInputs   = ["maps-file-input-toolbar","maps-file-input-empty","maps-file-input-modal"]
+                           .map(id => document.getElementById(id)).filter(Boolean);
+const mapsUploadBtn    = document.getElementById("maps-upload-btn");
+const mapsProgressWrap = document.getElementById("maps-upload-progress");
+const mapsProgressFill = document.getElementById("maps-progress-fill");
+const mapsProgressText = document.getElementById("maps-progress-text");
+const mapsErrorEl      = document.getElementById("maps-upload-error");
 
-function _openMapDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(_IDB_DB, 1);
-    req.onupgradeneeded = e => e.target.result.createObjectStore(_IDB_STORE);
-    req.onsuccess = e => resolve(e.target.result);
-    req.onerror   = e => reject(e.target.error);
-  });
+document.getElementById("maps-btn").addEventListener("click", _openMapsModal);
+
+// Only DM can upload — hide the upload row for regular players
+if (!isAdmin) document.getElementById("maps-upload-row").style.display = "none";
+document.getElementById("maps-close-btn").addEventListener("click", _closeMapsModal);
+mapsModal.addEventListener("click", e => { if (e.target === mapsModal) _closeMapsModal(); });
+
+function _openMapsModal() {
+  _mapsModalOpen = true;
+  _renderMapsGrid();
+  mapsModal.classList.add("open");
 }
 
-async function _getStoredMap(campaignId) {
-  const idb = await _openMapDB();
-  return new Promise((resolve, reject) => {
-    const req = idb.transaction(_IDB_STORE, 'readonly').objectStore(_IDB_STORE).get(campaignId);
-    req.onsuccess = e => resolve(e.target.result || null);
-    req.onerror   = e => reject(e.target.error);
-  });
+function _closeMapsModal() {
+  _mapsModalOpen = false;
+  mapsModal.classList.remove("open");
 }
 
-async function _storeMap(campaignId, blob) {
-  const idb = await _openMapDB();
-  return new Promise((resolve, reject) => {
-    const req = idb.transaction(_IDB_STORE, 'readwrite').objectStore(_IDB_STORE).put(blob, campaignId);
-    req.onsuccess = () => resolve();
-    req.onerror   = e => reject(e.target.error);
-  });
-}
-
-// On load: restore custom map from IndexedDB if one was saved for this campaign.
-_getStoredMap(_cid).then(blob => {
-  if (blob) {
-    mapImage.src = URL.createObjectURL(blob);
+function _renderMapsGrid() {
+  mapsErrorEl.textContent = "";
+  if (uploadedMaps.length === 0) {
+    mapsGrid.innerHTML = `<p class="maps-empty">No maps uploaded yet. Be the first!</p>`;
+    return;
   }
-}).catch(() => {});
+  const activeSrc = mapImage.src;
+  mapsGrid.innerHTML = "";
+  uploadedMaps.forEach(m => {
+    const canDelete = isAdmin || (session && m.uploadedBy === session.id);
+    const isActive  = m.url === activeSrc;
+    const card = document.createElement("div");
+    card.className = "map-card" + (isActive ? " map-card-active" : "");
+    card.innerHTML = `
+      <div class="map-card-thumb" style="background-image:url('${m.url}')"></div>
+      <div class="map-card-info">
+        <span class="map-card-name">${esc(m.name)}</span>
+        <span class="map-card-by">by ${esc(m.uploaderName || "Unknown")}</span>
+      </div>
+      <div class="map-card-actions">
+        <button class="map-card-view">${isActive ? "Viewing" : "View"}</button>
+        ${canDelete ? `<button class="map-card-del">Delete</button>` : ""}
+      </div>`;
 
-const btnUploadMap = document.getElementById("btn-upload-map");
-const mapFileInput = document.getElementById("map-file-input");
-
-if (isAdmin && btnUploadMap) {
-  btnUploadMap.addEventListener("click", () => mapFileInput.click());
-
-  mapFileInput.addEventListener("change", async () => {
-    const file = mapFileInput.files[0];
-    mapFileInput.value = "";
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      alert("Please select an image file.");
-      return;
+    if (!isActive) {
+      card.querySelector(".map-card-view").addEventListener("click", () => _setCurrentMap(m.url));
     }
-
-    btnUploadMap.disabled = true;
-    btnUploadMap.innerHTML = '<iconify-icon icon="lucide:loader-2" style="font-size:14px;margin-right:5px"></iconify-icon>Saving…';
-
-    try {
-      await _storeMap(_cid, file);
-      mapImage.src = URL.createObjectURL(file);
-      btnUploadMap.innerHTML = '<iconify-icon icon="lucide:check" style="font-size:14px;margin-right:5px"></iconify-icon>Map Loaded!';
-      setTimeout(() => {
-        btnUploadMap.innerHTML = '<iconify-icon icon="lucide:image-up" style="font-size:14px;margin-right:5px"></iconify-icon>Upload Map';
-      }, 2500);
-    } catch (e) {
-      console.error("Map save failed:", e);
-      btnUploadMap.innerHTML = '<iconify-icon icon="lucide:image-up" style="font-size:14px;margin-right:5px"></iconify-icon>Upload Map';
-      alert("Failed to save map. Please try again.");
-    } finally {
-      btnUploadMap.disabled = false;
-    }
+    card.querySelector(".map-card-del")?.addEventListener("click", async e => {
+      e.stopPropagation();
+      if (!confirm(`Delete "${m.name}"?`)) return;
+      try {
+        if (m.storagePath) await deleteObject(storageRef(storage, m.storagePath));
+      } catch (_) {}
+      await remove(ref(db, `campaigns/${_cid}/maps/${m.id}`));
+      if (mapImage.src === m.url) { _setMapUrl(null); _mapInitialized = false; }
+    });
+    mapsGrid.appendChild(card);
   });
 }
+
+function _setCurrentMap(url) {
+  _mapInitialized = true;
+  _setMapUrl(url);
+  mapImage.src = url;
+  _renderMapsGrid();
+  _closeMapsModal();
+}
+
+function _setUploadBusy(busy) {
+  mapsFileInputs.forEach(inp => {
+    if (!inp || !inp.parentElement) return;
+    inp.parentElement.style.pointerEvents = busy ? "none" : "";
+    inp.parentElement.style.opacity       = busy ? "0.5"  : "";
+  });
+  mapsProgressWrap.style.display = busy ? "flex" : "none";
+  if (busy) mapsProgressFill.style.width = "0%";
+}
+
+async function _handleFileChange(e) {
+  const inp  = e.target;
+  const file = inp.files[0];
+  if (!file) return;
+  inp.value = "";
+  if (!_mapsModalOpen) _openMapsModal();
+
+  if (!file.type.startsWith("image/")) {
+    mapsErrorEl.textContent = "Please select an image file."; return;
+  }
+  if (file.size > 20 * 1024 * 1024) {
+    mapsErrorEl.textContent = "File must be under 20 MB."; return;
+  }
+  if (!session) { mapsErrorEl.textContent = "Not logged in."; return; }
+
+  mapsErrorEl.textContent = "";
+  _setUploadBusy(true);
+
+  const mapId    = generateId();
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const path     = `campaigns/${_cid}/maps/${session.id}/${mapId}_${safeName}`;
+  const fileRef  = storageRef(storage, path);
+  const task     = uploadBytesResumable(fileRef, file, { customMetadata: { uploadedBy: session.id } });
+
+  task.on("state_changed",
+    snap => {
+      const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
+      mapsProgressFill.style.width = pct + "%";
+      mapsProgressText.textContent = `Uploading… ${pct}%`;
+    },
+    err => {
+      console.error("Storage upload failed:", err?.code, err?.message, err);
+      _setUploadBusy(false);
+      mapsErrorEl.textContent = `Upload failed (${err?.code || "unknown"}). Check console for details.`;
+    },
+    async () => {
+      try {
+        const url = await getDownloadURL(fileRef);
+        await set(ref(db, `campaigns/${_cid}/maps/${mapId}`), {
+          id:           mapId,
+          name:         file.name.replace(/\.[^.]+$/, ""),
+          url,
+          uploadedBy:   session.id,
+          uploaderName: session.username,
+          timestamp:    Date.now(),
+          storagePath:  path,
+        });
+        _setUploadBusy(false);
+        _setCurrentMap(url);
+      } catch (err) {
+        console.error("Post-upload DB write failed:", err?.code, err?.message, err);
+        _setUploadBusy(false);
+        mapsErrorEl.textContent = `Saved to storage but failed to register map (${err?.code || "unknown"}). Check console.`;
+      }
+    }
+  );
+}
+
+mapsFileInputs.forEach(inp => inp.addEventListener("change", _handleFileChange));

@@ -9,16 +9,13 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth iframe { pointer-events: none; }
 
 :root {
-  --bg:        #1A1919;
-  --text:      #d4b483;
-  --accent:    #c8a45c;
-  --panel:     #1e1108;
-  --panel-alt: #2a1810;
-  --border:    #3a2510;
-  --muted:     #665540;
-  --shadow:    rgba(0, 0, 0, 0.6);
-  --font:      'Garamond', serif;
-  --title:     'IM Fell English', 'Garamond', serif;
+  --bg: #1a1a1a;
+  --text: #f4e6d7;
+  --accent: #ffcc66;
+  --panel: #2c1a0a;
+  --panel-alt: #3e2b1b;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --font: 'Garamond', serif;
 
   /* Spacing scale */
   --space-xs:  4px;
@@ -81,7 +78,6 @@ nav {
   flex-shrink: 0;
   margin-right: 8px;
   display: block;
-  filter: brightness(0) saturate(100%) invert(84%) sepia(63%) saturate(600%) hue-rotate(315deg) brightness(108%);
 }
 
 nav ul {
@@ -125,7 +121,7 @@ nav a::after {
 
 nav a:hover {
   color: var(--accent);
-  text-shadow: 0 0 20px rgba(200, 164, 92, 0.45), 0 0 40px rgba(200, 164, 92, 0.15);
+  text-shadow: 0 0 20px rgba(255, 204, 102, 0.45), 0 0 40px rgba(255, 204, 102, 0.15);
 }
 
 nav a:hover::after {
@@ -134,7 +130,7 @@ nav a:hover::after {
 
 nav a.active {
   color: var(--accent);
-  text-shadow: 0 0 16px rgba(200, 164, 92, 0.3);
+  text-shadow: 0 0 16px rgba(255, 204, 102, 0.3);
 }
 
 nav a.active::after {
@@ -331,7 +327,7 @@ nav.nav-open .nav-hamburger span:nth-child(3) { transform: translateY(-7px) rota
   margin: 0 0 6px;
   letter-spacing: 0.04em;
   line-height: 1.1;
-  text-shadow: 0 2px 28px rgba(255,204,102,0.20), 0 0 6px rgba(255,204,102,0.06);
+  text-shadow: 0 2px 24px rgba(255,204,102,0.12);
 }
 
 .page-hero__sub {
@@ -412,8 +408,7 @@ nav.nav-open .nav-hamburger span:nth-child(3) { transform: translateY(-7px) rota
   }
 
   .nav-logo {
-    display: block;
-    height: 34px;
+    display: none;
   }
 
   /* Hamburger — fixed so it stays above the drawer, vertically centred in the 52px bar */
