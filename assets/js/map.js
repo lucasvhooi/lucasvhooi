@@ -977,7 +977,8 @@ function populateCountrySelect(selectedId) {
 // ── Maps Gallery ──────────────────────────────────────────────────────────────
 const mapsModal        = document.getElementById("maps-modal");
 const mapsGrid         = document.getElementById("maps-grid");
-const mapsFileInput    = document.getElementById("maps-file-input");
+const mapsFileInputs   = ["maps-file-input-toolbar","maps-file-input-empty","maps-file-input-modal"]
+                           .map(id => document.getElementById(id)).filter(Boolean);
 const mapsUploadBtn    = document.getElementById("maps-upload-btn");
 const mapsProgressWrap = document.getElementById("maps-upload-progress");
 const mapsProgressFill = document.getElementById("maps-progress-fill");
@@ -985,7 +986,6 @@ const mapsProgressText = document.getElementById("maps-progress-text");
 const mapsErrorEl      = document.getElementById("maps-upload-error");
 
 document.getElementById("maps-btn").addEventListener("click", _openMapsModal);
-document.getElementById("btn-upload-map").addEventListener("click", _openMapsModal);
 
 // Only DM can upload — hide the upload row for regular players
 if (!isAdmin) document.getElementById("maps-upload-row").style.display = "none";
@@ -1051,12 +1051,21 @@ function _setCurrentMap(url) {
   _closeMapsModal();
 }
 
-// Upload buttons are <label for="maps-file-input"> — no JS click handler needed.
+function _setUploadBusy(busy) {
+  mapsFileInputs.forEach(inp => {
+    if (!inp || !inp.parentElement) return;
+    inp.parentElement.style.pointerEvents = busy ? "none" : "";
+    inp.parentElement.style.opacity       = busy ? "0.5"  : "";
+  });
+  mapsProgressWrap.style.display = busy ? "flex" : "none";
+  if (busy) mapsProgressFill.style.width = "0%";
+}
 
-mapsFileInput.addEventListener("change", async () => {
-  const file = mapsFileInput.files[0];
+async function _handleFileChange(e) {
+  const inp  = e.target;
+  const file = inp.files[0];
   if (!file) return;
-  mapsFileInput.value = "";
+  inp.value = "";
   if (!_mapsModalOpen) _openMapsModal();
 
   if (!file.type.startsWith("image/")) {
@@ -1068,10 +1077,7 @@ mapsFileInput.addEventListener("change", async () => {
   if (!session) { mapsErrorEl.textContent = "Not logged in."; return; }
 
   mapsErrorEl.textContent = "";
-  mapsUploadBtn.style.pointerEvents = "none";
-  mapsUploadBtn.style.opacity = "0.5";
-  mapsProgressWrap.style.display = "flex";
-  mapsProgressFill.style.width   = "0%";
+  _setUploadBusy(true);
 
   const mapId    = generateId();
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -1082,13 +1088,11 @@ mapsFileInput.addEventListener("change", async () => {
   task.on("state_changed",
     snap => {
       const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
-      mapsProgressFill.style.width  = pct + "%";
-      mapsProgressText.textContent  = `Uploading… ${pct}%`;
+      mapsProgressFill.style.width = pct + "%";
+      mapsProgressText.textContent = `Uploading… ${pct}%`;
     },
     () => {
-      mapsProgressWrap.style.display = "none";
-      mapsUploadBtn.style.pointerEvents = "";
-      mapsUploadBtn.style.opacity = "";
+      _setUploadBusy(false);
       mapsErrorEl.textContent = "Upload failed. Please try again.";
     },
     async () => {
@@ -1102,10 +1106,10 @@ mapsFileInput.addEventListener("change", async () => {
         timestamp:    Date.now(),
         storagePath:  path,
       });
-      mapsProgressWrap.style.display = "none";
-      mapsUploadBtn.style.pointerEvents = "";
-      mapsUploadBtn.style.opacity = "";
+      _setUploadBusy(false);
       _setCurrentMap(url);
     }
   );
-});
+}
+
+mapsFileInputs.forEach(inp => inp.addEventListener("change", _handleFileChange));
