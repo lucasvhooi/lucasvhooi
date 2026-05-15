@@ -1,6 +1,9 @@
 // ── Firebase ──────────────────────────────────────────────────────────────────
-import { db }                                     from "./firebase.js";
+import { db, storage }                            from "./firebase.js";
 import { ref, set, remove, onValue }              from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+import { ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject }
+                                                  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
+import { getSession }                             from "./auth.js";
 
 const markersRef   = ref(db, "markers");
 const countriesRef = ref(db, "countries");
@@ -300,6 +303,28 @@ const isAdmin = (() => {
   try { return JSON.parse(localStorage.getItem("playerSession"))?.role === "admin"; }
   catch { return false; }
 })();
+
+const session  = getSession();
+const mapsRef  = ref(db, "maps");
+let uploadedMaps   = [];
+let _mapsModalOpen = false;
+
+// Restore last-viewed map from localStorage
+const _savedMapUrl = localStorage.getItem("currentMapUrl");
+if (_savedMapUrl) {
+  mapImage.src = _savedMapUrl;
+  mapImage.addEventListener("error", () => {
+    localStorage.removeItem("currentMapUrl");
+    mapImage.src = "/Images/Maps/map.webp";
+  }, { once: true });
+}
+
+onValue(mapsRef, snap => {
+  uploadedMaps = snap.val()
+    ? Object.values(snap.val()).sort((a, b) => b.timestamp - a.timestamp)
+    : [];
+  if (_mapsModalOpen) _renderMapsGrid();
+});
 
 let markers       = [];
 let countries     = [];
@@ -909,3 +934,134 @@ function populateCountrySelect(selectedId) {
     mCountry.appendChild(opt);
   });
 }
+
+// ── Maps Gallery ──────────────────────────────────────────────────────────────
+const mapsModal        = document.getElementById("maps-modal");
+const mapsGrid         = document.getElementById("maps-grid");
+const mapsFileInput    = document.getElementById("maps-file-input");
+const mapsUploadBtn    = document.getElementById("maps-upload-btn");
+const mapsProgressWrap = document.getElementById("maps-upload-progress");
+const mapsProgressFill = document.getElementById("maps-progress-fill");
+const mapsProgressText = document.getElementById("maps-progress-text");
+const mapsErrorEl      = document.getElementById("maps-upload-error");
+
+document.getElementById("maps-btn").addEventListener("click", _openMapsModal);
+document.getElementById("btn-upload-map").addEventListener("click", _openMapsModal);
+
+// Only DM can upload — hide the upload row for regular players
+if (!isAdmin) document.getElementById("maps-upload-row").style.display = "none";
+document.getElementById("maps-close-btn").addEventListener("click", _closeMapsModal);
+mapsModal.addEventListener("click", e => { if (e.target === mapsModal) _closeMapsModal(); });
+
+function _openMapsModal() {
+  _mapsModalOpen = true;
+  _renderMapsGrid();
+  mapsModal.classList.add("open");
+}
+
+function _closeMapsModal() {
+  _mapsModalOpen = false;
+  mapsModal.classList.remove("open");
+}
+
+function _renderMapsGrid() {
+  mapsErrorEl.textContent = "";
+  if (uploadedMaps.length === 0) {
+    mapsGrid.innerHTML = `<p class="maps-empty">No maps uploaded yet. Be the first!</p>`;
+    return;
+  }
+  const activeSrc = mapImage.src;
+  mapsGrid.innerHTML = "";
+  uploadedMaps.forEach(m => {
+    const canDelete = isAdmin || (session && m.uploadedBy === session.id);
+    const isActive  = m.url === activeSrc;
+    const card = document.createElement("div");
+    card.className = "map-card" + (isActive ? " map-card-active" : "");
+    card.innerHTML = `
+      <div class="map-card-thumb" style="background-image:url('${m.url}')"></div>
+      <div class="map-card-info">
+        <span class="map-card-name">${esc(m.name)}</span>
+        <span class="map-card-by">by ${esc(m.uploaderName || "Unknown")}</span>
+      </div>
+      <div class="map-card-actions">
+        <button class="map-card-view">${isActive ? "Viewing" : "View"}</button>
+        ${canDelete ? `<button class="map-card-del">Delete</button>` : ""}
+      </div>`;
+
+    if (!isActive) {
+      card.querySelector(".map-card-view").addEventListener("click", () => _setCurrentMap(m.url));
+    }
+    card.querySelector(".map-card-del")?.addEventListener("click", async e => {
+      e.stopPropagation();
+      if (!confirm(`Delete "${m.name}"?`)) return;
+      try {
+        if (m.storagePath) await deleteObject(storageRef(storage, m.storagePath));
+      } catch (_) {}
+      await remove(ref(db, `maps/${m.id}`));
+      if (mapImage.src === m.url) _setCurrentMap("/Images/Maps/map.webp");
+    });
+    mapsGrid.appendChild(card);
+  });
+}
+
+function _setCurrentMap(url) {
+  localStorage.setItem("currentMapUrl", url);
+  mapImage.src = url;
+  _renderMapsGrid();
+  _closeMapsModal();
+}
+
+mapsUploadBtn.addEventListener("click", () => mapsFileInput.click());
+
+mapsFileInput.addEventListener("change", async () => {
+  const file = mapsFileInput.files[0];
+  if (!file) return;
+  mapsFileInput.value = "";
+
+  if (!file.type.startsWith("image/")) {
+    mapsErrorEl.textContent = "Please select an image file."; return;
+  }
+  if (file.size > 20 * 1024 * 1024) {
+    mapsErrorEl.textContent = "File must be under 20 MB."; return;
+  }
+  if (!session) { mapsErrorEl.textContent = "Not logged in."; return; }
+
+  mapsErrorEl.textContent = "";
+  mapsUploadBtn.disabled  = true;
+  mapsProgressWrap.style.display = "flex";
+  mapsProgressFill.style.width   = "0%";
+
+  const mapId    = generateId();
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const path     = `maps/${session.id}/${mapId}_${safeName}`;
+  const fileRef  = storageRef(storage, path);
+  const task     = uploadBytesResumable(fileRef, file, { customMetadata: { uploadedBy: session.id } });
+
+  task.on("state_changed",
+    snap => {
+      const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
+      mapsProgressFill.style.width  = pct + "%";
+      mapsProgressText.textContent  = `Uploading… ${pct}%`;
+    },
+    () => {
+      mapsProgressWrap.style.display = "none";
+      mapsUploadBtn.disabled = false;
+      mapsErrorEl.textContent = "Upload failed. Please try again.";
+    },
+    async () => {
+      const url = await getDownloadURL(fileRef);
+      await set(ref(db, `maps/${mapId}`), {
+        id:           mapId,
+        name:         file.name.replace(/\.[^.]+$/, ""),
+        url,
+        uploadedBy:   session.id,
+        uploaderName: session.username,
+        timestamp:    Date.now(),
+        storagePath:  path,
+      });
+      mapsProgressWrap.style.display = "none";
+      mapsUploadBtn.disabled = false;
+      _setCurrentMap(url);
+    }
+  );
+});

@@ -16,12 +16,16 @@ import Layout from '../layouts/Layout.astro';
       <button id="btn-upload-map" class="dm-btn">
         <iconify-icon icon="lucide:image-up" style="font-size:14px;margin-right:5px"></iconify-icon>Upload Map
       </button>
-      <input type="file" id="map-file-input" accept="image/*" style="display:none">
     </div>
 
     <!-- Location panel open button -->
     <button id="lp-open-btn" class="lp-open-btn">
       <iconify-icon icon="lucide:map-pin"></iconify-icon> Locations
+    </button>
+
+    <!-- Maps gallery button (all users) -->
+    <button id="maps-btn" class="maps-open-btn">
+      <iconify-icon icon="lucide:image"></iconify-icon> Maps
     </button>
 
     <!-- Location panel -->
@@ -140,6 +144,30 @@ import Layout from '../layouts/Layout.astro';
         <button id="cm-save" class="dm-btn">Save</button>
         <button id="cm-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Maps Gallery Modal -->
+  <div id="maps-modal" class="modal-overlay">
+    <div class="modal-box maps-modal-box">
+      <div class="maps-hdr">
+        <h2>Campaign Maps</h2>
+        <button id="maps-close-btn" class="maps-close">&times;</button>
+      </div>
+      <div class="maps-upload-row" id="maps-upload-row">
+        <input type="file" id="maps-file-input" accept="image/*" style="display:none">
+        <button class="dm-btn" id="maps-upload-btn">
+          <iconify-icon icon="lucide:upload" style="margin-right:4px"></iconify-icon>Upload Map
+        </button>
+        <div class="maps-progress" id="maps-upload-progress" style="display:none">
+          <div class="maps-progress-track">
+            <div class="maps-progress-fill" id="maps-progress-fill"></div>
+          </div>
+          <span id="maps-progress-text">Uploading…</span>
+        </div>
+      </div>
+      <p class="maps-error" id="maps-upload-error"></p>
+      <div class="maps-grid" id="maps-grid"></div>
     </div>
   </div>
 
