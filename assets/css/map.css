@@ -1134,11 +1134,6 @@ body.map-page {
   pointer-events: none;
 }
 
-@media (max-width: 600px) {
-  .map-empty-state {
-    padding-top: 70px;
-  }
-}
 
 #map-empty-dm,
 #map-empty-player {
