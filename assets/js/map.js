@@ -1091,23 +1091,30 @@ async function _handleFileChange(e) {
       mapsProgressFill.style.width = pct + "%";
       mapsProgressText.textContent = `Uploading… ${pct}%`;
     },
-    () => {
+    err => {
+      console.error("Storage upload failed:", err?.code, err?.message, err);
       _setUploadBusy(false);
-      mapsErrorEl.textContent = "Upload failed. Please try again.";
+      mapsErrorEl.textContent = `Upload failed (${err?.code || "unknown"}). Check console for details.`;
     },
     async () => {
-      const url = await getDownloadURL(fileRef);
-      await set(ref(db, `campaigns/${_cid}/maps/${mapId}`), {
-        id:           mapId,
-        name:         file.name.replace(/\.[^.]+$/, ""),
-        url,
-        uploadedBy:   session.id,
-        uploaderName: session.username,
-        timestamp:    Date.now(),
-        storagePath:  path,
-      });
-      _setUploadBusy(false);
-      _setCurrentMap(url);
+      try {
+        const url = await getDownloadURL(fileRef);
+        await set(ref(db, `campaigns/${_cid}/maps/${mapId}`), {
+          id:           mapId,
+          name:         file.name.replace(/\.[^.]+$/, ""),
+          url,
+          uploadedBy:   session.id,
+          uploaderName: session.username,
+          timestamp:    Date.now(),
+          storagePath:  path,
+        });
+        _setUploadBusy(false);
+        _setCurrentMap(url);
+      } catch (err) {
+        console.error("Post-upload DB write failed:", err?.code, err?.message, err);
+        _setUploadBusy(false);
+        mapsErrorEl.textContent = `Saved to storage but failed to register map (${err?.code || "unknown"}). Check console.`;
+      }
     }
   );
 }
