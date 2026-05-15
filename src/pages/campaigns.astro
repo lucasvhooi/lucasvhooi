@@ -824,6 +824,7 @@ import Layout from '../layouts/Layout.astro';
         mine.forEach(([id, c]) => grid.appendChild(buildCard(id, c)));
         bindShimmer();
       } catch (e) {
+        console.error('loadCampaigns failed:', e);
         stateLoading.style.display = 'none';
         stateEmpty.style.display = 'block';
       }
