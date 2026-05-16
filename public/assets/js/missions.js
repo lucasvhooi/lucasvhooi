@@ -2742,10 +2742,12 @@ function renderConnections() {
     });
     canvasSvg.appendChild(hit);
 
-    // Label at midpoint
+    // Label at true bezier midpoint (t=0.5), not linear midpoint
     if (conn.label) {
-      const mx = (p1.x + p2.x) / 2;
-      const my = (p1.y + p2.y) / 2 - 10;
+      const cp1x = p1.x + cv1.dx, cp1y = p1.y + cv1.dy;
+      const cp2x = p2.x + cv2.dx, cp2y = p2.y + cv2.dy;
+      const mx = 0.125*p1.x + 0.375*cp1x + 0.375*cp2x + 0.125*p2.x;
+      const my = 0.125*p1.y + 0.375*cp1y + 0.375*cp2y + 0.125*p2.y - 10;
       const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
       g.setAttribute("class", "conn-label-group");
       g.dataset.connIndex = ci;
