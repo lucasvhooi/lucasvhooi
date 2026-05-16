@@ -3,9 +3,12 @@ import { db }                              from "./firebase.js";
 import { ref, set, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { formatGold }                      from "./item-utils.js";
 
-const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
-const questsRef  = ref(db, "quests");
-const markersRef = ref(db, "markers");
+const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
+const isAdmin = _session?.role === 'admin';
+const cid = _session?.campaignId;
+if (!cid) { window.location.href = '/campaigns'; throw new Error('No campaign selected'); }
+const questsRef  = ref(db, `campaigns/${cid}/quests`);
+const markersRef = ref(db, `campaigns/${cid}/markers`);
 
 // ── Monster preset list (mirrored from combat.js) ─────────────────────────────
 const MONSTER_PRESETS = [
@@ -327,22 +330,22 @@ function hexToRgba(hex, alpha) {
 }
 
 
-onValue(ref(db, "enemyTemplates"), snap => {
+onValue(ref(db, `campaigns/${cid}/enemyTemplates`), snap => {
   const data = snap.val();
   firebaseTemplates = data ? Object.values(data) : [];
 });
 
-onValue(ref(db, "items"), snap => {
+onValue(ref(db, `campaigns/${cid}/items`), snap => {
   const data = snap.val();
   allItems = data ? Object.values(data) : [];
 });
 
-onValue(ref(db, "lore"), snap => {
+onValue(ref(db, `campaigns/${cid}/lore`), snap => {
   const data = snap.val();
   allLoreItems = data ? Object.values(data) : [];
 });
 
-onValue(ref(db, "characters"), snap => {
+onValue(ref(db, `campaigns/${cid}/characters`), snap => {
   const data = snap.val();
   allCharacters = data ? Object.values(data) : [];
 });
@@ -703,8 +706,8 @@ function renderGrid() {
 const STATUS_LABEL = { active: "Active", not_started: "Not Started", completed: "Completed" };
 const STATUS_CLASS = { active: "status-active", not_started: "status-pending", completed: "status-done" };
 
-const BLOCK_TYPE_ICON  = { text:'<iconify-icon icon="lucide:type"></iconify-icon>', phase:'<iconify-icon icon="lucide:chevron-right"></iconify-icon>', loot:'<iconify-icon icon="game-icons:open-treasure-chest"></iconify-icon>', boss:'<iconify-icon icon="game-icons:skull"></iconify-icon>', puzzle:'<iconify-icon icon="game-icons:puzzle"></iconify-icon>', character:'<iconify-icon icon="lucide:user"></iconify-icon>', loreref:'<iconify-icon icon="game-icons:bookshelf"></iconify-icon>', note:'<iconify-icon icon="lucide:file-text"></iconify-icon>', divider:'<iconify-icon icon="lucide:minus"></iconify-icon>' };
-const BLOCK_TYPE_LABEL = { text:"Text", phase:"Phase", loot:"Loot", boss:"Enemy", puzzle:"Puzzle", character:"Character", loreref:"Lore", note:"DM Note", divider:"Divider" };
+const BLOCK_TYPE_ICON  = { text:'<iconify-icon icon="lucide:type"></iconify-icon>', phase:'<iconify-icon icon="lucide:chevron-right"></iconify-icon>', loot:'<iconify-icon icon="game-icons:open-treasure-chest"></iconify-icon>', boss:'<iconify-icon icon="game-icons:skull"></iconify-icon>', encounter:'<iconify-icon icon="game-icons:crossed-swords"></iconify-icon>', puzzle:'<iconify-icon icon="game-icons:puzzle"></iconify-icon>', character:'<iconify-icon icon="lucide:user"></iconify-icon>', loreref:'<iconify-icon icon="game-icons:bookshelf"></iconify-icon>', note:'<iconify-icon icon="lucide:file-text"></iconify-icon>', divider:'<iconify-icon icon="lucide:minus"></iconify-icon>' };
+const BLOCK_TYPE_LABEL = { text:"Text", phase:"Phase", loot:"Loot", boss:"Enemy", encounter:"Encounter", puzzle:"Puzzle", character:"Character", loreref:"Lore", note:"DM Note", divider:"Divider" };
 
 function buildBlockROContent(b) {
   const titleHtml = b.blockTitle && b.type !== "divider"
@@ -726,6 +729,11 @@ function buildBlockROContent(b) {
       const enemies = b.enemies?.length ? b.enemies : (b.name ? [{name:b.name,cr:b.cr||"",ac:b.ac||"",hp:b.hp||"",notes:b.notes||""}] : []);
       if (!enemies.length) return titleHtml;
       return titleHtml + enemies.map(en => `<div class="qcro-boss-row"><iconify-icon icon="game-icons:skull" class="qcb-boss-icon"></iconify-icon><span class="qcb-boss-name">${esc(en.name)}</span>${en.cr?`<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>`:""}${en.ac?`<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>`:""}${en.hp?`<span class="qcb-boss-stat">HP ${esc(en.hp)}</span>`:""}</div>${en.notes?`<p class="qcro-text">${escBr(en.notes)}</p>`:""}`).join("");
+    }
+    case "encounter": {
+      const enemies = b.enemies?.length ? b.enemies : [];
+      if (!enemies.length) return titleHtml;
+      return titleHtml + enemies.map(en => `<div class="qcro-boss-row"><iconify-icon icon="game-icons:crossed-swords" class="qcb-encounter-icon"></iconify-icon><span class="qcb-boss-name">${esc(en.name)}${en.count > 1 ? ` ×${en.count}` : ""}</span>${en.cr?`<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>`:""}${en.ac?`<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>`:""}${en.hp?`<span class="qcb-boss-stat">HP ${esc(en.hp)}</span>`:""}</div>`).join("");
     }
     case "puzzle":
       return titleHtml +
@@ -1031,7 +1039,8 @@ function buildSummaryChips(blocks) {
   let phases = 0, enemies = 0, loot = 0, puzzles = 0, chars = 0, lore = 0;
   for (const b of blocks) {
     if (b.type === "phase")     phases++;
-    else if (b.type === "boss") enemies += (b.enemies?.length || (b.name ? 1 : 0));
+    else if (b.type === "boss")      enemies += (b.enemies?.length || (b.name ? 1 : 0));
+    else if (b.type === "encounter") enemies += (b.enemies?.reduce((s, e) => s + (e.count || 1), 0) || 0);
     else if (b.type === "loot") loot    += (b.items?.length   || (b.name ? 1 : 0));
     else if (b.type === "puzzle")    puzzles++;
     else if (b.type === "character") chars += (b.characters?.length || 0);
@@ -1085,7 +1094,7 @@ function buildCard(q) {
     card.querySelector(".qc-edit-btn").addEventListener("click", e => { e.stopPropagation(); openModal(q); });
     card.querySelector(".qc-del-btn").addEventListener("click",  e => {
       e.stopPropagation();
-      if (confirm(`Delete "${q.title}"?`)) remove(ref(db, `quests/${q.id}`));
+      if (confirm(`Delete "${q.title}"?`)) remove(ref(db, `campaigns/${cid}/quests/${q.id}`));
     });
     initQuestCardDrag(card, q.id);
   }
@@ -1156,6 +1165,16 @@ function openQuestView(q) {
   // Canvas
   canvasWrap.innerHTML = "";
   canvasWrap.appendChild(buildQuestCanvasDOM(q));
+
+  // Encounter "Start Encounter" buttons
+  canvasWrap.addEventListener("click", e => {
+    const btn = e.target.closest(".qcb-start-encounter-btn");
+    if (!btn) return;
+    try {
+      const enemies = JSON.parse(btn.dataset.enemies || "[]");
+      _launchEncounter(enemies);
+    } catch (_) {}
+  });
 
   savePageState({ openQuestId: q.id });
   overlay.classList.add("open");
@@ -1233,7 +1252,7 @@ function reorderQuests(srcId, targetId) {
   ids.splice(srcIdx, 1);
   ids.splice(tgtIdx, 0, srcId);
   // Write new order values to Firebase
-  ids.forEach((id, i) => set(ref(db, `quests/${id}/order`), i));
+  ids.forEach((id, i) => set(ref(db, `campaigns/${cid}/quests/${id}/order`), i));
 }
 
 function renderBlockInCard(b, cellColors) {
@@ -1309,6 +1328,25 @@ function renderBlockInCard(b, cellColors) {
             </div>
             ${en.notes ? `<p class="qcb-boss-notes" style="${cellTxtStyle}">${escBr(en.notes)}</p>` : ""}
           </div>`).join("")}
+      </div>`;
+    }
+
+    case "encounter": {
+      const enemies = b.enemies || [];
+      if (!enemies.length) return "";
+      const enemyJson = esc(JSON.stringify(enemies));
+      return `<div class="qcb-cell qcb-cell-encounter" style="${spanStyle}">${sessionPill}${titleHtml}
+        ${enemies.map(en => `
+          <div class="qcb-boss">
+            <div class="qcb-boss-header">
+              <iconify-icon icon="game-icons:crossed-swords" class="qcb-encounter-icon"></iconify-icon>
+              <span class="qcb-boss-name">${esc(en.name)}${en.count > 1 ? ` <span class="qcb-encounter-count">×${en.count}</span>` : ""}</span>
+              ${en.cr ? `<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>` : ""}
+              ${en.ac ? `<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>` : ""}
+              ${en.hp ? `<span class="qcb-boss-stat">HP ${esc(en.hp)}</span>` : ""}
+            </div>
+          </div>`).join("")}
+        ${isAdmin ? `<button class="qcb-start-encounter-btn" data-enemies="${enemyJson}"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Start Encounter</button>` : ""}
       </div>`;
     }
 
@@ -1453,7 +1491,7 @@ qmSave.addEventListener("click", async () => {
     connections: currentConnections.length > 0 ? currentConnections : null,
     groups:      currentGroups.length > 0 ? currentGroups : null,
   };
-  await set(ref(db, `quests/${payload.id}`), payload);
+  await set(ref(db, `campaigns/${cid}/quests/${payload.id}`), payload);
   // Clear local draft on successful save
   if (draftKey) { try { localStorage.removeItem(draftKey); } catch {} }
   hasUnsavedChanges = false;
@@ -1483,7 +1521,8 @@ const BLOCK_DEFAULTS = {
   text:    { type: "text",    content: "",     blockTitle: "", titleColor: "", textAlign: "left" },
   phase:   { type: "phase",   title: "",   description: "", blockTitle: "", titleColor: "", textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
   loot:    { type: "loot",    items: [],   blockTitle: "", titleColor: "", textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
-  boss:    { type: "boss",    enemies: [], blockTitle: "", titleColor: "", textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
+  boss:      { type: "boss",      enemies: [], blockTitle: "", titleColor: "", textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
+  encounter: { type: "encounter", enemies: [], blockTitle: "", titleColor: "", textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
   note:    { type: "note",    content: "", blockTitle: "", titleColor: "", textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
   puzzle:  { type: "puzzle",  title: "",   description: "", hint: "", solution: "", blockTitle: "", titleColor: "", textAlign: "left", fontWeight: "normal", fontStyle: "normal" },
   divider:   { type: "divider",   title: "" },
@@ -1528,8 +1567,8 @@ function showTplPreview(templateKey, x, y) {
   const tpl = BLOCK_TEMPLATES[templateKey];
   if (!tpl) return;
   const preview = getTplPreview();
-  const BLOCK_ICONS = { phase:"lucide:chevron-right", boss:"game-icons:skull", loot:"game-icons:open-treasure-chest", puzzle:"game-icons:puzzle", character:"lucide:user", loreref:"game-icons:bookshelf", note:"lucide:file-text", text:"lucide:type", divider:"lucide:minus" };
-  const BLOCK_COLORS = { phase:"#2a5c8a", boss:"#8a2a2a", loot:"#4a7a2a", puzzle:"#7a4a8a", character:"#5a4a2a", loreref:"#2a5a4a", note:"#5a5a2a", text:"#3a3a5a", divider:"#4a4a4a" };
+  const BLOCK_ICONS = { phase:"lucide:chevron-right", boss:"game-icons:skull", encounter:"game-icons:crossed-swords", loot:"game-icons:open-treasure-chest", puzzle:"game-icons:puzzle", character:"lucide:user", loreref:"game-icons:bookshelf", note:"lucide:file-text", text:"lucide:type", divider:"lucide:minus" };
+  const BLOCK_COLORS = { phase:"#2a5c8a", boss:"#8a2a2a", encounter:"#7a2a50", loot:"#4a7a2a", puzzle:"#7a4a8a", character:"#5a4a2a", loreref:"#2a5a4a", note:"#5a5a2a", text:"#3a3a5a", divider:"#4a4a4a" };
   const rows = [];
   let col = 1, row = 1, curRow = [];
   tpl.forEach(t => {
@@ -2191,12 +2230,6 @@ function buildBlocksEditor() {
       });
     });
 
-    // Session marker pill
-    wrap.querySelector(".blk-session-btn")?.addEventListener("click", e => {
-      e.stopPropagation();
-      openSessionPopup(e.currentTarget, i);
-    });
-
     // Loot item search
     if (block.type === "loot") {
       if (!block.items) block.items = [];
@@ -2324,6 +2357,87 @@ function buildBlocksEditor() {
         });
         srch.addEventListener("blur", () => setTimeout(() => hideDrop(drop), 150));
       }
+    }
+
+    // Encounter creature search + count + launch
+    if (block.type === "encounter") {
+      if (!block.enemies) block.enemies = [];
+      const srch = wrap.querySelector(".encounter-search-input");
+      const drop = wrap.querySelector(".encounter-search-drop");
+      const list = wrap.querySelector(".encounter-items-list");
+
+      const refreshEncounterList = () => {
+        list.innerHTML = (block.enemies || []).map((en, idx) => `
+          <div class="encounter-item-row" data-idx="${idx}">
+            <input type="number" class="encounter-count-input blk-input" min="1" max="99" value="${en.count || 1}" data-idx="${idx}" title="Count" style="width:48px;padding:3px 6px;text-align:center" />
+            <span class="enemy-item-name">${esc(en.name)}</span>
+            ${en.cr ? `<span class="enemy-item-stat">CR ${esc(en.cr)}</span>` : ""}
+            ${en.ac ? `<span class="enemy-item-stat">AC ${esc(en.ac)}</span>` : ""}
+            ${en.hp ? `<span class="enemy-item-stat">HP ${esc(en.hp)}</span>` : ""}
+            <button type="button" class="encounter-item-del blk-ctrl" data-idx="${idx}" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
+          </div>`).join("");
+        list.querySelectorAll(".encounter-item-del").forEach(btn => {
+          btn.addEventListener("click", () => { block.enemies.splice(Number(btn.dataset.idx), 1); refreshEncounterList(); onEditTick(); });
+        });
+        list.querySelectorAll(".encounter-count-input").forEach(inp => {
+          inp.addEventListener("change", () => {
+            const idx = Number(inp.dataset.idx);
+            if (block.enemies[idx]) { block.enemies[idx].count = Math.max(1, parseInt(inp.value) || 1); onEditTick(); }
+          });
+        });
+      };
+      refreshEncounterList();
+
+      if (srch && drop) {
+        srch.addEventListener("input", () => {
+          const q = srch.value.trim().toLowerCase();
+          if (!q) { hideDrop(drop); return; }
+          const seen = new Set();
+          const pool = [...firebaseTemplates, ...MONSTER_PRESETS].filter(m => {
+            if (!m.name) return false;
+            const key = m.name.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          const hits = pool.filter(m => m.name.toLowerCase().includes(q)).slice(0, 10);
+          if (!hits.length) { hideDrop(drop); return; }
+          drop.innerHTML = hits.map(m =>
+            `<div class="loc-drop-item" tabindex="0"
+              data-name="${esc(m.name)}" data-ac="${m.ac || ''}" data-hp="${m.hp || ''}" data-cr="${m.cr || ''}">
+              <span>${esc(m.name)}</span>
+              <span class="boss-drop-meta">${[m.cr ? 'CR '+m.cr : '', m.hp ? 'HP '+m.hp : '', m.ac ? 'AC '+m.ac : ''].filter(Boolean).join(' · ')}</span>
+            </div>`
+          ).join("");
+          drop.style.display = "block";
+        });
+        srch.addEventListener("keydown", e => {
+          if (e.key === "ArrowDown") { e.preventDefault(); drop.querySelector(".loc-drop-item")?.focus(); }
+          if (e.key === "Escape")    hideDrop(drop);
+        });
+        const addEncEnemy = dataset => {
+          block.enemies.push({ name: dataset.name || "", ac: String(dataset.ac || ""), hp: String(dataset.hp || ""), cr: String(dataset.cr || ""), count: 1 });
+          srch.value = ""; hideDrop(drop); refreshEncounterList(); onEditTick();
+        };
+        drop.addEventListener("mousedown", e => {
+          const item = e.target.closest(".loc-drop-item");
+          if (!item) return; e.preventDefault();
+          addEncEnemy(item.dataset);
+        });
+        drop.addEventListener("keydown", e => {
+          if (e.key === "Enter") { addEncEnemy(document.activeElement.dataset); }
+          if (e.key === "ArrowDown") { e.preventDefault(); document.activeElement.nextElementSibling?.focus(); }
+          if (e.key === "ArrowUp")   { e.preventDefault(); (document.activeElement.previousElementSibling || srch).focus(); }
+          if (e.key === "Escape")    hideDrop(drop);
+        });
+        srch.addEventListener("blur", () => setTimeout(() => hideDrop(drop), 150));
+      }
+
+      // Start Encounter button in the editor
+      wrap.querySelector(".encounter-launch-btn")?.addEventListener("click", e => {
+        e.stopPropagation();
+        _launchEncounter(block.enemies || []);
+      });
     }
 
     // Character search
@@ -2730,9 +2844,6 @@ function fmtBar(b, richText = false) {
 }
 
 function buildBlockEditorHtml(b, i) {
-  const sessionPillHtml = b.sessionMarker
-    ? `<button type="button" class="blk-session-btn has-session ${sessionColorClass(b.sessionMarker)}" title="Click to edit session marker">${esc(b.sessionMarker)}</button>`
-    : `<button type="button" class="blk-session-btn" title="Tag this block with a session">+ Session</button>`;
   const bgColorHtml = `
     <label class="blk-bg-label" title="Block background color">
       <span class="blk-bg-swatch" style="background:${b.bgColor || 'transparent'}"></span>
@@ -2741,7 +2852,6 @@ function buildBlockEditorHtml(b, i) {
     <button type="button" class="blk-ctrl blk-bg-clear${b.bgColor ? ' visible' : ''}" title="Clear block color"><iconify-icon icon="lucide:x"></iconify-icon></button>`;
   const controls = `
     <div class="blk-controls">
-      ${sessionPillHtml}
       ${bgColorHtml}
       <button type="button" class="blk-ctrl blk-del" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
     </div>`;
@@ -2810,6 +2920,30 @@ function buildBlockEditorHtml(b, i) {
               <button type="button" class="enemy-item-del blk-ctrl" data-idx="${idx}" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
             </div>`).join("")}
         </div>`;
+
+    case "encounter":
+      return `
+        <div class="blk-header"><iconify-icon icon="game-icons:crossed-swords" class="blk-type-icon blk-type-icon-encounter"></iconify-icon><span class="blk-type-label">Encounter</span>${controls}</div>
+        ${titleRow}
+        ${fmtBar(b)}
+        <div class="boss-search-wrap encounter-search-wrap">
+          <input class="blk-input boss-search-input encounter-search-input" type="text" placeholder="Search creatures to add…" autocomplete="off" />
+          <div class="boss-search-drop encounter-search-drop loc-dropdown" style="display:none"></div>
+        </div>
+        <div class="encounter-items-list">
+          ${(b.enemies || []).map((en, idx) => `
+            <div class="encounter-item-row" data-idx="${idx}">
+              <input type="number" class="encounter-count-input blk-input" min="1" max="99" value="${en.count || 1}" data-idx="${idx}" title="Count" style="width:48px;padding:3px 6px;text-align:center" />
+              <span class="enemy-item-name">${esc(en.name)}</span>
+              ${en.cr ? `<span class="enemy-item-stat">CR ${esc(en.cr)}</span>` : ""}
+              ${en.ac ? `<span class="enemy-item-stat">AC ${esc(en.ac)}</span>` : ""}
+              ${en.hp ? `<span class="enemy-item-stat">HP ${esc(en.hp)}</span>` : ""}
+              <button type="button" class="enemy-item-del encounter-item-del blk-ctrl" data-idx="${idx}" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
+            </div>`).join("")}
+        </div>
+        <button type="button" class="encounter-launch-btn dm-btn" style="margin-top:8px;width:100%;justify-content:center">
+          <iconify-icon icon="game-icons:crossed-swords" style="margin-right:6px"></iconify-icon>Start Encounter
+        </button>`;
 
     case "note":
       return `
@@ -3574,61 +3708,35 @@ function handleLinkChipClick(e) {
 }
 document.addEventListener("click", handleLinkChipClick);
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SESSION MARKER POPUP
-// ═══════════════════════════════════════════════════════════════════════════
-let _sessionPop = null;
-function getSessionPop() {
-  if (!_sessionPop) {
-    _sessionPop = document.createElement("div");
-    _sessionPop.className = "session-input-pop";
-    _sessionPop.style.display = "none";
-    document.body.appendChild(_sessionPop);
-    document.addEventListener("mousedown", e => {
-      if (!_sessionPop.contains(e.target) && !e.target.closest(".blk-session-btn")) {
-        _sessionPop.style.display = "none";
-      }
-    });
+// ── Encounter launcher ────────────────────────────────────────────────────────
+function _launchEncounter(enemies) {
+  if (!enemies.length) return;
+  let combatState;
+  try { combatState = JSON.parse(localStorage.getItem("dnd_combat_state")); } catch { combatState = null; }
+  if (!combatState || typeof combatState !== "object") {
+    combatState = { round: 1, currentTurn: -1, combatants: [], logEntries: [], lootLog: [] };
   }
-  return _sessionPop;
-}
-
-function openSessionPopup(anchorBtn, blockIndex) {
-  const pop = getSessionPop();
-  const block = currentBlocks[blockIndex];
-  if (!block) return;
-  pop.innerHTML = `
-    <div class="session-input-pop-label">Session marker</div>
-    <input type="text" placeholder="e.g. Session 4" value="${esc(block.sessionMarker || "")}" />
-    <div class="session-input-pop-actions">
-      <button type="button" class="session-input-pop-btn" data-act="save">Save</button>
-      <button type="button" class="session-input-pop-btn danger" data-act="clear">Clear</button>
-    </div>
-  `;
-  const input = pop.querySelector("input");
-  pop.querySelector('[data-act="save"]').addEventListener("click", () => {
-    const val = input.value.trim();
-    block.sessionMarker = val || null;
-    pop.style.display = "none";
-    onEditTick();
-    buildBlocksEditor();
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+  enemies.forEach(en => {
+    const count = Math.max(1, parseInt(en.count) || 1);
+    for (let i = 0; i < count; i++) {
+      const suffix = count > 1 ? " " + letters[i % 26] : "";
+      combatState.combatants.push({
+        id:          genId(),
+        name:        en.name + suffix,
+        type:        "enemy",
+        initiative:  Math.floor(Math.random() * 20) + 1,
+        hp:          parseInt(en.hp)  || 10,
+        maxHp:       parseInt(en.hp)  || 10,
+        ac:          parseInt(en.ac)  || 10,
+        conditions:  [],
+        lootDropped: false
+      });
+    }
   });
-  pop.querySelector('[data-act="clear"]').addEventListener("click", () => {
-    block.sessionMarker = null;
-    pop.style.display = "none";
-    onEditTick();
-    buildBlocksEditor();
-  });
-  input.addEventListener("keydown", e => {
-    if (e.key === "Enter") { e.preventDefault(); pop.querySelector('[data-act="save"]').click(); }
-    if (e.key === "Escape") pop.style.display = "none";
-  });
-  const rect = anchorBtn.getBoundingClientRect();
-  pop.style.display = "flex";
-  pop.style.left = `${Math.min(rect.left, window.innerWidth - 220)}px`;
-  pop.style.top  = `${rect.bottom + 6}px`;
-  input.focus();
-  input.select();
+  try { localStorage.setItem("dnd_combat_state", JSON.stringify(combatState)); } catch { /* ignore */ }
+  window.location.href = "/combat";
 }
 
 // Color a session label deterministically from its string

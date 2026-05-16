@@ -1066,8 +1066,9 @@ if (genBtn) {
     genStatus.style.color = "#aaa";
     genStatus.textContent = `Generating ${count} NPCs…`;
 
-    // Build batch with deduplication — reroll if name already exists
-    const usedNames = new Set(npcs.map(n => n.name));
+    // Build batch — deduplicate full names AND first names to reduce repetition
+    const usedNames      = new Set(npcs.map(n => n.name));
+    const usedFirstNames = new Set(npcs.map(n => n.name.split(" ")[0]));
     const batch = [];
     const baseTime = Date.now();
     for (let i = 0; i < count; i++) {
@@ -1076,8 +1077,9 @@ if (genBtn) {
       do {
         npc = generateOneNpc();
         tries++;
-      } while (usedNames.has(npc.name) && tries < 25);
+      } while ((usedNames.has(npc.name) || usedFirstNames.has(npc.name.split(" ")[0])) && tries < 40);
       usedNames.add(npc.name);
+      usedFirstNames.add(npc.name.split(" ")[0]);
       npc.createdAt = baseTime + i;
       batch.push(npc);
     }

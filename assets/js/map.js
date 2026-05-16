@@ -954,8 +954,6 @@ const mapsProgressFill = document.getElementById("maps-progress-fill");
 const mapsProgressText = document.getElementById("maps-progress-text");
 const mapsErrorEl      = document.getElementById("maps-upload-error");
 
-document.getElementById("maps-btn").addEventListener("click", _openMapsModal);
-
 // Only DM can upload — hide the upload row for regular players
 if (!isAdmin) document.getElementById("maps-upload-row").style.display = "none";
 document.getElementById("maps-close-btn").addEventListener("click", _closeMapsModal);

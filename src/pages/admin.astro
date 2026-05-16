@@ -492,9 +492,18 @@ import Layout from '../layouts/Layout.astro';
     <div class="migrate-status" id="mg-status"></div>
   </div>
 
+  <p class="section-label" style="margin-top:40px">NPC Name Tables</p>
+  <div class="migrate-card">
+    <p class="migrate-card-title">Export name tables to Firebase</p>
+    <p class="migrate-card-sub">Writes all NPC_NAMES to <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px">settings/npcNames</code> in the database. Useful for external tooling or customisation.</p>
+    <button class="btn-migrate" id="btn-export-names">Export NPC Names</button>
+    <div class="migrate-status" id="npc-export-status"></div>
+  </div>
+
   <script is:inline type="module">
     import { firebaseApp, auth, db }               from "/assets/js/firebase.js";
     import { getSession }                          from "/assets/js/auth.js";
+    import { NPC_NAMES }                           from "/assets/js/npc-data.js";
     import { initializeApp, getApp }               from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
              updateEmail, updatePassword, signOut as secondarySignOut }
@@ -967,5 +976,25 @@ import Layout from '../layouts/Layout.astro';
     });
 
     loadUsers();
+
+    // ── NPC names export ───────────────────────────────────────────────────
+    const btnExportNames  = document.getElementById('btn-export-names');
+    const npcExportStatus = document.getElementById('npc-export-status');
+
+    btnExportNames.addEventListener('click', async () => {
+      btnExportNames.disabled = true;
+      npcExportStatus.textContent = 'Exporting…';
+      npcExportStatus.className = 'migrate-status';
+      try {
+        await set(ref(db, 'settings/npcNames'), NPC_NAMES);
+        npcExportStatus.textContent = '✓ Exported successfully to settings/npcNames';
+        npcExportStatus.className = 'migrate-status ok';
+      } catch (e) {
+        npcExportStatus.textContent = 'Error: ' + e.message;
+        npcExportStatus.className = 'migrate-status error';
+      } finally {
+        btnExportNames.disabled = false;
+      }
+    });
   </script>
 </Layout>
