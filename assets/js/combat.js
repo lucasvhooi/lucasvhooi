@@ -131,10 +131,10 @@ const MONSTER_PRESETS = [
 
 // ── Type colours ──────────────────────────────────────────────────────────────
 const TYPE_COLORS = {
-  player: { border: "#ffcc66", bg: "rgba(255,204,102,0.05)", activeBg: "rgba(80,55,0,0.45)",   badge: "#c9a030", badgeBg: "rgba(255,204,102,0.14)" },
-  enemy:  { border: "#e57373", bg: "rgba(229,115,115,0.05)", activeBg: "rgba(60,8,8,0.6)",      badge: "#ef5350", badgeBg: "rgba(229,115,115,0.14)" },
-  ally:   { border: "#81c784", bg: "rgba(129,199,132,0.05)", activeBg: "rgba(0,40,10,0.45)",    badge: "#66bb6a", badgeBg: "rgba(129,199,132,0.14)" },
-  npc:    { border: "#64b5f6", bg: "rgba(100,181,246,0.05)", activeBg: "rgba(0,25,60,0.45)",    badge: "#42a5f5", badgeBg: "rgba(100,181,246,0.14)" },
+  player: { border: "#ffcc66", bg: "rgba(255,204,102,0.11)", activeBg: "rgba(80,55,0,0.45)",   badge: "#c9a030", badgeBg: "rgba(255,204,102,0.14)" },
+  enemy:  { border: "#e57373", bg: "rgba(229,115,115,0.11)", activeBg: "rgba(60,8,8,0.6)",      badge: "#ef5350", badgeBg: "rgba(229,115,115,0.14)" },
+  ally:   { border: "#81c784", bg: "rgba(129,199,132,0.11)", activeBg: "rgba(0,40,10,0.45)",    badge: "#66bb6a", badgeBg: "rgba(129,199,132,0.14)" },
+  npc:    { border: "#64b5f6", bg: "rgba(100,181,246,0.11)", activeBg: "rgba(0,25,60,0.45)",    badge: "#42a5f5", badgeBg: "rgba(100,181,246,0.14)" },
 };
 
 // ── Attack state (card-based) ─────────────────────────────────────────────────
@@ -481,9 +481,12 @@ function clearAllConditions(idx) {
 }
 
 // ── Add / Edit Modal ──────────────────────────────────────────────────────────
-const combatantModal  = document.getElementById("combatant-modal");
-const cmTitle         = document.getElementById("cm-title");
-const cmName          = document.getElementById("cm-name");
+const combatantModal    = document.getElementById("combatant-modal");
+const cmTitle           = document.getElementById("cm-title");
+const cmName            = document.getElementById("cm-name");
+const cmPlayerPickRow   = document.getElementById("cm-player-pick-row");
+const cmPlayerList      = document.getElementById("cm-player-list");
+let   _selectedPlayerUid = null;
 const cmAc            = document.getElementById("cm-ac");
 const cmHp            = document.getElementById("cm-hp");
 const cmMaxHp         = document.getElementById("cm-maxhp");
@@ -553,15 +556,43 @@ function updatePlayerFields() {
   const isPlayer    = selectedType === "player";
   const isEnemy     = selectedType === "enemy";
   const isAddEnemy  = isEnemy && editingIdx === null;
+  const isAddPlayer = isPlayer && editingIdx === null;
 
-  // Simplified add-enemy mode: template search + initiative + count only
-  cmNameRow.style.display        = isAddEnemy ? "none" : "";
+  cmNameRow.style.display        = (isAddEnemy || isAddPlayer) ? "none" : "";
+  cmPlayerPickRow.style.display  = isAddPlayer ? "" : "none";
   cmEnemyTmplRow.style.display   = isAddEnemy ? ""     : "none";
   cmEnemyCountRow.style.display  = isAddEnemy ? ""     : "none";
   cmNonPlayerRows.style.display  = isAddEnemy || isPlayer ? "none" : "";
-  document.getElementById("cm-preset-row").style.display = isAddEnemy ? "none" : (isPlayer ? "none" : "");
+  document.getElementById("cm-preset-row").style.display = isAddEnemy || isPlayer ? "none" : "";
   cmLootRows.style.display       = isEnemy && !isAddEnemy ? "" : "none";
   cmInitLabel.firstChild.textContent = isPlayer ? "Initiative rolled" : "Initiative";
+
+  if (isAddPlayer) _renderPlayerPicker();
+}
+
+function _renderPlayerPicker() {
+  cmPlayerList.innerHTML = "";
+  _selectedPlayerUid = null;
+  const users   = window._allUsers || {};
+  const entries = Object.entries(users).filter(([, u]) => u && u.username);
+  if (!entries.length) {
+    cmPlayerList.innerHTML = `<div class="cm-player-empty">No players found in this campaign.</div>`;
+    return;
+  }
+  entries.forEach(([uid, u]) => {
+    const btn = document.createElement("button");
+    btn.type      = "button";
+    btn.className = "cm-player-btn";
+    btn.dataset.uid = uid;
+    btn.innerHTML = `<span class="cm-player-dot" style="background:${escHtml(u.color || "#888")}"></span><span>${escHtml(u.username)}</span>`;
+    btn.addEventListener("click", () => {
+      cmPlayerList.querySelectorAll(".cm-player-btn").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      _selectedPlayerUid = uid;
+      cmName.value = u.username;
+    });
+    cmPlayerList.appendChild(btn);
+  });
 }
 
 // ── d20 roll button ───────────────────────────────────────────────────────────
@@ -686,6 +717,7 @@ function openModal(idx) {
     cmCountInput.value = 1;
     selectedType = "enemy";   // default to enemy since that's the common case
     cmSave.textContent = "Add";
+    _selectedPlayerUid = null;
     // Reset loot fields
     cmLootGpMin.value = cmLootGpMax.value = cmLootItemsMin.value = cmLootItemsMax.value = "0";
     setActiveLootTags([]);
@@ -741,6 +773,32 @@ cmSave.addEventListener("click", () => {
     }
     const label = count > 1 ? `${t.name} ×${count}` : t.name;
     addLog(`+  ${label} added.`, "info");
+    closeModal();
+    render();
+    return;
+  }
+
+  // Simplified add-player path
+  if (isPlayer && editingIdx === null) {
+    if (!_selectedPlayerUid) { cmError.textContent = "Select a player from the list."; return; }
+    const u          = (window._allUsers || {})[_selectedPlayerUid];
+    const playerName = u ? u.username : "Player";
+    const initVal    = parseInt(cmInit.value, 10);
+    state.combatants.push({
+      id:         genId(),
+      name:       playerName,
+      type:       "player",
+      initiative: isNaN(initVal) ? 0 : initVal,
+      hp:         0,
+      maxHp:      0,
+      ac:         0,
+      conditions: [],
+      notes:      null,
+      loot:       null,
+      color:      u?.color || null,
+      uid:        _selectedPlayerUid,
+    });
+    addLog(`+  ${playerName} added.`, "info");
     closeModal();
     render();
     return;
@@ -1953,13 +2011,14 @@ function renderLootPanel() {
           // Close all other dropdowns
           document.querySelectorAll(".loot-give-dropdown").forEach(d => d.style.display = "none");
           if (isOpen) return;
-          const users = Object.values(window._allUsers || {})
+          const users = Object.entries(window._allUsers || {})
+            .map(([uid, u]) => ({ uid, ...u }))
             .sort((a, b) => (a.username || "").localeCompare(b.username || ""));
           if (!users.length) {
             dropdown.innerHTML = `<span class="loot-give-empty">No players found</span>`;
           } else {
             dropdown.innerHTML = users.map(u =>
-              `<button class="loot-give-player" data-id="${escHtml(u.id)}" style="--pc:${u.color || '#888'}">
+              `<button class="loot-give-player" data-id="${escHtml(u.uid)}" style="--pc:${u.color || '#888'}">
                 <span class="loot-give-dot"></span>
                 <span>${escHtml(u.username)}</span>
               </button>`).join("");
@@ -1974,6 +2033,7 @@ function renderLootPanel() {
                     description: item.description || null,
                     quantity:    1,
                     value:       item.price != null ? item.price : null,
+                    rarity:      item.rarity || null,
                   });
                   dropdown.innerHTML = `<span class="loot-give-ok"><iconify-icon icon="lucide:check"></iconify-icon> Sent to ${escHtml((window._allUsers || {})[btn.dataset.id]?.username || "player")}</span>`;
                   setTimeout(() => { dropdown.style.display = "none"; }, 1400);

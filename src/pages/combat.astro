@@ -79,6 +79,10 @@ import Layout from '../layouts/Layout.astro';
           <input type="text" id="cm-name" placeholder="e.g. Gandalf" />
         </label>
       </div>
+      <div class="form-row" id="cm-player-pick-row" style="display:none">
+        <span class="field-label">Select Player <span class="req">*</span></span>
+        <div id="cm-player-list" class="cm-player-list"></div>
+      </div>
       <div class="form-row">
         <span class="field-label">Type</span>
         <div class="type-selector" id="cm-type-btns">
