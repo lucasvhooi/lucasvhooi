@@ -495,7 +495,7 @@ import Layout from '../layouts/Layout.astro';
   <p class="section-label" style="margin-top:40px">NPC Name Tables</p>
   <div class="migrate-card">
     <p class="migrate-card-title">Export name tables to Firebase</p>
-    <p class="migrate-card-sub">Writes all NPC_NAMES to <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px">settings/npcNames</code> in the database. Useful for external tooling or customisation.</p>
+    <p class="migrate-card-sub">Writes all NPC_NAMES to <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px">campaigns/&lt;id&gt;/npcNames</code> in the database. Useful for external tooling or customisation.</p>
     <button class="btn-migrate" id="btn-export-names">Export NPC Names</button>
     <div class="migrate-status" id="npc-export-status"></div>
   </div>
@@ -982,12 +982,13 @@ import Layout from '../layouts/Layout.astro';
     const npcExportStatus = document.getElementById('npc-export-status');
 
     btnExportNames.addEventListener('click', async () => {
+      if (!session.campaignId) { npcExportStatus.textContent = 'No active campaign — select a campaign first.'; npcExportStatus.className = 'migrate-status error'; return; }
       btnExportNames.disabled = true;
       npcExportStatus.textContent = 'Exporting…';
       npcExportStatus.className = 'migrate-status';
       try {
-        await set(ref(db, 'settings/npcNames'), NPC_NAMES);
-        npcExportStatus.textContent = '✓ Exported successfully to settings/npcNames';
+        await set(ref(db, `campaigns/${session.campaignId}/npcNames`), NPC_NAMES);
+        npcExportStatus.textContent = `✓ Exported to campaigns/${session.campaignId}/npcNames`;
         npcExportStatus.className = 'migrate-status ok';
       } catch (e) {
         npcExportStatus.textContent = 'Error: ' + e.message;
