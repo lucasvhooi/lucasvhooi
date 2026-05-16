@@ -5,8 +5,6 @@ import { ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject }
                                                   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
 import { getSession }                             from "./auth.js";
 
-const markersRef   = ref(db, "markers");
-
 // ── Remember last location — redirect if user came back from a location ───────
 const _savedLoc = sessionStorage.getItem("lastLocationId");
 if (_savedLoc) {
@@ -314,6 +312,7 @@ const isAdmin = (() => {
 const session      = getSession();
 const _cid         = session?.campaignId || "default";
 const mapsRef      = ref(db, `campaigns/${_cid}/maps`);
+const markersRef   = ref(db, `campaigns/${_cid}/markers`);
 const countriesRef = ref(db, `campaigns/${_cid}/countries`);
 let uploadedMaps   = [];
 let _mapsModalOpen = false;
@@ -371,8 +370,8 @@ const COUNTRY_COLORS = [
   "#ff5722","#78909c"
 ];
 
-function saveMarker(marker)     { set(ref(db, "markers/" + marker.id), marker); }
-function deleteMarkerById(id)   { remove(ref(db, "markers/" + id)); }
+function saveMarker(marker)     { set(ref(db, `campaigns/${_cid}/markers/` + marker.id), marker); }
+function deleteMarkerById(id)   { remove(ref(db, `campaigns/${_cid}/markers/` + id)); }
 function generateId()           { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
 function screenToPct(screenX, screenY) {
@@ -785,7 +784,7 @@ function buildCountrySection(country, items) {
       e.stopPropagation();
       if (!confirm(`Delete region "${country.name}"? Markers will become unassigned.`)) return;
       remove(ref(db, `campaigns/${_cid}/countries/${country.id}`));
-      markers.filter(m => m.countryId === country.id).forEach(m => set(ref(db, `markers/${m.id}/countryId`), null));
+      markers.filter(m => m.countryId === country.id).forEach(m => set(ref(db, `campaigns/${_cid}/markers/${m.id}/countryId`), null));
     });
   }
 
