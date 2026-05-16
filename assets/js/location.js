@@ -7,7 +7,10 @@ import { openGivePanel } from "./give-to-player.js";
 // ── Setup ─────────────────────────────────────────────────────────────────────
 const params     = new URLSearchParams(window.location.search);
 const locationId = params.get("id");
-const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
+const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
+const isAdmin = _session?.role === 'admin';
+const cid = _session?.campaignId;
+if (!cid) { window.location.href = '/campaigns'; throw new Error('No campaign selected'); }
 
 if (!locationId) {
   document.getElementById("loc-title").textContent = "Location not found";
@@ -30,10 +33,10 @@ document.getElementById("back-to-map")?.addEventListener("click", () => {
 if (!isAdmin) document.body.classList.add("player-view");
 
 // Firebase refs
-const markerDbRef     = ref(db, `markers/${locationId}`);
-const infoRef         = ref(db, `locations/${locationId}/info`);
-const subMarkersRef   = ref(db, `locations/${locationId}/subMarkers`);
-const npcsRef         = ref(db, `locations/${locationId}/npcs`);
+const markerDbRef     = ref(db, `campaigns/${cid}/markers/${locationId}`);
+const infoRef         = ref(db, `campaigns/${cid}/locations/${locationId}/info`);
+const subMarkersRef   = ref(db, `campaigns/${cid}/locations/${locationId}/subMarkers`);
+const npcsRef         = ref(db, `campaigns/${cid}/locations/${locationId}/npcs`);
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let markerData          = null;
@@ -90,14 +93,14 @@ onValue(npcsRef, snapshot => {
 
 // Global items (for shop modal)
 let globalItems = [];
-onValue(ref(db, "items"), snapshot => {
+onValue(ref(db, `campaigns/${cid}/items`), snapshot => {
   const data = snapshot.val();
   globalItems = data ? Object.values(data) : [];
 });
 
 // Global lore (for library modal)
 let loreItems = [];
-onValue(ref(db, "lore"), snapshot => {
+onValue(ref(db, `campaigns/${cid}/lore`), snapshot => {
   const data = snapshot.val();
   loreItems = data ? Object.values(data) : [];
 });
@@ -233,7 +236,7 @@ function renderSubMarkers() {
       delBtn.addEventListener("click", e => {
         e.stopPropagation();
         if (!confirm(`Delete "${marker.name}"? This cannot be undone.`)) return;
-        remove(ref(db, `locations/${locationId}/subMarkers/${marker.id}`));
+        remove(ref(db, `campaigns/${cid}/locations/${locationId}/subMarkers/${marker.id}`));
       });
 
       controls.appendChild(editBtn);
@@ -479,7 +482,7 @@ lmSave.addEventListener("click", () => {
   const newServants    = isTavern ? getSelectedServants() : [];
   const prevServants   = existing?.servants || [];
 
-  set(ref(db, `locations/${locationId}/subMarkers/${id}`), {
+  set(ref(db, `campaigns/${cid}/locations/${locationId}/subMarkers/${id}`), {
     id,
     name,
     type:               lmType.value,
@@ -505,15 +508,15 @@ lmSave.addEventListener("click", () => {
   // Auto-update NPC roles based on ownership changes
   if (newOwnerId !== prevOwnerId) {
     if (newOwnerId) {
-      set(ref(db, `locations/${locationId}/npcs/${newOwnerId}/role`), `Owner ${name}`);
+      set(ref(db, `campaigns/${cid}/locations/${locationId}/npcs/${newOwnerId}/role`), `Owner ${name}`);
     }
     if (prevOwnerId) {
       const prevNpc    = npcs.find(n => n.id === prevOwnerId);
       const randomRole = pickProfession(prevNpc?.race || null);
-      set(ref(db, `locations/${locationId}/npcs/${prevOwnerId}/role`), randomRole);
+      set(ref(db, `campaigns/${cid}/locations/${locationId}/npcs/${prevOwnerId}/role`), randomRole);
     }
   } else if (newOwnerId && existing && name !== existing.name) {
-    set(ref(db, `locations/${locationId}/npcs/${newOwnerId}/role`), `Owner ${name}`);
+    set(ref(db, `campaigns/${cid}/locations/${locationId}/npcs/${newOwnerId}/role`), `Owner ${name}`);
   }
 
   // Auto-update servant roles
@@ -523,7 +526,7 @@ lmSave.addEventListener("click", () => {
   // Newly added servants get "Waiter at [name]"
   newServantSet.forEach(npcId => {
     if (!prevServantSet.has(npcId)) {
-      set(ref(db, `locations/${locationId}/npcs/${npcId}/role`), `Waiter at ${name}`);
+      set(ref(db, `campaigns/${cid}/locations/${locationId}/npcs/${npcId}/role`), `Waiter at ${name}`);
     }
   });
 
@@ -531,7 +534,7 @@ lmSave.addEventListener("click", () => {
   prevServantSet.forEach(npcId => {
     if (!newServantSet.has(npcId)) {
       const npc = npcs.find(n => n.id === npcId);
-      set(ref(db, `locations/${locationId}/npcs/${npcId}/role`), pickProfession(npc?.race || null));
+      set(ref(db, `campaigns/${cid}/locations/${locationId}/npcs/${npcId}/role`), pickProfession(npc?.race || null));
     }
   });
 
@@ -539,7 +542,7 @@ lmSave.addEventListener("click", () => {
   if (isTavern && existing && name !== existing.name) {
     newServantSet.forEach(npcId => {
       if (prevServantSet.has(npcId)) {
-        set(ref(db, `locations/${locationId}/npcs/${npcId}/role`), `Waiter at ${name}`);
+        set(ref(db, `campaigns/${cid}/locations/${locationId}/npcs/${npcId}/role`), `Waiter at ${name}`);
       }
     });
   }
@@ -626,7 +629,7 @@ function renderBuildings() {
     // ── Reveal/hide toggle ──────────────────────────────────────────────────
     card.querySelector(".building-vis-btn").addEventListener("click", e => {
       e.stopPropagation();
-      set(ref(db, `locations/${locationId}/subMarkers/${marker.id}/discovered`), !marker.discovered);
+      set(ref(db, `campaigns/${cid}/locations/${locationId}/subMarkers/${marker.id}/discovered`), !marker.discovered);
     });
 
     // ── Highlight on click ──────────────────────────────────────────────────
@@ -671,7 +674,7 @@ function renderBuildings() {
       // Write new order from current DOM position to Firebase
       const cards = [...locBuildingsList.querySelectorAll(".building-card")];
       cards.forEach((c, idx) => {
-        set(ref(db, `locations/${locationId}/subMarkers/${c.dataset.id}/order`), idx);
+        set(ref(db, `campaigns/${cid}/locations/${locationId}/subMarkers/${c.dataset.id}/order`), idx);
       });
     });
 
@@ -746,10 +749,10 @@ function renderNpcs() {
     `;
 
     card.querySelector(".npc-talk-btn").addEventListener("click", () => {
-      set(ref(db, `locations/${locationId}/npcs/${npc.id}/talkedTo`), !npc.talkedTo);
+      set(ref(db, `campaigns/${cid}/locations/${locationId}/npcs/${npc.id}/talkedTo`), !npc.talkedTo);
     });
     card.querySelector(".npc-edit-btn").addEventListener("click", () => openNpcModal(npc.id));
-    card.querySelector(".npc-del-btn").addEventListener("click",  () => remove(ref(db, `locations/${locationId}/npcs/${npc.id}`)));
+    card.querySelector(".npc-del-btn").addEventListener("click",  () => remove(ref(db, `campaigns/${cid}/locations/${locationId}/npcs/${npc.id}`)));
 
     locNpcList.appendChild(card);
   });
@@ -803,7 +806,7 @@ lnSave.addEventListener("click", () => {
   const existing  = editingNpcId ? npcs.find(n => n.id === editingNpcId) : null;
   const ageVal    = parseInt(lnAge.value, 10);
 
-  set(ref(db, `locations/${locationId}/npcs/${id}`), {
+  set(ref(db, `campaigns/${cid}/locations/${locationId}/npcs/${id}`), {
     id,
     name,
     race:        lnRace.value.trim()  || null,
@@ -859,7 +862,7 @@ document.getElementById("loc-edit-desc-btn").addEventListener("click", () => {
 });
 
 ldSave.addEventListener("click", () => {
-  set(ref(db, `locations/${locationId}/info/description`), ldText.value.trim() || null);
+  set(ref(db, `campaigns/${cid}/locations/${locationId}/info/description`), ldText.value.trim() || null);
   locDescModal.classList.remove("open");
 });
 
@@ -903,7 +906,7 @@ if (locMapUpload) {
 
     try {
       const base64 = await compressImage(file);
-      await set(ref(db, `locations/${locationId}/info/mapImageUrl`), base64);
+      await set(ref(db, `campaigns/${cid}/locations/${locationId}/info/mapImageUrl`), base64);
     } catch (err) {
       locMapPlaceholder.innerHTML = `<span style="color:#E57373">Upload failed. Try a smaller image.</span>`;
     }
@@ -923,7 +926,7 @@ if (locFeatureUpload) {
     locFeatureImg.style.display = "none";
     try {
       const base64 = await compressImage(file, 1200, 0.85);
-      await set(ref(db, `locations/${locationId}/info/featureImageUrl`), base64);
+      await set(ref(db, `campaigns/${cid}/locations/${locationId}/info/featureImageUrl`), base64);
     } catch {
       locFeatureImgPh.innerHTML = `<span style="color:#E57373;font-size:13px">Upload failed.</span>`;
     }
@@ -1063,8 +1066,9 @@ if (genBtn) {
     genStatus.style.color = "#aaa";
     genStatus.textContent = `Generating ${count} NPCs…`;
 
-    // Build batch with deduplication — reroll if name already exists
-    const usedNames = new Set(npcs.map(n => n.name));
+    // Build batch — deduplicate full names AND first names to reduce repetition
+    const usedNames      = new Set(npcs.map(n => n.name));
+    const usedFirstNames = new Set(npcs.map(n => n.name.split(" ")[0]));
     const batch = [];
     const baseTime = Date.now();
     for (let i = 0; i < count; i++) {
@@ -1073,15 +1077,16 @@ if (genBtn) {
       do {
         npc = generateOneNpc();
         tries++;
-      } while (usedNames.has(npc.name) && tries < 25);
+      } while ((usedNames.has(npc.name) || usedFirstNames.has(npc.name.split(" ")[0])) && tries < 40);
       usedNames.add(npc.name);
+      usedFirstNames.add(npc.name.split(" ")[0]);
       npc.createdAt = baseTime + i;
       batch.push(npc);
     }
 
     try {
       await Promise.all(batch.map(npc =>
-        set(ref(db, `locations/${locationId}/npcs/${npc.id}`), npc)
+        set(ref(db, `campaigns/${cid}/locations/${locationId}/npcs/${npc.id}`), npc)
       ));
       genStatus.style.color = "#88cc88";
       genStatus.innerHTML = `<iconify-icon icon="lucide:check"></iconify-icon> ${count} NPCs generated.`;
@@ -1098,7 +1103,7 @@ if (genBtn) {
 if (genClearBtn) {
   genClearBtn.addEventListener("click", () => {
     if (!confirm(`Delete all ${npcs.length} NPCs in this location? This cannot be undone.`)) return;
-    remove(ref(db, `locations/${locationId}/npcs`));
+    remove(ref(db, `campaigns/${cid}/locations/${locationId}/npcs`));
     genStatus.style.color = "#aaa";
     genStatus.textContent = "All NPCs cleared.";
     setTimeout(() => { genStatus.textContent = ""; }, 3000);
@@ -1445,7 +1450,7 @@ async function generateShopInventory(marker) {
   }
 
   // Clear old generated set, write new one
-  await set(ref(db, `locations/${locationId}/subMarkers/${marker.id}/generatedInventory`),
+  await set(ref(db, `campaigns/${cid}/locations/${locationId}/subMarkers/${marker.id}/generatedInventory`),
     Object.fromEntries(picked.map(i => [i.id, true]))
   );
 }
@@ -1668,7 +1673,7 @@ async function generateTavernSeating(marker, dayTime = true) {
   }
 
   const seating = { bar: barSlots, tables: tableSlots, rooms };
-  await set(ref(db, `locations/${locationId}/subMarkers/${marker.id}/seating`), seating);
+  await set(ref(db, `campaigns/${cid}/locations/${locationId}/subMarkers/${marker.id}/seating`), seating);
   return seating;
 }
 
@@ -2045,7 +2050,7 @@ function openShopModal(marker) {
       updatePersistBtn(marker.persisted);
       shPersistBtn.onclick = async () => {
         const next = !marker.persisted;
-        await set(ref(db, `locations/${locationId}/subMarkers/${marker.id}/persisted`), next);
+        await set(ref(db, `campaigns/${cid}/locations/${locationId}/subMarkers/${marker.id}/persisted`), next);
         marker.persisted = next;
         updatePersistBtn(next);
         // Also update generate button state
@@ -2252,7 +2257,7 @@ function renderLibrarySection() {
       revealBtn.addEventListener("click", e => {
         e.stopPropagation();
         const newDiscovered = !item.discovered;
-        set(ref(db, `lore/${item.id}/discovered`), newDiscovered);
+        set(ref(db, `campaigns/${cid}/lore/${item.id}/discovered`), newDiscovered);
         // Update local state immediately for instant visual feedback
         const localItem = loreItems.find(x => x.id === item.id);
         if (localItem) localItem.discovered = newDiscovered;
