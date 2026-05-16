@@ -78,6 +78,7 @@ nav {
   flex-shrink: 0;
   margin-right: 8px;
   display: block;
+  filter: brightness(0) saturate(100%) invert(84%) sepia(63%) saturate(600%) hue-rotate(315deg) brightness(108%);
 }
 
 nav ul {
