@@ -496,6 +496,14 @@ import Layout from '../layouts/Layout.astro';
   <div class="migrate-card">
     <p class="migrate-card-title">Export name tables to Firebase</p>
     <p class="migrate-card-sub">Writes all NPC_NAMES to <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px">campaigns/&lt;id&gt;/npcNames</code> in the database. Useful for external tooling or customisation.</p>
+    <div class="migrate-row">
+      <div class="field">
+        <label for="npc-campaign">Target Campaign</label>
+        <select id="npc-campaign">
+          <option value="">— select campaign —</option>
+        </select>
+      </div>
+    </div>
     <button class="btn-migrate" id="btn-export-names">Export NPC Names</button>
     <div class="migrate-status" id="npc-export-status"></div>
   </div>
@@ -980,16 +988,30 @@ import Layout from '../layouts/Layout.astro';
     // ── NPC names export ───────────────────────────────────────────────────
     const btnExportNames  = document.getElementById('btn-export-names');
     const npcExportStatus = document.getElementById('npc-export-status');
+    const npcCampaign     = document.getElementById('npc-campaign');
+
+    async function loadCampaignsForNpc() {
+      const snap = await get(ref(db, 'campaigns'));
+      if (!snap.exists()) return;
+      for (const [id, camp] of Object.entries(snap.val())) {
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = camp.name || id;
+        npcCampaign.appendChild(opt);
+      }
+    }
+    loadCampaignsForNpc();
 
     btnExportNames.addEventListener('click', async () => {
-      if (!session.campaignId) { npcExportStatus.textContent = 'No active campaign — select a campaign first.'; npcExportStatus.className = 'migrate-status error'; return; }
+      const targetId = npcCampaign.value;
+      if (!targetId) { npcExportStatus.textContent = 'Select a campaign first.'; npcExportStatus.className = 'migrate-status error'; return; }
       btnExportNames.disabled = true;
       npcExportStatus.textContent = 'Exporting…';
-      npcExportStatus.className = 'migrate-status';
+      npcExportStatus.className = 'migrate-status running';
       try {
-        await set(ref(db, `campaigns/${session.campaignId}/npcNames`), NPC_NAMES);
-        npcExportStatus.textContent = `✓ Exported to campaigns/${session.campaignId}/npcNames`;
-        npcExportStatus.className = 'migrate-status ok';
+        await set(ref(db, `campaigns/${targetId}/npcNames`), NPC_NAMES);
+        npcExportStatus.textContent = `✓ Exported to campaigns/${targetId}/npcNames`;
+        npcExportStatus.className = 'migrate-status done';
       } catch (e) {
         npcExportStatus.textContent = 'Error: ' + e.message;
         npcExportStatus.className = 'migrate-status error';
