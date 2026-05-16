@@ -1387,16 +1387,33 @@ window._onSystemFlagsLoaded = _checkAndSeedLoot;
 
 // Called every time Firebase pushes an update
 window._onEnemyTemplatesUpdate = () => {
-  enemyTemplates = (window._enemyTemplates || [])
-    .slice()
-    .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  const firebaseList = window._enemyTemplates || [];
 
-  // First load: if the DB is empty, seed it with every MONSTER_PRESET
-  if (!_hasSeededPresets && window._enemyTemplatesLoaded && enemyTemplates.length === 0) {
+  // First load: if the campaign DB is empty, seed it with every MONSTER_PRESET
+  if (!_hasSeededPresets && window._enemyTemplatesLoaded && firebaseList.length === 0) {
     _hasSeededPresets = true;
     _seedPresetsToFirebase();
     return; // onValue will fire again once writes land
   }
+
+  // Merge Firebase templates with hardcoded presets; Firebase takes priority (deduplicated by name)
+  const seen = new Set();
+  enemyTemplates = [
+    ...firebaseList,
+    ...MONSTER_PRESETS.map(p => ({
+      ...p,
+      builtin: true,
+      id: "preset_" + p.name.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+    })),
+  ]
+    .filter(t => {
+      if (!t.name) return false;
+      const key = t.name.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 
   _checkAndSeedLoot(); // also check if loot version needs updating
   renderTemplateList();

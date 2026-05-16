@@ -410,18 +410,26 @@ import Layout from '../layouts/Layout.astro';
     window._enemyTemplates       = [];
     window._enemyTemplatesLoaded = false;
 
-    window._saveEnemyTemplate = tmpl =>
-      set(ref(db, "enemyTemplates/" + tmpl.id), tmpl);
+    const _etSession = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
+    const _etCid = _etSession?.campaignId;
 
-    window._deleteEnemyTemplate = id =>
-      remove(ref(db, "enemyTemplates/" + id));
+    if (_etCid) {
+      window._saveEnemyTemplate = tmpl =>
+        set(ref(db, `campaigns/${_etCid}/enemyTemplates/` + tmpl.id), tmpl);
 
-    onValue(ref(db, "enemyTemplates"), snap => {
-      const data = snap.val();
-      window._enemyTemplates = data ? Object.values(data) : [];
+      window._deleteEnemyTemplate = id =>
+        remove(ref(db, `campaigns/${_etCid}/enemyTemplates/` + id));
+
+      onValue(ref(db, `campaigns/${_etCid}/enemyTemplates`), snap => {
+        const data = snap.val();
+        window._enemyTemplates = data ? Object.values(data) : [];
+        window._enemyTemplatesLoaded = true;
+        window._onEnemyTemplatesUpdate?.();
+      });
+    } else {
       window._enemyTemplatesLoaded = true;
       window._onEnemyTemplatesUpdate?.();
-    });
+    }
   </script>
   <script is:inline src="/assets/js/combat.js"></script>
 
