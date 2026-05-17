@@ -1933,8 +1933,9 @@ function generateLootFor(combatant) {
       if (iMax > 0 && dropped_count >= maxToDrop) break;
       const chance = item.chance ?? 100;
       if (Math.random() * 100 < chance) {
+        const fullItem = item.id ? ((window._combatItems || []).find(ci => ci.id === item.id) || {}) : {};
         for (let q = 0; q < (item.qty || 1); q++) {
-          dropped.push({ name: item.name, rarity: item.rarity || "common", price: item.price ?? null });
+          dropped.push({ name: item.name, rarity: item.rarity || "common", price: item.price ?? null, type: fullItem.type || item.type || null, description: fullItem.description || item.description || null });
         }
         dropped_count++;
       }
@@ -1951,7 +1952,7 @@ function generateLootFor(combatant) {
     for (let i = 0; i < count && remaining.length > 0; i++) {
       const picked = weightedItemPick(remaining);
       if (picked) {
-        dropped.push({ name: picked.name, rarity: picked.rarity || "common", price: picked.price ?? null });
+        dropped.push({ name: picked.name, rarity: picked.rarity || "common", price: picked.price ?? null, type: picked.type || null, description: picked.description || null });
         remaining.splice(remaining.indexOf(picked), 1);
       }
     }
