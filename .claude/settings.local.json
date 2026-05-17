@@ -43,7 +43,9 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\lhooi\\\\Documents\\\\GitHub\\\\lucasvhooi\" -Force)",
       "Bash(Select-Object Name, PSIsContainer)",
       "Bash(ls *.json)",
-      "Bash(ls firebase*)"
+      "Bash(ls firebase*)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\\\\src\" -Recurse -File)",
+      "Bash(Select-Object -ExpandProperty FullName)"
     ]
   }
 }

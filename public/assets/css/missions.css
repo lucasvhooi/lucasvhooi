@@ -2590,6 +2590,8 @@
 
 .qc-block-ro { pointer-events: none; }
 .qc-block-ro .blk-body { pointer-events: auto; }
+.qc-block-ro .qcb-start-encounter-btn { pointer-events: auto; cursor: pointer; }
+.qc-ro-canvas .conn-label-group { pointer-events: none; cursor: default; }
 
 .qcro-header { cursor: default !important; }
 
@@ -2607,10 +2609,12 @@
 
 /* Block content styles */
 .qcro-block-title {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--accent, #ffcc66);
-  margin-bottom: 4px;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255,204,102,0.22);
   letter-spacing: 0.03em;
 }
 

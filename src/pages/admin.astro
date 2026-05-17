@@ -494,8 +494,8 @@ import Layout from '../layouts/Layout.astro';
 
   <p class="section-label" style="margin-top:40px">NPC Name Tables</p>
   <div class="migrate-card">
-    <p class="migrate-card-title">Export name tables to Firebase</p>
-    <p class="migrate-card-sub">Writes all NPC_NAMES to <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px">campaigns/&lt;id&gt;/npcNames</code> in the database. Useful for external tooling or customisation.</p>
+    <p class="migrate-card-title">NPC name table management</p>
+    <p class="migrate-card-sub">Seed or clear the NPC name tables for a campaign. Seeding writes ~250 first names and ~250 surnames per race to <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px">campaigns/&lt;id&gt;/npcNames</code>.</p>
     <div class="migrate-row">
       <div class="field">
         <label for="npc-campaign">Target Campaign</label>
@@ -504,7 +504,10 @@ import Layout from '../layouts/Layout.astro';
         </select>
       </div>
     </div>
-    <button class="btn-migrate" id="btn-export-names">Export NPC Names</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-migrate" id="btn-export-names">Seed NPC Names</button>
+      <button class="btn-migrate" id="btn-clear-names" style="background:rgba(180,50,50,0.18);border-color:rgba(220,80,80,0.35);color:#e57373">Clear NPC Names</button>
+    </div>
     <div class="migrate-status" id="npc-export-status"></div>
   </div>
 
@@ -985,8 +988,9 @@ import Layout from '../layouts/Layout.astro';
 
     loadUsers();
 
-    // ── NPC names export ───────────────────────────────────────────────────
+    // ── NPC names export / clear ───────────────────────────────────────────
     const btnExportNames  = document.getElementById('btn-export-names');
+    const btnClearNames   = document.getElementById('btn-clear-names');
     const npcExportStatus = document.getElementById('npc-export-status');
     const npcCampaign     = document.getElementById('npc-campaign');
 
@@ -1006,17 +1010,40 @@ import Layout from '../layouts/Layout.astro';
       const targetId = npcCampaign.value;
       if (!targetId) { npcExportStatus.textContent = 'Select a campaign first.'; npcExportStatus.className = 'migrate-status error'; return; }
       btnExportNames.disabled = true;
-      npcExportStatus.textContent = 'Exporting…';
+      btnClearNames.disabled  = true;
+      npcExportStatus.textContent = 'Seeding…';
       npcExportStatus.className = 'migrate-status running';
       try {
         await set(ref(db, `campaigns/${targetId}/npcNames`), NPC_NAMES);
-        npcExportStatus.textContent = `✓ Exported to campaigns/${targetId}/npcNames`;
+        npcExportStatus.textContent = `✓ Seeded NPC names for campaign.`;
         npcExportStatus.className = 'migrate-status done';
       } catch (e) {
         npcExportStatus.textContent = 'Error: ' + e.message;
         npcExportStatus.className = 'migrate-status error';
       } finally {
         btnExportNames.disabled = false;
+        btnClearNames.disabled  = false;
+      }
+    });
+
+    btnClearNames.addEventListener('click', async () => {
+      const targetId = npcCampaign.value;
+      if (!targetId) { npcExportStatus.textContent = 'Select a campaign first.'; npcExportStatus.className = 'migrate-status error'; return; }
+      if (!confirm('Clear all NPC name tables for this campaign? This cannot be undone.')) return;
+      btnExportNames.disabled = true;
+      btnClearNames.disabled  = true;
+      npcExportStatus.textContent = 'Clearing…';
+      npcExportStatus.className = 'migrate-status running';
+      try {
+        await remove(ref(db, `campaigns/${targetId}/npcNames`));
+        npcExportStatus.textContent = `✓ NPC name tables cleared.`;
+        npcExportStatus.className = 'migrate-status done';
+      } catch (e) {
+        npcExportStatus.textContent = 'Error: ' + e.message;
+        npcExportStatus.className = 'migrate-status error';
+      } finally {
+        btnExportNames.disabled = false;
+        btnClearNames.disabled  = false;
       }
     });
   </script>

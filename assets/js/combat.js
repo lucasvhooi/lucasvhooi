@@ -573,23 +573,34 @@ function updatePlayerFields() {
 function _renderPlayerPicker() {
   cmPlayerList.innerHTML = "";
   _selectedPlayerUid = null;
-  const users   = window._allUsers || {};
-  const entries = Object.entries(users).filter(([, u]) => u && u.username);
+  const users        = window._allUsers || {};
+  const members      = window._campaignMembers || {};
+  const displayNames = window._campaignDisplayNames || {};
+
+  const uids = Object.keys(members).length
+    ? Object.keys(members)
+    : Object.keys(users);
+
+  const entries = uids
+    .map(uid => [uid, users[uid]])
+    .filter(([, u]) => u && u.username);
+
   if (!entries.length) {
     cmPlayerList.innerHTML = `<div class="cm-player-empty">No players found in this campaign.</div>`;
     return;
   }
   entries.forEach(([uid, u]) => {
+    const displayName = displayNames[uid] || u.username;
     const btn = document.createElement("button");
     btn.type      = "button";
     btn.className = "cm-player-btn";
     btn.dataset.uid = uid;
-    btn.innerHTML = `<span class="cm-player-dot" style="background:${escHtml(u.color || "#888")}"></span><span>${escHtml(u.username)}</span>`;
+    btn.innerHTML = `<span class="cm-player-dot" style="background:${escHtml(u.color || "#888")}"></span><span>${escHtml(displayName)}</span>`;
     btn.addEventListener("click", () => {
       cmPlayerList.querySelectorAll(".cm-player-btn").forEach(b => b.classList.remove("selected"));
       btn.classList.add("selected");
       _selectedPlayerUid = uid;
-      cmName.value = u.username;
+      cmName.value = displayName;
     });
     cmPlayerList.appendChild(btn);
   });
@@ -781,8 +792,9 @@ cmSave.addEventListener("click", () => {
   // Simplified add-player path
   if (isPlayer && editingIdx === null) {
     if (!_selectedPlayerUid) { cmError.textContent = "Select a player from the list."; return; }
-    const u          = (window._allUsers || {})[_selectedPlayerUid];
-    const playerName = u ? u.username : "Player";
+    const u           = (window._allUsers || {})[_selectedPlayerUid];
+    const displayNames = window._campaignDisplayNames || {};
+    const playerName  = displayNames[_selectedPlayerUid] || (u ? u.username : "Player");
     const initVal    = parseInt(cmInit.value, 10);
     state.combatants.push({
       id:         genId(),

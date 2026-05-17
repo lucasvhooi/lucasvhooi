@@ -414,6 +414,17 @@ import Layout from '../layouts/Layout.astro';
     const _etCid = _etSession?.campaignId;
 
     if (_etCid) {
+      window._campaignMembers      = {};
+      window._campaignDisplayNames = {};
+      onValue(ref(db, `campaigns/${_etCid}/members`), snap => {
+        window._campaignMembers = snap.val() || {};
+        window._onCampaignPlayersLoaded?.();
+      });
+      onValue(ref(db, `campaigns/${_etCid}/displayNames`), snap => {
+        window._campaignDisplayNames = snap.val() || {};
+        window._onCampaignPlayersLoaded?.();
+      });
+
       window._saveEnemyTemplate = tmpl =>
         set(ref(db, `campaigns/${_etCid}/enemyTemplates/` + tmpl.id), tmpl);
 

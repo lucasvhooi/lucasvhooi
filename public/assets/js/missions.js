@@ -728,12 +728,31 @@ function buildBlockROContent(b) {
     case "boss": {
       const enemies = b.enemies?.length ? b.enemies : (b.name ? [{name:b.name,cr:b.cr||"",ac:b.ac||"",hp:b.hp||"",notes:b.notes||""}] : []);
       if (!enemies.length) return titleHtml;
-      return titleHtml + enemies.map(en => `<div class="qcro-boss-row"><iconify-icon icon="game-icons:skull" class="qcb-boss-icon"></iconify-icon><span class="qcb-boss-name">${esc(en.name)}</span>${en.cr?`<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>`:""}${en.ac?`<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>`:""}${en.hp?`<span class="qcb-boss-stat">HP ${esc(en.hp)}</span>`:""}</div>${en.notes?`<p class="qcro-text">${escBr(en.notes)}</p>`:""}`).join("");
+      return titleHtml + `<div class="enemy-items-list">` + enemies.map(en =>
+        `<div class="enemy-item-row">
+          <span class="enemy-item-name">${esc(en.name)}</span>
+          ${en.cr?`<span class="enemy-item-stat">CR ${esc(en.cr)}</span>`:""}
+          ${en.ac?`<span class="enemy-item-stat">AC ${esc(en.ac)}</span>`:""}
+          ${en.hp?`<span class="enemy-item-stat">HP ${esc(en.hp)}</span>`:""}
+        </div>${en.notes?`<p class="qcro-text">${escBr(en.notes)}</p>`:""}`
+      ).join("") + `</div>`;
     }
     case "encounter": {
       const enemies = b.enemies?.length ? b.enemies : [];
       if (!enemies.length) return titleHtml;
-      return titleHtml + enemies.map(en => `<div class="qcro-boss-row"><iconify-icon icon="game-icons:crossed-swords" class="qcb-encounter-icon"></iconify-icon><span class="qcb-boss-name">${esc(en.name)}${en.count > 1 ? ` ×${en.count}` : ""}</span>${en.cr?`<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>`:""}${en.ac?`<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>`:""}${en.hp?`<span class="qcb-boss-stat">HP ${esc(en.hp)}</span>`:""}</div>`).join("");
+      const enemyJson = esc(JSON.stringify(enemies));
+      return titleHtml +
+        `<div class="encounter-items-list">` +
+        enemies.map(en =>
+          `<div class="encounter-item-row">
+            <span class="enemy-item-name">${esc(en.name)}${en.count > 1 ? ` <span class="qcb-encounter-count">×${en.count}</span>` : ""}</span>
+            ${en.cr?`<span class="enemy-item-stat">CR ${esc(en.cr)}</span>`:""}
+            ${en.ac?`<span class="enemy-item-stat">AC ${esc(en.ac)}</span>`:""}
+            ${en.hp?`<span class="enemy-item-stat">HP ${esc(en.hp)}</span>`:""}
+          </div>`
+        ).join("") +
+        `</div>` +
+        (isAdmin ? `<button type="button" class="qcb-start-encounter-btn" data-enemies="${enemyJson}"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Start Encounter</button>` : "");
     }
     case "puzzle":
       return titleHtml +
@@ -816,7 +835,7 @@ function buildQuestCanvasDOM(q) {
   blocks.forEach((b, idx) => {
     if (!isAdmin && b.type === "note") return;
     const wrap = document.createElement("div");
-    wrap.className = "qm-block qc-block-ro";
+    wrap.className = `qm-block qc-block-ro qm-block-${b.type}`;
     wrap.dataset.index = String(idx);
     wrap.dataset.session = b.sessionMarker || "";
     wrap.style.left  = `${b.worldX || 0}px`;
@@ -865,7 +884,7 @@ function buildQuestCanvasDOM(q) {
   };
 
   const renderROConns = () => {
-    svg.querySelectorAll(".conn-path").forEach(el => el.remove());
+    svg.querySelectorAll(".conn-path, .conn-label-group").forEach(el => el.remove());
     connections.forEach(conn => {
       const fb = blocks[conn.from], tb = blocks[conn.to];
       if (!fb || !tb) return;
@@ -876,11 +895,41 @@ function buildQuestCanvasDOM(q) {
       const p2 = blockPortPos(tb, toSide,   toEl);
       const off = Math.max(50, Math.abs(p2.x-p1.x)*0.45, Math.abs(p2.y-p1.y)*0.45);
       const cv1 = sideControlVec(fromSide, off), cv2 = sideControlVec(toSide, off);
+      const d = `M${p1.x},${p1.y} C${p1.x+cv1.dx},${p1.y+cv1.dy} ${p2.x+cv2.dx},${p2.y+cv2.dy} ${p2.x},${p2.y}`;
       const path = document.createElementNS("http://www.w3.org/2000/svg","path");
-      path.setAttribute("d", `M${p1.x},${p1.y} C${p1.x+cv1.dx},${p1.y+cv1.dy} ${p2.x+cv2.dx},${p2.y+cv2.dy} ${p2.x},${p2.y}`);
+      path.setAttribute("d", d);
       path.setAttribute("class","conn-path");
       path.setAttribute("marker-end",`url(#${arrowId})`);
       svg.appendChild(path);
+      if (conn.label) {
+        const cp1x = p1.x + cv1.dx, cp1y = p1.y + cv1.dy;
+        const cp2x = p2.x + cv2.dx, cp2y = p2.y + cv2.dy;
+        const mx = 0.125*p1.x + 0.375*cp1x + 0.375*cp2x + 0.125*p2.x;
+        const my = 0.125*p1.y + 0.375*cp1y + 0.375*cp2y + 0.125*p2.y - 10;
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute("class", "conn-label-group");
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("class", "conn-label-bg");
+        const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        txt.setAttribute("class", "conn-label-text");
+        txt.setAttribute("x", mx);
+        txt.setAttribute("y", my);
+        txt.setAttribute("text-anchor", "middle");
+        txt.textContent = conn.label;
+        g.appendChild(rect);
+        g.appendChild(txt);
+        svg.appendChild(g);
+        requestAnimationFrame(() => {
+          try {
+            const bb = txt.getBBox();
+            rect.setAttribute("x", bb.x - 5);
+            rect.setAttribute("y", bb.y - 3);
+            rect.setAttribute("width", bb.width + 10);
+            rect.setAttribute("height", bb.height + 6);
+            rect.setAttribute("rx", "3");
+          } catch {}
+        });
+      }
     });
   };
 
