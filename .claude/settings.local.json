@@ -45,7 +45,8 @@
       "Bash(ls *.json)",
       "Bash(ls firebase*)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\\\\src\" -Recurse -File)",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Select-String \"firebase\")"
     ]
   }
 }
