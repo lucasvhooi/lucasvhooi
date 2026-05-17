@@ -82,7 +82,7 @@ onValue(ref(db, `campaigns/${cid}/displayNames`), snap => {
 });
 
 function getDisplayName(uid) {
-  return allDisplayNames[uid] || allUsers[uid]?.username || uid;
+  return allDisplayNames[uid] || allUsers[uid]?.username || null;
 }
 
 // ── Player selector ───────────────────────────────────────────────────────────

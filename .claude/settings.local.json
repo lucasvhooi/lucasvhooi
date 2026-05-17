@@ -37,7 +37,11 @@
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\\\\src\\\\pages\" -Force -Recurse | Select-Object FullName | ForEach-Object { $_.FullName -replace [regex]::Escape\\(\"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\\\\\"\\), \"\" })",
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\\\\src\\\\layouts\" -Force -Recurse | Select-Object FullName | ForEach-Object { $_.FullName -replace [regex]::Escape\\(\"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\\\\\"\\), \"\" })",
       "Bash(grep -E \"\\\\.astro$\")",
-      "Bash(fc /b \"C:\\\\Users\\\\lhooi\\\\Documents\\\\GitHub\\\\lucasvhooi\\\\assets\\\\js\\\\combat.js\" \"C:\\\\Users\\\\lhooi\\\\Documents\\\\GitHub\\\\lucasvhooi\\\\public\\\\assets\\\\js\\\\combat.js\")"
+      "Bash(fc /b \"C:\\\\Users\\\\lhooi\\\\Documents\\\\GitHub\\\\lucasvhooi\\\\assets\\\\js\\\\combat.js\" \"C:\\\\Users\\\\lhooi\\\\Documents\\\\GitHub\\\\lucasvhooi\\\\public\\\\assets\\\\js\\\\combat.js\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\lhooi\\\\Documents\\\\GitHub\\\\lucasvhooi\" -Directory)",
+      "Bash(Select-Object -First 20)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\lhooi\\\\Documents\\\\GitHub\\\\lucasvhooi\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)"
     ]
   }
 }

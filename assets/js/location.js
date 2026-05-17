@@ -211,12 +211,14 @@ function renderSubMarkers() {
       <div class="tooltip-name">${marker.name}</div>
       <div class="tooltip-type">${markerDisplayType(marker)}${marker.shopSubtype ? ` · ${marker.shopSubtype}` : ""}</div>
       ${ownerNpc ? `<div class="tooltip-owner"><iconify-icon icon="lucide:user"></iconify-icon> ${ownerNpc.name}</div>` : ""}
-      <button class="tooltip-view-btn">View</button>
+      ${isAdmin ? `<button class="tooltip-view-btn">View</button>` : ""}
     `;
-    tooltip.querySelector(".tooltip-view-btn").addEventListener("click", e => {
-      e.stopPropagation();
-      openShopModal(marker);
-    });
+    if (isAdmin) {
+      tooltip.querySelector(".tooltip-view-btn").addEventListener("click", e => {
+        e.stopPropagation();
+        openShopModal(marker);
+      });
+    }
 
     el.appendChild(pin);
     el.appendChild(tooltip);
