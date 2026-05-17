@@ -494,16 +494,8 @@ import Layout from '../layouts/Layout.astro';
 
   <p class="section-label" style="margin-top:40px">NPC Name Tables</p>
   <div class="migrate-card">
-    <p class="migrate-card-title">NPC name table management</p>
-    <p class="migrate-card-sub">Seed or clear the NPC name tables for a campaign. Seeding writes ~250 first names and ~250 surnames per race to <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px">campaigns/&lt;id&gt;/npcNames</code>.</p>
-    <div class="migrate-row">
-      <div class="field">
-        <label for="npc-campaign">Target Campaign</label>
-        <select id="npc-campaign">
-          <option value="">— select campaign —</option>
-        </select>
-      </div>
-    </div>
+    <p class="migrate-card-title">Global NPC name pool</p>
+    <p class="migrate-card-sub">Writes the base name tables to <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px">npcNames</code> in Firebase — global, shared across all campaigns. The location tab reads from this when generating NPCs, falling back to the built-in names if empty.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn-migrate" id="btn-export-names">Seed NPC Names</button>
       <button class="btn-migrate" id="btn-clear-names" style="background:rgba(180,50,50,0.18);border-color:rgba(220,80,80,0.35);color:#e57373">Clear NPC Names</button>
@@ -988,34 +980,19 @@ import Layout from '../layouts/Layout.astro';
 
     loadUsers();
 
-    // ── NPC names export / clear ───────────────────────────────────────────
+    // ── NPC names seed / clear (global) ───────────────────────────────────
     const btnExportNames  = document.getElementById('btn-export-names');
     const btnClearNames   = document.getElementById('btn-clear-names');
     const npcExportStatus = document.getElementById('npc-export-status');
-    const npcCampaign     = document.getElementById('npc-campaign');
-
-    async function loadCampaignsForNpc() {
-      const snap = await get(ref(db, 'campaigns'));
-      if (!snap.exists()) return;
-      for (const [id, camp] of Object.entries(snap.val())) {
-        const opt = document.createElement('option');
-        opt.value = id;
-        opt.textContent = camp.name || id;
-        npcCampaign.appendChild(opt);
-      }
-    }
-    loadCampaignsForNpc();
 
     btnExportNames.addEventListener('click', async () => {
-      const targetId = npcCampaign.value;
-      if (!targetId) { npcExportStatus.textContent = 'Select a campaign first.'; npcExportStatus.className = 'migrate-status error'; return; }
       btnExportNames.disabled = true;
       btnClearNames.disabled  = true;
       npcExportStatus.textContent = 'Seeding…';
       npcExportStatus.className = 'migrate-status running';
       try {
-        await set(ref(db, `campaigns/${targetId}/npcNames`), NPC_NAMES);
-        npcExportStatus.textContent = `✓ Seeded NPC names for campaign.`;
+        await set(ref(db, 'npcNames'), NPC_NAMES);
+        npcExportStatus.textContent = '✓ Global NPC name tables seeded.';
         npcExportStatus.className = 'migrate-status done';
       } catch (e) {
         npcExportStatus.textContent = 'Error: ' + e.message;
@@ -1027,16 +1004,14 @@ import Layout from '../layouts/Layout.astro';
     });
 
     btnClearNames.addEventListener('click', async () => {
-      const targetId = npcCampaign.value;
-      if (!targetId) { npcExportStatus.textContent = 'Select a campaign first.'; npcExportStatus.className = 'migrate-status error'; return; }
-      if (!confirm('Clear all NPC name tables for this campaign? This cannot be undone.')) return;
+      if (!confirm('Clear the global NPC name tables? The built-in names will be used as fallback. This cannot be undone.')) return;
       btnExportNames.disabled = true;
       btnClearNames.disabled  = true;
       npcExportStatus.textContent = 'Clearing…';
       npcExportStatus.className = 'migrate-status running';
       try {
-        await remove(ref(db, `campaigns/${targetId}/npcNames`));
-        npcExportStatus.textContent = `✓ NPC name tables cleared.`;
+        await remove(ref(db, 'npcNames'));
+        npcExportStatus.textContent = '✓ Global NPC name tables cleared.';
         npcExportStatus.className = 'migrate-status done';
       } catch (e) {
         npcExportStatus.textContent = 'Error: ' + e.message;

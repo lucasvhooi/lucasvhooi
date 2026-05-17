@@ -65,6 +65,10 @@ const locNpcList      = document.getElementById("loc-npc-list");
 const locPlacingBanner = document.getElementById("loc-placing-banner");
 
 // ── Firebase Listeners ────────────────────────────────────────────────────────
+onValue(ref(db, 'npcNames'), snapshot => {
+  window._globalNpcNames = snapshot.val() || null;
+});
+
 onValue(markerDbRef, snapshot => {
   markerData = snapshot.val();
   if (markerData) renderHero();
@@ -1013,7 +1017,8 @@ function pickRace(mainRace, popNum) {
 }
 
 function pickName(race) {
-  const pool    = NPC_NAMES[race] || NPC_NAMES["Human"];
+  const source  = window._globalNpcNames || NPC_NAMES;
+  const pool    = source[race] || source["Human"] || NPC_NAMES[race] || NPC_NAMES["Human"];
   const isMale  = Math.random() < 0.5;
   const first   = isMale ? pool.male[Math.floor(Math.random() * pool.male.length)]
                          : pool.female[Math.floor(Math.random() * pool.female.length)];
