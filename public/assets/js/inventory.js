@@ -598,19 +598,20 @@ document.getElementById("ai-save").addEventListener("click", async () => {
 
   const itemRef = push(ref(db, `campaigns/${cid}/inventory/${target}`));
   await set(itemRef, {
-    id:           itemRef.key,
-    name:         selectedItemDb.name,
+    id:                 itemRef.key,
+    name:               selectedItemDb.name,
     type,
-    quantity:     qty,
-    value:        selectedItemDb.price ? String(selectedItemDb.price) + " gp" : null,
-    description:  selectedItemDb.description || null,
-    content:      null,
-    rarity:       selectedItemDb.rarity || null,
-    tags:         selectedItemDb.tags || null,
-    abilities:    selectedItemDb.abilities || null,
-    sourceItemId: selectedItemDb.id,
-    givenBy:      session.id,
-    timestamp:    Date.now(),
+    quantity:           qty,
+    value:              selectedItemDb.price ? String(selectedItemDb.price) + " gp" : null,
+    description:        selectedItemDb.description || null,
+    content:            null,
+    rarity:             selectedItemDb.rarity || null,
+    tags:               selectedItemDb.tags || null,
+    abilities:          selectedItemDb.abilities || null,
+    requiresAttunement: selectedItemDb.requiresAttunement === true,
+    sourceItemId:       selectedItemDb.id,
+    givenBy:            session.id,
+    timestamp:          Date.now(),
   });
   closeModal("add-modal");
   if (isAdmin && target !== viewingId) {
