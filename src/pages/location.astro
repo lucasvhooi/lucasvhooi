@@ -5,22 +5,17 @@ import Layout from '../layouts/Layout.astro';
 
   <!-- Hero -->
   <header class="loc-hero">
+    <div class="loc-hero-bg" id="loc-hero-bg"></div>
     <a href="/map" class="back-link" id="back-to-map"><iconify-icon icon="lucide:arrow-left"></iconify-icon> Back to Map</a>
     <h1 class="loc-title" id="loc-title">Loading&hellip;</h1>
     <div class="loc-stats" id="loc-stats"></div>
+    <label for="loc-feature-upload" id="loc-feature-upload-btn" class="loc-hero-upload-btn" style="display:none" title="Upload location image"><iconify-icon icon="lucide:camera"></iconify-icon></label>
+    <input type="file" id="loc-feature-upload" accept="image/*" style="display:none" />
   </header>
 
   <main class="loc-main">
 
     <div class="loc-feature-row anim-1" id="loc-feature-row">
-      <div class="loc-feature-img-wrap" id="loc-feature-img-wrap">
-        <img id="loc-feature-img" class="loc-feature-img" alt="Location" style="display:none" />
-        <div id="loc-feature-img-ph" class="loc-feature-img-ph">
-          <iconify-icon icon="lucide:globe" class="loc-feature-img-ph-icon"></iconify-icon>
-        </div>
-        <label for="loc-feature-upload" id="loc-feature-upload-btn" class="loc-feature-upload-btn" style="display:none" title="Upload location image"><iconify-icon icon="lucide:camera"></iconify-icon></label>
-        <input type="file" id="loc-feature-upload" accept="image/*" style="display:none" />
-      </div>
       <div class="loc-feature-desc-wrap">
         <div class="sec-header-row">
           <h2 class="sec-heading">About</h2>

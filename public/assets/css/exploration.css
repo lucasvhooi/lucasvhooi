@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
 
 /* ── Hero ── */
 .expl-hero {
-  background: linear-gradient(180deg, #3a1a05 0%, #2a1005 50%, #1a1a1a 100%);
+  background: linear-gradient(180deg, #3a1a05 0%, #2a1505 50%, #1a1a1a 100%);
 }
 
 .expl-search-wrap {
@@ -13,7 +13,7 @@
 .expl-search {
   width: min(460px, 90vw);
   background: #1e1208;
-  border: 1px solid #443322;
+  border: 1px solid #3a2510;
   border-radius: 8px;
   color: var(--text);
   font-family: var(--font);
@@ -51,7 +51,7 @@
 /* ── Character card ── */
 .char-card {
   background: #1e130a;
-  border: 1px solid #2e1c0c;
+  border: 1px solid #3e2b1b;
   border-radius: 12px;
   overflow: hidden;
   transition:
@@ -74,7 +74,7 @@
 
 .char-not-encountered {
   opacity: 0.55;
-  border-color: #2a1a0a;
+  border-color: #3a1a05;
 }
 .char-not-encountered:hover { opacity: 0.85; }
 
@@ -92,9 +92,9 @@
 
 .char-card-pic-ph {
   width: 100%; height: 180px;
-  background: #2a1a0a;
+  background: #3a1a05;
   display: flex; align-items: center; justify-content: center;
-  font-size: 48px; color: #3a2a1a; cursor: pointer;
+  font-size: 48px; color: #3a2510; cursor: pointer;
 }
 
 /* Card body */
@@ -130,7 +130,7 @@
   align-items: center;
   gap: 4px;
   padding: 6px 10px;
-  border-top: 1px solid #2a1a0a;
+  border-top: 1px solid #3a1a05;
 }
 .char-encounter-btn,
 .char-edit-btn,
@@ -187,7 +187,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px 14px;
-  border-bottom: 1px solid #2e1c0c;
+  border-bottom: 1px solid #3e2b1b;
   flex-shrink: 0;
 }
 .char-modal-header h2 {
@@ -222,7 +222,7 @@
 }
 .char-pic-preview {
   width: 80px; height: 80px; border-radius: 50%;
-  background: #2a1a0a; border: 2px solid #3a2510;
+  background: #3a1a05; border: 2px solid #3a2510;
   display: flex; align-items: center; justify-content: center;
   font-size: 32px; color: #555; flex-shrink: 0; overflow: hidden;
   cursor: pointer; position: relative;
@@ -330,7 +330,7 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 12px 20px 16px;
-  border-top: 1px solid #2e1c0c;
+  border-top: 1px solid #3e2b1b;
   flex-shrink: 0;
 }
 .char-cancel-btn {
@@ -374,9 +374,9 @@
 }
 .char-view-pic-ph {
   width: 160px; height: 160px; border-radius: 12px;
-  background: #2a1a0a; border: 1px solid #3a2510;
+  background: #3a1a05; border: 1px solid #3a2510;
   display: flex; align-items: center; justify-content: center;
-  font-size: 64px; color: #3a2a1a;
+  font-size: 64px; color: #3a2510;
 }
 .char-view-details { flex: 1; min-width: 200px; }
 .char-view-name {

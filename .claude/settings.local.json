@@ -46,7 +46,10 @@
       "Bash(ls firebase*)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\\\\src\" -Recurse -File)",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(Select-String \"firebase\")"
+      "Bash(Select-String \"firebase\")",
+      "Bash(git -C \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\" show --stat HEAD)",
+      "Bash(git *)",
+      "Bash(powershell -Command ' *)"
     ]
   }
 }

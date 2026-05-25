@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
 
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(8px) scale(0.97); }
@@ -52,7 +52,7 @@ body {
 
 /* ── Hero ────────────────────────────────────────────────────────────────── */
 .combat-hero {
-  background: linear-gradient(180deg, #3a1a05 0%, #2a1005 55%, #1a1a1a 100%);
+  background: linear-gradient(180deg, #3a1a05 0%, #2a1505 55%, #1a1a1a 100%);
   border-bottom: 1px solid #3a2510;
   padding: 14px 24px;
   display: flex;
@@ -148,7 +148,7 @@ body {
   white-space: nowrap;
   border: none;
 }
-.hero-start-btn { background: var(--accent); color: #1a0a00; }
+.hero-start-btn { background: var(--accent); color: #140c05; }
 .hero-start-btn:hover { background: #ffe08a; }
 .hero-start-btn:active { transform: scale(0.97); }
 .hero-end-btn   { background: #4a1515; color: #ff8a80; border: 1px solid #7a2020; }
@@ -331,7 +331,7 @@ body {
   color: var(--type-color) !important;
 }
 .combatant-card.active .card-type-badge { color: var(--type-color) !important; }
-.combatant-card.active .card-active-badge { background: var(--type-color); color: #1a0a00; }
+.combatant-card.active .card-active-badge { background: var(--type-color); color: #140c05; }
 .combatant-card.active .card-notes { color: #999 !important; }
 .combatant-card.active .card-hp-text { color: #ccc !important; }
 .combatant-card.active .hp-sep { color: #555; }
@@ -414,7 +414,7 @@ body {
   font-size: 10px;
   font-family: sans-serif;
   background: var(--type-color);
-  color: #1a0a00;
+  color: #140c05;
   padding: 1px 8px;
   border-radius: 10px;
   font-weight: bold;
@@ -546,7 +546,7 @@ body {
   white-space: nowrap;
 }
 .ctrl-btn:active { transform: scale(0.97); }
-.ctrl-btn-primary   { background: var(--accent); color: #1a0a00; font-weight: bold; }
+.ctrl-btn-primary   { background: var(--accent); color: #140c05; font-weight: bold; }
 .ctrl-btn-primary:hover { background: #ffe08a; }
 .ctrl-btn-secondary { background: #3e2b1b; color: var(--text); border-color: #554433; }
 .ctrl-btn-secondary:hover { background: #5a3e28; }
@@ -652,7 +652,7 @@ body {
 .form-row input, .form-row select, .form-row textarea {
   box-sizing: border-box;
   width: 100%;
-  background: #2a1810;
+  background: #3a1a05;
   border: 1px solid #554433;
   border-radius: 5px;
   color: var(--text);
@@ -677,7 +677,7 @@ body {
   font-size: 12px;
   padding: 6px 0;
   border-radius: 5px;
-  border: 1px solid #443322;
+  border: 1px solid #3a2510;
   background: rgba(255,255,255,0.03);
   color: #777;
   cursor: pointer;
@@ -762,7 +762,7 @@ body {
 
 .hp-adjust-overlay input {
   width: 80px;
-  background: #1a0a00;
+  background: #140c05;
   border: 1px solid #554433;
   border-radius: 5px;
   color: var(--text);
@@ -867,8 +867,8 @@ body {
 
 .cond-rounds-input {
   width: 46px;
-  background: #1a0a00;
-  border: 1px solid #443322;
+  background: #140c05;
+  border: 1px solid #3a2510;
   border-radius: 4px;
   color: var(--text);
   font-family: var(--font);
@@ -884,10 +884,10 @@ body {
 .preset-list {
   max-height: 200px;
   overflow-y: auto;
-  border: 1px solid #443322;
+  border: 1px solid #3a2510;
   border-radius: 5px;
   margin-top: 4px;
-  background: #1a0a00;
+  background: #140c05;
 }
 .preset-list::-webkit-scrollbar { width: 4px; }
 .preset-list::-webkit-scrollbar-thumb { background: #3a2510; border-radius: 2px; }
@@ -1053,7 +1053,7 @@ body {
 .enemy-search-input {
   flex: 1;
   background: #1a0e06;
-  border: 1px solid #443322;
+  border: 1px solid #3a2510;
   border-radius: 5px;
   color: var(--text);
   font-family: var(--font);
@@ -1184,8 +1184,8 @@ body {
 .editor-label textarea {
   box-sizing: border-box;
   width: 100%;
-  background: #1e1008;
-  border: 1px solid #443322;
+  background: #181008;
+  border: 1px solid #3a2510;
   border-radius: 5px;
   color: var(--text);
   font-family: var(--font);
@@ -1207,8 +1207,8 @@ body {
 .item-picker-search {
   box-sizing: border-box;
   width: 100%;
-  background: #1e1008;
-  border: 1px solid #443322;
+  background: #181008;
+  border: 1px solid #3a2510;
   border-radius: 5px;
   color: var(--text);
   font-family: var(--font);
@@ -1312,8 +1312,8 @@ body {
 .et-loot-chance-input,
 .et-loot-qty-input {
   width: 46px;
-  background: #1e1008;
-  border: 1px solid #443322;
+  background: #181008;
+  border: 1px solid #3a2510;
   border-radius: 4px;
   color: var(--text);
   font-family: var(--font);
@@ -1361,7 +1361,7 @@ body {
 
 .spawn-count-input {
   width: 46px;
-  background: #1a0a00;
+  background: #140c05;
   border: 1px solid #2a6a2a;
   border-right: none;
   border-radius: 5px 0 0 5px;
@@ -1434,7 +1434,7 @@ body {
 
 .attack-dmg-group input {
   width: 70px;
-  background: #1a0a00;
+  background: #140c05;
   border: 1px solid #554433;
   border-radius: 5px;
   color: var(--text);
@@ -1641,7 +1641,7 @@ body {
   font-size: 11px;
   padding: 4px 10px;
   border-radius: 5px;
-  border: 1px solid #443322;
+  border: 1px solid #3a2510;
   background: rgba(255,255,255,0.03);
   color: #777;
   cursor: pointer;
@@ -1790,8 +1790,8 @@ body {
 .et-attack-row input,
 .et-attack-row textarea {
   box-sizing: border-box;
-  background: #1e1008;
-  border: 1px solid #443322;
+  background: #181008;
+  border: 1px solid #3a2510;
   border-radius: 5px;
   color: var(--text);
   font-family: var(--font);

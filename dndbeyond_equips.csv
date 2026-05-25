@@ -1,0 +1,385 @@
+Name,Type1,Type2,Weight (lbs),Price (golds)
+Abacus,Adventuring Gear,Utility,2,2
+Acid (vial),Adventuring Gear,"Combat, Damage, Utility",1,25
+Airship,Adventuring Gear,"Exploration, Movement, Utility",,20000
+Alchemist's Fire (flask),Adventuring Gear,"Combat, Consumable, Damage, Utility",1,50
+Alchemist's Supplies,Tool,Utility,8,50
+Alexandrite,Gemstone,,,500
+Alms Box,Adventuring Gear,Utility,,
+Amber,Gemstone,,,100
+Amethyst,Gemstone,,,100
+Amulet,Holy Symbol,Utility,1,5
+Antimatter Rifle,Firearms Ranged Weapon,Necrotic,10,
+Antitoxin,Adventuring Gear,"Healing, Utility",,50
+Aquamarine,Gemstone,,,500
+Arcane Focus,Arcane Focus,Utility,,
+Arrows,Ammunition,"Combat, Damage",1,1
+Assassin's Blood (Ingested),Poison,"Consumable, Damage",,150
+Axe Beak,Mount,"Speed 50 ft., Carrying Capacity 420 lbs.",,50
+Azurite,Gemstone,,,10
+Backpack,Adventuring Gear,Container,5,2
+Bad News (Exandria),Firearms Ranged Weapon,Piercing,25,
+Bad News Bullets,Ammunition,,,10
+Baipes,Tool,Instrument,6,30
+"Ball Bearings (bag of 1,000)",Adventuring Gear,"Combat, Control, Utility",2,1
+Banded Agate,Gemstone,,,10
+Barding,Adventuring Gear,"Cost x4, Weight x2",,
+Barrel,Adventuring Gear,Container,70,2
+Basket,Adventuring Gear,Container,2,
+Battleaxe,Martial Melee Weapon,Slashing,4,10
+Bedroll,Adventuring Gear,Utility,7,1
+Bell,Adventuring Gear,"Communication, Utility",,1
+Birdpipes,Tool,Instrument,2,12
+Bit and Bridle,Adventuring Gear,Utility,1,2
+Black Opal,Gemstone,,,1000
+Black Pearl,Gemstone,,,500
+Black Sap,Potion,Explorer's Guide to Wildemount,,300
+Black Sapphire,Gemstone,,,5000
+Blanket,Adventuring Gear,Utility,3,
+Blasting Powder,Adventuring Gear,from Explorer's Guide to Wildemount - Chapter 5,,
+Blight Ichor,Potion,Explorer's Guide to Wildemount,,200
+Block and Tackle,Adventuring Gear,"Exploration, Movement, Utility",5,1
+Block of Incense,Adventuring Gear,"Social, Utility",,
+Blood of the Lycanthrope (Injury),Poison,Consumable,,
+Bloodstone,Gemstone,,,50
+Blowgun,Martial Ranged Weapon,Piercing,1,10
+Blowgun Needles,Ammunition,"Combat, Damage",1,1
+Blue quartz,Gemstone,,,10
+Blue Sapphire,Gemstone,,,1000
+Blue spinel,Gemstone,,,500
+Blunderbuss (Exandria),Firearms Ranged Weapon,Piercing,10,300
+Blunderbuss Bullets,Ammunition,,,5
+Bomb,Adventuring Gear,"Combat, Damage",1,150
+Book,Adventuring Gear,"Social, Utility",5,25
+Boomerang,Simple Ranged Weapon,Bludgeoning,,
+Boots,Adventuring Gear,,,
+"Bottle, Glass",Adventuring Gear,Container,2,2
+Breastplate,Medium Armor,AC 14,20,400
+Brewer's Supplies,Tool,Utility,9,20
+Bucket,Adventuring Gear,Container,2,
+"Bullets, Modern",Ammunition,"Combat, Damage",1,
+"Bullets, Renaissance",Ammunition,"Combat, Damage",2,3
+Burglar's Pack,Equipment Pack,"Container, Exploration, Utility",47 1/2,16
+Burnt Othur Fumes (Inhaled),Poison,"Consumable, Damage",,500
+Calligrapher's Supplies,Tool,Utility,5,10
+Caltrops (bag of 20),Adventuring Gear,"Combat, Damage, Movement",2,1
+Camel,Mount,"Speed 50 ft., Carrying Capacity 480 lbs.",,50
+Candle,Adventuring Gear,"Consumable, Exploration, Utility",,
+Canoe,Adventuring Gear,Utility,,50
+Carnelian,Gemstone,,,50
+Carpenter's Tools,Tool,Utility,6,8
+Carriage,Vehicle (Land),"Exploration, Movement, Utility",600,100
+Cart,Vehicle (Land),"Exploration, Movement, Utility",200,15
+Cartographer's Tools,Tool,Utility,6,15
+"Case, Crossbow Bolt",Adventuring Gear,Container,1,1
+"Case, Map or Scroll",Adventuring Gear,Container,1,1
+Censer,Adventuring Gear,Utility,,
+Chain (10 feet),Adventuring Gear,Utility,10,5
+Chain Mail,Heavy Armor,AC 16,55,75
+Chain Shirt,Medium Armor,AC 13,20,50
+Chalcedony,Gemstone,,,50
+Chalk (1 piece),Adventuring Gear,"Communication, Consumable, Utility",,
+Chariot,Vehicle (Land),"Exploration, Movement, Utility",100,250
+Chest,Adventuring Gear,Container,25,5
+Chrysoberyl,Gemstone,,,100
+Chrysoprase,Gemstone,,,50
+Citrine,Gemstone,,,50
+Climber's Kit,Adventuring Gear,"Exploration, Movement, Utility",12,25
+"Clothes, Common",Adventuring Gear,"Outerwear, Social",3,
+"Clothes, Costume",Adventuring Gear,"Deception, Outerwear, Social",4,5
+"Clothes, Fine",Adventuring Gear,"Outerwear, Social",6,15
+"Clothes, Traveler's",Adventuring Gear,"Outerwear, Social",4,2
+"Clothing, cold weather",Adventuring Gear,"Exploration, Outerwear, Utility",5,10
+Club,Simple Melee Weapon,Bludgeoning,2,
+Cobbler's Tools,Tool,Utility,5,5
+Component Pouch,Adventuring Gear,"Container, Utility",2,25
+Cook's Utensils,Tool,Utility,8,1
+Coral,Gemstone,,,100
+Crampons,Adventuring Gear,"Exploration, Utility",01/04/21,2
+Crawler Mucus (Contact),Poison,"Consumable, Damage, Debuff",,200
+Crossbow Bolts,Ammunition,"Combat, Damage",1 1/2,1
+"Crossbow, Hand",Martial Ranged Weapon,Piercing,3,75
+"Crossbow, Heavy",Martial Ranged Weapon,Piercing,18,50
+"Crossbow, Light",Simple Ranged Weapon,Piercing,5,25
+Crowbar,Adventuring Gear,"Exploration, Utility",5,2
+Crystal,Arcane Focus,Utility,1,10
+Dagger,Simple Melee Weapon,Piercing,1,2
+Dart,Simple Ranged Weapon,Piercing,01/04/21,
+Diamond,Gemstone,,,5000
+Dice Set,Tool,Social,,
+Diplomat's Pack,Equipment Pack,"Container, Exploration, Outerwear, Social, Utility",36,39
+Disguise Kit,Tool,"Deception, Utility",3,25
+Dogsled,Vehicle (Land),"Exploration, Movement, Utility",300,20
+Donkey (or Mule),Mount,"Speed 40 ft., Carrying Capacity 420 lbs.",,8
+Double-Bladed Scimitar,Martial Melee Weapon,Slashing,6,100
+Draft Horse,Mount,"Speed 40 ft., Carrying Capacity 540 lbs.",,50
+Dragonchess Set,Tool,Social,01/02/21,1
+Dragon's Blood,Poison,,,
+Dreamlily,Poison,,,1
+Drow Poison (Injury),Poison,"Consumable, Damage, Debuff",,200
+Druidic Focus,Druidic Focus,Utility,,
+Drum,Tool,Instrument,3,6
+Dulcimer,Tool,Instrument,10,25
+Dungeoneer's Pack,Equipment Pack,"Container, Exploration, Utility",61 1/2,12
+Dust of the Mummy (Inhaled),Poison,Consumable,,
+Dynamite (Stick),Adventuring Gear,"Combat, Damage",1,
+Eberron Dragonshard,Adventuring Gear,Component,,
+Elephant,Mount,"Speed 40 ft., Carrying Capacity 1,320 lbs.",,200
+Emblem,Holy Symbol,Utility,,5
+Emerald,Gemstone,,,1000
+Energy Cell,Ammunition,"Combat, Damage",,
+Entertainer's Pack,Equipment Pack,"Container, Deception, Exploration, Outerwear, Social, Utility",38,40
+Essence of Ether (Inhaled),Poison,"Consumable, Damage, Debuff",,300
+Explorer's Pack,Equipment Pack,"Container, Exploration, Utility",59,10
+Explosive Seed,Adventuring Gear,from Explorer's Guide to Wildemount - Chapter 5,,
+Eye agate,Gemstone,,,10
+Feed (per day),Adventuring Gear,"Consumable, Utility",10,
+Fire Opal,Gemstone,,,1000
+Fishing Tackle,Adventuring Gear,"Social, Utility",4,1
+Flail,Martial Melee Weapon,Bludgeoning,2,10
+Flask or Tankard,Adventuring Gear,Container,1,
+Flute,Tool,Instrument,1,2
+Forgery Kit,Tool,"Deception, Utility",5,15
+Galley,Vehicle (Water),Speed 4 mph,,30000
+Garnet,Gemstone,,,100
+Glaive,Martial Melee Weapon,Slashing,6,20
+Glassblower's Tools,Tool,Utility,5,30
+Glaur,Tool,Instrument,2,3
+Grappling Hook,Adventuring Gear,"Exploration, Utility",4,2
+Greataxe,Martial Melee Weapon,Slashing,7,30
+Greatclub,Simple Melee Weapon,Bludgeoning,10,
+Greatsword,Martial Melee Weapon,Slashing,6,50
+Grenade Launcher,Adventuring Gear,"Combat, Control, Damage",7,
+"Grenade, Fragmentation",Adventuring Gear,"Combat, Damage",1,
+"Grenade, Smoke",Adventuring Gear,"Combat, Control",2,
+"Gunpowder, Keg",Adventuring Gear,"Combat, Damage",20,250
+"Gunpowder, Powder Horn",Adventuring Gear,"Combat, Damage",2,35
+Halberd,Martial Melee Weapon,Slashing,6,20
+Half Plate,Medium Armor,AC 15,40,750
+Hammer,Adventuring Gear,Utility,3,1
+"Hammer, Sledge",Adventuring Gear,Utility,10,2
+Hand Drum,Tool,Instrument,3,6
+Hand Mortar (Exandria),Firearms Ranged Weapon,Fire,10,
+Hand Mortar Ammunition,Ammunition,,,10
+Handaxe,Simple Melee Weapon,Slashing,2,5
+Healer's Kit,Adventuring Gear,"Combat, Healing",3,5
+Helm,Adventuring Gear,,,
+Hematite,Gemstone,,,10
+Herbalism Kit,Tool,"Healing, Utility",3,5
+Hide,Medium Armor,AC 12,12,10
+Holy Symbol,Holy Symbol,Utility,,
+Holy Water (flask),Adventuring Gear,"Combat, Damage, Utility",1,25
+Horn,Tool,Instrument,2,3
+Hourglass,Adventuring Gear,Utility,1,25
+Hunting Trap,Adventuring Gear,"Damage, Utility",25,5
+Ink (1 ounce bottle),Adventuring Gear,"Communication, Consumable, Social, Utility",,10
+Ink Pen,Adventuring Gear,"Communication, Social, Utility",,
+Insect Repellent-Incense,Adventuring Gear,Utility,,
+Insect Repellent-Salve,Adventuring Gear,Utility,,1
+Jacinth,Gemstone,,,5000
+Jade,Gemstone,,,100
+Jasper,Gemstone,,,50
+Javelin,Simple Melee Weapon,Piercing,2,
+Jet,Gemstone,,,100
+Jeweler's Tools,Tool,Utility,2,25
+Jug or Pitcher,Adventuring Gear,Container,4,
+Keelboat,Vehicle (Water),Speed 1 mph,,3000
+Khyber Dragonshard,Adventuring Gear,Component,,
+Ladder (10 foot),Adventuring Gear,"Exploration, Utility",25,
+Lamp,Adventuring Gear,"Exploration, Utility",1,
+Lance,Martial Melee Weapon,Piercing,6,10
+"Lantern, Bullseye",Adventuring Gear,"Exploration, Utility",2,10
+"Lantern, Hooded",Adventuring Gear,"Exploration, Utility",2,5
+Lapis Lazuli,Gemstone,,,10
+Laser Pistol,Firearms Ranged Weapon,Radiant,2,
+Laser Rifle,Firearms Ranged Weapon,Radiant,7,
+Leather,Light Armor,AC 11,10,10
+Leatherworker's Tools,Tool,Utility,5,5
+Light Hammer,Simple Melee Weapon,Bludgeoning,2,2
+Little Bag of Sand,Adventuring Gear,Utility,,
+Lock,Adventuring Gear,"Utility, Warding",1,10
+Longbow,Martial Ranged Weapon,Piercing,2,50
+Longhorn,Tool,Instrument,1,2
+Longship,Vehicle (Water),Speed 3 mph,,10000
+Longsword,Martial Melee Weapon,Slashing,3,15
+Lute,Tool,Instrument,2,35
+Lyre,Tool,Instrument,2,30
+Mace,Simple Melee Weapon,Bludgeoning,4,5
+Magnifying Glass,Adventuring Gear,"Detection, Exploration, Utility",,100
+Malachite,Gemstone,,,10
+Malice (Inhaled),Poison,"Consumable, Damage, Debuff",,250
+Manacles,Adventuring Gear,"Control, Utility",6,2
+Mason's Tools,Tool,Utility,8,10
+Mastiff,Mount,"Speed 40 ft., Carrying Capacity 195 lbs.",,25
+Maul,Martial Melee Weapon,Bludgeoning,10,10
+Mess Kit,Adventuring Gear,"Social, Utility",1,
+Midnight Tears (Ingested),Poison,"Consumable, Damage",,1500
+"Mirror, Steel",Adventuring Gear,"Social, Utility",01/02/21,5
+Monster Hunter's Pack,Equipment Pack,"Container, Control, Utility",49,33
+Moonstone,Gemstone,,,50
+Moorbounder,Mount,from Explorer's Guide to Wildemount - chapter 3,,400
+Morningstar,Martial Melee Weapon,Piercing,4,15
+Moss agate,Gemstone,,,10
+Muroosa Balm,Potion,Explorer's Guide to Wildemount,,100
+Musket,Firearms Ranged Weapon,Piercing,10,500
+Musket (Exandria),Firearms Ranged Weapon,Piercing,10,300
+Musket (Exandria) Bullets,Ammunition,,,5
+Navigator's Tools,Tool,"Exploration, Utility",2,25
+Net,Martial Ranged Weapon,Bludgeoning,3,1
+Obsidian,Gemstone,,,10
+Oil (flask),Adventuring Gear,"Combat, Damage, Utility",1,
+Oil of Taggit (Contact),Poison,"Consumable, Damage, Debuff",,400
+Olisuba Leaf,Potion,Explorer's Guide to Wildemount,,50
+Onyx,Gemstone,,,50
+Opal,Gemstone,,,1000
+Orb,Arcane Focus,Utility,3,20
+Padded,Light Armor,AC 11,8,5
+Painter's Supplies,Tool,Utility,5,10
+Pale Tincture (Ingested),Poison,"Consumable, Damage, Debuff",,250
+Palm Pistol (Exandria),Firearms Ranged Weapon,Piercing,1,50
+Palm Pistol Bullets,Ammunition,,,2
+Pan Flute,Tool,Instrument,2,12
+Paper (one sheet),Adventuring Gear,"Communication, Consumable, Social, Utility",,
+Parchment (one sheet),Adventuring Gear,"Communication, Consumable, Social, Utility",,
+Pearl,Gemstone,,,100
+Pepperbox (Exandria),Firearms Ranged Weapon,Piercing,5,250
+Pepperbox Bullets,Ammunition,,,4
+Perfume (vial),Adventuring Gear,"Consumable, Social, Utility",,5
+Peridot,Gemstone,,,500
+"Pick, Miner's",Adventuring Gear,Utility,10,2
+Pike,Martial Melee Weapon,Piercing,18,5
+Pistol,Firearms Ranged Weapon,Piercing,3,250
+Pistol (Exandria),Firearms Ranged Weapon,Piercing,3,150
+Pistol (Exandria) Bullets,Ammunition,,,4
+"Pistol, Automatic",Firearms Ranged Weapon,Piercing,3,
+Piton,Adventuring Gear,Utility,01/04/21,
+Plate,Heavy Armor,AC 18,65,1500
+Playing Card Set,Tool,Social,,
+"Poison, Basic (vial)",Poison,"Combat, Consumable, Damage, Utility",,100
+Poisoner's Kit,Tool,Utility,2,50
+Pole (10-foot),Adventuring Gear,"Exploration, Utility",7,
+Pony,Mount,"Speed 40 ft., Carrying Capacity 225 lbs.",,30
+"Pot, Iron",Adventuring Gear,Container,10,2
+Potion of Healing,Potion,"Combat, Consumable, Healing",01/02/21,50
+Potter's Tools,Tool,Utility,3,10
+Pouch,Adventuring Gear,Container,1,
+Pride Silk,Adventuring Gear,Explorer's Guide to Wildemount,1,100
+Pride Silk Outfit,Light Armor,AC 11,4,500
+Priest's Pack,Equipment Pack,"Container, Exploration, Outerwear, Social, Utility",24,19
+Purple Worm Poison (Injury),Poison,"Consumable, Damage, Debuff",,2000
+Quarterstaff,Simple Melee Weapon,Bludgeoning,4,
+Quartz,Gemstone,,,50
+Quiver,Adventuring Gear,Container,1,1
+Rain Catcher,Adventuring Gear,Utility,5,1
+"Ram, Portable",Adventuring Gear,"Exploration, Utility",35,4
+Rapier,Martial Melee Weapon,Piercing,2,25
+Rations (1 day),Adventuring Gear,"Consumable, Social, Utility",2,
+Reliquary,Holy Symbol,Utility,2,5
+Revolver,Firearms Ranged Weapon,Piercing,3,
+Rhodochrosite,Gemstone,,,10
+Riding Horse,Mount,"Speed 60 ft., Carrying Capacity 480 lbs.",,75
+"Rifle, Automatic",Firearms Ranged Weapon,Piercing,8,
+"Rifle, Hunting",Firearms Ranged Weapon,Piercing,8,
+Ring Mail,Heavy Armor,AC 14,40,30
+Robes,Adventuring Gear,"Outerwear, Utility",4,1
+Rod,Arcane Focus,Utility,2,10
+"Rope, Hempen (50 feet)",Adventuring Gear,"Exploration, Utility",10,1
+"Rope, Silk (50 feet)",Adventuring Gear,"Exploration, Utility",5,10
+Rowboat,Vehicle (Water),Speed 1 1/2 mph,100,50
+Ruby,Gemstone,,,5000
+Sack,Adventuring Gear,Container,01/02/21,
+"Saddle, Exotic",Adventuring Gear,Utility,40,60
+"Saddle, Military",Adventuring Gear,Utility,30,20
+"Saddle, Pack",Adventuring Gear,Utility,15,5
+"Saddle, Riding",Adventuring Gear,Utility,25,10
+Saddlebags,Adventuring Gear,"Container, Utility",8,4
+Sailing Ship,Vehicle (Water),Speed 2 mph,,10000
+Sardonyx,Gemstone,,,50
+Scale Mail,Medium Armor,AC 14,45,50
+"Scale, Merchant's",Adventuring Gear,"Social, Utility",3,5
+Scholar's Pack,Equipment Pack,"Container, Social, Utility",10,40
+Scimitar,Martial Melee Weapon,Slashing,3,25
+Sealing Wax,Adventuring Gear,"Communication, Consumable, Social, Utility",,
+Serpent Venom (Injury),Poison,"Consumable, Damage, Debuff",,200
+Shawm,Tool,Instrument,1,2
+Shield,Shield,AC 2,6,10
+Shortbow,Simple Ranged Weapon,Piercing,2,25
+Shortsword,Martial Melee Weapon,Piercing,2,10
+Shotgun,Firearms Ranged Weapon,Piercing,7,
+Shovel,Adventuring Gear,Utility,5,2
+Siberys Dragonshard,Adventuring Gear,Component,,
+Sickle,Simple Melee Weapon,Slashing,2,1
+Signal Whistle,Adventuring Gear,"Communication, Utility",,
+Signet Ring,Adventuring Gear,"Communication, Social, Utility",,5
+Skyship,Vehicle (Land),Explorer's Guide to Wildemount,,100000
+Sled,Vehicle (Land),"Exploration, Movement, Utility",300,20
+Sled Dog,Mount,"Speed 40 ft., Pulling Capacity 360 lbs.",,50
+Sling,Simple Ranged Weapon,Bludgeoning,,
+Sling Bullets,Ammunition,"Combat, Damage",1 1/2,
+Small Knife,Adventuring Gear,Utility,,
+Smith's Tools,Tool,Utility,8,20
+Snowshoes,Adventuring Gear,"Exploration, Utility",4,2
+Soap,Adventuring Gear,"Consumable, Social, Utility",,
+Songhorn,Tool,Instrument,1,2
+Soothsalts,Potion,Explorer's Guide to Wildemount,,150
+Spear,Simple Melee Weapon,Piercing,3,1
+Spellbook,Adventuring Gear,Utility,3,50
+Spiked Armor,Medium Armor,AC 14,45,75
+"Spikes, Iron (10)",Adventuring Gear,Utility,5,1
+Spinel,Gemstone,,,100
+Splint,Heavy Armor,AC 17,60,200
+Sprig of Mistletoe,Druidic Focus,Utility,,1
+Spyglass,Adventuring Gear,"Exploration, Social, Utility",1,1000
+Staff,Arcane Focus,Utility,4,5
+Stake (Wooden),Adventuring Gear,Utility,,
+Star Rose Quartz,Gemstone,,,50
+Star Ruby,Gemstone,,,1000
+Star Sapphire,Gemstone,,,1000
+String,Adventuring Gear,Utility,,
+Studded Leather,Light Armor,AC 12,13,45
+Tangler Grenade,Adventuring Gear,"Combat, Consumable, Control, Utility",,
+Tantan,Tool,Instrument,3,6
+Tej,Adventuring Gear,,,
+"Tent, Two-Person",Adventuring Gear,"Exploration, Social, Utility",20,2
+Theki Root,Potion,Explorer's Guide to Wildemount,,3
+Thelarr,Tool,Instrument,1,2
+Thessaltoxin (Ingested or Injury),Poison,Consumable,,
+Thieves' Tools,Tool,"Exploration, Utility",1,25
+Three-Dragon Ante Set,Tool,Social,,1
+Tiger Eye,Gemstone,,,10
+Tinderbox,Adventuring Gear,"Exploration, Utility",1,
+Tinker's Tools,Tool,Utility,10,50
+Tocken,Tool,Instrument,3,6
+Topaz,Gemstone,,,500
+Torch,Adventuring Gear,"Combat, Damage, Exploration, Utility",1,
+Torpor (Ingested),Poison,"Consumable, Damage, Debuff",,600
+Totem,Druidic Focus,Utility,,1
+Tourmaline,Gemstone,,,100
+Trident,Martial Melee Weapon,Piercing,4,5
+Truth Serum (Ingested),Poison,"Consumable, Debuff, Utility",,150
+Turquoise,Gemstone,,,10
+Vestments,Adventuring Gear,"Social, Utility",,
+Vial,Adventuring Gear,Container,,1
+Viol,Tool,Instrument,1,30
+Wagon,Vehicle (Land),"Exploration, Movement, Utility",400,35
+Wand,Arcane Focus,Utility,1,10
+War Pick,Martial Melee Weapon,Piercing,2,5
+Wargong,Tool,Instrument,6,30
+Warhammer,Martial Melee Weapon,Bludgeoning,2,15
+Warhorse,Mount,"Speed 60 ft., Carry Capacity 540 lbs.",,400
+Warship,Vehicle (Water),2 1/2 mph,,25000
+Waterskin,Adventuring Gear,Container,5,
+Weaver's Tools,Tool,Utility,5,1
+Whetstone,Adventuring Gear,Utility,1,
+Whip,Martial Melee Weapon,Slashing,3,2
+Whistle-Stick,Tool,Instrument,,
+Willowshade Oil,Potion,,,30
+Woodcarver's Tools,Tool,Utility,5,1
+Wooden Staff,Druidic Focus,Utility,4,5
+Wyvern Poison (Injury),Poison,"Consumable, Damage, Debuff",,1200
+Yarting,Tool,Instrument,2,35
+Yellow sapphire,Gemstone,,,1000
+Yew Wand,Druidic Focus,Utility,1,10
+Yklwa,Simple Melee Weapon,Piercing,2,1
+Zircon,Gemstone,,,10
+Zulkoon,Tool,Instrument,6,30

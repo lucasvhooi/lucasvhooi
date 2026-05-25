@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
 
 /* ── Hero ──────────────────────────────────────────────────────────────────── */
 .lore-hero {
-  background: linear-gradient(180deg, #3a1a05 0%, #2a1005 50%, #1a1a1a 100%);
+  background: linear-gradient(180deg, #3a1a05 0%, #2a1505 50%, #1a1a1a 100%);
 }
 
 .lore-filter-tabs {
@@ -269,7 +269,7 @@
 
 .lore-visibility-btn:hover {
   background: var(--accent);
-  color: #1a0a00;
+  color: #140c05;
 }
 
 /* Dimmed = hidden from players */
@@ -404,7 +404,7 @@
 .form-row input,
 .form-row select,
 .form-row textarea {
-  background: #2a1810;
+  background: #3a1a05;
   border: 1px solid #554433;
   border-radius: 5px;
   color: var(--text);
@@ -567,8 +567,8 @@
 .lm-pages-list::-webkit-scrollbar-thumb { background: #3a2510; border-radius: 2px; }
 
 .page-editor {
-  background: #2a1810;
-  border: 1px solid #443322;
+  background: #3a1a05;
+  border: 1px solid #3a2510;
   border-radius: 6px;
   padding: 10px 12px;
   position: relative;
@@ -604,8 +604,8 @@
 .page-editor input,
 .page-editor textarea {
   width: 100%;
-  background: #1e1008;
-  border: 1px solid #443322;
+  background: #181008;
+  border: 1px solid #3a2510;
   border-radius: 4px;
   color: var(--text);
   font-family: var(--font);
@@ -850,8 +850,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: #1e1008;
-  border: 1px solid #443322;
+  background: #181008;
+  border: 1px solid #3a2510;
   border-radius: 7px;
   padding: 10px 14px;
 }
@@ -907,7 +907,7 @@
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background: #3a2000;
+  background: #3a1a05;
   border-color: var(--accent);
 }
 

@@ -2,6 +2,7 @@ import { db }                          from "./firebase.js";
 import { ref, set, remove, onValue, get }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { parseTags, formatGold } from "./item-utils.js";
 import { openGivePanel }              from "./give-to-player.js";
+import { EQUIP_SEED }                 from "./equip-seed.js";
 
 const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
 const isAdmin = _session?.role === 'admin';
@@ -114,6 +115,43 @@ if (imTagNewInput) {
     if (e.key === "Escape") { imTagNewInput.style.display = "none"; }
   });
 }
+
+// ── Equipment Seed ────────────────────────────────────────────────────────────
+const EQUIP_SEED_VERSION = 1;
+const equipSeedFlagRef   = ref(db, `campaigns/${cid}/system/equipSeedVersion`);
+
+async function _writeEquipSeed() {
+  const existingSnap = await get(itemsRef);
+  const existingIds  = new Set(existingSnap.val() ? Object.keys(existingSnap.val()) : []);
+  const ts = Date.now();
+  const writes = [];
+  for (const item of EQUIP_SEED) {
+    if (existingIds.has(item.id)) continue;
+    writes.push(set(ref(db, `campaigns/${cid}/items/${item.id}`), {
+      ...item, description: null, requiresAttunement: false, abilities: null, createdAt: ts,
+    }));
+  }
+  await Promise.all(writes);
+  await set(equipSeedFlagRef, EQUIP_SEED_VERSION);
+}
+
+async function seedEquipmentIfNeeded() {
+  const flagSnap = await get(equipSeedFlagRef);
+  if ((flagSnap.val() || 0) >= EQUIP_SEED_VERSION) return;
+
+  // Campaign already has items → mark as done and skip (avoid duplicating existing libraries)
+  const existingSnap = await get(itemsRef);
+  const existingCount = existingSnap.val() ? Object.keys(existingSnap.val()).length : 0;
+  if (existingCount > 0) {
+    await set(equipSeedFlagRef, EQUIP_SEED_VERSION);
+    showImportBanner(); // offer a manual import button instead
+    return;
+  }
+
+  await _writeEquipSeed();
+}
+
+if (isAdmin) seedEquipmentIfNeeded();
 
 // ── Firebase ──────────────────────────────────────────────────────────────────
 onValue(itemsRef, snapshot => {
@@ -438,3 +476,36 @@ function inferTypeFromTags(tags) {
   if (list.includes("scroll"))           return "scroll";
   return "misc";
 }
+
+// ── Equipment Library Import Banner ───────────────────────────────────────────
+function showImportBanner() {
+  const existing = document.getElementById("equip-import-banner");
+  if (existing) return;
+
+  const banner = document.createElement("div");
+  banner.id = "equip-import-banner";
+  banner.className = "equip-import-banner";
+  banner.innerHTML = `
+    <span class="equip-import-text">
+      This campaign already has items. Want to also add the full D&amp;D equipment library (384 items)?
+    </span>
+    <div class="equip-import-actions">
+      <button id="equip-import-yes" class="dm-btn dm-btn-sm">Import Library</button>
+      <button id="equip-import-no"  class="dm-btn dm-btn-sm dm-btn-secondary">Dismiss</button>
+    </div>
+  `;
+
+  const main = document.querySelector(".items-main");
+  main.insertBefore(banner, main.firstChild);
+
+  document.getElementById("equip-import-yes").addEventListener("click", async () => {
+    const btn = document.getElementById("equip-import-yes");
+    btn.disabled = true;
+    btn.textContent = "Importing…";
+    await _writeEquipSeed();
+    banner.remove();
+  });
+
+  document.getElementById("equip-import-no").addEventListener("click", () => banner.remove());
+}
+

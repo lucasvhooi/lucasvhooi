@@ -55,6 +55,7 @@ let currentTavernMarker = null;
 // ── DOM Refs ──────────────────────────────────────────────────────────────────
 const locTitle        = document.getElementById("loc-title");
 const locStats        = document.getElementById("loc-stats");
+const locHero         = document.querySelector(".loc-hero");
 const locMapContainer = document.getElementById("loc-map-container");
 const locMapImg       = document.getElementById("loc-map-img");
 const locMapPlaceholder = document.getElementById("loc-map-placeholder");
@@ -143,12 +144,11 @@ const locFeatureImgPh = document.getElementById("loc-feature-img-ph");
 function renderFeatureImage() {
   const url = locationInfo.featureImageUrl;
   if (url) {
-    locFeatureImg.src = url;
-    locFeatureImg.style.display = "block";
-    locFeatureImgPh.style.display = "none";
+    locHero.style.backgroundImage = `linear-gradient(180deg, rgba(20,8,2,0.70) 0%, rgba(15,6,2,0.82) 60%, rgba(12,5,2,0.94) 100%), url('${url}')`;
+    locHero.classList.add("has-bg-image");
   } else {
-    locFeatureImg.style.display = "none";
-    locFeatureImgPh.style.display = "flex";
+    locHero.style.backgroundImage = "";
+    locHero.classList.remove("has-bg-image");
   }
 }
 
@@ -923,15 +923,14 @@ if (locFeatureUpload) {
   locFeatureUpload.addEventListener("change", async () => {
     const file = locFeatureUpload.files[0];
     if (!file) return;
-    locFeatureImgPh.innerHTML = `<span style="color:#aaa;font-size:13px">Compressing…</span>`;
-    locFeatureImgPh.style.display = "flex";
-    locFeatureImg.style.display = "none";
+    locHero.classList.add("hero-uploading");
     try {
       const base64 = await compressImage(file, 1200, 0.85);
       await set(ref(db, `campaigns/${cid}/locations/${locationId}/info/featureImageUrl`), base64);
     } catch {
-      locFeatureImgPh.innerHTML = `<span style="color:#E57373;font-size:13px">Upload failed.</span>`;
+      // upload failed silently; image unchanged
     }
+    locHero.classList.remove("hero-uploading");
     locFeatureUpload.value = "";
   });
 }

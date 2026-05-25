@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(8px) scale(0.97); }
@@ -26,7 +26,7 @@
 
 /* ── Hero ── */
 .items-hero {
-  background: linear-gradient(180deg, #3a1a05 0%, #2a1005 50%, #1a1a1a 100%);
+  background: linear-gradient(180deg, #3a1a05 0%, #2a1505 50%, #1a1a1a 100%);
   border-bottom: 1px solid #3a2510;
 }
 
@@ -59,7 +59,7 @@
 }
 
 .items-search {
-  background: #2a1810;
+  background: #3a1a05;
   border: 1px solid #554433;
   border-radius: 6px;
   color: var(--text);
@@ -290,7 +290,7 @@
 .item-tag {
   font-size: 11px;
   background: rgba(255,255,255,0.05);
-  border: 1px solid #443322;
+  border: 1px solid #3a2510;
   border-radius: 10px;
   padding: 1px 8px;
   color: #998877;
@@ -393,7 +393,7 @@
 
 .modal-box {
   background: #140c05;
-  border: 1px solid #4a3018;
+  border: 1px solid #3a2510;
   border-radius: 12px;
   padding: 0;
   width: 50vw;
@@ -430,7 +430,7 @@
 
 /* ── Modal header ── */
 .modal-header {
-  background: linear-gradient(135deg, #2a1505 0%, #1c0d03 100%);
+  background: linear-gradient(135deg, #2a1505 0%, #1c0e03 100%);
   border-bottom: 1px solid #3a2510;
   border-radius: 12px 12px 0 0;
   padding: 16px 20px 15px;
@@ -497,7 +497,7 @@
   box-sizing: border-box;
   width: 100%;
   background: #1e1208;
-  border: 1px solid #4a3520;
+  border: 1px solid #3a2510;
   border-radius: 6px;
   color: var(--text);
   font-family: var(--font);
@@ -536,8 +536,8 @@
 
 /* ── Modal footer ── */
 .modal-actions {
-  border-top: 1px solid #2a1a08;
-  background: linear-gradient(0deg, #1a0d04 0%, transparent 100%);
+  border-top: 1px solid #3a1a05;
+  background: linear-gradient(0deg, #140c05 0%, transparent 100%);
   padding: 13px 22px 14px;
   display: flex;
   gap: 10px;
@@ -552,7 +552,7 @@
 .im-tag-empty { font-size: 12px; color: #444; font-style: italic; }
 .im-tag-chip {
   font-family: var(--font); font-size: 11px; padding: 3px 10px;
-  border-radius: 12px; border: 1px solid #3a2a1a;
+  border-radius: 12px; border: 1px solid #3a2510;
   background: rgba(255,255,255,0.03); color: #666; cursor: pointer;
   transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
@@ -561,14 +561,14 @@
 .im-tag-chip.active::after { content: " ×"; opacity: 0.6; font-size: 10px; margin-left: 1px; }
 .im-tag-add-btn {
   font-family: var(--font); font-size: 11px; padding: 3px 8px;
-  background: none; border: 1px dashed #3a2a1a;
+  background: none; border: 1px dashed #3a2510;
   border-radius: 12px; color: #555; cursor: pointer;
   transition: color 0.12s, border-color 0.12s; white-space: nowrap;
 }
 .im-tag-add-btn:hover { color: var(--accent); border-color: var(--accent); }
 .im-tag-new-input {
   font-family: var(--font); font-size: 12px; padding: 4px 8px;
-  background: rgba(255,255,255,0.04); border: 1px solid #3a2a1a;
+  background: rgba(255,255,255,0.04); border: 1px solid #3a2510;
   border-radius: 4px; color: var(--text); outline: none; margin-top: 4px; width: 140px;
 }
 .im-tag-new-input:focus { border-color: var(--accent); }
@@ -589,7 +589,7 @@
   width: 18px; height: 18px;
   border: 2px solid #554433;
   border-radius: 4px;
-  background: #2a1810;
+  background: #3a1a05;
   flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   transition: background 0.15s, border-color 0.15s;
@@ -600,7 +600,7 @@
 .checkbox-label input[type="checkbox"]:checked + .checkbox-box::after {
   content: "";
   width: 5px; height: 9px;
-  border: 2px solid #1a0a00;
+  border: 2px solid #140c05;
   border-top: none; border-left: none;
   transform: rotate(45deg) translate(-1px, -1px);
   display: block;
@@ -626,7 +626,7 @@
 .im-ability-name-input {
   grid-column: 1;
   grid-row: 1;
-  background: #2a1810;
+  background: #3a1a05;
   border: 1px solid #554433;
   border-radius: 4px;
   color: var(--text);
@@ -637,7 +637,7 @@
 .im-ability-desc-input {
   grid-column: 1 / -1;
   grid-row: 2;
-  background: #2a1810;
+  background: #3a1a05;
   border: 1px solid #554433;
   border-radius: 4px;
   color: var(--text);
@@ -707,4 +707,30 @@
 
 @media (prefers-reduced-motion: reduce) {
   .item-card::after { animation: none !important; }
+}
+
+/* ── Equipment import banner ── */
+.equip-import-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: rgba(255,204,102,0.07);
+  border: 1px solid rgba(255,204,102,0.28);
+  border-radius: 8px;
+  padding: 12px 18px;
+  margin-bottom: 18px;
+  animation: fadeInUp 0.3s ease both;
+}
+.equip-import-text {
+  font-size: 13px;
+  color: var(--text);
+  font-family: var(--font);
+  flex: 1;
+  min-width: 200px;
+}
+.equip-import-actions {
+  display: flex;
+  gap: 8px;
 }

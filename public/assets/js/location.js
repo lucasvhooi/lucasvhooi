@@ -55,6 +55,8 @@ let currentTavernMarker = null;
 // ── DOM Refs ──────────────────────────────────────────────────────────────────
 const locTitle        = document.getElementById("loc-title");
 const locStats        = document.getElementById("loc-stats");
+const locHero         = document.querySelector(".loc-hero");
+const locHeroBg       = document.getElementById("loc-hero-bg");
 const locMapContainer = document.getElementById("loc-map-container");
 const locMapImg       = document.getElementById("loc-map-img");
 const locMapPlaceholder = document.getElementById("loc-map-placeholder");
@@ -140,19 +142,17 @@ function renderDescription() {
   }
 }
 
-// ── Render Feature Image (location banner) ────────────────────────────────────
-const locFeatureImg   = document.getElementById("loc-feature-img");
-const locFeatureImgPh = document.getElementById("loc-feature-img-ph");
-
+// ── Render Feature Image (hero background) ────────────────────────────────────
 function renderFeatureImage() {
   const url = locationInfo.featureImageUrl;
   if (url) {
-    locFeatureImg.src = url;
-    locFeatureImg.style.display = "block";
-    locFeatureImgPh.style.display = "none";
+    locHeroBg.style.backgroundImage = `url('${url}')`;
+    locHeroBg.classList.add("loaded");
+    locHero.classList.add("has-bg-image");
   } else {
-    locFeatureImg.style.display = "none";
-    locFeatureImgPh.style.display = "flex";
+    locHeroBg.style.backgroundImage = "";
+    locHeroBg.classList.remove("loaded");
+    locHero.classList.remove("has-bg-image");
   }
 }
 
@@ -925,15 +925,14 @@ if (locFeatureUpload) {
   locFeatureUpload.addEventListener("change", async () => {
     const file = locFeatureUpload.files[0];
     if (!file) return;
-    locFeatureImgPh.innerHTML = `<span style="color:#aaa;font-size:13px">Compressing…</span>`;
-    locFeatureImgPh.style.display = "flex";
-    locFeatureImg.style.display = "none";
+    locHero.classList.add("hero-uploading");
     try {
       const base64 = await compressImage(file, 1200, 0.85);
       await set(ref(db, `campaigns/${cid}/locations/${locationId}/info/featureImageUrl`), base64);
     } catch {
-      locFeatureImgPh.innerHTML = `<span style="color:#E57373;font-size:13px">Upload failed.</span>`;
+      // upload failed — image unchanged
     }
+    locHero.classList.remove("hero-uploading");
     locFeatureUpload.value = "";
   });
 }
