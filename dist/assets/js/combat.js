@@ -481,9 +481,12 @@ function clearAllConditions(idx) {
 }
 
 // ── Add / Edit Modal ──────────────────────────────────────────────────────────
-const combatantModal  = document.getElementById("combatant-modal");
-const cmTitle         = document.getElementById("cm-title");
-const cmName          = document.getElementById("cm-name");
+const combatantModal    = document.getElementById("combatant-modal");
+const cmTitle           = document.getElementById("cm-title");
+const cmName            = document.getElementById("cm-name");
+const cmPlayerPickRow   = document.getElementById("cm-player-pick-row");
+const cmPlayerList      = document.getElementById("cm-player-list");
+let   _selectedPlayerUid = null;
 const cmAc            = document.getElementById("cm-ac");
 const cmHp            = document.getElementById("cm-hp");
 const cmMaxHp         = document.getElementById("cm-maxhp");
@@ -553,15 +556,58 @@ function updatePlayerFields() {
   const isPlayer    = selectedType === "player";
   const isEnemy     = selectedType === "enemy";
   const isAddEnemy  = isEnemy && editingIdx === null;
+  const isAddPlayer = isPlayer && editingIdx === null;
 
-  // Simplified add-enemy mode: template search + initiative + count only
-  cmNameRow.style.display        = isAddEnemy ? "none" : "";
+  cmNameRow.style.display        = (isAddEnemy || isAddPlayer) ? "none" : "";
+  cmPlayerPickRow.style.display  = isAddPlayer ? "" : "none";
   cmEnemyTmplRow.style.display   = isAddEnemy ? ""     : "none";
   cmEnemyCountRow.style.display  = isAddEnemy ? ""     : "none";
   cmNonPlayerRows.style.display  = isAddEnemy || isPlayer ? "none" : "";
-  document.getElementById("cm-preset-row").style.display = isAddEnemy ? "none" : (isPlayer ? "none" : "");
+  document.getElementById("cm-preset-row").style.display = isAddEnemy || isPlayer ? "none" : "";
   cmLootRows.style.display       = isEnemy && !isAddEnemy ? "" : "none";
   cmInitLabel.firstChild.textContent = isPlayer ? "Initiative rolled" : "Initiative";
+
+  if (isAddPlayer) _renderPlayerPicker();
+}
+
+function _renderPlayerPicker() {
+  // Re-render when any Firebase data arrives late (module script is deferred)
+  window._onCampaignPlayersLoaded = _renderPlayerPicker;
+  window._onUsersLoaded           = _renderPlayerPicker;
+
+  cmPlayerList.innerHTML = "";
+  _selectedPlayerUid = null;
+  const users        = window._allUsers || {};
+  const members      = window._campaignMembers || {};
+  const displayNames = window._campaignDisplayNames || {};
+
+  const uids = Object.keys(members).length
+    ? Object.keys(members)
+    : Object.keys(users);
+
+  const entries = uids
+    .map(uid => [uid, users[uid]])
+    .filter(([, u]) => u && u.username);
+
+  if (!entries.length) {
+    cmPlayerList.innerHTML = `<div class="cm-player-empty">No players found in this campaign.</div>`;
+    return;
+  }
+  entries.forEach(([uid, u]) => {
+    const displayName = displayNames[uid] || u.username;
+    const btn = document.createElement("button");
+    btn.type      = "button";
+    btn.className = "cm-player-btn";
+    btn.dataset.uid = uid;
+    btn.innerHTML = `<span class="cm-player-dot" style="background:${escHtml(u.color || "#888")}"></span><span>${escHtml(displayName)}</span>`;
+    btn.addEventListener("click", () => {
+      cmPlayerList.querySelectorAll(".cm-player-btn").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      _selectedPlayerUid = uid;
+      cmName.value = displayName;
+    });
+    cmPlayerList.appendChild(btn);
+  });
 }
 
 // ── d20 roll button ───────────────────────────────────────────────────────────
@@ -686,6 +732,7 @@ function openModal(idx) {
     cmCountInput.value = 1;
     selectedType = "enemy";   // default to enemy since that's the common case
     cmSave.textContent = "Add";
+    _selectedPlayerUid = null;
     // Reset loot fields
     cmLootGpMin.value = cmLootGpMax.value = cmLootItemsMin.value = cmLootItemsMax.value = "0";
     setActiveLootTags([]);
@@ -697,7 +744,7 @@ function openModal(idx) {
   setTimeout(() => (editingIdx === null && selectedType === "enemy" ? cmEnemyTmplSearch : cmName).focus(), 60);
 }
 
-function closeModal() { combatantModal.classList.remove("open"); editingIdx = null; }
+function closeModal() { combatantModal.classList.remove("open"); editingIdx = null; window._onCampaignPlayersLoaded = null; window._onUsersLoaded = null; }
 cmCancel.addEventListener("click", closeModal);
 combatantModal.addEventListener("click", e => { if (e.target === combatantModal) closeModal(); });
 cmName.addEventListener("keydown", e => { if (e.key === "Enter") cmSave.click(); });
@@ -741,6 +788,33 @@ cmSave.addEventListener("click", () => {
     }
     const label = count > 1 ? `${t.name} ×${count}` : t.name;
     addLog(`+  ${label} added.`, "info");
+    closeModal();
+    render();
+    return;
+  }
+
+  // Simplified add-player path
+  if (isPlayer && editingIdx === null) {
+    if (!_selectedPlayerUid) { cmError.textContent = "Select a player from the list."; return; }
+    const u           = (window._allUsers || {})[_selectedPlayerUid];
+    const displayNames = window._campaignDisplayNames || {};
+    const playerName  = displayNames[_selectedPlayerUid] || (u ? u.username : "Player");
+    const initVal    = parseInt(cmInit.value, 10);
+    state.combatants.push({
+      id:         genId(),
+      name:       playerName,
+      type:       "player",
+      initiative: isNaN(initVal) ? 0 : initVal,
+      hp:         0,
+      maxHp:      0,
+      ac:         0,
+      conditions: [],
+      notes:      null,
+      loot:       null,
+      color:      u?.color || null,
+      uid:        _selectedPlayerUid,
+    });
+    addLog(`+  ${playerName} added.`, "info");
     closeModal();
     render();
     return;
@@ -1329,16 +1403,33 @@ window._onSystemFlagsLoaded = _checkAndSeedLoot;
 
 // Called every time Firebase pushes an update
 window._onEnemyTemplatesUpdate = () => {
-  enemyTemplates = (window._enemyTemplates || [])
-    .slice()
-    .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  const firebaseList = window._enemyTemplates || [];
 
-  // First load: if the DB is empty, seed it with every MONSTER_PRESET
-  if (!_hasSeededPresets && window._enemyTemplatesLoaded && enemyTemplates.length === 0) {
+  // First load: if the campaign DB is empty, seed it with every MONSTER_PRESET
+  if (!_hasSeededPresets && window._enemyTemplatesLoaded && firebaseList.length === 0) {
     _hasSeededPresets = true;
     _seedPresetsToFirebase();
     return; // onValue will fire again once writes land
   }
+
+  // Merge Firebase templates with hardcoded presets; Firebase takes priority (deduplicated by name)
+  const seen = new Set();
+  enemyTemplates = [
+    ...firebaseList,
+    ...MONSTER_PRESETS.map(p => ({
+      ...p,
+      builtin: true,
+      id: "preset_" + p.name.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+    })),
+  ]
+    .filter(t => {
+      if (!t.name) return false;
+      const key = t.name.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 
   _checkAndSeedLoot(); // also check if loot version needs updating
   renderTemplateList();
@@ -1858,8 +1949,9 @@ function generateLootFor(combatant) {
       if (iMax > 0 && dropped_count >= maxToDrop) break;
       const chance = item.chance ?? 100;
       if (Math.random() * 100 < chance) {
+        const fullItem = item.id ? ((window._combatItems || []).find(ci => ci.id === item.id) || {}) : {};
         for (let q = 0; q < (item.qty || 1); q++) {
-          dropped.push({ name: item.name, rarity: item.rarity || "common", price: item.price ?? null });
+          dropped.push({ name: item.name, rarity: item.rarity || "common", price: item.price ?? null, type: fullItem.type || item.type || null, description: fullItem.description || item.description || null });
         }
         dropped_count++;
       }
@@ -1876,7 +1968,7 @@ function generateLootFor(combatant) {
     for (let i = 0; i < count && remaining.length > 0; i++) {
       const picked = weightedItemPick(remaining);
       if (picked) {
-        dropped.push({ name: picked.name, rarity: picked.rarity || "common", price: picked.price ?? null });
+        dropped.push({ name: picked.name, rarity: picked.rarity || "common", price: picked.price ?? null, type: picked.type || null, description: picked.description || null });
         remaining.splice(remaining.indexOf(picked), 1);
       }
     }

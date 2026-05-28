@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 ---
-<Layout title="Inventory — DnD Campaign" showCampaignTabs={true} activePage="inventory" extraCSS={['/assets/css/lore.css', '/assets/css/spells.css', '/assets/css/items.css', '/assets/css/inventory.css']}>
+<Layout title="Inventory — Essolis" activePage="inventory" extraCSS={['/assets/css/lore.css', '/assets/css/spells.css', '/assets/css/items.css', '/assets/css/inventory.css']}>
 
   <header class="inv-hero page-hero">
     <button class="manage-btn" id="manage-btn" style="display:none"><iconify-icon icon="lucide:settings"></iconify-icon> Players</button>
@@ -197,7 +197,6 @@ import Layout from '../layouts/Layout.astro';
       </div>
       <div class="modal-body">
         <div class="qe-layout">
-          <!-- Left column: identity -->
           <div class="qe-col">
             <div class="form-row">
               <label>Name <span class="req">*</span>
@@ -219,7 +218,6 @@ import Layout from '../layouts/Layout.astro';
             </div>
           </div>
 
-          <!-- Right column: mechanics -->
           <div class="qe-col">
             <div class="form-row">
               <label>Base Price (gp) <span class="req">*</span>
@@ -253,7 +251,6 @@ import Layout from '../layouts/Layout.astro';
           </div>
         </div>
 
-        <!-- Full-width: abilities -->
         <div class="form-row">
           <label>Abilities</label>
           <div id="qe-abilities-list" class="im-abilities-list"></div>
@@ -289,7 +286,6 @@ import Layout from '../layouts/Layout.astro';
 
   <script is:inline type="module" src="/assets/js/inventory.js"></script>
 
-  <!-- Framer Motion: staggered card reveal on filter/render -->
   <script>
     import { animate } from 'framer-motion/dom';
 
@@ -301,18 +297,13 @@ import Layout from '../layouts/Layout.astro';
 
       const observer = new MutationObserver(mutations => {
         for (const m of mutations) {
-          // Large removal signals a full grid rebuild
           if (m.removedNodes.length > 2) {
             rebuilding = true;
             batch = [];
           }
-
           for (const node of m.addedNodes) {
             const el = node as HTMLElement;
-            if (
-              node.nodeType === 1 &&
-              (el.classList?.contains('inv-card') || el.classList?.contains('spell-card'))
-            ) {
+            if (node.nodeType === 1 && (el.classList?.contains('inv-card') || el.classList?.contains('spell-card'))) {
               if (rebuilding) {
                 el.style.opacity = '0';
                 el.style.transform = 'translateY(6px) scale(0.98)';
@@ -321,15 +312,12 @@ import Layout from '../layouts/Layout.astro';
             }
           }
         }
-
         if (!rebuilding) return;
-
         if (timer) clearTimeout(timer);
         timer = setTimeout(() => {
           const cards = batch.splice(0);
           rebuilding = false;
           if (!cards.length) return;
-
           cards.forEach((card, i) => {
             animate(card, { opacity: 1, y: 0, scale: 1 }, {
               duration: 0.24,

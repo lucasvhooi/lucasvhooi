@@ -1,26 +1,26 @@
 ---
-import Navbar from '../components/Navbar.astro';
+import Sidebar from '../components/Sidebar.astro';
 
 interface Props {
   title?: string;
-  showCampaignTabs?: boolean;
+  showNav?: boolean;
   activePage?: string;
   extraCSS?: string[];
-  showNav?: boolean;
   bodyClass?: string;
+  pageContentStyle?: string;
 }
 
 const {
   title = 'Essolis — DnD Campaign',
-  showCampaignTabs = false,
+  showNav = true,
   activePage = '',
   extraCSS = [],
-  showNav = true,
   bodyClass = '',
+  pageContentStyle = '',
 } = Astro.props;
 ---
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class={showNav ? 'app-layout' : undefined}>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -34,8 +34,15 @@ const {
   <script is:inline src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script>
 </head>
 <body class={bodyClass || undefined}>
-  {showNav && <Navbar showCampaignTabs={showCampaignTabs} activePage={activePage} />}
-  <slot />
+  {showNav && (
+    <div class="app-shell">
+      <Sidebar activePage={activePage} />
+      <div class="page-content" style={pageContentStyle || undefined}>
+        <slot />
+      </div>
+    </div>
+  )}
+  {!showNav && <slot />}
   {showNav && <script is:inline src="/assets/js/base.js"></script>}
 </body>
 </html>

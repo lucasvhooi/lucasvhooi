@@ -127,10 +127,14 @@ if (spellbookRef) {
 
 async function toggleSaveSpell(spellId) {
   if (!_userId) return;
-  if (savedSpellIds.has(spellId)) {
-    await remove(ref(db, `campaigns/${cid}/spellbook/${_userId}/${spellId}`));
-  } else {
-    await set(ref(db, `campaigns/${cid}/spellbook/${_userId}/${spellId}`), { savedAt: Date.now() });
+  try {
+    if (savedSpellIds.has(spellId)) {
+      await remove(ref(db, `campaigns/${cid}/spellbook/${_userId}/${spellId}`));
+    } else {
+      await set(ref(db, `campaigns/${cid}/spellbook/${_userId}/${spellId}`), { savedAt: Date.now() });
+    }
+  } catch (e) {
+    console.error("Spellbook save failed:", e);
   }
 }
 

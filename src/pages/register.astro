@@ -241,8 +241,13 @@ import Layout from '../layouts/Layout.astro';
              signInWithPopup }                                   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { ref, get, set }                                     from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
     import { saveSession, getSession }                           from "/assets/js/auth.js";
+    import { isBannedUsername }                                  from "/assets/js/username-filter.js";
 
     if (getSession()) window.location.href = "campaigns";
+
+    function generateTag() {
+      return String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+    }
 
     function randomColor() {
       const h = Math.floor(Math.random() * 360);
@@ -291,8 +296,11 @@ import Layout from '../layouts/Layout.astro';
       const color  = document.getElementById('r-color-text').value || randomColor();
 
       if (!name || !email || !pass || !invite) { showErr('Please fill in all fields.'); return; }
+      if (/\s/.test(name))                     { showErr('Username cannot contain spaces.'); return; }
+      if (name.length < 2)                     { showErr('Username must be at least 2 characters.'); return; }
+      if (isBannedUsername(name))              { showErr('That username is not allowed.'); return; }
       if (pass.length < 6)                     { showErr('Password must be at least 6 characters.'); return; }
-      if (pass !== pass2)                       { showErr('Passwords do not match.'); return; }
+      if (pass !== pass2)                      { showErr('Passwords do not match.'); return; }
 
       const btn = document.getElementById('btn-register');
       btn.disabled = true; btn.textContent = 'Checking…';
@@ -307,9 +315,10 @@ import Layout from '../layouts/Layout.astro';
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, pass);
         const uid  = cred.user.uid;
-        const profile = { username: name, role: 'player', color };
+        const tag = generateTag();
+        const profile = { username: name, role: 'player', color, tag };
         await set(ref(db, `users/${uid}`), profile);
-        saveSession({ id: uid, username: name, role: 'player', color });
+        saveSession({ id: uid, username: name, role: 'player', color, tag });
         window.location.href = 'campaigns';
       } catch (e) {
         if (e.code === 'auth/email-already-in-use') {
@@ -346,11 +355,15 @@ import Layout from '../layouts/Layout.astro';
         let profile = snap.val();
 
         if (!profile) {
-          profile = { username: cred.user.displayName || 'Adventurer', role: 'player', color: randomColor() };
+          const tag = generateTag();
+          profile = { username: cred.user.displayName || 'Adventurer', role: 'player', color: randomColor(), tag };
           await set(ref(db, `users/${uid}`), profile);
+        } else if (!profile.tag) {
+          profile.tag = generateTag();
+          await set(ref(db, `users/${uid}/tag`), profile.tag);
         }
 
-        saveSession({ id: uid, username: profile.username, role: profile.role || 'player', color: profile.color || '#c8a45c' });
+        saveSession({ id: uid, username: profile.username, role: profile.role || 'player', color: profile.color || '#c8a45c', tag: profile.tag });
         window.location.href = 'campaigns';
       } catch (e) {
         if (e.code !== 'auth/popup-closed-by-user') showErr('Google sign-in failed. Please try again.');

@@ -1,0 +1,139 @@
+---
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  title: string;
+  description: string;
+  image?: ImageMetadata;
+  icon?: string;
+}
+
+const { title, description, image, icon = 'lucide:layers' } = Astro.props;
+const hasActions = Astro.slots.has('actions');
+const hasTabs    = Astro.slots.has('tabs');
+const hasAny     = hasActions || hasTabs;
+---
+
+<div class={`page-header${hasAny ? ' has-controls' : ''}`}
+     style={image ? `background-image: url('${image.src}')` : ''}>
+  <div class="page-header-overlay"></div>
+
+  <div class="page-header-content">
+    <h1 class="page-header-title">{title}</h1>
+    <div class="page-header-ornament">
+      <div class="page-header-ornament-line"></div>
+      <iconify-icon icon={icon} style="font-size:18px;color:rgba(200,164,92,0.55)"></iconify-icon>
+      <div class="page-header-ornament-line right"></div>
+    </div>
+    <p class="page-header-sub">{description}</p>
+  </div>
+
+  {hasActions && (
+    <div class="page-header-actions">
+      <slot name="actions" />
+    </div>
+  )}
+
+  {hasTabs && (
+    <div class="page-header-tabs">
+      <slot name="tabs" />
+    </div>
+  )}
+</div>
+
+<style>
+  .page-header {
+    position: relative;
+    padding: 48px 40px 52px;
+    text-align: center;
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center 35%;
+    background-color: #1a1209;
+  }
+
+  /* When controls are present, bottom padding is provided by the tabs row */
+  .page-header.has-controls {
+    padding-bottom: 0;
+  }
+
+  /* Gradient: stays relatively light through the title and actions zone,
+     then drops off sharply so the tabs row sits on near-black */
+  .page-header-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(10, 6, 2, 0.42) 0%,
+      rgba(10, 6, 2, 0.50) 48%,
+      rgba(10, 6, 2, 0.88) 74%,
+      rgba(10, 6, 2, 0.97) 88%,
+      rgba(10, 6, 2, 0.99) 100%
+    );
+    pointer-events: none;
+  }
+
+  .page-header-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .page-header-title {
+    font-family: var(--title);
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    color: #ffffff;
+    letter-spacing: 0.06em;
+    margin: 0 0 14px;
+    text-shadow: 0 2px 24px rgba(0,0,0,0.7), 0 4px 60px rgba(200,164,92,0.18);
+  }
+
+  .page-header-ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+
+  .page-header-ornament-line {
+    width: 160px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(200,164,92,0.9));
+  }
+
+  .page-header-ornament-line.right {
+    background: linear-gradient(to left, transparent, rgba(200,164,92,0.9));
+  }
+
+  .page-header-sub {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.62);
+    margin: 0 0 18px;
+    text-shadow: 0 1px 10px rgba(0,0,0,0.6);
+  }
+
+  /* Search + action buttons — sits above the dark gradient zone */
+  .page-header-actions {
+    position: relative;
+    z-index: 2;
+    margin-top: 20px;
+    padding: 0 0 16px;
+  }
+
+  /* Tag tabs — anchored at the very bottom on the darkest part of the gradient */
+  .page-header-tabs {
+    position: relative;
+    z-index: 2;
+    padding: 11px 0 14px;
+    border-top: 1px solid rgba(200,164,92,0.1);
+  }
+
+  @media (max-width: 700px) {
+    .page-header { padding: 36px 20px 36px; }
+    .page-header.has-controls { padding-bottom: 0; }
+    .page-header-ornament-line { width: 70px; }
+    .page-header-actions { padding-bottom: 14px; }
+    .page-header-tabs { padding: 10px 0 12px; }
+  }
+</style>

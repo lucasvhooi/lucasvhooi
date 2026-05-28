@@ -1,0 +1,109 @@
+---
+interface Props {
+  activePage?: string;
+}
+const { activePage = '' } = Astro.props;
+
+const campaignLinks = [
+  { href: '/inventory',   label: 'Inventory',  icon: 'lucide:backpack',           page: 'inventory'   },
+  { href: '/missions',    label: 'Missions',   icon: 'lucide:compass',            page: 'missions'    },
+  { href: '/exploration', label: 'Characters', icon: 'lucide:users',              page: 'exploration' },
+  { href: '/items',       label: 'Items',      icon: 'lucide:shopping-bag',       page: 'items',       dmOnly: true },
+  { href: '/map',         label: 'Map',        icon: 'lucide:map',                page: 'map'         },
+  { href: '/lore',        label: 'Lore',       icon: 'lucide:book-open',          page: 'lore'        },
+  { href: '/combat',      label: 'Combat',     icon: 'game-icons:crossed-swords', page: 'combat',      dmOnly: true },
+  { href: '/spells',      label: 'Spells',     icon: 'lucide:sparkles',           page: 'spells'      },
+];
+---
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <img src="/Images/EssolisLogo.webp" alt="Essolis" />
+    <span class="sidebar-wordmark">Essolis</span>
+    <div class="sidebar-logo-ornament">
+      <div class="sidebar-ornament-line"></div>
+      <iconify-icon icon="lucide:crown" style="font-size:13px;color:rgba(200,164,92,0.45);flex-shrink:0"></iconify-icon>
+      <div class="sidebar-ornament-line"></div>
+    </div>
+  </div>
+
+  <div class="sidebar-nav">
+    <a href="/campaigns" class={`sidebar-nav-item${activePage === 'campaigns' ? ' active' : ''}`}>
+      <iconify-icon icon="lucide:layout-grid" style="font-size:16px;flex-shrink:0"></iconify-icon>
+      Campaigns
+    </a>
+
+    <div id="sidebar-campaign-section" style="display:none">
+      <div class="sidebar-nav-divider">
+        <div class="sidebar-nav-divider-line"></div>
+        <span class="sidebar-nav-section-label">Campaign</span>
+        <div class="sidebar-nav-divider-line"></div>
+      </div>
+
+      {campaignLinks.map(link => (
+        <a
+          href={link.href}
+          class={`sidebar-nav-item${activePage === link.page ? ' active' : ''}`}
+          data-dm-only={link.dmOnly ? '' : undefined}
+          style={link.dmOnly ? 'display:none' : undefined}
+        >
+          <iconify-icon icon={link.icon} style="font-size:16px;flex-shrink:0"></iconify-icon>
+          {link.label}
+        </a>
+      ))}
+    </div>
+  </div>
+
+  <a href="/account" class={`sidebar-account-btn${activePage === 'account' ? ' active' : ''}`}>
+    <div class="sidebar-avatar" id="sidebar-avatar"></div>
+    <span class="sidebar-username" id="sidebar-username">Loading…</span>
+  </a>
+</aside>
+
+<script is:inline>
+(function () {
+  var session;
+  try { session = JSON.parse(localStorage.getItem('playerSession')); } catch (e) {}
+  if (!session) return;
+
+  function usernameToColor(name) {
+    var hash = 0, s = name || 'x';
+    for (var i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+    var hues = [12, 32, 52, 160, 200, 220, 260, 280, 320];
+    return 'hsl(' + hues[hash % hues.length] + ', 52%, 48%)';
+  }
+
+  var avatarEl    = document.getElementById('sidebar-avatar');
+  var usernameEl  = document.getElementById('sidebar-username');
+  if (avatarEl)  avatarEl.style.background = session.color || usernameToColor(session.username || '');
+  if (usernameEl && session.username) usernameEl.textContent = session.username;
+
+  var onCampaignsPage = window.location.pathname.replace(/\/$/, '') === '/campaigns';
+  if (session.campaignId && !onCampaignsPage) {
+    var section = document.getElementById('sidebar-campaign-section');
+    if (section) section.style.display = '';
+  }
+
+  var isDM = session.role === 'admin' || session.role === 'dm';
+  if (isDM) {
+    document.querySelectorAll('[data-dm-only]').forEach(function (el) { el.style.display = ''; });
+  }
+
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('.sidebar-nav-item, .sidebar-account-btn').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        var href = a.getAttribute('href');
+        if (!href || href.charAt(0) === '#') return;
+        if (href.indexOf('http') === 0 && href.indexOf(window.location.host) === -1) return;
+        e.preventDefault();
+        document.body.animate(
+          [{ opacity: 1, transform: 'translateY(0)' }, { opacity: 0, transform: 'translateY(-6px)' }],
+          { duration: 180, easing: 'cubic-bezier(0.5,0,0.75,0)', fill: 'forwards' }
+        ).finished
+          .then(function () { window.location.href = href; })
+          .catch(function () { window.location.href = href; });
+      });
+    });
+  }
+})();
+</script>

@@ -1,385 +1,385 @@
-Name,Type1,Type2,Weight (lbs),Price (golds)
-Abacus,Adventuring Gear,Utility,2,2
-Acid (vial),Adventuring Gear,"Combat, Damage, Utility",1,25
-Airship,Adventuring Gear,"Exploration, Movement, Utility",,20000
-Alchemist's Fire (flask),Adventuring Gear,"Combat, Consumable, Damage, Utility",1,50
-Alchemist's Supplies,Tool,Utility,8,50
-Alexandrite,Gemstone,,,500
-Alms Box,Adventuring Gear,Utility,,
-Amber,Gemstone,,,100
-Amethyst,Gemstone,,,100
-Amulet,Holy Symbol,Utility,1,5
-Antimatter Rifle,Firearms Ranged Weapon,Necrotic,10,
-Antitoxin,Adventuring Gear,"Healing, Utility",,50
-Aquamarine,Gemstone,,,500
-Arcane Focus,Arcane Focus,Utility,,
-Arrows,Ammunition,"Combat, Damage",1,1
-Assassin's Blood (Ingested),Poison,"Consumable, Damage",,150
-Axe Beak,Mount,"Speed 50 ft., Carrying Capacity 420 lbs.",,50
-Azurite,Gemstone,,,10
-Backpack,Adventuring Gear,Container,5,2
-Bad News (Exandria),Firearms Ranged Weapon,Piercing,25,
-Bad News Bullets,Ammunition,,,10
-Baipes,Tool,Instrument,6,30
-"Ball Bearings (bag of 1,000)",Adventuring Gear,"Combat, Control, Utility",2,1
-Banded Agate,Gemstone,,,10
-Barding,Adventuring Gear,"Cost x4, Weight x2",,
-Barrel,Adventuring Gear,Container,70,2
-Basket,Adventuring Gear,Container,2,
-Battleaxe,Martial Melee Weapon,Slashing,4,10
-Bedroll,Adventuring Gear,Utility,7,1
-Bell,Adventuring Gear,"Communication, Utility",,1
-Birdpipes,Tool,Instrument,2,12
-Bit and Bridle,Adventuring Gear,Utility,1,2
-Black Opal,Gemstone,,,1000
-Black Pearl,Gemstone,,,500
-Black Sap,Potion,Explorer's Guide to Wildemount,,300
-Black Sapphire,Gemstone,,,5000
-Blanket,Adventuring Gear,Utility,3,
-Blasting Powder,Adventuring Gear,from Explorer's Guide to Wildemount - Chapter 5,,
-Blight Ichor,Potion,Explorer's Guide to Wildemount,,200
-Block and Tackle,Adventuring Gear,"Exploration, Movement, Utility",5,1
-Block of Incense,Adventuring Gear,"Social, Utility",,
-Blood of the Lycanthrope (Injury),Poison,Consumable,,
-Bloodstone,Gemstone,,,50
-Blowgun,Martial Ranged Weapon,Piercing,1,10
-Blowgun Needles,Ammunition,"Combat, Damage",1,1
-Blue quartz,Gemstone,,,10
-Blue Sapphire,Gemstone,,,1000
-Blue spinel,Gemstone,,,500
-Blunderbuss (Exandria),Firearms Ranged Weapon,Piercing,10,300
-Blunderbuss Bullets,Ammunition,,,5
-Bomb,Adventuring Gear,"Combat, Damage",1,150
-Book,Adventuring Gear,"Social, Utility",5,25
-Boomerang,Simple Ranged Weapon,Bludgeoning,,
-Boots,Adventuring Gear,,,
-"Bottle, Glass",Adventuring Gear,Container,2,2
-Breastplate,Medium Armor,AC 14,20,400
-Brewer's Supplies,Tool,Utility,9,20
-Bucket,Adventuring Gear,Container,2,
-"Bullets, Modern",Ammunition,"Combat, Damage",1,
-"Bullets, Renaissance",Ammunition,"Combat, Damage",2,3
-Burglar's Pack,Equipment Pack,"Container, Exploration, Utility",47 1/2,16
-Burnt Othur Fumes (Inhaled),Poison,"Consumable, Damage",,500
-Calligrapher's Supplies,Tool,Utility,5,10
-Caltrops (bag of 20),Adventuring Gear,"Combat, Damage, Movement",2,1
-Camel,Mount,"Speed 50 ft., Carrying Capacity 480 lbs.",,50
-Candle,Adventuring Gear,"Consumable, Exploration, Utility",,
-Canoe,Adventuring Gear,Utility,,50
-Carnelian,Gemstone,,,50
-Carpenter's Tools,Tool,Utility,6,8
-Carriage,Vehicle (Land),"Exploration, Movement, Utility",600,100
-Cart,Vehicle (Land),"Exploration, Movement, Utility",200,15
-Cartographer's Tools,Tool,Utility,6,15
-"Case, Crossbow Bolt",Adventuring Gear,Container,1,1
-"Case, Map or Scroll",Adventuring Gear,Container,1,1
-Censer,Adventuring Gear,Utility,,
-Chain (10 feet),Adventuring Gear,Utility,10,5
-Chain Mail,Heavy Armor,AC 16,55,75
-Chain Shirt,Medium Armor,AC 13,20,50
-Chalcedony,Gemstone,,,50
-Chalk (1 piece),Adventuring Gear,"Communication, Consumable, Utility",,
-Chariot,Vehicle (Land),"Exploration, Movement, Utility",100,250
-Chest,Adventuring Gear,Container,25,5
-Chrysoberyl,Gemstone,,,100
-Chrysoprase,Gemstone,,,50
-Citrine,Gemstone,,,50
-Climber's Kit,Adventuring Gear,"Exploration, Movement, Utility",12,25
-"Clothes, Common",Adventuring Gear,"Outerwear, Social",3,
-"Clothes, Costume",Adventuring Gear,"Deception, Outerwear, Social",4,5
-"Clothes, Fine",Adventuring Gear,"Outerwear, Social",6,15
-"Clothes, Traveler's",Adventuring Gear,"Outerwear, Social",4,2
-"Clothing, cold weather",Adventuring Gear,"Exploration, Outerwear, Utility",5,10
-Club,Simple Melee Weapon,Bludgeoning,2,
-Cobbler's Tools,Tool,Utility,5,5
-Component Pouch,Adventuring Gear,"Container, Utility",2,25
-Cook's Utensils,Tool,Utility,8,1
-Coral,Gemstone,,,100
-Crampons,Adventuring Gear,"Exploration, Utility",01/04/21,2
-Crawler Mucus (Contact),Poison,"Consumable, Damage, Debuff",,200
-Crossbow Bolts,Ammunition,"Combat, Damage",1 1/2,1
-"Crossbow, Hand",Martial Ranged Weapon,Piercing,3,75
-"Crossbow, Heavy",Martial Ranged Weapon,Piercing,18,50
-"Crossbow, Light",Simple Ranged Weapon,Piercing,5,25
-Crowbar,Adventuring Gear,"Exploration, Utility",5,2
-Crystal,Arcane Focus,Utility,1,10
-Dagger,Simple Melee Weapon,Piercing,1,2
-Dart,Simple Ranged Weapon,Piercing,01/04/21,
-Diamond,Gemstone,,,5000
-Dice Set,Tool,Social,,
-Diplomat's Pack,Equipment Pack,"Container, Exploration, Outerwear, Social, Utility",36,39
-Disguise Kit,Tool,"Deception, Utility",3,25
-Dogsled,Vehicle (Land),"Exploration, Movement, Utility",300,20
-Donkey (or Mule),Mount,"Speed 40 ft., Carrying Capacity 420 lbs.",,8
-Double-Bladed Scimitar,Martial Melee Weapon,Slashing,6,100
-Draft Horse,Mount,"Speed 40 ft., Carrying Capacity 540 lbs.",,50
-Dragonchess Set,Tool,Social,01/02/21,1
-Dragon's Blood,Poison,,,
-Dreamlily,Poison,,,1
-Drow Poison (Injury),Poison,"Consumable, Damage, Debuff",,200
-Druidic Focus,Druidic Focus,Utility,,
-Drum,Tool,Instrument,3,6
-Dulcimer,Tool,Instrument,10,25
-Dungeoneer's Pack,Equipment Pack,"Container, Exploration, Utility",61 1/2,12
-Dust of the Mummy (Inhaled),Poison,Consumable,,
-Dynamite (Stick),Adventuring Gear,"Combat, Damage",1,
-Eberron Dragonshard,Adventuring Gear,Component,,
-Elephant,Mount,"Speed 40 ft., Carrying Capacity 1,320 lbs.",,200
-Emblem,Holy Symbol,Utility,,5
-Emerald,Gemstone,,,1000
-Energy Cell,Ammunition,"Combat, Damage",,
-Entertainer's Pack,Equipment Pack,"Container, Deception, Exploration, Outerwear, Social, Utility",38,40
-Essence of Ether (Inhaled),Poison,"Consumable, Damage, Debuff",,300
-Explorer's Pack,Equipment Pack,"Container, Exploration, Utility",59,10
-Explosive Seed,Adventuring Gear,from Explorer's Guide to Wildemount - Chapter 5,,
-Eye agate,Gemstone,,,10
-Feed (per day),Adventuring Gear,"Consumable, Utility",10,
-Fire Opal,Gemstone,,,1000
-Fishing Tackle,Adventuring Gear,"Social, Utility",4,1
-Flail,Martial Melee Weapon,Bludgeoning,2,10
-Flask or Tankard,Adventuring Gear,Container,1,
-Flute,Tool,Instrument,1,2
-Forgery Kit,Tool,"Deception, Utility",5,15
-Galley,Vehicle (Water),Speed 4 mph,,30000
-Garnet,Gemstone,,,100
-Glaive,Martial Melee Weapon,Slashing,6,20
-Glassblower's Tools,Tool,Utility,5,30
-Glaur,Tool,Instrument,2,3
-Grappling Hook,Adventuring Gear,"Exploration, Utility",4,2
-Greataxe,Martial Melee Weapon,Slashing,7,30
-Greatclub,Simple Melee Weapon,Bludgeoning,10,
-Greatsword,Martial Melee Weapon,Slashing,6,50
-Grenade Launcher,Adventuring Gear,"Combat, Control, Damage",7,
-"Grenade, Fragmentation",Adventuring Gear,"Combat, Damage",1,
-"Grenade, Smoke",Adventuring Gear,"Combat, Control",2,
-"Gunpowder, Keg",Adventuring Gear,"Combat, Damage",20,250
-"Gunpowder, Powder Horn",Adventuring Gear,"Combat, Damage",2,35
-Halberd,Martial Melee Weapon,Slashing,6,20
-Half Plate,Medium Armor,AC 15,40,750
-Hammer,Adventuring Gear,Utility,3,1
-"Hammer, Sledge",Adventuring Gear,Utility,10,2
-Hand Drum,Tool,Instrument,3,6
-Hand Mortar (Exandria),Firearms Ranged Weapon,Fire,10,
-Hand Mortar Ammunition,Ammunition,,,10
-Handaxe,Simple Melee Weapon,Slashing,2,5
-Healer's Kit,Adventuring Gear,"Combat, Healing",3,5
-Helm,Adventuring Gear,,,
-Hematite,Gemstone,,,10
-Herbalism Kit,Tool,"Healing, Utility",3,5
-Hide,Medium Armor,AC 12,12,10
-Holy Symbol,Holy Symbol,Utility,,
-Holy Water (flask),Adventuring Gear,"Combat, Damage, Utility",1,25
-Horn,Tool,Instrument,2,3
-Hourglass,Adventuring Gear,Utility,1,25
-Hunting Trap,Adventuring Gear,"Damage, Utility",25,5
-Ink (1 ounce bottle),Adventuring Gear,"Communication, Consumable, Social, Utility",,10
-Ink Pen,Adventuring Gear,"Communication, Social, Utility",,
-Insect Repellent-Incense,Adventuring Gear,Utility,,
-Insect Repellent-Salve,Adventuring Gear,Utility,,1
-Jacinth,Gemstone,,,5000
-Jade,Gemstone,,,100
-Jasper,Gemstone,,,50
-Javelin,Simple Melee Weapon,Piercing,2,
-Jet,Gemstone,,,100
-Jeweler's Tools,Tool,Utility,2,25
-Jug or Pitcher,Adventuring Gear,Container,4,
-Keelboat,Vehicle (Water),Speed 1 mph,,3000
-Khyber Dragonshard,Adventuring Gear,Component,,
-Ladder (10 foot),Adventuring Gear,"Exploration, Utility",25,
-Lamp,Adventuring Gear,"Exploration, Utility",1,
-Lance,Martial Melee Weapon,Piercing,6,10
-"Lantern, Bullseye",Adventuring Gear,"Exploration, Utility",2,10
-"Lantern, Hooded",Adventuring Gear,"Exploration, Utility",2,5
-Lapis Lazuli,Gemstone,,,10
-Laser Pistol,Firearms Ranged Weapon,Radiant,2,
-Laser Rifle,Firearms Ranged Weapon,Radiant,7,
-Leather,Light Armor,AC 11,10,10
-Leatherworker's Tools,Tool,Utility,5,5
-Light Hammer,Simple Melee Weapon,Bludgeoning,2,2
-Little Bag of Sand,Adventuring Gear,Utility,,
-Lock,Adventuring Gear,"Utility, Warding",1,10
-Longbow,Martial Ranged Weapon,Piercing,2,50
-Longhorn,Tool,Instrument,1,2
-Longship,Vehicle (Water),Speed 3 mph,,10000
-Longsword,Martial Melee Weapon,Slashing,3,15
-Lute,Tool,Instrument,2,35
-Lyre,Tool,Instrument,2,30
-Mace,Simple Melee Weapon,Bludgeoning,4,5
-Magnifying Glass,Adventuring Gear,"Detection, Exploration, Utility",,100
-Malachite,Gemstone,,,10
-Malice (Inhaled),Poison,"Consumable, Damage, Debuff",,250
-Manacles,Adventuring Gear,"Control, Utility",6,2
-Mason's Tools,Tool,Utility,8,10
-Mastiff,Mount,"Speed 40 ft., Carrying Capacity 195 lbs.",,25
-Maul,Martial Melee Weapon,Bludgeoning,10,10
-Mess Kit,Adventuring Gear,"Social, Utility",1,
-Midnight Tears (Ingested),Poison,"Consumable, Damage",,1500
-"Mirror, Steel",Adventuring Gear,"Social, Utility",01/02/21,5
-Monster Hunter's Pack,Equipment Pack,"Container, Control, Utility",49,33
-Moonstone,Gemstone,,,50
-Moorbounder,Mount,from Explorer's Guide to Wildemount - chapter 3,,400
-Morningstar,Martial Melee Weapon,Piercing,4,15
-Moss agate,Gemstone,,,10
-Muroosa Balm,Potion,Explorer's Guide to Wildemount,,100
-Musket,Firearms Ranged Weapon,Piercing,10,500
-Musket (Exandria),Firearms Ranged Weapon,Piercing,10,300
-Musket (Exandria) Bullets,Ammunition,,,5
-Navigator's Tools,Tool,"Exploration, Utility",2,25
-Net,Martial Ranged Weapon,Bludgeoning,3,1
-Obsidian,Gemstone,,,10
-Oil (flask),Adventuring Gear,"Combat, Damage, Utility",1,
-Oil of Taggit (Contact),Poison,"Consumable, Damage, Debuff",,400
-Olisuba Leaf,Potion,Explorer's Guide to Wildemount,,50
-Onyx,Gemstone,,,50
-Opal,Gemstone,,,1000
-Orb,Arcane Focus,Utility,3,20
-Padded,Light Armor,AC 11,8,5
-Painter's Supplies,Tool,Utility,5,10
-Pale Tincture (Ingested),Poison,"Consumable, Damage, Debuff",,250
-Palm Pistol (Exandria),Firearms Ranged Weapon,Piercing,1,50
-Palm Pistol Bullets,Ammunition,,,2
-Pan Flute,Tool,Instrument,2,12
-Paper (one sheet),Adventuring Gear,"Communication, Consumable, Social, Utility",,
-Parchment (one sheet),Adventuring Gear,"Communication, Consumable, Social, Utility",,
-Pearl,Gemstone,,,100
-Pepperbox (Exandria),Firearms Ranged Weapon,Piercing,5,250
-Pepperbox Bullets,Ammunition,,,4
-Perfume (vial),Adventuring Gear,"Consumable, Social, Utility",,5
-Peridot,Gemstone,,,500
-"Pick, Miner's",Adventuring Gear,Utility,10,2
-Pike,Martial Melee Weapon,Piercing,18,5
-Pistol,Firearms Ranged Weapon,Piercing,3,250
-Pistol (Exandria),Firearms Ranged Weapon,Piercing,3,150
-Pistol (Exandria) Bullets,Ammunition,,,4
-"Pistol, Automatic",Firearms Ranged Weapon,Piercing,3,
-Piton,Adventuring Gear,Utility,01/04/21,
-Plate,Heavy Armor,AC 18,65,1500
-Playing Card Set,Tool,Social,,
-"Poison, Basic (vial)",Poison,"Combat, Consumable, Damage, Utility",,100
-Poisoner's Kit,Tool,Utility,2,50
-Pole (10-foot),Adventuring Gear,"Exploration, Utility",7,
-Pony,Mount,"Speed 40 ft., Carrying Capacity 225 lbs.",,30
-"Pot, Iron",Adventuring Gear,Container,10,2
-Potion of Healing,Potion,"Combat, Consumable, Healing",01/02/21,50
-Potter's Tools,Tool,Utility,3,10
-Pouch,Adventuring Gear,Container,1,
-Pride Silk,Adventuring Gear,Explorer's Guide to Wildemount,1,100
-Pride Silk Outfit,Light Armor,AC 11,4,500
-Priest's Pack,Equipment Pack,"Container, Exploration, Outerwear, Social, Utility",24,19
-Purple Worm Poison (Injury),Poison,"Consumable, Damage, Debuff",,2000
-Quarterstaff,Simple Melee Weapon,Bludgeoning,4,
-Quartz,Gemstone,,,50
-Quiver,Adventuring Gear,Container,1,1
-Rain Catcher,Adventuring Gear,Utility,5,1
-"Ram, Portable",Adventuring Gear,"Exploration, Utility",35,4
-Rapier,Martial Melee Weapon,Piercing,2,25
-Rations (1 day),Adventuring Gear,"Consumable, Social, Utility",2,
-Reliquary,Holy Symbol,Utility,2,5
-Revolver,Firearms Ranged Weapon,Piercing,3,
-Rhodochrosite,Gemstone,,,10
-Riding Horse,Mount,"Speed 60 ft., Carrying Capacity 480 lbs.",,75
-"Rifle, Automatic",Firearms Ranged Weapon,Piercing,8,
-"Rifle, Hunting",Firearms Ranged Weapon,Piercing,8,
-Ring Mail,Heavy Armor,AC 14,40,30
-Robes,Adventuring Gear,"Outerwear, Utility",4,1
-Rod,Arcane Focus,Utility,2,10
-"Rope, Hempen (50 feet)",Adventuring Gear,"Exploration, Utility",10,1
-"Rope, Silk (50 feet)",Adventuring Gear,"Exploration, Utility",5,10
-Rowboat,Vehicle (Water),Speed 1 1/2 mph,100,50
-Ruby,Gemstone,,,5000
-Sack,Adventuring Gear,Container,01/02/21,
-"Saddle, Exotic",Adventuring Gear,Utility,40,60
-"Saddle, Military",Adventuring Gear,Utility,30,20
-"Saddle, Pack",Adventuring Gear,Utility,15,5
-"Saddle, Riding",Adventuring Gear,Utility,25,10
-Saddlebags,Adventuring Gear,"Container, Utility",8,4
-Sailing Ship,Vehicle (Water),Speed 2 mph,,10000
-Sardonyx,Gemstone,,,50
-Scale Mail,Medium Armor,AC 14,45,50
-"Scale, Merchant's",Adventuring Gear,"Social, Utility",3,5
-Scholar's Pack,Equipment Pack,"Container, Social, Utility",10,40
-Scimitar,Martial Melee Weapon,Slashing,3,25
-Sealing Wax,Adventuring Gear,"Communication, Consumable, Social, Utility",,
-Serpent Venom (Injury),Poison,"Consumable, Damage, Debuff",,200
-Shawm,Tool,Instrument,1,2
-Shield,Shield,AC 2,6,10
-Shortbow,Simple Ranged Weapon,Piercing,2,25
-Shortsword,Martial Melee Weapon,Piercing,2,10
-Shotgun,Firearms Ranged Weapon,Piercing,7,
-Shovel,Adventuring Gear,Utility,5,2
-Siberys Dragonshard,Adventuring Gear,Component,,
-Sickle,Simple Melee Weapon,Slashing,2,1
-Signal Whistle,Adventuring Gear,"Communication, Utility",,
-Signet Ring,Adventuring Gear,"Communication, Social, Utility",,5
-Skyship,Vehicle (Land),Explorer's Guide to Wildemount,,100000
-Sled,Vehicle (Land),"Exploration, Movement, Utility",300,20
-Sled Dog,Mount,"Speed 40 ft., Pulling Capacity 360 lbs.",,50
-Sling,Simple Ranged Weapon,Bludgeoning,,
-Sling Bullets,Ammunition,"Combat, Damage",1 1/2,
-Small Knife,Adventuring Gear,Utility,,
-Smith's Tools,Tool,Utility,8,20
-Snowshoes,Adventuring Gear,"Exploration, Utility",4,2
-Soap,Adventuring Gear,"Consumable, Social, Utility",,
-Songhorn,Tool,Instrument,1,2
-Soothsalts,Potion,Explorer's Guide to Wildemount,,150
-Spear,Simple Melee Weapon,Piercing,3,1
-Spellbook,Adventuring Gear,Utility,3,50
-Spiked Armor,Medium Armor,AC 14,45,75
-"Spikes, Iron (10)",Adventuring Gear,Utility,5,1
-Spinel,Gemstone,,,100
-Splint,Heavy Armor,AC 17,60,200
-Sprig of Mistletoe,Druidic Focus,Utility,,1
-Spyglass,Adventuring Gear,"Exploration, Social, Utility",1,1000
-Staff,Arcane Focus,Utility,4,5
-Stake (Wooden),Adventuring Gear,Utility,,
-Star Rose Quartz,Gemstone,,,50
-Star Ruby,Gemstone,,,1000
-Star Sapphire,Gemstone,,,1000
-String,Adventuring Gear,Utility,,
-Studded Leather,Light Armor,AC 12,13,45
-Tangler Grenade,Adventuring Gear,"Combat, Consumable, Control, Utility",,
-Tantan,Tool,Instrument,3,6
-Tej,Adventuring Gear,,,
-"Tent, Two-Person",Adventuring Gear,"Exploration, Social, Utility",20,2
-Theki Root,Potion,Explorer's Guide to Wildemount,,3
-Thelarr,Tool,Instrument,1,2
-Thessaltoxin (Ingested or Injury),Poison,Consumable,,
-Thieves' Tools,Tool,"Exploration, Utility",1,25
-Three-Dragon Ante Set,Tool,Social,,1
-Tiger Eye,Gemstone,,,10
-Tinderbox,Adventuring Gear,"Exploration, Utility",1,
-Tinker's Tools,Tool,Utility,10,50
-Tocken,Tool,Instrument,3,6
-Topaz,Gemstone,,,500
-Torch,Adventuring Gear,"Combat, Damage, Exploration, Utility",1,
-Torpor (Ingested),Poison,"Consumable, Damage, Debuff",,600
-Totem,Druidic Focus,Utility,,1
-Tourmaline,Gemstone,,,100
-Trident,Martial Melee Weapon,Piercing,4,5
-Truth Serum (Ingested),Poison,"Consumable, Debuff, Utility",,150
-Turquoise,Gemstone,,,10
-Vestments,Adventuring Gear,"Social, Utility",,
-Vial,Adventuring Gear,Container,,1
-Viol,Tool,Instrument,1,30
-Wagon,Vehicle (Land),"Exploration, Movement, Utility",400,35
-Wand,Arcane Focus,Utility,1,10
-War Pick,Martial Melee Weapon,Piercing,2,5
-Wargong,Tool,Instrument,6,30
-Warhammer,Martial Melee Weapon,Bludgeoning,2,15
-Warhorse,Mount,"Speed 60 ft., Carry Capacity 540 lbs.",,400
-Warship,Vehicle (Water),2 1/2 mph,,25000
-Waterskin,Adventuring Gear,Container,5,
-Weaver's Tools,Tool,Utility,5,1
-Whetstone,Adventuring Gear,Utility,1,
-Whip,Martial Melee Weapon,Slashing,3,2
-Whistle-Stick,Tool,Instrument,,
-Willowshade Oil,Potion,,,30
-Woodcarver's Tools,Tool,Utility,5,1
-Wooden Staff,Druidic Focus,Utility,4,5
-Wyvern Poison (Injury),Poison,"Consumable, Damage, Debuff",,1200
-Yarting,Tool,Instrument,2,35
-Yellow sapphire,Gemstone,,,1000
-Yew Wand,Druidic Focus,Utility,1,10
-Yklwa,Simple Melee Weapon,Piercing,2,1
-Zircon,Gemstone,,,10
-Zulkoon,Tool,Instrument,6,30
+Name,Type1,Type2,Weight (lbs),Price (golds),Description
+Abacus,Adventuring Gear,Utility,2,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, abacus can become surprisingly important when the party needs the right tool at the right moment."
+Acid (vial),Adventuring Gear,"Combat, Damage, Utility",1,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, acid (vial) can become surprisingly important when the party needs the right tool at the right moment."
+Airship,Adventuring Gear,"Exploration, Movement, Utility",20000,20000.0,"A large travel vessel or vehicle used to move people and cargo across dangerous distances. Its frame is built for hard journeys, creaking under supplies, passengers, and the promise of adventure."
+Alchemist's Fire (flask),Adventuring Gear,"Combat, Consumable, Damage, Utility",1,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, alchemist's fire (flask) can become surprisingly important when the party needs the right tool at the right moment."
+Alchemist's Supplies,Tool,Utility,8,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, alchemist's supplies can become surprisingly important when the party needs the right tool at the right moment."
+Alexandrite,Gemstone,,0.01,500.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, alexandrite can become surprisingly important when the party needs the right tool at the right moment."
+Alms Box,Adventuring Gear,Utility,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, alms box can become surprisingly important when the party needs the right tool at the right moment."
+Amber,Gemstone,,0.01,100.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, amber can become surprisingly important when the party needs the right tool at the right moment."
+Amethyst,Gemstone,,0.01,100.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, amethyst can become surprisingly important when the party needs the right tool at the right moment."
+Amulet,Holy Symbol,Utility,1,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, amulet can become surprisingly important when the party needs the right tool at the right moment."
+Antimatter Rifle,Firearms Ranged Weapon,Necrotic,10,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, antimatter rifle can become surprisingly important when the party needs the right tool at the right moment."
+Antitoxin,Adventuring Gear,"Healing, Utility",0.5,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, antitoxin can become surprisingly important when the party needs the right tool at the right moment."
+Aquamarine,Gemstone,,0.01,500.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, aquamarine can become surprisingly important when the party needs the right tool at the right moment."
+Arcane Focus,Arcane Focus,Utility,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, arcane focus can become surprisingly important when the party needs the right tool at the right moment."
+Arrows,Ammunition,"Combat, Damage",1,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, arrows can become surprisingly important when the party needs the right tool at the right moment."
+Assassin's Blood (Ingested),Poison,"Consumable, Damage",0.5,150.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, assassin's blood (ingested) can become surprisingly important when the party needs the right tool at the right moment."
+Axe Beak,Mount,"Speed 50 ft., Carrying Capacity 420 lbs.",,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, axe beak can become surprisingly important when the party needs the right tool at the right moment."
+Azurite,Gemstone,,0.01,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, azurite can become surprisingly important when the party needs the right tool at the right moment."
+Backpack,Adventuring Gear,Container,5,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, backpack can become surprisingly important when the party needs the right tool at the right moment."
+Bad News (Exandria),Firearms Ranged Weapon,Piercing,25,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, bad news (exandria) can become surprisingly important when the party needs the right tool at the right moment."
+Bad News Bullets,Ammunition,,0.05,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, bad news bullets can become surprisingly important when the party needs the right tool at the right moment."
+Baipes,Tool,Instrument,6,30.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, baipes can become surprisingly important when the party needs the right tool at the right moment."
+"Ball Bearings (bag of 1,000)",Adventuring Gear,"Combat, Control, Utility",2,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, ball bearings (bag of 1,000) can become surprisingly important when the party needs the right tool at the right moment."
+Banded Agate,Gemstone,,0.01,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, banded agate can become surprisingly important when the party needs the right tool at the right moment."
+Barding,Adventuring Gear,"Cost x4, Weight x2",varies,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, barding can become surprisingly important when the party needs the right tool at the right moment."
+Barrel,Adventuring Gear,Container,70,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, barrel can become surprisingly important when the party needs the right tool at the right moment."
+Basket,Adventuring Gear,Container,2,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, basket can become surprisingly important when the party needs the right tool at the right moment."
+Battleaxe,Martial Melee Weapon,Slashing,4,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, battleaxe can become surprisingly important when the party needs the right tool at the right moment."
+Bedroll,Adventuring Gear,Utility,7,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, bedroll can become surprisingly important when the party needs the right tool at the right moment."
+Bell,Adventuring Gear,"Communication, Utility",0.2,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, bell can become surprisingly important when the party needs the right tool at the right moment."
+Birdpipes,Tool,Instrument,2,12.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, birdpipes can become surprisingly important when the party needs the right tool at the right moment."
+Bit and Bridle,Adventuring Gear,Utility,1,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, bit and bridle can become surprisingly important when the party needs the right tool at the right moment."
+Black Opal,Gemstone,,0.01,1000.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, black opal can become surprisingly important when the party needs the right tool at the right moment."
+Black Pearl,Gemstone,,0.01,500.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, black pearl can become surprisingly important when the party needs the right tool at the right moment."
+Black Sap,Potion,Explorer's Guide to Wildemount,0.5,300.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, black sap can become surprisingly important when the party needs the right tool at the right moment."
+Black Sapphire,Gemstone,,0.01,5000.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, black sapphire can become surprisingly important when the party needs the right tool at the right moment."
+Blanket,Adventuring Gear,Utility,3,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, blanket can become surprisingly important when the party needs the right tool at the right moment."
+Blasting Powder,Adventuring Gear,from Explorer's Guide to Wildemount - Chapter 5,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, blasting powder can become surprisingly important when the party needs the right tool at the right moment."
+Blight Ichor,Potion,Explorer's Guide to Wildemount,0.5,200.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, blight ichor can become surprisingly important when the party needs the right tool at the right moment."
+Block and Tackle,Adventuring Gear,"Exploration, Movement, Utility",5,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, block and tackle can become surprisingly important when the party needs the right tool at the right moment."
+Block of Incense,Adventuring Gear,"Social, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, block of incense can become surprisingly important when the party needs the right tool at the right moment."
+Blood of the Lycanthrope (Injury),Poison,Consumable,0.5,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, blood of the lycanthrope (injury) can become surprisingly important when the party needs the right tool at the right moment."
+Bloodstone,Gemstone,,0.01,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, bloodstone can become surprisingly important when the party needs the right tool at the right moment."
+Blowgun,Martial Ranged Weapon,Piercing,1,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, blowgun can become surprisingly important when the party needs the right tool at the right moment."
+Blowgun Needles,Ammunition,"Combat, Damage",1,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, blowgun needles can become surprisingly important when the party needs the right tool at the right moment."
+Blue quartz,Gemstone,,0.01,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, blue quartz can become surprisingly important when the party needs the right tool at the right moment."
+Blue Sapphire,Gemstone,,0.01,1000.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, blue sapphire can become surprisingly important when the party needs the right tool at the right moment."
+Blue spinel,Gemstone,,0.01,500.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, blue spinel can become surprisingly important when the party needs the right tool at the right moment."
+Blunderbuss (Exandria),Firearms Ranged Weapon,Piercing,10,300.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, blunderbuss (exandria) can become surprisingly important when the party needs the right tool at the right moment."
+Blunderbuss Bullets,Ammunition,,0.05,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, blunderbuss bullets can become surprisingly important when the party needs the right tool at the right moment."
+Bomb,Adventuring Gear,"Combat, Damage",1,150.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, bomb can become surprisingly important when the party needs the right tool at the right moment."
+Book,Adventuring Gear,"Social, Utility",5,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, book can become surprisingly important when the party needs the right tool at the right moment."
+Boomerang,Simple Ranged Weapon,Bludgeoning,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, boomerang can become surprisingly important when the party needs the right tool at the right moment."
+Boots,Adventuring Gear,,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, boots can become surprisingly important when the party needs the right tool at the right moment."
+"Bottle, Glass",Adventuring Gear,Container,2,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, bottle, glass can become surprisingly important when the party needs the right tool at the right moment."
+Breastplate,Medium Armor,AC 14,20,400.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, breastplate can become surprisingly important when the party needs the right tool at the right moment."
+Brewer's Supplies,Tool,Utility,9,20.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, brewer's supplies can become surprisingly important when the party needs the right tool at the right moment."
+Bucket,Adventuring Gear,Container,2,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, bucket can become surprisingly important when the party needs the right tool at the right moment."
+"Bullets, Modern",Ammunition,"Combat, Damage",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, bullets, modern can become surprisingly important when the party needs the right tool at the right moment."
+"Bullets, Renaissance",Ammunition,"Combat, Damage",2,3.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, bullets, renaissance can become surprisingly important when the party needs the right tool at the right moment."
+Burglar's Pack,Equipment Pack,"Container, Exploration, Utility",47 1/2,16.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, burglar's pack can become surprisingly important when the party needs the right tool at the right moment."
+Burnt Othur Fumes (Inhaled),Poison,"Consumable, Damage",0.5,500.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, burnt othur fumes (inhaled) can become surprisingly important when the party needs the right tool at the right moment."
+Calligrapher's Supplies,Tool,Utility,5,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, calligrapher's supplies can become surprisingly important when the party needs the right tool at the right moment."
+Caltrops (bag of 20),Adventuring Gear,"Combat, Damage, Movement",2,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, caltrops (bag of 20) can become surprisingly important when the party needs the right tool at the right moment."
+Camel,Mount,"Speed 50 ft., Carrying Capacity 480 lbs.",,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, camel can become surprisingly important when the party needs the right tool at the right moment."
+Candle,Adventuring Gear,"Consumable, Exploration, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, candle can become surprisingly important when the party needs the right tool at the right moment."
+Canoe,Adventuring Gear,Utility,1,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, canoe can become surprisingly important when the party needs the right tool at the right moment."
+Carnelian,Gemstone,,0.01,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, carnelian can become surprisingly important when the party needs the right tool at the right moment."
+Carpenter's Tools,Tool,Utility,6,8.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, carpenter's tools can become surprisingly important when the party needs the right tool at the right moment."
+Carriage,Vehicle (Land),"Exploration, Movement, Utility",600,100.0,"A large travel vessel or vehicle used to move people and cargo across dangerous distances. Its frame is built for hard journeys, creaking under supplies, passengers, and the promise of adventure."
+Cart,Vehicle (Land),"Exploration, Movement, Utility",200,15.0,"A large travel vessel or vehicle used to move people and cargo across dangerous distances. Its frame is built for hard journeys, creaking under supplies, passengers, and the promise of adventure."
+Cartographer's Tools,Tool,Utility,6,15.0,"A large travel vessel or vehicle used to move people and cargo across dangerous distances. Its frame is built for hard journeys, creaking under supplies, passengers, and the promise of adventure."
+"Case, Crossbow Bolt",Adventuring Gear,Container,1,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, case, crossbow bolt can become surprisingly important when the party needs the right tool at the right moment."
+"Case, Map or Scroll",Adventuring Gear,Container,1,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, case, map or scroll can become surprisingly important when the party needs the right tool at the right moment."
+Censer,Adventuring Gear,Utility,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, censer can become surprisingly important when the party needs the right tool at the right moment."
+Chain (10 feet),Adventuring Gear,Utility,10,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, chain (10 feet) can become surprisingly important when the party needs the right tool at the right moment."
+Chain Mail,Heavy Armor,AC 16,55,75.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, chain mail can become surprisingly important when the party needs the right tool at the right moment."
+Chain Shirt,Medium Armor,AC 13,20,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, chain shirt can become surprisingly important when the party needs the right tool at the right moment."
+Chalcedony,Gemstone,,0.01,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, chalcedony can become surprisingly important when the party needs the right tool at the right moment."
+Chalk (1 piece),Adventuring Gear,"Communication, Consumable, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, chalk (1 piece) can become surprisingly important when the party needs the right tool at the right moment."
+Chariot,Vehicle (Land),"Exploration, Movement, Utility",100,250.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, chariot can become surprisingly important when the party needs the right tool at the right moment."
+Chest,Adventuring Gear,Container,25,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, chest can become surprisingly important when the party needs the right tool at the right moment."
+Chrysoberyl,Gemstone,,0.01,100.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, chrysoberyl can become surprisingly important when the party needs the right tool at the right moment."
+Chrysoprase,Gemstone,,0.01,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, chrysoprase can become surprisingly important when the party needs the right tool at the right moment."
+Citrine,Gemstone,,0.01,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, citrine can become surprisingly important when the party needs the right tool at the right moment."
+Climber's Kit,Adventuring Gear,"Exploration, Movement, Utility",12,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, climber's kit can become surprisingly important when the party needs the right tool at the right moment."
+"Clothes, Common",Adventuring Gear,"Outerwear, Social",3,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, clothes, common can become surprisingly important when the party needs the right tool at the right moment."
+"Clothes, Costume",Adventuring Gear,"Deception, Outerwear, Social",4,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, clothes, costume can become surprisingly important when the party needs the right tool at the right moment."
+"Clothes, Fine",Adventuring Gear,"Outerwear, Social",6,15.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, clothes, fine can become surprisingly important when the party needs the right tool at the right moment."
+"Clothes, Traveler's",Adventuring Gear,"Outerwear, Social",4,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, clothes, traveler's can become surprisingly important when the party needs the right tool at the right moment."
+"Clothing, cold weather",Adventuring Gear,"Exploration, Outerwear, Utility",5,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, clothing, cold weather can become surprisingly important when the party needs the right tool at the right moment."
+Club,Simple Melee Weapon,Bludgeoning,2,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, club can become surprisingly important when the party needs the right tool at the right moment."
+Cobbler's Tools,Tool,Utility,5,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, cobbler's tools can become surprisingly important when the party needs the right tool at the right moment."
+Component Pouch,Adventuring Gear,"Container, Utility",2,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, component pouch can become surprisingly important when the party needs the right tool at the right moment."
+Cook's Utensils,Tool,Utility,8,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, cook's utensils can become surprisingly important when the party needs the right tool at the right moment."
+Coral,Gemstone,,0.01,100.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, coral can become surprisingly important when the party needs the right tool at the right moment."
+Crampons,Adventuring Gear,"Exploration, Utility",01/04/21,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, crampons can become surprisingly important when the party needs the right tool at the right moment."
+Crawler Mucus (Contact),Poison,"Consumable, Damage, Debuff",0.5,200.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, crawler mucus (contact) can become surprisingly important when the party needs the right tool at the right moment."
+Crossbow Bolts,Ammunition,"Combat, Damage",1 1/2,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, crossbow bolts can become surprisingly important when the party needs the right tool at the right moment."
+"Crossbow, Hand",Martial Ranged Weapon,Piercing,3,75.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, crossbow, hand can become surprisingly important when the party needs the right tool at the right moment."
+"Crossbow, Heavy",Martial Ranged Weapon,Piercing,18,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, crossbow, heavy can become surprisingly important when the party needs the right tool at the right moment."
+"Crossbow, Light",Simple Ranged Weapon,Piercing,5,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, crossbow, light can become surprisingly important when the party needs the right tool at the right moment."
+Crowbar,Adventuring Gear,"Exploration, Utility",5,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, crowbar can become surprisingly important when the party needs the right tool at the right moment."
+Crystal,Arcane Focus,Utility,1,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, crystal can become surprisingly important when the party needs the right tool at the right moment."
+Dagger,Simple Melee Weapon,Piercing,1,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, dagger can become surprisingly important when the party needs the right tool at the right moment."
+Dart,Simple Ranged Weapon,Piercing,01/04/21,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, dart can become surprisingly important when the party needs the right tool at the right moment."
+Diamond,Gemstone,,0.01,5000.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, diamond can become surprisingly important when the party needs the right tool at the right moment."
+Dice Set,Tool,Social,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, dice set can become surprisingly important when the party needs the right tool at the right moment."
+Diplomat's Pack,Equipment Pack,"Container, Exploration, Outerwear, Social, Utility",36,39.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, diplomat's pack can become surprisingly important when the party needs the right tool at the right moment."
+Disguise Kit,Tool,"Deception, Utility",3,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, disguise kit can become surprisingly important when the party needs the right tool at the right moment."
+Dogsled,Vehicle (Land),"Exploration, Movement, Utility",300,20.0,"A large travel vessel or vehicle used to move people and cargo across dangerous distances. Its frame is built for hard journeys, creaking under supplies, passengers, and the promise of adventure."
+Donkey (or Mule),Mount,"Speed 40 ft., Carrying Capacity 420 lbs.",,8.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, donkey (or mule) can become surprisingly important when the party needs the right tool at the right moment."
+Double-Bladed Scimitar,Martial Melee Weapon,Slashing,6,100.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, double-bladed scimitar can become surprisingly important when the party needs the right tool at the right moment."
+Draft Horse,Mount,"Speed 40 ft., Carrying Capacity 540 lbs.",,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, draft horse can become surprisingly important when the party needs the right tool at the right moment."
+Dragonchess Set,Tool,Social,01/02/21,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, dragonchess set can become surprisingly important when the party needs the right tool at the right moment."
+Dragon's Blood,Poison,,0.5,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, dragon's blood can become surprisingly important when the party needs the right tool at the right moment."
+Dreamlily,Poison,,0.5,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, dreamlily can become surprisingly important when the party needs the right tool at the right moment."
+Drow Poison (Injury),Poison,"Consumable, Damage, Debuff",0.5,200.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, drow poison (injury) can become surprisingly important when the party needs the right tool at the right moment."
+Druidic Focus,Druidic Focus,Utility,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, druidic focus can become surprisingly important when the party needs the right tool at the right moment."
+Drum,Tool,Instrument,3,6.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, drum can become surprisingly important when the party needs the right tool at the right moment."
+Dulcimer,Tool,Instrument,10,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, dulcimer can become surprisingly important when the party needs the right tool at the right moment."
+Dungeoneer's Pack,Equipment Pack,"Container, Exploration, Utility",61 1/2,12.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, dungeoneer's pack can become surprisingly important when the party needs the right tool at the right moment."
+Dust of the Mummy (Inhaled),Poison,Consumable,0.5,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, dust of the mummy (inhaled) can become surprisingly important when the party needs the right tool at the right moment."
+Dynamite (Stick),Adventuring Gear,"Combat, Damage",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, dynamite (stick) can become surprisingly important when the party needs the right tool at the right moment."
+Eberron Dragonshard,Adventuring Gear,Component,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, eberron dragonshard can become surprisingly important when the party needs the right tool at the right moment."
+Elephant,Mount,"Speed 40 ft., Carrying Capacity 1,320 lbs.",,200.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, elephant can become surprisingly important when the party needs the right tool at the right moment."
+Emblem,Holy Symbol,Utility,1,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, emblem can become surprisingly important when the party needs the right tool at the right moment."
+Emerald,Gemstone,,0.01,1000.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, emerald can become surprisingly important when the party needs the right tool at the right moment."
+Energy Cell,Ammunition,"Combat, Damage",0.05,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, energy cell can become surprisingly important when the party needs the right tool at the right moment."
+Entertainer's Pack,Equipment Pack,"Container, Deception, Exploration, Outerwear, Social, Utility",38,40.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, entertainer's pack can become surprisingly important when the party needs the right tool at the right moment."
+Essence of Ether (Inhaled),Poison,"Consumable, Damage, Debuff",0.5,300.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, essence of ether (inhaled) can become surprisingly important when the party needs the right tool at the right moment."
+Explorer's Pack,Equipment Pack,"Container, Exploration, Utility",59,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, explorer's pack can become surprisingly important when the party needs the right tool at the right moment."
+Explosive Seed,Adventuring Gear,from Explorer's Guide to Wildemount - Chapter 5,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, explosive seed can become surprisingly important when the party needs the right tool at the right moment."
+Eye agate,Gemstone,,0.01,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, eye agate can become surprisingly important when the party needs the right tool at the right moment."
+Feed (per day),Adventuring Gear,"Consumable, Utility",10,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, feed (per day) can become surprisingly important when the party needs the right tool at the right moment."
+Fire Opal,Gemstone,,0.01,1000.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, fire opal can become surprisingly important when the party needs the right tool at the right moment."
+Fishing Tackle,Adventuring Gear,"Social, Utility",4,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, fishing tackle can become surprisingly important when the party needs the right tool at the right moment."
+Flail,Martial Melee Weapon,Bludgeoning,2,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, flail can become surprisingly important when the party needs the right tool at the right moment."
+Flask or Tankard,Adventuring Gear,Container,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, flask or tankard can become surprisingly important when the party needs the right tool at the right moment."
+Flute,Tool,Instrument,1,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, flute can become surprisingly important when the party needs the right tool at the right moment."
+Forgery Kit,Tool,"Deception, Utility",5,15.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, forgery kit can become surprisingly important when the party needs the right tool at the right moment."
+Galley,Vehicle (Water),Speed 4 mph,1000,30000.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, galley can become surprisingly important when the party needs the right tool at the right moment."
+Garnet,Gemstone,,0.01,100.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, garnet can become surprisingly important when the party needs the right tool at the right moment."
+Glaive,Martial Melee Weapon,Slashing,6,20.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, glaive can become surprisingly important when the party needs the right tool at the right moment."
+Glassblower's Tools,Tool,Utility,5,30.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, glassblower's tools can become surprisingly important when the party needs the right tool at the right moment."
+Glaur,Tool,Instrument,2,3.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, glaur can become surprisingly important when the party needs the right tool at the right moment."
+Grappling Hook,Adventuring Gear,"Exploration, Utility",4,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, grappling hook can become surprisingly important when the party needs the right tool at the right moment."
+Greataxe,Martial Melee Weapon,Slashing,7,30.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, greataxe can become surprisingly important when the party needs the right tool at the right moment."
+Greatclub,Simple Melee Weapon,Bludgeoning,10,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, greatclub can become surprisingly important when the party needs the right tool at the right moment."
+Greatsword,Martial Melee Weapon,Slashing,6,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, greatsword can become surprisingly important when the party needs the right tool at the right moment."
+Grenade Launcher,Adventuring Gear,"Combat, Control, Damage",7,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, grenade launcher can become surprisingly important when the party needs the right tool at the right moment."
+"Grenade, Fragmentation",Adventuring Gear,"Combat, Damage",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, grenade, fragmentation can become surprisingly important when the party needs the right tool at the right moment."
+"Grenade, Smoke",Adventuring Gear,"Combat, Control",2,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, grenade, smoke can become surprisingly important when the party needs the right tool at the right moment."
+"Gunpowder, Keg",Adventuring Gear,"Combat, Damage",20,250.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, gunpowder, keg can become surprisingly important when the party needs the right tool at the right moment."
+"Gunpowder, Powder Horn",Adventuring Gear,"Combat, Damage",2,35.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, gunpowder, powder horn can become surprisingly important when the party needs the right tool at the right moment."
+Halberd,Martial Melee Weapon,Slashing,6,20.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, halberd can become surprisingly important when the party needs the right tool at the right moment."
+Half Plate,Medium Armor,AC 15,40,750.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, half plate can become surprisingly important when the party needs the right tool at the right moment."
+Hammer,Adventuring Gear,Utility,3,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, hammer can become surprisingly important when the party needs the right tool at the right moment."
+"Hammer, Sledge",Adventuring Gear,Utility,10,2.0,"A large travel vessel or vehicle used to move people and cargo across dangerous distances. Its frame is built for hard journeys, creaking under supplies, passengers, and the promise of adventure."
+Hand Drum,Tool,Instrument,3,6.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, hand drum can become surprisingly important when the party needs the right tool at the right moment."
+Hand Mortar (Exandria),Firearms Ranged Weapon,Fire,10,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, hand mortar (exandria) can become surprisingly important when the party needs the right tool at the right moment."
+Hand Mortar Ammunition,Ammunition,,0.05,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, hand mortar ammunition can become surprisingly important when the party needs the right tool at the right moment."
+Handaxe,Simple Melee Weapon,Slashing,2,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, handaxe can become surprisingly important when the party needs the right tool at the right moment."
+Healer's Kit,Adventuring Gear,"Combat, Healing",3,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, healer's kit can become surprisingly important when the party needs the right tool at the right moment."
+Helm,Adventuring Gear,,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, helm can become surprisingly important when the party needs the right tool at the right moment."
+Hematite,Gemstone,,0.01,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, hematite can become surprisingly important when the party needs the right tool at the right moment."
+Herbalism Kit,Tool,"Healing, Utility",3,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, herbalism kit can become surprisingly important when the party needs the right tool at the right moment."
+Hide,Medium Armor,AC 12,12,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, hide can become surprisingly important when the party needs the right tool at the right moment."
+Holy Symbol,Holy Symbol,Utility,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, holy symbol can become surprisingly important when the party needs the right tool at the right moment."
+Holy Water (flask),Adventuring Gear,"Combat, Damage, Utility",1,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, holy water (flask) can become surprisingly important when the party needs the right tool at the right moment."
+Horn,Tool,Instrument,2,3.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, horn can become surprisingly important when the party needs the right tool at the right moment."
+Hourglass,Adventuring Gear,Utility,1,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, hourglass can become surprisingly important when the party needs the right tool at the right moment."
+Hunting Trap,Adventuring Gear,"Damage, Utility",25,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, hunting trap can become surprisingly important when the party needs the right tool at the right moment."
+Ink (1 ounce bottle),Adventuring Gear,"Communication, Consumable, Social, Utility",1,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, ink (1 ounce bottle) can become surprisingly important when the party needs the right tool at the right moment."
+Ink Pen,Adventuring Gear,"Communication, Social, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, ink pen can become surprisingly important when the party needs the right tool at the right moment."
+Insect Repellent-Incense,Adventuring Gear,Utility,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, insect repellent-incense can become surprisingly important when the party needs the right tool at the right moment."
+Insect Repellent-Salve,Adventuring Gear,Utility,1,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, insect repellent-salve can become surprisingly important when the party needs the right tool at the right moment."
+Jacinth,Gemstone,,0.01,5000.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, jacinth can become surprisingly important when the party needs the right tool at the right moment."
+Jade,Gemstone,,0.01,100.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, jade can become surprisingly important when the party needs the right tool at the right moment."
+Jasper,Gemstone,,0.01,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, jasper can become surprisingly important when the party needs the right tool at the right moment."
+Javelin,Simple Melee Weapon,Piercing,2,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, javelin can become surprisingly important when the party needs the right tool at the right moment."
+Jet,Gemstone,,0.01,100.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, jet can become surprisingly important when the party needs the right tool at the right moment."
+Jeweler's Tools,Tool,Utility,2,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, jeweler's tools can become surprisingly important when the party needs the right tool at the right moment."
+Jug or Pitcher,Adventuring Gear,Container,4,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, jug or pitcher can become surprisingly important when the party needs the right tool at the right moment."
+Keelboat,Vehicle (Water),Speed 1 mph,1000,3000.0,"A large travel vessel or vehicle used to move people and cargo across dangerous distances. Its frame is built for hard journeys, creaking under supplies, passengers, and the promise of adventure."
+Khyber Dragonshard,Adventuring Gear,Component,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, khyber dragonshard can become surprisingly important when the party needs the right tool at the right moment."
+Ladder (10 foot),Adventuring Gear,"Exploration, Utility",25,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, ladder (10 foot) can become surprisingly important when the party needs the right tool at the right moment."
+Lamp,Adventuring Gear,"Exploration, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, lamp can become surprisingly important when the party needs the right tool at the right moment."
+Lance,Martial Melee Weapon,Piercing,6,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, lance can become surprisingly important when the party needs the right tool at the right moment."
+"Lantern, Bullseye",Adventuring Gear,"Exploration, Utility",2,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, lantern, bullseye can become surprisingly important when the party needs the right tool at the right moment."
+"Lantern, Hooded",Adventuring Gear,"Exploration, Utility",2,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, lantern, hooded can become surprisingly important when the party needs the right tool at the right moment."
+Lapis Lazuli,Gemstone,,0.01,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, lapis lazuli can become surprisingly important when the party needs the right tool at the right moment."
+Laser Pistol,Firearms Ranged Weapon,Radiant,2,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, laser pistol can become surprisingly important when the party needs the right tool at the right moment."
+Laser Rifle,Firearms Ranged Weapon,Radiant,7,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, laser rifle can become surprisingly important when the party needs the right tool at the right moment."
+Leather,Light Armor,AC 11,10,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, leather can become surprisingly important when the party needs the right tool at the right moment."
+Leatherworker's Tools,Tool,Utility,5,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, leatherworker's tools can become surprisingly important when the party needs the right tool at the right moment."
+Light Hammer,Simple Melee Weapon,Bludgeoning,2,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, light hammer can become surprisingly important when the party needs the right tool at the right moment."
+Little Bag of Sand,Adventuring Gear,Utility,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, little bag of sand can become surprisingly important when the party needs the right tool at the right moment."
+Lock,Adventuring Gear,"Utility, Warding",1,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, lock can become surprisingly important when the party needs the right tool at the right moment."
+Longbow,Martial Ranged Weapon,Piercing,2,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, longbow can become surprisingly important when the party needs the right tool at the right moment."
+Longhorn,Tool,Instrument,1,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, longhorn can become surprisingly important when the party needs the right tool at the right moment."
+Longship,Vehicle (Water),Speed 3 mph,1000,10000.0,"A large travel vessel or vehicle used to move people and cargo across dangerous distances. Its frame is built for hard journeys, creaking under supplies, passengers, and the promise of adventure."
+Longsword,Martial Melee Weapon,Slashing,3,15.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, longsword can become surprisingly important when the party needs the right tool at the right moment."
+Lute,Tool,Instrument,2,35.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, lute can become surprisingly important when the party needs the right tool at the right moment."
+Lyre,Tool,Instrument,2,30.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, lyre can become surprisingly important when the party needs the right tool at the right moment."
+Mace,Simple Melee Weapon,Bludgeoning,4,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, mace can become surprisingly important when the party needs the right tool at the right moment."
+Magnifying Glass,Adventuring Gear,"Detection, Exploration, Utility",1,100.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, magnifying glass can become surprisingly important when the party needs the right tool at the right moment."
+Malachite,Gemstone,,0.01,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, malachite can become surprisingly important when the party needs the right tool at the right moment."
+Malice (Inhaled),Poison,"Consumable, Damage, Debuff",0.5,250.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, malice (inhaled) can become surprisingly important when the party needs the right tool at the right moment."
+Manacles,Adventuring Gear,"Control, Utility",6,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, manacles can become surprisingly important when the party needs the right tool at the right moment."
+Mason's Tools,Tool,Utility,8,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, mason's tools can become surprisingly important when the party needs the right tool at the right moment."
+Mastiff,Mount,"Speed 40 ft., Carrying Capacity 195 lbs.",,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, mastiff can become surprisingly important when the party needs the right tool at the right moment."
+Maul,Martial Melee Weapon,Bludgeoning,10,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, maul can become surprisingly important when the party needs the right tool at the right moment."
+Mess Kit,Adventuring Gear,"Social, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, mess kit can become surprisingly important when the party needs the right tool at the right moment."
+Midnight Tears (Ingested),Poison,"Consumable, Damage",0.5,1500.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, midnight tears (ingested) can become surprisingly important when the party needs the right tool at the right moment."
+"Mirror, Steel",Adventuring Gear,"Social, Utility",01/02/21,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, mirror, steel can become surprisingly important when the party needs the right tool at the right moment."
+Monster Hunter's Pack,Equipment Pack,"Container, Control, Utility",49,33.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, monster hunter's pack can become surprisingly important when the party needs the right tool at the right moment."
+Moonstone,Gemstone,,0.01,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, moonstone can become surprisingly important when the party needs the right tool at the right moment."
+Moorbounder,Mount,from Explorer's Guide to Wildemount - chapter 3,,400.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, moorbounder can become surprisingly important when the party needs the right tool at the right moment."
+Morningstar,Martial Melee Weapon,Piercing,4,15.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, morningstar can become surprisingly important when the party needs the right tool at the right moment."
+Moss agate,Gemstone,,0.01,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, moss agate can become surprisingly important when the party needs the right tool at the right moment."
+Muroosa Balm,Potion,Explorer's Guide to Wildemount,0.5,100.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, muroosa balm can become surprisingly important when the party needs the right tool at the right moment."
+Musket,Firearms Ranged Weapon,Piercing,10,500.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, musket can become surprisingly important when the party needs the right tool at the right moment."
+Musket (Exandria),Firearms Ranged Weapon,Piercing,10,300.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, musket (exandria) can become surprisingly important when the party needs the right tool at the right moment."
+Musket (Exandria) Bullets,Ammunition,,0.05,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, musket (exandria) bullets can become surprisingly important when the party needs the right tool at the right moment."
+Navigator's Tools,Tool,"Exploration, Utility",2,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, navigator's tools can become surprisingly important when the party needs the right tool at the right moment."
+Net,Martial Ranged Weapon,Bludgeoning,3,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, net can become surprisingly important when the party needs the right tool at the right moment."
+Obsidian,Gemstone,,0.01,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, obsidian can become surprisingly important when the party needs the right tool at the right moment."
+Oil (flask),Adventuring Gear,"Combat, Damage, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, oil (flask) can become surprisingly important when the party needs the right tool at the right moment."
+Oil of Taggit (Contact),Poison,"Consumable, Damage, Debuff",0.5,400.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, oil of taggit (contact) can become surprisingly important when the party needs the right tool at the right moment."
+Olisuba Leaf,Potion,Explorer's Guide to Wildemount,0.5,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, olisuba leaf can become surprisingly important when the party needs the right tool at the right moment."
+Onyx,Gemstone,,0.01,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, onyx can become surprisingly important when the party needs the right tool at the right moment."
+Opal,Gemstone,,0.01,1000.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, opal can become surprisingly important when the party needs the right tool at the right moment."
+Orb,Arcane Focus,Utility,3,20.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, orb can become surprisingly important when the party needs the right tool at the right moment."
+Padded,Light Armor,AC 11,8,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, padded can become surprisingly important when the party needs the right tool at the right moment."
+Painter's Supplies,Tool,Utility,5,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, painter's supplies can become surprisingly important when the party needs the right tool at the right moment."
+Pale Tincture (Ingested),Poison,"Consumable, Damage, Debuff",0.5,250.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pale tincture (ingested) can become surprisingly important when the party needs the right tool at the right moment."
+Palm Pistol (Exandria),Firearms Ranged Weapon,Piercing,1,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, palm pistol (exandria) can become surprisingly important when the party needs the right tool at the right moment."
+Palm Pistol Bullets,Ammunition,,0.05,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, palm pistol bullets can become surprisingly important when the party needs the right tool at the right moment."
+Pan Flute,Tool,Instrument,2,12.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pan flute can become surprisingly important when the party needs the right tool at the right moment."
+Paper (one sheet),Adventuring Gear,"Communication, Consumable, Social, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, paper (one sheet) can become surprisingly important when the party needs the right tool at the right moment."
+Parchment (one sheet),Adventuring Gear,"Communication, Consumable, Social, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, parchment (one sheet) can become surprisingly important when the party needs the right tool at the right moment."
+Pearl,Gemstone,,0.01,100.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pearl can become surprisingly important when the party needs the right tool at the right moment."
+Pepperbox (Exandria),Firearms Ranged Weapon,Piercing,5,250.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pepperbox (exandria) can become surprisingly important when the party needs the right tool at the right moment."
+Pepperbox Bullets,Ammunition,,0.05,4.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pepperbox bullets can become surprisingly important when the party needs the right tool at the right moment."
+Perfume (vial),Adventuring Gear,"Consumable, Social, Utility",0.5,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, perfume (vial) can become surprisingly important when the party needs the right tool at the right moment."
+Peridot,Gemstone,,0.01,500.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, peridot can become surprisingly important when the party needs the right tool at the right moment."
+"Pick, Miner's",Adventuring Gear,Utility,10,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pick, miner's can become surprisingly important when the party needs the right tool at the right moment."
+Pike,Martial Melee Weapon,Piercing,18,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pike can become surprisingly important when the party needs the right tool at the right moment."
+Pistol,Firearms Ranged Weapon,Piercing,3,250.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pistol can become surprisingly important when the party needs the right tool at the right moment."
+Pistol (Exandria),Firearms Ranged Weapon,Piercing,3,150.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pistol (exandria) can become surprisingly important when the party needs the right tool at the right moment."
+Pistol (Exandria) Bullets,Ammunition,,0.05,4.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pistol (exandria) bullets can become surprisingly important when the party needs the right tool at the right moment."
+"Pistol, Automatic",Firearms Ranged Weapon,Piercing,3,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pistol, automatic can become surprisingly important when the party needs the right tool at the right moment."
+Piton,Adventuring Gear,Utility,01/04/21,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, piton can become surprisingly important when the party needs the right tool at the right moment."
+Plate,Heavy Armor,AC 18,65,1500.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, plate can become surprisingly important when the party needs the right tool at the right moment."
+Playing Card Set,Tool,Social,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, playing card set can become surprisingly important when the party needs the right tool at the right moment."
+"Poison, Basic (vial)",Poison,"Combat, Consumable, Damage, Utility",0.5,100.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, poison, basic (vial) can become surprisingly important when the party needs the right tool at the right moment."
+Poisoner's Kit,Tool,Utility,2,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, poisoner's kit can become surprisingly important when the party needs the right tool at the right moment."
+Pole (10-foot),Adventuring Gear,"Exploration, Utility",7,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pole (10-foot) can become surprisingly important when the party needs the right tool at the right moment."
+Pony,Mount,"Speed 40 ft., Carrying Capacity 225 lbs.",,30.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pony can become surprisingly important when the party needs the right tool at the right moment."
+"Pot, Iron",Adventuring Gear,Container,10,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pot, iron can become surprisingly important when the party needs the right tool at the right moment."
+Potion of Healing,Potion,"Combat, Consumable, Healing",01/02/21,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, potion of healing can become surprisingly important when the party needs the right tool at the right moment."
+Potter's Tools,Tool,Utility,3,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, potter's tools can become surprisingly important when the party needs the right tool at the right moment."
+Pouch,Adventuring Gear,Container,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pouch can become surprisingly important when the party needs the right tool at the right moment."
+Pride Silk,Adventuring Gear,Explorer's Guide to Wildemount,1,100.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pride silk can become surprisingly important when the party needs the right tool at the right moment."
+Pride Silk Outfit,Light Armor,AC 11,4,500.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, pride silk outfit can become surprisingly important when the party needs the right tool at the right moment."
+Priest's Pack,Equipment Pack,"Container, Exploration, Outerwear, Social, Utility",24,19.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, priest's pack can become surprisingly important when the party needs the right tool at the right moment."
+Purple Worm Poison (Injury),Poison,"Consumable, Damage, Debuff",0.5,2000.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, purple worm poison (injury) can become surprisingly important when the party needs the right tool at the right moment."
+Quarterstaff,Simple Melee Weapon,Bludgeoning,4,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, quarterstaff can become surprisingly important when the party needs the right tool at the right moment."
+Quartz,Gemstone,,0.01,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, quartz can become surprisingly important when the party needs the right tool at the right moment."
+Quiver,Adventuring Gear,Container,1,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, quiver can become surprisingly important when the party needs the right tool at the right moment."
+Rain Catcher,Adventuring Gear,Utility,5,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, rain catcher can become surprisingly important when the party needs the right tool at the right moment."
+"Ram, Portable",Adventuring Gear,"Exploration, Utility",35,4.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, ram, portable can become surprisingly important when the party needs the right tool at the right moment."
+Rapier,Martial Melee Weapon,Piercing,2,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, rapier can become surprisingly important when the party needs the right tool at the right moment."
+Rations (1 day),Adventuring Gear,"Consumable, Social, Utility",2,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, rations (1 day) can become surprisingly important when the party needs the right tool at the right moment."
+Reliquary,Holy Symbol,Utility,2,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, reliquary can become surprisingly important when the party needs the right tool at the right moment."
+Revolver,Firearms Ranged Weapon,Piercing,3,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, revolver can become surprisingly important when the party needs the right tool at the right moment."
+Rhodochrosite,Gemstone,,0.01,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, rhodochrosite can become surprisingly important when the party needs the right tool at the right moment."
+Riding Horse,Mount,"Speed 60 ft., Carrying Capacity 480 lbs.",,75.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, riding horse can become surprisingly important when the party needs the right tool at the right moment."
+"Rifle, Automatic",Firearms Ranged Weapon,Piercing,8,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, rifle, automatic can become surprisingly important when the party needs the right tool at the right moment."
+"Rifle, Hunting",Firearms Ranged Weapon,Piercing,8,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, rifle, hunting can become surprisingly important when the party needs the right tool at the right moment."
+Ring Mail,Heavy Armor,AC 14,40,30.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, ring mail can become surprisingly important when the party needs the right tool at the right moment."
+Robes,Adventuring Gear,"Outerwear, Utility",4,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, robes can become surprisingly important when the party needs the right tool at the right moment."
+Rod,Arcane Focus,Utility,2,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, rod can become surprisingly important when the party needs the right tool at the right moment."
+"Rope, Hempen (50 feet)",Adventuring Gear,"Exploration, Utility",10,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, rope, hempen (50 feet) can become surprisingly important when the party needs the right tool at the right moment."
+"Rope, Silk (50 feet)",Adventuring Gear,"Exploration, Utility",5,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, rope, silk (50 feet) can become surprisingly important when the party needs the right tool at the right moment."
+Rowboat,Vehicle (Water),Speed 1 1/2 mph,100,50.0,"A large travel vessel or vehicle used to move people and cargo across dangerous distances. Its frame is built for hard journeys, creaking under supplies, passengers, and the promise of adventure."
+Ruby,Gemstone,,0.01,5000.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, ruby can become surprisingly important when the party needs the right tool at the right moment."
+Sack,Adventuring Gear,Container,01/02/21,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, sack can become surprisingly important when the party needs the right tool at the right moment."
+"Saddle, Exotic",Adventuring Gear,Utility,40,60.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, saddle, exotic can become surprisingly important when the party needs the right tool at the right moment."
+"Saddle, Military",Adventuring Gear,Utility,30,20.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, saddle, military can become surprisingly important when the party needs the right tool at the right moment."
+"Saddle, Pack",Adventuring Gear,Utility,15,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, saddle, pack can become surprisingly important when the party needs the right tool at the right moment."
+"Saddle, Riding",Adventuring Gear,Utility,25,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, saddle, riding can become surprisingly important when the party needs the right tool at the right moment."
+Saddlebags,Adventuring Gear,"Container, Utility",8,4.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, saddlebags can become surprisingly important when the party needs the right tool at the right moment."
+Sailing Ship,Vehicle (Water),Speed 2 mph,1000,10000.0,"A large travel vessel or vehicle used to move people and cargo across dangerous distances. Its frame is built for hard journeys, creaking under supplies, passengers, and the promise of adventure."
+Sardonyx,Gemstone,,0.01,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, sardonyx can become surprisingly important when the party needs the right tool at the right moment."
+Scale Mail,Medium Armor,AC 14,45,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, scale mail can become surprisingly important when the party needs the right tool at the right moment."
+"Scale, Merchant's",Adventuring Gear,"Social, Utility",3,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, scale, merchant's can become surprisingly important when the party needs the right tool at the right moment."
+Scholar's Pack,Equipment Pack,"Container, Social, Utility",10,40.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, scholar's pack can become surprisingly important when the party needs the right tool at the right moment."
+Scimitar,Martial Melee Weapon,Slashing,3,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, scimitar can become surprisingly important when the party needs the right tool at the right moment."
+Sealing Wax,Adventuring Gear,"Communication, Consumable, Social, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, sealing wax can become surprisingly important when the party needs the right tool at the right moment."
+Serpent Venom (Injury),Poison,"Consumable, Damage, Debuff",0.5,200.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, serpent venom (injury) can become surprisingly important when the party needs the right tool at the right moment."
+Shawm,Tool,Instrument,1,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, shawm can become surprisingly important when the party needs the right tool at the right moment."
+Shield,Shield,AC 2,6,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, shield can become surprisingly important when the party needs the right tool at the right moment."
+Shortbow,Simple Ranged Weapon,Piercing,2,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, shortbow can become surprisingly important when the party needs the right tool at the right moment."
+Shortsword,Martial Melee Weapon,Piercing,2,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, shortsword can become surprisingly important when the party needs the right tool at the right moment."
+Shotgun,Firearms Ranged Weapon,Piercing,7,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, shotgun can become surprisingly important when the party needs the right tool at the right moment."
+Shovel,Adventuring Gear,Utility,5,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, shovel can become surprisingly important when the party needs the right tool at the right moment."
+Siberys Dragonshard,Adventuring Gear,Component,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, siberys dragonshard can become surprisingly important when the party needs the right tool at the right moment."
+Sickle,Simple Melee Weapon,Slashing,2,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, sickle can become surprisingly important when the party needs the right tool at the right moment."
+Signal Whistle,Adventuring Gear,"Communication, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, signal whistle can become surprisingly important when the party needs the right tool at the right moment."
+Signet Ring,Adventuring Gear,"Communication, Social, Utility",1,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, signet ring can become surprisingly important when the party needs the right tool at the right moment."
+Skyship,Vehicle (Land),Explorer's Guide to Wildemount,1000,100000.0,"A large travel vessel or vehicle used to move people and cargo across dangerous distances. Its frame is built for hard journeys, creaking under supplies, passengers, and the promise of adventure."
+Sled,Vehicle (Land),"Exploration, Movement, Utility",300,20.0,"A large travel vessel or vehicle used to move people and cargo across dangerous distances. Its frame is built for hard journeys, creaking under supplies, passengers, and the promise of adventure."
+Sled Dog,Mount,"Speed 40 ft., Pulling Capacity 360 lbs.",,50.0,"A large travel vessel or vehicle used to move people and cargo across dangerous distances. Its frame is built for hard journeys, creaking under supplies, passengers, and the promise of adventure."
+Sling,Simple Ranged Weapon,Bludgeoning,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, sling can become surprisingly important when the party needs the right tool at the right moment."
+Sling Bullets,Ammunition,"Combat, Damage",1 1/2,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, sling bullets can become surprisingly important when the party needs the right tool at the right moment."
+Small Knife,Adventuring Gear,Utility,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, small knife can become surprisingly important when the party needs the right tool at the right moment."
+Smith's Tools,Tool,Utility,8,20.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, smith's tools can become surprisingly important when the party needs the right tool at the right moment."
+Snowshoes,Adventuring Gear,"Exploration, Utility",4,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, snowshoes can become surprisingly important when the party needs the right tool at the right moment."
+Soap,Adventuring Gear,"Consumable, Social, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, soap can become surprisingly important when the party needs the right tool at the right moment."
+Songhorn,Tool,Instrument,1,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, songhorn can become surprisingly important when the party needs the right tool at the right moment."
+Soothsalts,Potion,Explorer's Guide to Wildemount,0.5,150.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, soothsalts can become surprisingly important when the party needs the right tool at the right moment."
+Spear,Simple Melee Weapon,Piercing,3,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, spear can become surprisingly important when the party needs the right tool at the right moment."
+Spellbook,Adventuring Gear,Utility,3,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, spellbook can become surprisingly important when the party needs the right tool at the right moment."
+Spiked Armor,Medium Armor,AC 14,45,75.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, spiked armor can become surprisingly important when the party needs the right tool at the right moment."
+"Spikes, Iron (10)",Adventuring Gear,Utility,5,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, spikes, iron (10) can become surprisingly important when the party needs the right tool at the right moment."
+Spinel,Gemstone,,0.01,100.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, spinel can become surprisingly important when the party needs the right tool at the right moment."
+Splint,Heavy Armor,AC 17,60,200.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, splint can become surprisingly important when the party needs the right tool at the right moment."
+Sprig of Mistletoe,Druidic Focus,Utility,1,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, sprig of mistletoe can become surprisingly important when the party needs the right tool at the right moment."
+Spyglass,Adventuring Gear,"Exploration, Social, Utility",1,1000.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, spyglass can become surprisingly important when the party needs the right tool at the right moment."
+Staff,Arcane Focus,Utility,4,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, staff can become surprisingly important when the party needs the right tool at the right moment."
+Stake (Wooden),Adventuring Gear,Utility,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, stake (wooden) can become surprisingly important when the party needs the right tool at the right moment."
+Star Rose Quartz,Gemstone,,0.01,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, star rose quartz can become surprisingly important when the party needs the right tool at the right moment."
+Star Ruby,Gemstone,,0.01,1000.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, star ruby can become surprisingly important when the party needs the right tool at the right moment."
+Star Sapphire,Gemstone,,0.01,1000.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, star sapphire can become surprisingly important when the party needs the right tool at the right moment."
+String,Adventuring Gear,Utility,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, string can become surprisingly important when the party needs the right tool at the right moment."
+Studded Leather,Light Armor,AC 12,13,45.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, studded leather can become surprisingly important when the party needs the right tool at the right moment."
+Tangler Grenade,Adventuring Gear,"Combat, Consumable, Control, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, tangler grenade can become surprisingly important when the party needs the right tool at the right moment."
+Tantan,Tool,Instrument,3,6.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, tantan can become surprisingly important when the party needs the right tool at the right moment."
+Tej,Adventuring Gear,,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, tej can become surprisingly important when the party needs the right tool at the right moment."
+"Tent, Two-Person",Adventuring Gear,"Exploration, Social, Utility",20,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, tent, two-person can become surprisingly important when the party needs the right tool at the right moment."
+Theki Root,Potion,Explorer's Guide to Wildemount,0.5,3.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, theki root can become surprisingly important when the party needs the right tool at the right moment."
+Thelarr,Tool,Instrument,1,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, thelarr can become surprisingly important when the party needs the right tool at the right moment."
+Thessaltoxin (Ingested or Injury),Poison,Consumable,0.5,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, thessaltoxin (ingested or injury) can become surprisingly important when the party needs the right tool at the right moment."
+Thieves' Tools,Tool,"Exploration, Utility",1,25.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, thieves' tools can become surprisingly important when the party needs the right tool at the right moment."
+Three-Dragon Ante Set,Tool,Social,1,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, three-dragon ante set can become surprisingly important when the party needs the right tool at the right moment."
+Tiger Eye,Gemstone,,0.01,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, tiger eye can become surprisingly important when the party needs the right tool at the right moment."
+Tinderbox,Adventuring Gear,"Exploration, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, tinderbox can become surprisingly important when the party needs the right tool at the right moment."
+Tinker's Tools,Tool,Utility,10,50.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, tinker's tools can become surprisingly important when the party needs the right tool at the right moment."
+Tocken,Tool,Instrument,3,6.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, tocken can become surprisingly important when the party needs the right tool at the right moment."
+Topaz,Gemstone,,0.01,500.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, topaz can become surprisingly important when the party needs the right tool at the right moment."
+Torch,Adventuring Gear,"Combat, Damage, Exploration, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, torch can become surprisingly important when the party needs the right tool at the right moment."
+Torpor (Ingested),Poison,"Consumable, Damage, Debuff",0.5,600.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, torpor (ingested) can become surprisingly important when the party needs the right tool at the right moment."
+Totem,Druidic Focus,Utility,1,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, totem can become surprisingly important when the party needs the right tool at the right moment."
+Tourmaline,Gemstone,,0.01,100.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, tourmaline can become surprisingly important when the party needs the right tool at the right moment."
+Trident,Martial Melee Weapon,Piercing,4,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, trident can become surprisingly important when the party needs the right tool at the right moment."
+Truth Serum (Ingested),Poison,"Consumable, Debuff, Utility",0.5,150.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, truth serum (ingested) can become surprisingly important when the party needs the right tool at the right moment."
+Turquoise,Gemstone,,0.01,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, turquoise can become surprisingly important when the party needs the right tool at the right moment."
+Vestments,Adventuring Gear,"Social, Utility",1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, vestments can become surprisingly important when the party needs the right tool at the right moment."
+Vial,Adventuring Gear,Container,0.5,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, vial can become surprisingly important when the party needs the right tool at the right moment."
+Viol,Tool,Instrument,1,30.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, viol can become surprisingly important when the party needs the right tool at the right moment."
+Wagon,Vehicle (Land),"Exploration, Movement, Utility",400,35.0,"A large travel vessel or vehicle used to move people and cargo across dangerous distances. Its frame is built for hard journeys, creaking under supplies, passengers, and the promise of adventure."
+Wand,Arcane Focus,Utility,1,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, wand can become surprisingly important when the party needs the right tool at the right moment."
+War Pick,Martial Melee Weapon,Piercing,2,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, war pick can become surprisingly important when the party needs the right tool at the right moment."
+Wargong,Tool,Instrument,6,30.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, wargong can become surprisingly important when the party needs the right tool at the right moment."
+Warhammer,Martial Melee Weapon,Bludgeoning,2,15.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, warhammer can become surprisingly important when the party needs the right tool at the right moment."
+Warhorse,Mount,"Speed 60 ft., Carry Capacity 540 lbs.",,400.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, warhorse can become surprisingly important when the party needs the right tool at the right moment."
+Warship,Vehicle (Water),2 1/2 mph,1000,25000.0,"A large travel vessel or vehicle used to move people and cargo across dangerous distances. Its frame is built for hard journeys, creaking under supplies, passengers, and the promise of adventure."
+Waterskin,Adventuring Gear,Container,5,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, waterskin can become surprisingly important when the party needs the right tool at the right moment."
+Weaver's Tools,Tool,Utility,5,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, weaver's tools can become surprisingly important when the party needs the right tool at the right moment."
+Whetstone,Adventuring Gear,Utility,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, whetstone can become surprisingly important when the party needs the right tool at the right moment."
+Whip,Martial Melee Weapon,Slashing,3,2.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, whip can become surprisingly important when the party needs the right tool at the right moment."
+Whistle-Stick,Tool,Instrument,1,,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, whistle-stick can become surprisingly important when the party needs the right tool at the right moment."
+Willowshade Oil,Potion,,0.5,30.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, willowshade oil can become surprisingly important when the party needs the right tool at the right moment."
+Woodcarver's Tools,Tool,Utility,5,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, woodcarver's tools can become surprisingly important when the party needs the right tool at the right moment."
+Wooden Staff,Druidic Focus,Utility,4,5.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, wooden staff can become surprisingly important when the party needs the right tool at the right moment."
+Wyvern Poison (Injury),Poison,"Consumable, Damage, Debuff",0.5,1200.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, wyvern poison (injury) can become surprisingly important when the party needs the right tool at the right moment."
+Yarting,Tool,Instrument,2,35.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, yarting can become surprisingly important when the party needs the right tool at the right moment."
+Yellow sapphire,Gemstone,,0.01,1000.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, yellow sapphire can become surprisingly important when the party needs the right tool at the right moment."
+Yew Wand,Druidic Focus,Utility,1,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, yew wand can become surprisingly important when the party needs the right tool at the right moment."
+Yklwa,Simple Melee Weapon,Piercing,2,1.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, yklwa can become surprisingly important when the party needs the right tool at the right moment."
+Zircon,Gemstone,,0.01,10.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, zircon can become surprisingly important when the party needs the right tool at the right moment."
+Zulkoon,Tool,Instrument,6,30.0,"A useful piece of adventuring gear often found in packs, shops, or supply crates. Though simple at first glance, zulkoon can become surprisingly important when the party needs the right tool at the right moment."

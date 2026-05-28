@@ -55,6 +55,8 @@ let currentTavernMarker = null;
 // ── DOM Refs ──────────────────────────────────────────────────────────────────
 const locTitle        = document.getElementById("loc-title");
 const locStats        = document.getElementById("loc-stats");
+const locHero         = document.querySelector(".loc-hero");
+const locHeroBg       = document.getElementById("loc-hero-bg");
 const locMapContainer = document.getElementById("loc-map-container");
 const locMapImg       = document.getElementById("loc-map-img");
 const locMapPlaceholder = document.getElementById("loc-map-placeholder");
@@ -65,6 +67,10 @@ const locNpcList      = document.getElementById("loc-npc-list");
 const locPlacingBanner = document.getElementById("loc-placing-banner");
 
 // ── Firebase Listeners ────────────────────────────────────────────────────────
+onValue(ref(db, 'npcNames'), snapshot => {
+  window._globalNpcNames = snapshot.val() || null;
+});
+
 onValue(markerDbRef, snapshot => {
   markerData = snapshot.val();
   if (markerData) renderHero();
@@ -136,19 +142,17 @@ function renderDescription() {
   }
 }
 
-// ── Render Feature Image (location banner) ────────────────────────────────────
-const locFeatureImg   = document.getElementById("loc-feature-img");
-const locFeatureImgPh = document.getElementById("loc-feature-img-ph");
-
+// ── Render Feature Image (hero background) ────────────────────────────────────
 function renderFeatureImage() {
   const url = locationInfo.featureImageUrl;
   if (url) {
-    locFeatureImg.src = url;
-    locFeatureImg.style.display = "block";
-    locFeatureImgPh.style.display = "none";
+    locHeroBg.style.backgroundImage = `url('${url}')`;
+    locHeroBg.classList.add("loaded");
+    locHero.classList.add("has-bg-image");
   } else {
-    locFeatureImg.style.display = "none";
-    locFeatureImgPh.style.display = "flex";
+    locHeroBg.style.backgroundImage = "";
+    locHeroBg.classList.remove("loaded");
+    locHero.classList.remove("has-bg-image");
   }
 }
 
@@ -921,15 +925,14 @@ if (locFeatureUpload) {
   locFeatureUpload.addEventListener("change", async () => {
     const file = locFeatureUpload.files[0];
     if (!file) return;
-    locFeatureImgPh.innerHTML = `<span style="color:#aaa;font-size:13px">Compressing…</span>`;
-    locFeatureImgPh.style.display = "flex";
-    locFeatureImg.style.display = "none";
+    locHero.classList.add("hero-uploading");
     try {
       const base64 = await compressImage(file, 1200, 0.85);
       await set(ref(db, `campaigns/${cid}/locations/${locationId}/info/featureImageUrl`), base64);
     } catch {
-      locFeatureImgPh.innerHTML = `<span style="color:#E57373;font-size:13px">Upload failed.</span>`;
+      // upload failed — image unchanged
     }
+    locHero.classList.remove("hero-uploading");
     locFeatureUpload.value = "";
   });
 }
@@ -1013,7 +1016,8 @@ function pickRace(mainRace, popNum) {
 }
 
 function pickName(race) {
-  const pool    = NPC_NAMES[race] || NPC_NAMES["Human"];
+  const source  = window._globalNpcNames || NPC_NAMES;
+  const pool    = source[race] || source["Human"] || NPC_NAMES[race] || NPC_NAMES["Human"];
   const isMale  = Math.random() < 0.5;
   const first   = isMale ? pool.male[Math.floor(Math.random() * pool.male.length)]
                          : pool.female[Math.floor(Math.random() * pool.female.length)];
@@ -1066,8 +1070,9 @@ if (genBtn) {
     genStatus.style.color = "#aaa";
     genStatus.textContent = `Generating ${count} NPCs…`;
 
-    // Build batch with deduplication — reroll if name already exists
-    const usedNames = new Set(npcs.map(n => n.name));
+    // Build batch — deduplicate full names AND first names to reduce repetition
+    const usedNames      = new Set(npcs.map(n => n.name));
+    const usedFirstNames = new Set(npcs.map(n => n.name.split(" ")[0]));
     const batch = [];
     const baseTime = Date.now();
     for (let i = 0; i < count; i++) {
@@ -1076,8 +1081,9 @@ if (genBtn) {
       do {
         npc = generateOneNpc();
         tries++;
-      } while (usedNames.has(npc.name) && tries < 25);
+      } while ((usedNames.has(npc.name) || usedFirstNames.has(npc.name.split(" ")[0])) && tries < 40);
       usedNames.add(npc.name);
+      usedFirstNames.add(npc.name.split(" ")[0]);
       npc.createdAt = baseTime + i;
       batch.push(npc);
     }

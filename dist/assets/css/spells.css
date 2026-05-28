@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(8px) scale(0.97); }
@@ -7,7 +7,7 @@
 
 /* ── Hero ── */
 .spells-hero {
-  background: linear-gradient(180deg, #3a1a05 0%, #2a1005 50%, #1a1a1a 100%);
+  background: linear-gradient(180deg, #3a1a05 0%, #2a1505 50%, #1a1a1a 100%);
   padding: 40px 20px 28px;
   text-align: center;
   border-bottom: 1px solid #3a2510;
@@ -363,7 +363,7 @@
 
 .modal-header {
   background: linear-gradient(135deg, #1e1208 0%, #140c04 100%);
-  border-bottom: 1px solid #2e1c0c;
+  border-bottom: 1px solid #3e2b1b;
   border-radius: 12px 12px 0 0;
   padding: 16px 20px 15px;
   display: flex;
@@ -452,7 +452,7 @@
   gap: 10px;
   margin-bottom: 14px;
   background: rgba(255,255,255,0.02);
-  border: 1px solid #2a1810;
+  border: 1px solid #3a1a05;
   border-radius: 8px;
   padding: 12px;
 }
@@ -506,7 +506,7 @@
 
 .sm-divider {
   border: none;
-  border-top: 1px solid #2e1c0c;
+  border-top: 1px solid #3e2b1b;
   margin: 0 0 14px;
 }
 
@@ -538,7 +538,7 @@
   position: absolute;
   z-index: 1000;
   background: #1e1208;
-  border: 1px solid #4a3010;
+  border: 1px solid #3a2510;
   border-radius: 8px;
   padding: 10px 13px;
   width: 280px;

@@ -261,6 +261,7 @@ import Layout from '../layouts/Layout.astro';
              signInWithPopup }                                       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { ref, get, set }                                         from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
     import { saveSession, getSession }                               from "/assets/js/auth.js";
+    import { isBannedUsername }                                      from "/assets/js/username-filter.js";
 
     const screenLoading = document.getElementById('screen-loading');
     const screenSetup   = document.getElementById('screen-setup');
@@ -277,6 +278,10 @@ import Layout from '../layouts/Layout.astro';
       screenSetup.style.display   = 'block';
     }
     init();
+
+    function generateTag() {
+      return String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+    }
 
     function randomColor() {
       const h = Math.floor(Math.random() * 360);
@@ -300,7 +305,8 @@ import Layout from '../layouts/Layout.astro';
         const cred = await signInWithPopup(auth, new GoogleAuthProvider());
         const uid  = cred.user.uid;
         const color = randomColor();
-        const profile = { username: cred.user.displayName || 'Adventurer', role: 'player', color };
+        const tag = generateTag();
+        const profile = { username: cred.user.displayName || 'Adventurer', role: 'player', color, tag };
         await set(ref(db, `users/${uid}`), profile);
         await set(ref(db, 'setup_complete'), true);
         saveSession({ id: uid, ...profile });
@@ -325,6 +331,7 @@ import Layout from '../layouts/Layout.astro';
       if (!email || !name || !pass) { showErr('Please fill in all fields.'); return; }
       if (/\s/.test(name))          { showErr('Username cannot contain spaces.'); return; }
       if (name.length < 2)          { showErr('Username must be at least 2 characters.'); return; }
+      if (isBannedUsername(name))   { showErr('That username is not allowed.'); return; }
       if (pass.length < 6)          { showErr('Password must be at least 6 characters.'); return; }
       if (pass !== pass2)           { showErr('Passwords do not match.'); return; }
 
@@ -335,7 +342,8 @@ import Layout from '../layouts/Layout.astro';
         const cred  = await createUserWithEmailAndPassword(auth, email, pass);
         const uid   = cred.user.uid;
         const color = randomColor();
-        const profile = { username: name, role: 'player', color };
+        const tag = generateTag();
+        const profile = { username: name, role: 'player', color, tag };
         await set(ref(db, `users/${uid}`), profile);
         await set(ref(db, 'setup_complete'), true);
         saveSession({ id: uid, ...profile });

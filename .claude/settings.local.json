@@ -49,7 +49,12 @@
       "Bash(Select-String \"firebase\")",
       "Bash(git -C \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\" show --stat HEAD)",
       "Bash(git *)",
-      "Bash(powershell -Command ' *)"
+      "Bash(powershell -Command ' *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\" -Force)",
+      "Bash(Select-Object Name, Mode)",
+      "Bash(npx astro *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\" -Recurse -Directory -Name)",
+      "Bash(Select-String \"src\")"
     ]
   }
 }

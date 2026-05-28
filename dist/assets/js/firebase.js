@@ -15,16 +15,6 @@ const firebaseConfig = {
 };
 
 export const firebaseApp = initializeApp(firebaseConfig);
-export const db          = getDatabase(firebaseApp);
-export const storage     = getStorage(firebaseApp);
-export const auth        = getAuth(firebaseApp);
-
-// App Check loaded dynamically so a failure can't crash this module.
-import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check.js")
-  .then(({ initializeAppCheck, ReCaptchaV3Provider }) => {
-    initializeAppCheck(firebaseApp, {
-      provider: new ReCaptchaV3Provider("6LfVwegsAAAAAFRwgrQVA5cqRRsFX_j2gOjt26bz"),
-      isTokenAutoRefreshEnabled: true
-    });
-  })
-  .catch(() => {});
+export const db      = getDatabase(firebaseApp);
+export const storage = getStorage(firebaseApp);
+export const auth    = getAuth(firebaseApp);

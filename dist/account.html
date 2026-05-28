@@ -1,268 +1,359 @@
-<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Account — DnD Campaign</title><link rel="icon" type="image/webp" href="/Images/EssolisLogoWeb.webp"><meta property="og:image" content="/Images/EssolisLogoWeb.webp"><link rel="stylesheet" href="/assets/css/base.css"><link rel="stylesheet" href="/assets/css/base.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet"><script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script></head> <body> <nav> <a href="/campaigns" style="display:flex;align-items:center;flex-shrink:0;margin-right:8px"> <img src="/Images/EssolisLogo.webp" alt="Essolis Logo" class="nav-logo"> </a> <ul>  </ul> </nav>  <style>
-    body { display: flex; flex-direction: column; min-height: 100vh; }
+<!DOCTYPE html><html lang="en" class="app-layout"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Account — Essolis</title><link rel="icon" type="image/webp" href="/Images/EssolisLogoWeb.webp"><meta property="og:image" content="/Images/EssolisLogoWeb.webp"><link rel="stylesheet" href="/assets/css/base.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet"><script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script></head> <body> <div class="app-shell"> <aside class="sidebar"> <div class="sidebar-logo"> <img src="/Images/EssolisLogo.webp" alt="Essolis"> <span class="sidebar-wordmark">Essolis</span> <div class="sidebar-logo-ornament"> <div class="sidebar-ornament-line"></div> <iconify-icon icon="lucide:crown" style="font-size:13px;color:rgba(200,164,92,0.45);flex-shrink:0"></iconify-icon> <div class="sidebar-ornament-line"></div> </div> </div> <div class="sidebar-nav"> <a href="/campaigns" class="sidebar-nav-item"> <iconify-icon icon="lucide:layout-grid" style="font-size:16px;flex-shrink:0"></iconify-icon>
+Campaigns
+</a> <div id="sidebar-campaign-section" style="display:none"> <div class="sidebar-nav-divider"> <div class="sidebar-nav-divider-line"></div> <span class="sidebar-nav-section-label">Campaign</span> <div class="sidebar-nav-divider-line"></div> </div> <a href="/inventory" class="sidebar-nav-item"> <iconify-icon icon="lucide:backpack" style="font-size:16px;flex-shrink:0"></iconify-icon> Inventory </a><a href="/missions" class="sidebar-nav-item"> <iconify-icon icon="lucide:compass" style="font-size:16px;flex-shrink:0"></iconify-icon> Missions </a><a href="/exploration" class="sidebar-nav-item"> <iconify-icon icon="lucide:users" style="font-size:16px;flex-shrink:0"></iconify-icon> Characters </a><a href="/items" class="sidebar-nav-item" data-dm-only style="display:none"> <iconify-icon icon="lucide:shopping-bag" style="font-size:16px;flex-shrink:0"></iconify-icon> Items </a><a href="/map" class="sidebar-nav-item"> <iconify-icon icon="lucide:map" style="font-size:16px;flex-shrink:0"></iconify-icon> Map </a><a href="/lore" class="sidebar-nav-item"> <iconify-icon icon="lucide:book-open" style="font-size:16px;flex-shrink:0"></iconify-icon> Lore </a><a href="/combat" class="sidebar-nav-item" data-dm-only style="display:none"> <iconify-icon icon="game-icons:crossed-swords" style="font-size:16px;flex-shrink:0"></iconify-icon> Combat </a><a href="/spells" class="sidebar-nav-item"> <iconify-icon icon="lucide:sparkles" style="font-size:16px;flex-shrink:0"></iconify-icon> Spells </a> </div> </div> <a href="/account" class="sidebar-account-btn active"> <div class="sidebar-avatar" id="sidebar-avatar"></div> <span class="sidebar-username" id="sidebar-username">Loading…</span> </a> </aside> <script>
+(function () {
+  var session;
+  try { session = JSON.parse(localStorage.getItem('playerSession')); } catch (e) {}
+  if (!session) return;
 
-    .account-wrap {
+  function usernameToColor(name) {
+    var hash = 0, s = name || 'x';
+    for (var i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+    var hues = [12, 32, 52, 160, 200, 220, 260, 280, 320];
+    return 'hsl(' + hues[hash % hues.length] + ', 52%, 48%)';
+  }
+
+  var avatarEl    = document.getElementById('sidebar-avatar');
+  var usernameEl  = document.getElementById('sidebar-username');
+  if (avatarEl)  avatarEl.style.background = session.color || usernameToColor(session.username || '');
+  if (usernameEl && session.username) usernameEl.textContent = session.username;
+
+  var onCampaignsPage = window.location.pathname.replace(/\/$/, '') === '/campaigns';
+  if (session.campaignId && !onCampaignsPage) {
+    var section = document.getElementById('sidebar-campaign-section');
+    if (section) section.style.display = '';
+  }
+
+  var isDM = session.role === 'admin' || session.role === 'dm';
+  if (isDM) {
+    document.querySelectorAll('[data-dm-only]').forEach(function (el) { el.style.display = ''; });
+  }
+
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('.sidebar-nav-item, .sidebar-account-btn').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        var href = a.getAttribute('href');
+        if (!href || href.charAt(0) === '#') return;
+        if (href.indexOf('http') === 0 && href.indexOf(window.location.host) === -1) return;
+        e.preventDefault();
+        document.body.animate(
+          [{ opacity: 1, transform: 'translateY(0)' }, { opacity: 0, transform: 'translateY(-6px)' }],
+          { duration: 180, easing: 'cubic-bezier(0.5,0,0.75,0)', fill: 'forwards' }
+        ).finished
+          .then(function () { window.location.href = href; })
+          .catch(function () { window.location.href = href; });
+      });
+    });
+  }
+})();
+</script> <div class="page-content" style="background-image:url('/_astro/AccountPageBackground.jr3Vkzmh.png');background-size:cover;background-position:center">  <style>
+    .sidebar-username {
+      color: var(--accent);
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: var(--font);
+    }
+
+    /* ── Page content ──────────────────────────────────────────── */
+    .page-content {
       flex: 1;
       display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      min-height: 0;
+      background-color: #141414;
+      background-size: cover;
+      background-position: center;
+      background-attachment: local;
+    }
+
+    /* ── Main ──────────────────────────────────────────────────── */
+    .main {
+      flex: 1;
+      padding: 5vh 40px;
+      display: flex;
       align-items: flex-start;
-      justify-content: center;
-      padding: 40px 24px 60px;
+      box-sizing: border-box;
     }
 
+    /* ── Single card ───────────────────────────────────────────── */
     .acct-card {
-      width: 100%;
-      max-width: 880px;
-      background: linear-gradient(160deg, #1e1108 0%, #150d05 100%);
-      border: 1px solid #3a2510;
-      border-radius: 16px;
-      padding: 32px 36px 32px;
-      box-shadow: 0 4px 32px rgba(0,0,0,0.6);
+      background: linear-gradient(135deg, #1c1c1a 0%, #181817 100%);
+      border: 1px solid rgba(200,164,92,0.12);
+      border-radius: 14px;
+      overflow-y: auto;
+      height: 90vh;
+      width: 75vw;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
     }
 
-    .acct-card-title {
-      font-family: 'IM Fell English', 'Garamond', serif;
-      font-size: 1.25rem;
-      color: #c8a45c;
+    .acct-spacer {
+      flex: 1;
+    }
+
+    .acct-sub {
+      padding: 32px 36px;
+    }
+
+    .acct-sub + .acct-sub {
+      border-top: 1px solid rgba(200,164,92,0.08);
+    }
+
+    .acct-sub.danger-sub {
+      border-top-color: rgba(200,60,60,0.15);
+      background: linear-gradient(135deg, rgba(40,10,10,0.4) 0%, rgba(30,8,8,0.3) 100%);
+    }
+
+    .acct-section-title {
+      font-family: var(--title);
+      font-size: 1.2rem;
+      color: var(--accent);
       letter-spacing: 0.04em;
-      margin: 0 0 28px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid #2a1a08;
+      margin: 0 0 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(200,164,92,0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    .acct-grid {
+    .acct-section-title.danger-title {
+      color: #e07070;
+      border-bottom-color: rgba(200,60,60,0.15);
+    }
+
+    .acct-cols {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0;
+      gap: 32px;
     }
 
-    .acct-col-left {
-      padding-right: 44px;
+    .acct-cols-3 {
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 36px;
     }
 
-    .acct-col-right {
-      padding-left: 44px;
-      border-left: 1px solid #2a1a08;
-    }
-
-    .acct-section-label {
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #666;
-      margin-bottom: 18px;
-    }
-
-    .acct-field { margin-bottom: 16px; }
+    /* ── Fields ────────────────────────────────────────────────── */
+    .acct-field { margin-bottom: 18px; }
+    .acct-field:last-child { margin-bottom: 0; }
 
     .acct-label {
       display: block;
-      font-size: 11px;
+      font-size: 12px;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: #888;
-      margin-bottom: 6px;
+      color: #888880;
+      margin-bottom: 8px;
     }
 
     .acct-input {
       width: 100%;
       background: rgba(255,255,255,0.04);
-      border: 1px solid #3a2510;
-      border-radius: 8px;
-      padding: 11px 14px;
-      color: #d4b483;
+      border: 1px solid rgba(200,164,92,0.1);
+      border-radius: 9px;
+      padding: 13px 16px;
+      color: var(--text);
       font-size: 15px;
-      font-family: 'Garamond', serif;
+      font-family: var(--font);
       outline: none;
       transition: border-color 0.2s;
       box-sizing: border-box;
     }
-    .acct-input:focus { border-color: #c8a45c; }
-    .acct-input:disabled { opacity: 0.45; cursor: not-allowed; }
+    .acct-input:focus { border-color: rgba(200,164,92,0.5); }
+    .acct-input:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .acct-hint {
-      font-size: 11px;
-      color: #555;
-      margin-top: 5px;
+      font-size: 12px;
+      color: #55554e;
+      margin-top: 6px;
       font-style: italic;
     }
 
     .color-row { display: flex; align-items: center; gap: 10px; }
     .color-row input[type="color"] {
-      width: 42px; height: 40px;
+      width: 46px; height: 44px;
       padding: 2px 4px;
-      border-radius: 6px;
-      border: 1px solid #3a2510;
+      border-radius: 7px;
+      border: 1px solid rgba(200,164,92,0.15);
       background: rgba(255,255,255,0.04);
       cursor: pointer;
       flex-shrink: 0;
     }
     .color-row .acct-input { flex: 1; }
 
+    /* ── Buttons ───────────────────────────────────────────────── */
     .acct-btn {
-      margin-top: 18px;
-      background: linear-gradient(135deg, #4a2c0a 0%, #6b3e10 100%);
-      border: 1px solid #c8a45c;
-      border-radius: 8px;
-      color: #c8a45c;
-      font-family: 'IM Fell English', 'Garamond', serif;
-      font-size: 15px;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 22px;
+      background: linear-gradient(135deg, #8a6010 0%, #c8922a 40%, #e0b040 60%, #b07820 100%);
+      border: 1px solid rgba(220,170,60,0.6);
+      border-radius: 9px;
+      color: #1a1000;
+      font-family: var(--title);
+      font-size: 16px;
       letter-spacing: 0.06em;
-      padding: 11px 22px;
+      padding: 13px 26px;
       cursor: pointer;
-      transition: background 0.25s, box-shadow 0.25s, transform 0.2s;
+      transition: filter 0.22s, box-shadow 0.25s, transform 0.2s;
     }
     .acct-btn:hover {
-      background: linear-gradient(135deg, #5a380f 0%, #7a4a18 100%);
-      box-shadow: 0 0 18px rgba(200,164,92,0.22);
+      filter: brightness(1.1);
+      box-shadow: 0 0 15px rgba(200,164,92,0.35), 0 4px 16px rgba(0,0,0,0.4);
       transform: translateY(-1px);
     }
     .acct-btn:active  { transform: translateY(0) scale(0.98); }
-    .acct-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .acct-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; filter: none; }
 
     .acct-btn-danger {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
       background: rgba(180,40,40,0.12);
-      border: 1px solid rgba(200,60,60,0.45);
-      border-radius: 8px;
+      border: 1px solid rgba(200,60,60,0.35);
+      border-radius: 9px;
       color: #e07070;
-      font-family: 'IM Fell English', 'Garamond', serif;
-      font-size: 15px;
+      font-family: var(--title);
+      font-size: 16px;
       letter-spacing: 0.06em;
-      padding: 11px 22px;
+      padding: 13px 26px;
       cursor: pointer;
       transition: background 0.2s, border-color 0.2s, transform 0.2s;
     }
     .acct-btn-danger:hover {
       background: rgba(200,50,50,0.22);
-      border-color: #e07070;
+      border-color: rgba(220,80,80,0.6);
       transform: translateY(-1px);
     }
     .acct-btn-danger:active  { transform: translateY(0) scale(0.98); }
     .acct-btn-danger:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
+    /* ── Messages ──────────────────────────────────────────────── */
     .acct-msg {
       font-size: 13px;
       padding: 9px 12px;
       border-radius: 6px;
-      margin-top: 14px;
+      margin-top: 12px;
       display: none;
     }
-    .acct-msg.show  { display: block; }
-    .acct-msg.ok    { background: rgba(60,180,60,0.1);  border: 1px solid rgba(80,200,80,0.3);  color: #70d070; }
-    .acct-msg.err   { background: rgba(200,50,50,0.12); border: 1px solid rgba(200,50,50,0.3);  color: #e07070; }
+    .acct-msg.show { display: block; }
+    .acct-msg.ok   { background: rgba(60,180,60,0.1);  border: 1px solid rgba(80,200,80,0.28);  color: #70d070; }
+    .acct-msg.err  { background: rgba(200,50,50,0.1);  border: 1px solid rgba(200,50,50,0.28);  color: #e07070; }
 
+    /* ── Provider badge ────────────────────────────────────────── */
     .provider-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid #3a2510;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(200,164,92,0.12);
       border-radius: 20px;
       padding: 4px 12px;
       font-size: 12px;
-      color: #888;
-      margin-bottom: 16px;
+      color: #888880;
+      margin-bottom: 18px;
     }
 
-    .acct-divider {
-      border: none;
-      border-top: 1px solid #2a1a08;
-      margin: 28px 0;
-    }
-
+    /* ── Danger description ────────────────────────────────────── */
     .danger-desc {
       font-size: 13px;
-      color: #666;
-      line-height: 1.6;
-      margin-bottom: 16px;
+      color: #666660;
+      line-height: 1.65;
+      margin: 0 0 18px;
     }
-    .acct-section-label.danger { color: #e07070; }
 
+    /* ── Confirm overlay ───────────────────────────────────────── */
     .confirm-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.75);
+      background: rgba(0,0,0,0.8);
       z-index: 500;
       align-items: center;
       justify-content: center;
       padding: 16px;
+      backdrop-filter: blur(4px);
     }
-    .confirm-overlay.open { display: flex; }
+    .confirm-overlay.open { display: flex; animation: fadeIn 0.2s ease both; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     .confirm-box {
-      background: linear-gradient(160deg, #1e1108 0%, #150d05 100%);
-      border: 1px solid rgba(200,60,60,0.4);
-      border-radius: 14px;
+      background: linear-gradient(160deg, #1c1c1a 0%, #161615 100%);
+      border: 1px solid rgba(200,60,60,0.35);
+      border-radius: 16px;
       padding: 32px 28px;
       max-width: 380px;
       width: 100%;
       box-shadow: 0 8px 48px rgba(0,0,0,0.9);
-      animation: confirmIn 0.3s cubic-bezier(0.16,1,0.3,1) both;
+      animation: modalIn 0.4s cubic-bezier(0.16,1,0.3,1) both;
     }
-    @keyframes confirmIn {
-      from { opacity: 0; transform: scale(0.92) translateY(16px); }
-      to   { opacity: 1; transform: scale(1)    translateY(0); }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.93) translateY(20px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
     }
 
     .confirm-title {
-      font-family: 'IM Fell English', 'Garamond', serif;
+      font-family: var(--title);
       font-size: 1.2rem;
       color: #e07070;
       margin: 0 0 10px;
     }
     .confirm-desc {
       font-size: 13px;
-      color: #888;
+      color: #888880;
       line-height: 1.6;
-      margin: 0 0 20px;
+      margin: 0 0 22px;
     }
-    .confirm-actions {
-      display: flex;
-      gap: 10px;
-    }
-    .confirm-actions .acct-btn-danger { flex: 1; }
+    .confirm-actions { display: flex; gap: 10px; }
+    .confirm-actions .acct-btn-danger { flex: 1; margin-top: 0; justify-content: center; }
+
     .confirm-cancel {
       flex: 1;
       background: rgba(255,255,255,0.04);
-      border: 1px solid #3a2510;
+      border: 1px solid rgba(200,164,92,0.1);
       border-radius: 8px;
-      color: #888;
-      font-family: 'Garamond', serif;
-      font-size: 15px;
+      color: #7a6a58;
+      font-family: var(--font);
+      font-size: 14px;
       padding: 11px;
       cursor: pointer;
       transition: background 0.2s, color 0.2s;
     }
-    .confirm-cancel:hover { background: rgba(255,255,255,0.08); color: #d4b483; }
+    .confirm-cancel:hover { background: rgba(255,255,255,0.08); color: var(--text); }
 
-    @media (max-width: 680px) {
-      .account-wrap { padding: 24px 16px 48px; }
-      .acct-card { padding: 24px 20px; }
-      .acct-grid { grid-template-columns: 1fr; }
-      .acct-col-left { padding-right: 0; }
-      .acct-col-right {
-        padding-left: 0;
-        border-left: none;
-        border-top: 1px solid #2a1a08;
-        padding-top: 28px;
-        margin-top: 28px;
-      }
+    @media (max-width: 700px) {
+      .main { padding: 24px 16px 48px; }
+      .acct-sub { padding: 24px 20px; }
+      .acct-cols, .acct-cols-3 { grid-template-columns: 1fr; }
     }
-  </style> <div class="account-wrap"> <div class="acct-card"> <h2 class="acct-card-title">Your Account</h2> <div class="acct-grid"> <!-- Left: Profile --> <div class="acct-col-left"> <div class="acct-section-label">Profile</div> <div id="provider-row"></div> <div class="acct-field"> <label class="acct-label">Email</label> <input class="acct-input" id="acct-email" type="email" disabled> </div> <div class="acct-field"> <label class="acct-label" for="acct-username">Username</label> <input class="acct-input" id="acct-username" type="text" maxlength="30" autocomplete="off"> <span class="acct-hint">Shown to other players. No spaces.</span> </div> <div class="acct-field"> <label class="acct-label">Profile Colour</label> <div class="color-row"> <input id="acct-color-pick" type="color"> <input id="acct-color-text" class="acct-input" type="text" maxlength="7" placeholder="#c8a45c"> </div> <span class="acct-hint">Used as your name colour across the app.</span> </div> <button class="acct-btn" id="btn-save-profile">Save Profile</button> <div class="acct-msg" id="msg-username"></div> </div> <!-- Right: Password + Danger Zone --> <div class="acct-col-right"> <div id="section-password"> <div class="acct-section-label">Change Password</div> <div class="acct-field"> <label class="acct-label" for="acct-cur-pass">Current Password</label> <input class="acct-input" id="acct-cur-pass" type="password" placeholder="Your current password" autocomplete="current-password"> </div> <div class="acct-field"> <label class="acct-label" for="acct-new-pass">New Password</label> <input class="acct-input" id="acct-new-pass" type="password" placeholder="At least 6 characters" autocomplete="new-password"> </div> <div class="acct-field"> <label class="acct-label" for="acct-new-pass2">Confirm New Password</label> <input class="acct-input" id="acct-new-pass2" type="password" placeholder="Repeat new password" autocomplete="new-password"> </div> <button class="acct-btn" id="btn-save-password">Change Password</button> <div class="acct-msg" id="msg-password"></div> <hr class="acct-divider"> </div> <div class="acct-section-label danger">Danger Zone</div> <p class="danger-desc">Permanently deletes your account and all associated data. This cannot be undone.</p> <button class="acct-btn-danger" id="btn-delete">Delete Account</button> <div class="acct-msg" id="msg-delete"></div> </div> </div> </div> </div> <div class="confirm-overlay" id="confirm-overlay"> <div class="confirm-box"> <h3 class="confirm-title">Delete your account?</h3> <p class="confirm-desc">This will permanently remove your account and all your data from the realm. There is no going back.</p> <div class="confirm-actions"> <button class="confirm-cancel" id="confirm-cancel">Cancel</button> <button class="acct-btn-danger" id="confirm-delete">Yes, delete it</button> </div> </div> </div> <script type="module">
+  </style> <main class="main"> <div class="acct-card"> <!-- Profile --> <div class="acct-sub"> <h2 class="acct-section-title"> <iconify-icon icon="lucide:user-circle" style="font-size:20px;opacity:0.7"></iconify-icon>
+Profile
+</h2> <div id="provider-row" style="margin-bottom:22px"></div> <div class="acct-cols acct-cols-3"> <div class="acct-field" style="margin-bottom:0"> <label class="acct-label">Email</label> <input class="acct-input" id="acct-email" type="email" disabled> </div> <div class="acct-field" style="margin-bottom:0"> <label class="acct-label" for="acct-username">Username</label> <input class="acct-input" id="acct-username" type="text" maxlength="30" autocomplete="off"> <span class="acct-hint">Tag: <strong id="acct-tag-display" style="color:rgba(200,164,92,0.75)"></strong></span> </div> <div class="acct-field" style="margin-bottom:0"> <label class="acct-label">Profile Colour</label> <div class="color-row"> <input id="acct-color-pick" type="color"> <input id="acct-color-text" class="acct-input" type="text" maxlength="7" placeholder="#c8a45c"> </div> <span class="acct-hint">Used as your name colour across the app.</span> </div> </div> <button class="acct-btn" id="btn-save-profile"> <iconify-icon icon="lucide:save"></iconify-icon>
+Save Profile
+</button> <div class="acct-msg" id="msg-username"></div> </div> <!-- Change / Set Password --> <div class="acct-sub" id="section-password"> <h2 class="acct-section-title"> <iconify-icon icon="lucide:lock" style="font-size:20px;opacity:0.7"></iconify-icon> <span id="password-section-title">Change Password</span> </h2> <div class="acct-cols acct-cols-3"> <div class="acct-field" style="margin-bottom:0" id="cur-pass-field"> <label class="acct-label" for="acct-cur-pass">Current Password</label> <input class="acct-input" id="acct-cur-pass" type="password" placeholder="Your current password" autocomplete="current-password"> </div> <div class="acct-field" style="margin-bottom:0"> <label class="acct-label" for="acct-new-pass">New Password</label> <input class="acct-input" id="acct-new-pass" type="password" placeholder="At least 6 characters" autocomplete="new-password"> </div> <div class="acct-field" style="margin-bottom:0"> <label class="acct-label" for="acct-new-pass2">Confirm New Password</label> <input class="acct-input" id="acct-new-pass2" type="password" placeholder="Repeat new password" autocomplete="new-password"> </div> </div> <button class="acct-btn" id="btn-save-password"> <iconify-icon icon="lucide:key-round"></iconify-icon> <span id="password-btn-label">Change Password</span> </button> <div class="acct-msg" id="msg-password"></div> </div> <div class="acct-spacer"></div> <!-- Danger Zone --> <div class="acct-sub danger-sub"> <h2 class="acct-section-title danger-title"> <iconify-icon icon="lucide:triangle-alert" style="font-size:20px;opacity:0.8"></iconify-icon>
+Danger Zone
+</h2> <p class="danger-desc">Permanently deletes your account and all associated data. This cannot be undone.</p> <button class="acct-btn-danger" id="btn-delete"> <iconify-icon icon="lucide:trash-2"></iconify-icon>
+Delete Account
+</button> <div class="acct-msg" id="msg-delete"></div> </div> </div> </main>  <div class="confirm-overlay" id="confirm-overlay"> <div class="confirm-box"> <h3 class="confirm-title">Delete your account?</h3> <p class="confirm-desc">This will permanently remove your account and all your data from the realm. There is no going back.</p> <div class="confirm-actions"> <button class="confirm-cancel" id="confirm-cancel">Cancel</button> <button class="acct-btn-danger" id="confirm-delete"> <iconify-icon icon="lucide:trash-2"></iconify-icon>
+Yes, delete it
+</button> </div> </div> </div> <script type="module">
     import { auth, db }                                                    from "/assets/js/firebase.js";
     import { EmailAuthProvider, GoogleAuthProvider,
-             reauthenticateWithCredential, reauthenticateWithPopup,
+             linkWithCredential, reauthenticateWithCredential, reauthenticateWithPopup,
              updatePassword, deleteUser, onAuthStateChanged }              from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { ref, get, set, remove }                                       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
     import { saveSession, getSession, clearSession }                       from "/assets/js/auth.js";
+    import { isBannedUsername }                                            from "/assets/js/username-filter.js";
 
     const session = getSession();
     if (!session) { window.location.href = "login"; }
 
-    function showMsg(el, text, type) {
-      el.textContent = text;
-      el.className = 'acct-msg show ' + type;
-    }
+    function showMsg(el, text, type) { el.textContent = text; el.className = 'acct-msg show ' + type; }
     function clearMsg(el) { el.className = 'acct-msg'; }
 
     let isGoogleUser = false;
@@ -271,27 +362,44 @@
       if (!user) { window.location.href = "login"; return; }
 
       isGoogleUser = user.providerData.some(p => p.providerId === 'google.com');
-
       document.getElementById('acct-email').value = user.email || '';
 
       const providerRow = document.getElementById('provider-row');
       providerRow.innerHTML = isGoogleUser
         ? `<div class="provider-badge"><svg width="14" height="14" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4c-7.7 0-14.4 4.2-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.5 35.5 26.9 36.5 24 36.5c-5.2 0-9.6-3.5-11.2-8.2l-6.5 5C9.7 39.7 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.8l6.2 5.2C41.2 35.8 44 30.3 44 24c0-1.3-.1-2.7-.4-4z"/></svg> Signed in with Google</div>`
-        : `<div class="provider-badge"><iconify-icon icon="lucide:mail" style="font-size:13px"></iconify-icon> Email & Password</div>`;
+        : `<div class="provider-badge"><iconify-icon icon="lucide:mail" style="font-size:13px"></iconify-icon> Email &amp; Password</div>`;
 
       if (isGoogleUser) {
-        document.getElementById('section-password').style.display = 'none';
+        document.getElementById('password-section-title').textContent = 'Set a Password';
+        document.getElementById('password-btn-label').textContent     = 'Set Password';
+        document.getElementById('cur-pass-field').style.display       = 'none';
       }
     });
+
+    function generateTag() {
+      return String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+    }
 
     const usernameInput = document.getElementById('acct-username');
     const colorPick     = document.getElementById('acct-color-pick');
     const colorText     = document.getElementById('acct-color-text');
+    const tagDisplay    = document.getElementById('acct-tag-display');
 
     usernameInput.value = session.username || '';
     const initColor = session.color || '#c8a45c';
     colorPick.value = initColor;
     colorText.value = initColor;
+
+    // Ensure existing users get a tag
+    let currentTag = session.tag || '';
+    if (!currentTag) {
+      currentTag = generateTag();
+      set(ref(db, `users/${session.id}/tag`), currentTag).then(() => {
+        const updated = { ...session, tag: currentTag };
+        saveSession(updated);
+      });
+    }
+    tagDisplay.textContent = '#' + currentTag;
 
     colorPick.addEventListener('input', () => { colorText.value = colorPick.value; });
     colorText.addEventListener('input', () => {
@@ -299,96 +407,101 @@
     });
 
     document.getElementById('btn-save-profile').addEventListener('click', async () => {
-      const msgEl = document.getElementById('msg-username');
+      const msgEl   = document.getElementById('msg-username');
+      const btn     = document.getElementById('btn-save-profile');
       clearMsg(msgEl);
-      const btn = document.getElementById('btn-save-profile');
 
       const newName  = usernameInput.value.trim();
       const newColor = /^#[0-9a-fA-F]{6}$/.test(colorText.value) ? colorText.value : (session.color || '#c8a45c');
 
-      if (!newName)            { showMsg(msgEl, 'Username cannot be empty.', 'err'); return; }
-      if (/\s/.test(newName))  { showMsg(msgEl, 'Username cannot contain spaces.', 'err'); return; }
-      if (newName.length < 2)  { showMsg(msgEl, 'Username must be at least 2 characters.', 'err'); return; }
+      if (!newName)           { showMsg(msgEl, 'Username cannot be empty.', 'err'); return; }
+      if (/\s/.test(newName)) { showMsg(msgEl, 'Username cannot contain spaces.', 'err'); return; }
+      if (newName.length < 2) { showMsg(msgEl, 'Username must be at least 2 characters.', 'err'); return; }
+      if (isBannedUsername(newName)) { showMsg(msgEl, 'That username is not allowed.', 'err'); return; }
 
       btn.disabled = true;
-      btn.textContent = 'Saving…';
+      btn.innerHTML = '<iconify-icon icon="lucide:loader-2"></iconify-icon> Saving…';
       try {
         await set(ref(db, `users/${session.id}/username`), newName);
         await set(ref(db, `users/${session.id}/color`), newColor);
-        const updated = { ...session, username: newName, color: newColor };
+        const updated = { ...session, username: newName, color: newColor, tag: currentTag };
         saveSession(updated);
+        document.getElementById('sidebar-username').textContent = newName;
+        document.getElementById('sidebar-avatar').style.background = newColor;
         showMsg(msgEl, 'Profile saved.', 'ok');
-        const navName = document.querySelector('nav [data-username]');
-        if (navName) navName.textContent = newName;
       } catch (e) {
         showMsg(msgEl, 'Failed to save. Try again.', 'err');
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Save Profile';
+        btn.innerHTML = '<iconify-icon icon="lucide:save"></iconify-icon> Save Profile';
       }
     });
 
     document.getElementById('btn-save-password').addEventListener('click', async () => {
-      const msgEl = document.getElementById('msg-password');
+      const msgEl  = document.getElementById('msg-password');
+      const btn    = document.getElementById('btn-save-password');
       clearMsg(msgEl);
-      const btn = document.getElementById('btn-save-password');
 
       const curPass  = document.getElementById('acct-cur-pass').value;
       const newPass  = document.getElementById('acct-new-pass').value;
       const newPass2 = document.getElementById('acct-new-pass2').value;
 
-      if (!curPass || !newPass || !newPass2) { showMsg(msgEl, 'Please fill in all fields.', 'err'); return; }
-      if (newPass.length < 6)               { showMsg(msgEl, 'New password must be at least 6 characters.', 'err'); return; }
-      if (newPass !== newPass2)             { showMsg(msgEl, 'New passwords do not match.', 'err'); return; }
+      if (!isGoogleUser && !curPass) { showMsg(msgEl, 'Please fill in all fields.', 'err'); return; }
+      if (!newPass || !newPass2)     { showMsg(msgEl, 'Please fill in all fields.', 'err'); return; }
+      if (newPass.length < 6)        { showMsg(msgEl, 'Password must be at least 6 characters.', 'err'); return; }
+      if (newPass !== newPass2)      { showMsg(msgEl, 'Passwords do not match.', 'err'); return; }
 
+      const label = isGoogleUser ? 'Set Password' : 'Change Password';
       btn.disabled = true;
-      btn.textContent = 'Updating…';
+      btn.innerHTML = '<iconify-icon icon="lucide:loader-2"></iconify-icon> Saving…';
       try {
-        const user       = auth.currentUser;
-        const credential = EmailAuthProvider.credential(user.email, curPass);
-        await reauthenticateWithCredential(user, credential);
-        await updatePassword(user, newPass);
-        showMsg(msgEl, 'Password changed successfully.', 'ok');
-        document.getElementById('acct-cur-pass').value  = '';
+        const user = auth.currentUser;
+        if (isGoogleUser) {
+          const credential = EmailAuthProvider.credential(user.email, newPass);
+          await linkWithCredential(user, credential);
+          showMsg(msgEl, 'Password set! You can now sign in with email & password.', 'ok');
+          isGoogleUser = false;
+          document.getElementById('password-section-title').textContent = 'Change Password';
+          document.getElementById('password-btn-label').textContent     = 'Change Password';
+          document.getElementById('cur-pass-field').style.display       = '';
+        } else {
+          const credential = EmailAuthProvider.credential(user.email, curPass);
+          await reauthenticateWithCredential(user, credential);
+          await updatePassword(user, newPass);
+          showMsg(msgEl, 'Password changed successfully.', 'ok');
+          document.getElementById('acct-cur-pass').value = '';
+        }
         document.getElementById('acct-new-pass').value  = '';
         document.getElementById('acct-new-pass2').value = '';
       } catch (e) {
         if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
           showMsg(msgEl, 'Current password is incorrect.', 'err');
+        } else if (e.code === 'auth/provider-already-linked') {
+          showMsg(msgEl, 'A password is already linked to this account.', 'err');
         } else {
-          showMsg(msgEl, 'Failed to update password: ' + e.message, 'err');
+          showMsg(msgEl, 'Failed to save: ' + e.message, 'err');
         }
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Change Password';
+        btn.innerHTML = `<iconify-icon icon="lucide:key-round"></iconify-icon> ${label}`;
       }
     });
 
     const overlay       = document.getElementById('confirm-overlay');
     const confirmDelete = document.getElementById('confirm-delete');
 
-    document.getElementById('btn-delete').addEventListener('click', () => {
-      overlay.classList.add('open');
-    });
-    document.getElementById('confirm-cancel').addEventListener('click', () => {
-      overlay.classList.remove('open');
-    });
-    overlay.addEventListener('click', e => {
-      if (e.target === overlay) overlay.classList.remove('open');
-    });
+    document.getElementById('btn-delete').addEventListener('click', () => { overlay.classList.add('open'); });
+    document.getElementById('confirm-cancel').addEventListener('click', () => { overlay.classList.remove('open'); });
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
 
     confirmDelete.addEventListener('click', async () => {
       const msgEl = document.getElementById('msg-delete');
       confirmDelete.disabled = true;
-      confirmDelete.textContent = 'Deleting…';
+      confirmDelete.innerHTML = '<iconify-icon icon="lucide:loader-2"></iconify-icon> Deleting…';
       try {
         const user = auth.currentUser;
         const uid  = user.uid;
-
-        if (isGoogleUser) {
-          await reauthenticateWithPopup(user, new GoogleAuthProvider());
-        }
-
+        if (isGoogleUser) await reauthenticateWithPopup(user, new GoogleAuthProvider());
         await remove(ref(db, `users/${uid}`));
         await deleteUser(user);
         clearSession();
@@ -397,13 +510,11 @@
         overlay.classList.remove('open');
         if (e.code === 'auth/requires-recent-login') {
           showMsg(msgEl, 'Please log out and log back in, then try again.', 'err');
-        } else if (e.code === 'auth/popup-closed-by-user') {
-          // user cancelled Google re-auth — silently ignore
-        } else {
+        } else if (e.code !== 'auth/popup-closed-by-user') {
           showMsg(msgEl, 'Could not delete account: ' + e.message, 'err');
         }
         confirmDelete.disabled = false;
-        confirmDelete.textContent = 'Yes, delete it';
+        confirmDelete.innerHTML = '<iconify-icon icon="lucide:trash-2"></iconify-icon> Yes, delete it';
       }
     });
-  </script>  <script src="/assets/js/base.js"></script> </body> </html>
+  </script>  </div> </div>  <script src="/assets/js/base.js"></script> </body> </html>

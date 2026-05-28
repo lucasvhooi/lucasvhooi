@@ -2,6 +2,7 @@ import { db }                          from "./firebase.js";
 import { ref, set, remove, onValue, get }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { parseTags, formatGold } from "./item-utils.js";
 import { openGivePanel }              from "./give-to-player.js";
+import { EQUIP_SEED }                 from "./equip-seed.js";
 
 const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
 const isAdmin = _session?.role === 'admin';
@@ -33,6 +34,14 @@ const itemsRef = ref(db, `campaigns/${cid}/items`);
 let items       = [];
 let activeTag   = null;
 let searchQuery = "";
+let sortField   = null;   // 'name' | 'rarity' | 'price' | null
+let sortDir     = 'asc';  // 'asc' | 'desc'
+let filterRarity = null;  // rarity string or null for all
+let tagFilterExpanded = false;
+let currentPage = 1;
+const MAX_VISIBLE_TAGS = 8;
+const ITEMS_PER_PAGE = 30;
+const RARITY_ORDER = { "common": 1, "uncommon": 2, "rare": 3, "very rare": 4, "legendary": 5 };
 let selectedRarity = "common"; // current selection in the modal
 
 // ── DOM Refs ──────────────────────────────────────────────────────────────────
@@ -46,6 +55,7 @@ const imTitle          = document.getElementById("im-title");
 const imName           = document.getElementById("im-name");
 const imDesc           = document.getElementById("im-desc");
 const imPrice          = document.getElementById("im-price");
+const imWeight         = document.getElementById("im-weight");
 const imRaritySelector = document.getElementById("im-rarity-selector");
 const imError          = document.getElementById("im-error");
 const imSave           = document.getElementById("im-save");
@@ -56,10 +66,61 @@ let selectedTags = new Set();
 let editingItemId = null;
 
 if (isAdmin) {
-  addItemBtn.style.display = "inline-block";
+  addItemBtn.style.display = "inline-flex";
 }
 
-// ── Rarity selector ───────────────────────────────────────────────────────────
+// ── Sort & Rarity-filter controls ────────────────────────────────────────────
+document.querySelectorAll(".sort-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const field = btn.dataset.sort;
+    if (sortField === field) {
+      if (sortDir === 'asc') { sortDir = 'desc'; }
+      else { sortField = null; sortDir = 'asc'; }
+    } else {
+      sortField = field;
+      sortDir   = 'asc';
+    }
+    currentPage = 1;
+    _updateSortUI();
+    renderItems();
+  });
+});
+
+document.querySelectorAll(".rarity-filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const r = btn.dataset.rarity;
+    filterRarity = (filterRarity === r || r === '') ? null : r;
+    currentPage = 1;
+    _updateRarityFilterUI();
+    renderItems();
+  });
+});
+
+function _updateSortUI() {
+  document.querySelectorAll(".sort-btn").forEach(btn => {
+    const field = btn.dataset.sort;
+    const icon  = btn.querySelector("iconify-icon");
+    btn.classList.toggle("active", sortField === field);
+    if (icon) {
+      if (sortField === field) {
+        icon.setAttribute("icon", sortDir === 'asc' ? "lucide:chevron-up" : "lucide:chevron-down");
+      } else {
+        icon.setAttribute("icon", "lucide:chevrons-up-down");
+      }
+    }
+  });
+}
+
+function _updateRarityFilterUI() {
+  document.querySelectorAll(".rarity-filter-btn").forEach(btn => {
+    const r = btn.dataset.rarity;
+    btn.classList.toggle("active",
+      (r === '' && filterRarity === null) || (r !== '' && r === filterRarity)
+    );
+  });
+}
+
+// ── Rarity selector (modal) ───────────────────────────────────────────────────
 imRaritySelector.querySelectorAll(".rarity-sel-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     selectedRarity = btn.dataset.rarity;
@@ -115,6 +176,43 @@ if (imTagNewInput) {
   });
 }
 
+// ── Equipment Seed ────────────────────────────────────────────────────────────
+const EQUIP_SEED_VERSION = 1;
+const equipSeedFlagRef   = ref(db, `campaigns/${cid}/system/equipSeedVersion`);
+
+async function _writeEquipSeed() {
+  const existingSnap = await get(itemsRef);
+  const existingIds  = new Set(existingSnap.val() ? Object.keys(existingSnap.val()) : []);
+  const ts = Date.now();
+  const writes = [];
+  for (const item of EQUIP_SEED) {
+    if (existingIds.has(item.id)) continue;
+    writes.push(set(ref(db, `campaigns/${cid}/items/${item.id}`), {
+      ...item, description: null, requiresAttunement: false, abilities: null, createdAt: ts,
+    }));
+  }
+  await Promise.all(writes);
+  await set(equipSeedFlagRef, EQUIP_SEED_VERSION);
+}
+
+async function seedEquipmentIfNeeded() {
+  const flagSnap = await get(equipSeedFlagRef);
+  if ((flagSnap.val() || 0) >= EQUIP_SEED_VERSION) return;
+
+  // Campaign already has items → mark as done and skip (avoid duplicating existing libraries)
+  const existingSnap = await get(itemsRef);
+  const existingCount = existingSnap.val() ? Object.keys(existingSnap.val()).length : 0;
+  if (existingCount > 0) {
+    await set(equipSeedFlagRef, EQUIP_SEED_VERSION);
+    showImportBanner(); // offer a manual import button instead
+    return;
+  }
+
+  await _writeEquipSeed();
+}
+
+if (isAdmin) seedEquipmentIfNeeded();
+
 // ── Firebase ──────────────────────────────────────────────────────────────────
 onValue(itemsRef, snapshot => {
   const data = snapshot.val();
@@ -124,33 +222,40 @@ onValue(itemsRef, snapshot => {
 });
 
 function getTagList() {
-  const s = new Set();
+  const counts = {};
   items.forEach(item => {
-    parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t)).forEach(t => s.add(t));
+    parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t)).forEach(t => {
+      counts[t] = (counts[t] || 0) + 1;
+    });
   });
-  return [...s].sort();
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([tag]) => tag);
 }
 
 // ── Tag Filter ────────────────────────────────────────────────────────────────
 function renderTagFilter() {
-  const tags = getTagList();
+  const allTags = getTagList();
   tagFilter.innerHTML = "";
-  if (tags.length === 0) return;
+  if (allTags.length === 0) return;
+
+  const visible     = tagFilterExpanded ? allTags : allTags.slice(0, MAX_VISIBLE_TAGS);
+  const hiddenCount = allTags.length - MAX_VISIBLE_TAGS;
 
   const allBtn = document.createElement("button");
   allBtn.className   = "tag-btn" + (activeTag === null ? " active" : "");
   allBtn.textContent = "All";
-  allBtn.addEventListener("click", () => { activeTag = null; renderTagFilter(); renderItems(); });
+  allBtn.addEventListener("click", () => { activeTag = null; currentPage = 1; renderTagFilter(); renderItems(); });
   tagFilter.appendChild(allBtn);
 
-  tags.forEach(tag => {
+  visible.forEach(tag => {
     const wrap = document.createElement("span");
     wrap.className = "tag-btn-wrap";
 
     const btn = document.createElement("button");
     btn.className   = "tag-btn" + (activeTag === tag ? " active" : "");
     btn.textContent = tag;
-    btn.addEventListener("click", () => { activeTag = tag; renderTagFilter(); renderItems(); });
+    btn.addEventListener("click", () => { activeTag = tag; currentPage = 1; renderTagFilter(); renderItems(); });
     wrap.appendChild(btn);
 
     if (isAdmin) {
@@ -158,15 +263,24 @@ function renderTagFilter() {
       del.className   = "tag-delete-btn";
       del.textContent = "×";
       del.title       = `Remove tag "${tag}" from all items`;
-      del.addEventListener("click", e => {
-        e.stopPropagation();
-        deleteTag(tag);
-      });
+      del.addEventListener("click", e => { e.stopPropagation(); deleteTag(tag); });
       wrap.appendChild(del);
     }
 
     tagFilter.appendChild(wrap);
   });
+
+  if (allTags.length > MAX_VISIBLE_TAGS) {
+    const expandBtn = document.createElement("button");
+    expandBtn.className = "tag-expand-btn";
+    if (tagFilterExpanded) {
+      expandBtn.innerHTML = 'Show less <iconify-icon icon="lucide:chevron-left" style="font-size:12px;vertical-align:-2px"></iconify-icon>';
+    } else {
+      expandBtn.innerHTML = `+${hiddenCount} more <iconify-icon icon="lucide:chevron-right" style="font-size:12px;vertical-align:-2px"></iconify-icon>`;
+    }
+    expandBtn.addEventListener("click", () => { tagFilterExpanded = !tagFilterExpanded; renderTagFilter(); });
+    tagFilter.appendChild(expandBtn);
+  }
 }
 
 // ── Render Items ──────────────────────────────────────────────────────────────
@@ -192,43 +306,73 @@ function renderItems() {
     filtered = filtered.filter(i => parseTags(i.tags).includes(activeTag));
   }
 
-  filtered.sort((a, b) => a.name.localeCompare(b.name));
+  if (filterRarity) {
+    filtered = filtered.filter(i => getItemRarity(i) === filterRarity);
+  }
+
+  if (sortField === 'rarity') {
+    filtered.sort((a, b) => {
+      const diff = (RARITY_ORDER[getItemRarity(a)] || 1) - (RARITY_ORDER[getItemRarity(b)] || 1);
+      return sortDir === 'asc' ? diff : -diff;
+    });
+  } else if (sortField === 'price') {
+    filtered.sort((a, b) => sortDir === 'asc' ? (a.price - b.price) : (b.price - a.price));
+  } else if (sortField === 'name') {
+    filtered.sort((a, b) => sortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
+  } else {
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+  }
 
   if (filtered.length === 0) {
     itemsGrid.innerHTML = `<p class="items-empty">${items.length === 0 ? "No items added yet." : "No items match your search."}</p>`;
+    renderPagination(0);
     return;
   }
 
-  filtered.forEach(item => {
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  if (currentPage > totalPages) currentPage = totalPages;
+  const pageItems = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  pageItems.forEach(item => {
     const card = document.createElement("div");
-    card.className = "item-card";
+    card.className = "item-row";
 
     const rarity      = getItemRarity(item);
     const rarityColor = RARITY_COLORS[rarity] || "#9e9e9e";
     const raritySlug  = rarity.replace(/\s+/g, '-');
     const rarityLabel = rarity.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    const tags = parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t));
+    const tags        = parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t));
+    const primaryType = tags[0] || null;
 
     card.style.setProperty("--rc", rarityColor);
     card.dataset.rarity = raritySlug;
 
     card.innerHTML = `
-      ${isAdmin ? `<button class="lore-card-give-btn item-give-btn">+</button>` : ""}
-      <div class="item-header">
-        <div class="item-name">${item.name}</div>
-        <div class="item-price-badge">${formatGold(item.price)}</div>
-      </div>
-      <div class="item-tags">
-        <span class="item-tag rarity-tag-${raritySlug}">${rarityLabel}</span>
-        ${tags.map(t => `<span class="item-tag">${t}</span>`).join("")}
-      </div>
-      ${item.description ? `<p class="item-desc">${item.description}</p>` : ""}
-      ${isAdmin ? `
-        <div class="item-actions">
-          <button class="dm-btn dm-btn-sm item-edit-btn">Edit</button>
-          <button class="marker-delete-btn dm-btn dm-btn-sm item-del-btn">Delete</button>
+      <div class="item-row-main">
+        <div class="item-row-name">${item.name}</div>
+        <div class="item-row-tags">${tags.map(t => `<span class="item-tag">${t}</span>`).join("")}</div>
+        <p class="item-row-snippet">${item.description || ""}</p>
+        <div class="item-row-meta">
+          ${item.weight ? `<span class="item-meta-badge"><iconify-icon icon="lucide:weight" style="font-size:11px;vertical-align:-1px"></iconify-icon> ${item.weight} lb</span>` : ""}
+          ${item.requiresAttunement
+            ? `<span class="item-meta-badge attune-badge"><iconify-icon icon="lucide:sparkles" style="font-size:11px;vertical-align:-1px"></iconify-icon> Attunement</span>`
+            : `<span class="item-meta-badge no-attune-badge"><iconify-icon icon="lucide:sparkles-off" style="font-size:11px;vertical-align:-1px"></iconify-icon> No Attunement</span>`}
         </div>
-      ` : ""}
+      </div>
+      <div class="item-row-type">
+        ${primaryType ? `<span class="item-tag">${primaryType}</span>` : `<span class="item-row-empty">—</span>`}
+      </div>
+      <div class="item-row-rarity">
+        <span class="item-tag rarity-tag-${raritySlug}">${rarityLabel}</span>
+      </div>
+      <div class="item-row-price">${formatGold(item.price)}</div>
+      <div class="item-row-actions item-actions">
+        ${isAdmin ? `
+          <button class="row-action-btn give-btn item-give-btn" title="Give to player"><iconify-icon icon="lucide:hand-coins"></iconify-icon></button>
+          <button class="row-action-btn item-edit-btn" title="Edit item"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+          <button class="row-action-btn danger item-del-btn" title="Delete item"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
+        ` : ""}
+      </div>
     `;
 
     card.addEventListener("click", e => {
@@ -266,6 +410,52 @@ function renderItems() {
 
     itemsGrid.appendChild(card);
   });
+
+  renderPagination(totalPages);
+}
+
+function _getPageRange(current, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages = [1];
+  const lo = Math.max(2, current - 2);
+  const hi = Math.min(total - 1, current + 2);
+  if (lo > 2) pages.push('…');
+  for (let i = lo; i <= hi; i++) pages.push(i);
+  if (hi < total - 1) pages.push('…');
+  pages.push(total);
+  return pages;
+}
+
+function renderPagination(totalPages) {
+  const el = document.getElementById('items-pagination');
+  if (!el) return;
+  if (totalPages <= 1) { el.innerHTML = ''; return; }
+
+  const range = _getPageRange(currentPage, totalPages);
+  el.innerHTML = `
+    <button class="page-nav-btn" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>
+      <iconify-icon icon="lucide:chevron-left"></iconify-icon>
+    </button>
+    ${range.map(p => p === '…'
+      ? `<span class="page-ellipsis">…</span>`
+      : `<button class="page-num-btn ${p === currentPage ? 'active' : ''}" data-page="${p}">${p}</button>`
+    ).join('')}
+    <button class="page-nav-btn" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>
+      <iconify-icon icon="lucide:chevron-right"></iconify-icon>
+    </button>
+  `;
+
+  el.querySelectorAll('[data-page]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = Number(btn.dataset.page);
+      if (p >= 1 && p <= totalPages) {
+        currentPage = p;
+        renderItems();
+        const pageContent = document.querySelector('.page-content');
+        if (pageContent) pageContent.scrollTop = 0;
+      }
+    });
+  });
 }
 
 // ── Item Modal ────────────────────────────────────────────────────────────────
@@ -276,9 +466,10 @@ function openItemModal(id) {
   if (id) {
     const item = items.find(i => i.id === id);
     imTitle.textContent = "Edit Item";
-    imName.value  = item.name        || "";
-    imDesc.value  = item.description || "";
-    imPrice.value = item.price       ?? "";
+    imName.value   = item.name        || "";
+    imDesc.value   = item.description || "";
+    imPrice.value  = item.price       ?? "";
+    imWeight.value = item.weight      ?? "";
     selectedRarity = getItemRarity(item);
     selectedTags = new Set(parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t)));
     document.getElementById("im-shop-available").checked = item.shopAvailable !== false;
@@ -289,6 +480,7 @@ function openItemModal(id) {
     imTitle.textContent = "Add Item";
     imName.value = imDesc.value = "";
     imPrice.value = "";
+    imWeight.value = "";
     selectedRarity = "common";
     selectedTags = new Set();
     document.getElementById("im-shop-available").checked = true;
@@ -357,9 +549,10 @@ imSave.addEventListener("click", async () => {
   const shopAvailable      = document.getElementById("im-shop-available").checked;
   const requiresAttunement = document.getElementById("im-requires-attunement").checked || false;
   const abilities          = cleanAbilities.length ? cleanAbilities : null;
+  const weight             = parseFloat(imWeight.value) || null;
 
   await set(ref(db, `campaigns/${cid}/items/${id}`), {
-    id, name, description, price,
+    id, name, description, price, weight,
     rarity: selectedRarity,
     tags:   cleanTags,
     shopAvailable,
@@ -421,11 +614,18 @@ async function deleteTag(tag) {
 }
 
 // ── Search ────────────────────────────────────────────────────────────────────
-itemsSearch.addEventListener("input", e => { searchQuery = e.target.value; renderItems(); });
+itemsSearch.addEventListener("input", e => { searchQuery = e.target.value; currentPage = 1; renderItems(); });
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+function getSnippet(desc) {
+  if (!desc) return null;
+  const m = desc.match(/^[^.!?]+[.!?]/);
+  if (m) return m[0].trim();
+  return desc.length > 90 ? desc.slice(0, 90).trim() + '…' : desc.trim();
 }
 
 function inferTypeFromTags(tags) {
@@ -438,3 +638,36 @@ function inferTypeFromTags(tags) {
   if (list.includes("scroll"))           return "scroll";
   return "misc";
 }
+
+// ── Equipment Library Import Banner ───────────────────────────────────────────
+function showImportBanner() {
+  const existing = document.getElementById("equip-import-banner");
+  if (existing) return;
+
+  const banner = document.createElement("div");
+  banner.id = "equip-import-banner";
+  banner.className = "equip-import-banner";
+  banner.innerHTML = `
+    <span class="equip-import-text">
+      This campaign already has items. Want to also add the full D&amp;D equipment library (384 items)?
+    </span>
+    <div class="equip-import-actions">
+      <button id="equip-import-yes" class="dm-btn dm-btn-sm">Import Library</button>
+      <button id="equip-import-no"  class="dm-btn dm-btn-sm dm-btn-secondary">Dismiss</button>
+    </div>
+  `;
+
+  const main = document.querySelector(".items-main");
+  main.insertBefore(banner, main.firstChild);
+
+  document.getElementById("equip-import-yes").addEventListener("click", async () => {
+    const btn = document.getElementById("equip-import-yes");
+    btn.disabled = true;
+    btn.textContent = "Importing…";
+    await _writeEquipSeed();
+    banner.remove();
+  });
+
+  document.getElementById("equip-import-no").addEventListener("click", () => banner.remove());
+}
+
