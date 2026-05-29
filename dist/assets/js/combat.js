@@ -22,113 +22,6 @@ const CONDITIONS = [
   { id: "hidden",        label: "Hidden",        icon: "lucide:ghost",               color: "#607d8b" },
 ];
 
-// ── Monster presets ───────────────────────────────────────────────────────────
-// { name, ac, hp (avg), initMod (DEX mod), cr }
-const MONSTER_PRESETS = [
-  // ── Common humanoids ──
-  { name: "Bandit",           ac: 12, hp: 11,  initMod:  1, cr: "1/8"  },
-  { name: "Bandit Captain",   ac: 15, hp: 65,  initMod:  2, cr: "2"    },
-  { name: "Cultist",          ac: 12, hp: 9,   initMod:  1, cr: "1/8"  },
-  { name: "Cult Fanatic",     ac: 13, hp: 33,  initMod:  2, cr: "2"    },
-  { name: "Guard",            ac: 16, hp: 11,  initMod:  1, cr: "1/8"  },
-  { name: "Knight",           ac: 18, hp: 52,  initMod:  0, cr: "3"    },
-  { name: "Gladiator",        ac: 16, hp: 112, initMod:  2, cr: "5"    },
-  { name: "Veteran",          ac: 17, hp: 58,  initMod:  1, cr: "3"    },
-  { name: "Mage",             ac: 12, hp: 40,  initMod:  2, cr: "6"    },
-  { name: "Archmage",         ac: 12, hp: 99,  initMod:  2, cr: "12"   },
-  { name: "Spy",              ac: 12, hp: 27,  initMod:  2, cr: "1"    },
-  { name: "Assassin",         ac: 15, hp: 78,  initMod:  4, cr: "8"    },
-  { name: "Thug",             ac: 11, hp: 32,  initMod:  0, cr: "1/2"  },
-  { name: "Berserker",        ac: 13, hp: 67,  initMod:  1, cr: "2"    },
-  { name: "Scout",            ac: 13, hp: 16,  initMod:  2, cr: "1/2"  },
-  // ── Goblinoids ──
-  { name: "Goblin",           ac: 15, hp: 7,   initMod:  2, cr: "1/4"  },
-  { name: "Hobgoblin",        ac: 18, hp: 11,  initMod:  1, cr: "1/2"  },
-  { name: "Bugbear",          ac: 16, hp: 27,  initMod:  2, cr: "1"    },
-  { name: "Bugbear Chief",    ac: 17, hp: 65,  initMod:  2, cr: "3"    },
-  { name: "Goblin Boss",      ac: 17, hp: 21,  initMod:  3, cr: "1"    },
-  // ── Orcs / Giants ──
-  { name: "Orc",              ac: 13, hp: 15,  initMod:  1, cr: "1/2"  },
-  { name: "Orc War Chief",    ac: 16, hp: 93,  initMod:  2, cr: "4"    },
-  { name: "Half-Orc",         ac: 13, hp: 30,  initMod:  1, cr: "1"    },
-  { name: "Ogre",             ac: 11, hp: 59,  initMod: -1, cr: "2"    },
-  { name: "Troll",            ac: 15, hp: 84,  initMod:  1, cr: "5"    },
-  { name: "Hill Giant",       ac: 13, hp: 105, initMod: -1, cr: "5"    },
-  { name: "Stone Giant",      ac: 17, hp: 126, initMod:  2, cr: "7"    },
-  { name: "Frost Giant",      ac: 15, hp: 138, initMod: -1, cr: "8"    },
-  { name: "Fire Giant",       ac: 18, hp: 162, initMod: -1, cr: "9"    },
-  // ── Undead ──
-  { name: "Skeleton",         ac: 13, hp: 13,  initMod:  2, cr: "1/4"  },
-  { name: "Zombie",           ac: 8,  hp: 22,  initMod: -2, cr: "1/4"  },
-  { name: "Ghoul",            ac: 12, hp: 22,  initMod:  2, cr: "1"    },
-  { name: "Ghast",            ac: 13, hp: 36,  initMod:  3, cr: "2"    },
-  { name: "Shadow",           ac: 12, hp: 16,  initMod:  2, cr: "1/2"  },
-  { name: "Wight",            ac: 14, hp: 45,  initMod:  2, cr: "3"    },
-  { name: "Wraith",           ac: 13, hp: 67,  initMod:  3, cr: "5"    },
-  { name: "Specter",          ac: 12, hp: 22,  initMod:  2, cr: "1"    },
-  { name: "Vampire",          ac: 16, hp: 144, initMod:  4, cr: "13"   },
-  { name: "Vampire Spawn",    ac: 15, hp: 82,  initMod:  4, cr: "5"    },
-  { name: "Lich",             ac: 17, hp: 135, initMod:  3, cr: "21"   },
-  // ── Beasts ──
-  { name: "Wolf",             ac: 13, hp: 11,  initMod:  2, cr: "1/4"  },
-  { name: "Dire Wolf",        ac: 14, hp: 37,  initMod:  2, cr: "1"    },
-  { name: "Brown Bear",       ac: 11, hp: 34,  initMod:  0, cr: "1"    },
-  { name: "Lion",             ac: 12, hp: 26,  initMod:  2, cr: "1"    },
-  { name: "Tiger",            ac: 12, hp: 37,  initMod:  2, cr: "1"    },
-  { name: "Giant Spider",     ac: 14, hp: 26,  initMod:  3, cr: "1"    },
-  { name: "Crocodile",        ac: 12, hp: 19,  initMod:  0, cr: "1/2"  },
-  { name: "Giant Crocodile",  ac: 14, hp: 114, initMod: -1, cr: "5"    },
-  // ── Monsters ──
-  { name: "Kobold",           ac: 12, hp: 5,   initMod:  2, cr: "1/8"  },
-  { name: "Gnoll",            ac: 15, hp: 22,  initMod:  1, cr: "1/2"  },
-  { name: "Lizardfolk",       ac: 15, hp: 22,  initMod:  0, cr: "1/2"  },
-  { name: "Harpy",            ac: 11, hp: 38,  initMod:  1, cr: "1"    },
-  { name: "Minotaur",         ac: 14, hp: 76,  initMod:  0, cr: "3"    },
-  { name: "Basilisk",         ac: 15, hp: 52,  initMod: -1, cr: "3"    },
-  { name: "Manticore",        ac: 14, hp: 68,  initMod:  1, cr: "3"    },
-  { name: "Werewolf",         ac: 11, hp: 58,  initMod:  1, cr: "3"    },
-  { name: "Medusa",           ac: 15, hp: 127, initMod:  2, cr: "6"    },
-  { name: "Wyvern",           ac: 13, hp: 110, initMod:  0, cr: "6"    },
-  { name: "Doppelganger",     ac: 14, hp: 52,  initMod:  4, cr: "3"    },
-  { name: "Gargoyle",         ac: 15, hp: 52,  initMod:  0, cr: "2"    },
-  { name: "Rust Monster",     ac: 14, hp: 27,  initMod:  4, cr: "1/2"  },
-  { name: "Gelatinous Cube",  ac: 6,  hp: 84,  initMod: -2, cr: "2"    },
-  { name: "Owlbear",          ac: 13, hp: 59,  initMod:  1, cr: "3"    },
-  { name: "Displacer Beast",  ac: 13, hp: 85,  initMod:  2, cr: "3"    },
-  { name: "Beholder",         ac: 18, hp: 180, initMod:  2, cr: "13"   },
-  { name: "Mind Flayer",      ac: 15, hp: 71,  initMod:  4, cr: "7"    },
-  // ── Drow ──
-  { name: "Drow",             ac: 15, hp: 13,  initMod:  2, cr: "1/4"  },
-  { name: "Drow Elite Warrior", ac: 18, hp: 71, initMod: 2, cr: "5"   },
-  { name: "Drow Mage",        ac: 12, hp: 45,  initMod:  2, cr: "7"    },
-  // ── Fiends ──
-  { name: "Imp",              ac: 13, hp: 10,  initMod:  3, cr: "1"    },
-  { name: "Quasit",           ac: 13, hp: 7,   initMod:  3, cr: "1"    },
-  { name: "Dretch",           ac: 11, hp: 18,  initMod:  0, cr: "1/4"  },
-  { name: "Hell Hound",       ac: 15, hp: 45,  initMod:  1, cr: "3"    },
-  { name: "Bearded Devil",    ac: 13, hp: 52,  initMod:  2, cr: "3"    },
-  { name: "Barbed Devil",     ac: 15, hp: 110, initMod:  3, cr: "5"    },
-  { name: "Vrock",            ac: 15, hp: 104, initMod:  1, cr: "6"    },
-  { name: "Hezrou",           ac: 16, hp: 136, initMod:  1, cr: "8"    },
-  { name: "Balor",            ac: 19, hp: 262, initMod:  2, cr: "19"   },
-  // ── Dragons ──
-  { name: "Dragon Wyrmling (Black)",  ac: 17, hp: 33,  initMod: 2, cr: "2"  },
-  { name: "Dragon Wyrmling (Blue)",   ac: 17, hp: 38,  initMod: 0, cr: "2"  },
-  { name: "Dragon Wyrmling (Green)",  ac: 17, hp: 38,  initMod: 1, cr: "2"  },
-  { name: "Dragon Wyrmling (Red)",    ac: 17, hp: 75,  initMod: 0, cr: "4"  },
-  { name: "Dragon Wyrmling (White)",  ac: 16, hp: 32,  initMod: 0, cr: "2"  },
-  { name: "Young Black Dragon",  ac: 18, hp: 127, initMod: 2, cr: "7"  },
-  { name: "Young Blue Dragon",   ac: 18, hp: 152, initMod: 0, cr: "9"  },
-  { name: "Young Green Dragon",  ac: 18, hp: 136, initMod: 1, cr: "8"  },
-  { name: "Young Red Dragon",    ac: 18, hp: 178, initMod: 0, cr: "10" },
-  { name: "Young White Dragon",  ac: 17, hp: 133, initMod: 0, cr: "6"  },
-  { name: "Adult Black Dragon",  ac: 19, hp: 195, initMod: 2, cr: "14" },
-  { name: "Adult Blue Dragon",   ac: 19, hp: 225, initMod: 0, cr: "16" },
-  { name: "Adult Green Dragon",  ac: 19, hp: 207, initMod: 1, cr: "15" },
-  { name: "Adult Red Dragon",    ac: 19, hp: 256, initMod: 0, cr: "17" },
-  { name: "Adult White Dragon",  ac: 18, hp: 200, initMod: 0, cr: "13" },
-];
-
 // ── Type colours ──────────────────────────────────────────────────────────────
 const TYPE_COLORS = {
   player: { border: "#ffcc66", bg: "rgba(255,204,102,0.11)", activeBg: "rgba(80,55,0,0.45)",   badge: "#c9a030", badgeBg: "rgba(255,204,102,0.14)" },
@@ -622,7 +515,7 @@ cmRollBtn.addEventListener("click", () => {
 cmPresetSearch.addEventListener("input", () => {
   const q = cmPresetSearch.value.trim().toLowerCase();
   if (!q) { cmPresetList.innerHTML = ""; cmPresetList.style.display = "none"; return; }
-  const matches = MONSTER_PRESETS.filter(m => m.name.toLowerCase().includes(q)).slice(0, 12);
+  const matches = enemyTemplates.filter(m => m.name.toLowerCase().includes(q)).slice(0, 12);
   if (matches.length === 0) { cmPresetList.innerHTML = ""; cmPresetList.style.display = "none"; return; }
 
   cmPresetList.innerHTML = "";
@@ -1155,7 +1048,6 @@ attackDmgInput.addEventListener("keydown", e => {
 // ── Enemy Templates ───────────────────────────────────────────────────────────
 let enemyTemplates     = [];
 let selectedTemplateId = null;
-let _hasSeededPresets  = false;
 // In-progress loot items for the currently open template
 let etLootItems = [];  // [{ id, name, price, rarity, chance, qty }]
 
@@ -1355,35 +1247,12 @@ function _buildSeedLootItems(entries) {
   }).filter(Boolean);
 }
 
-// Seed missing items + update all builtin templates with loot tables
+// Seed missing loot pool items (idempotent by ID)
 function _seedLootTables() {
-  // 1. Seed missing items (idempotent: only write items not yet in Firebase)
   if (window._saveItem) {
     const existingIds = new Set((window._combatItems || []).map(i => i.id));
     SEED_ITEMS.forEach(item => {
       if (!existingIds.has(item.id)) window._saveItem(item);
-    });
-  }
-  // 2. Update all builtin templates with loot data
-  if (window._saveEnemyTemplate) {
-    MONSTER_PRESETS.forEach(p => {
-      const id = "preset_" + p.name.toLowerCase().replace(/[^a-z0-9]+/g, "_");
-      const sl = SEED_LOOT[p.name];
-      const lootItems = sl ? _buildSeedLootItems(sl.items || []) : [];
-      const gpMin = sl ? sl.gp[0] : 0;
-      const gpMax = sl ? sl.gp[1] : 0;
-      window._saveEnemyTemplate({
-        id,
-        name:    p.name,
-        hp:      p.hp,
-        ac:      p.ac,
-        initMod: p.initMod,
-        cr:      p.cr,
-        notes:   null,
-        builtin: true,
-        loot:    { gpMin, gpMax, itemsMin: 0, itemsMax: 0 },
-        lootItems,
-      });
     });
   }
 }
@@ -1405,31 +1274,16 @@ window._onSystemFlagsLoaded = _checkAndSeedLoot;
 window._onEnemyTemplatesUpdate = () => {
   const firebaseList = window._enemyTemplates || [];
 
-  // First load: if the campaign DB is empty, seed it with every MONSTER_PRESET
-  if (!_hasSeededPresets && window._enemyTemplatesLoaded && firebaseList.length === 0) {
-    _hasSeededPresets = true;
-    _seedPresetsToFirebase();
-    return; // onValue will fire again once writes land
-  }
-
-  // Merge Firebase templates with hardcoded presets; Firebase takes priority (deduplicated by name)
-  const seen = new Set();
-  enemyTemplates = [
-    ...firebaseList,
-    ...MONSTER_PRESETS.map(p => ({
-      ...p,
-      builtin: true,
-      id: "preset_" + p.name.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
-    })),
-  ]
-    .filter(t => {
-      if (!t.name) return false;
-      const key = t.name.toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
+  enemyTemplates = firebaseList
+    .filter(t => !!t.name)
     .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+
+  // Show/hide import button based on whether dnd5e creatures are already imported
+  const _cmSession = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
+  if (_cmSession?.role === 'admin' && btnImportCreatures) {
+    const hasDnd5e = firebaseList.some(t => t.id?.startsWith("dnd5e_"));
+    btnImportCreatures.style.display = hasDnd5e ? "none" : "inline-flex";
+  }
 
   _checkAndSeedLoot(); // also check if loot version needs updating
   renderTemplateList();
@@ -1439,24 +1293,6 @@ window._onEnemyTemplatesUpdate = () => {
     if (updated) etLootItems = updated.lootItems ? updated.lootItems.map(x => ({ ...x })) : [];
   }
 };
-
-function _seedPresetsToFirebase() {
-  MONSTER_PRESETS.forEach(p => {
-    const id = "preset_" + p.name.toLowerCase().replace(/[^a-z0-9]+/g, "_");
-    window._saveEnemyTemplate({
-      id,
-      name:     p.name,
-      hp:       p.hp,
-      ac:       p.ac,
-      initMod:  p.initMod,
-      cr:       p.cr,
-      notes:    null,
-      builtin:  true,
-      loot:     { gpMin: 0, gpMax: 0, itemsMin: 0, itemsMax: 0 },
-      lootItems: [],
-    });
-  });
-}
 
 function saveTemplate(payload) {
   if (window._saveEnemyTemplate) {
@@ -2120,4 +1956,96 @@ if (state.logEntries.length > 0) {
 renderLootPanel();
 
 // (battlefield removed — attack flow now uses initiative list cards)
+
+// ── D&D 5e Creature Import ────────────────────────────────────────────────────
+function _fmtCR(cr) {
+  if (cr === 0)     return "0";
+  if (cr === 0.125) return "1/8";
+  if (cr === 0.25)  return "1/4";
+  if (cr === 0.5)   return "1/2";
+  return String(cr);
+}
+
+const btnImportCreatures = document.getElementById("btn-import-dnd5e-creatures");
+const creatureImportProgress = document.getElementById("creature-import-progress");
+const creatureProgressFill   = document.getElementById("creature-progress-fill");
+const creatureProgressLabel  = document.getElementById("creature-progress-label");
+
+if (btnImportCreatures) {
+  btnImportCreatures.addEventListener("click", async () => {
+    if (!window._saveEnemyTemplate) {
+      alert("No campaign selected — open a campaign first.");
+      return;
+    }
+    if (!confirm(
+      "Import all 334 D&D 5e monsters as enemy templates?\n" +
+      "Custom templates you created will be preserved.\n\n" +
+      "Takes ~30 seconds. Continue?"
+    )) return;
+
+    btnImportCreatures.disabled = true;
+    creatureImportProgress.style.display = "block";
+    creatureProgressFill.style.width = "0%";
+    creatureProgressLabel.textContent = "Fetching monster list…";
+
+    try {
+      const listRes = await fetch("https://www.dnd5eapi.co/api/monsters").then(r => r.json());
+      const list    = listRes.results || [];
+      const total   = list.length;
+
+      // Preserve custom templates (builtin: false or undefined)
+      const customNames = new Set(
+        (window._enemyTemplates || [])
+          .filter(t => !t.builtin)
+          .map(t => t.name.toLowerCase())
+      );
+
+      // Remove old preset_ builtin templates to avoid duplicates
+      const oldBuiltins = (window._enemyTemplates || []).filter(t => t.builtin && t.id.startsWith("preset_"));
+      await Promise.all(oldBuiltins.map(t => window._deleteEnemyTemplate?.(t.id)));
+
+      const BATCH = 20;
+      let done = 0;
+
+      for (let i = 0; i < list.length; i += BATCH) {
+        const chunk   = list.slice(i, i + BATCH);
+        const monsters = await Promise.all(
+          chunk.map(m => fetch(`https://www.dnd5eapi.co${m.url}`).then(r => r.json()))
+        );
+
+        await Promise.all(monsters.map(m => {
+          if (customNames.has(m.name.toLowerCase())) return Promise.resolve();
+          const ac      = Array.isArray(m.armor_class) ? (m.armor_class[0]?.value ?? 10) : (m.armor_class || 10);
+          const initMod = Math.floor(((m.dexterity || 10) - 10) / 2);
+          return window._saveEnemyTemplate({
+            id:       "dnd5e_" + m.index,
+            name:     m.name,
+            hp:       m.hit_points,
+            ac,
+            initMod,
+            cr:       _fmtCR(m.challenge_rating),
+            type:     m.type || null,
+            builtin:  true,
+            loot:     { gpMin: 0, gpMax: 0, itemsMin: 0, itemsMax: 0 },
+            lootItems: [],
+          });
+        }));
+
+        done += chunk.length;
+        const pct = Math.round(done / total * 100);
+        creatureProgressFill.style.width = pct + "%";
+        creatureProgressLabel.textContent = `Importing… ${done}/${total} (${pct}%)`;
+      }
+
+      creatureProgressLabel.textContent = `Done! Imported ${total} monsters.`;
+      btnImportCreatures.style.display = "none";
+      setTimeout(() => { creatureImportProgress.style.display = "none"; }, 3000);
+
+    } catch (err) {
+      creatureProgressLabel.textContent = "Error: " + err.message;
+      creatureProgressFill.style.background = "#c62828";
+      setTimeout(() => { creatureImportProgress.style.display = "none"; btnImportCreatures.disabled = false; }, 4000);
+    }
+  });
+}
 

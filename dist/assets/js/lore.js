@@ -2,17 +2,17 @@ import { db }                          from "./firebase.js";
 import { ref, set, remove, onValue, push, get } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { openGivePanel }              from "./give-to-player.js";
 
-const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
-const isAdmin = _session?.role === 'admin';
-const cid = _session?.campaignId;
-if (!cid) { window.location.href = '/campaigns'; throw new Error('No campaign selected'); }
+const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
 
 // ── Firebase ──────────────────────────────────────────────────────────────────
-const loreRef = ref(db, `campaigns/${cid}/lore`);
+const loreRef = ref(db, "lore");
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let loreItems    = [];
 let activeFilter = "all";
+let searchQuery  = "";
+let sortKey      = "name";
+let sortDir      = 1;
 let editingId    = null;
 let selectedType = "book";
 let selectedColor = "#8b4513";
@@ -29,6 +29,16 @@ const COVER_COLORS = [
 const loreGrid   = document.getElementById("lore-grid");
 const loreEmpty  = document.getElementById("lore-empty");
 const loreAddBtn = document.getElementById("lore-add-btn");
+const loreCount  = document.getElementById("lore-count");
+
+// Search
+const loreSearch = document.getElementById("lore-search");
+if (loreSearch) {
+  loreSearch.addEventListener("input", () => {
+    searchQuery = loreSearch.value.toLowerCase().trim();
+    renderGrid();
+  });
+}
 
 // Filter tabs
 document.querySelectorAll(".lore-tab").forEach(tab => {
@@ -36,6 +46,22 @@ document.querySelectorAll(".lore-tab").forEach(tab => {
     document.querySelectorAll(".lore-tab").forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
     activeFilter = tab.dataset.filter;
+    renderGrid();
+  });
+});
+
+// Sort buttons
+document.querySelectorAll(".sort-btn[data-sort]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const key = btn.dataset.sort;
+    if (sortKey === key) {
+      sortDir *= -1;
+    } else {
+      sortKey = key;
+      sortDir = 1;
+    }
+    document.querySelectorAll(".sort-btn[data-sort]").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
     renderGrid();
   });
 });
@@ -92,13 +118,24 @@ onValue(loreRef, snapshot => {
 function renderGrid() {
   loreGrid.innerHTML = "";
 
-  const visible = loreItems.filter(item => {
+  let visible = loreItems.filter(item => {
     if (!isAdmin && !item.discovered) return false;
     if (activeFilter !== "all" && item.type !== activeFilter) return false;
+    if (searchQuery) {
+      const haystack = `${item.title || ""} ${item.writer || ""}`.toLowerCase();
+      if (!haystack.includes(searchQuery)) return false;
+    }
     return true;
   });
 
+  visible.sort((a, b) => {
+    let av = sortKey === "type" ? (a.type || "") : (a.title || "");
+    let bv = sortKey === "type" ? (b.type || "") : (b.title || "");
+    return av.localeCompare(bv) * sortDir;
+  });
+
   loreEmpty.style.display = visible.length === 0 ? "block" : "none";
+  if (loreCount) loreCount.textContent = `${visible.length} item${visible.length !== 1 ? "s" : ""}`;
 
   visible.forEach(item => {
     const card = buildCard(item);
@@ -135,7 +172,7 @@ function buildCard(item) {
     delBtn.textContent = "Delete";
     delBtn.addEventListener("click", e => {
       e.stopPropagation();
-      if (confirm(`Delete "${item.title}"?`)) remove(ref(db, `campaigns/${cid}/lore/${item.id}`));
+      if (confirm(`Delete "${item.title}"?`)) remove(ref(db, `lore/${item.id}`));
     });
     wrap.appendChild(delBtn);
 
@@ -177,7 +214,7 @@ function buildCard(item) {
     visBtn.textContent = item.discovered ? "Hide" : "Show";
     visBtn.addEventListener("click", e => {
       e.stopPropagation();
-      set(ref(db, `campaigns/${cid}/lore/${item.id}/discovered`), !item.discovered);
+      set(ref(db, `lore/${item.id}/discovered`), !item.discovered);
     });
     dmBar.appendChild(visBtn);
     wrap.appendChild(dmBar);
@@ -375,10 +412,10 @@ lmSave.addEventListener("click", async () => {
     availableInLibrary: lmAvailableInLibrary.checked,
   };
 
-  await set(ref(db, `campaigns/${cid}/lore/${payload.id}`), payload);
+  await set(ref(db, `lore/${payload.id}`), payload);
 
   // Sync into any inventory copies of this lore item
-  const invSnap = await get(ref(db, `campaigns/${cid}/inventory`));
+  const invSnap = await get(ref(db, "inventory"));
   if (invSnap.exists()) {
     const oldTitle = editingId ? (loreItems.find(i => i.id === editingId)?.title ?? null) : null;
     for (const [uid, userInv] of Object.entries(invSnap.val())) {
@@ -386,7 +423,7 @@ lmSave.addEventListener("click", async () => {
         const matchById   = invItem.sourceItemId === payload.id;
         const matchByName = !invItem.sourceItemId && oldTitle && invItem.name === oldTitle;
         if (matchById || matchByName) {
-          await set(ref(db, `campaigns/${cid}/inventory/${uid}/${key}`), {
+          await set(ref(db, `inventory/${uid}/${key}`), {
             ...invItem,
             name:        payload.title,
             description: payload.writer ? `Written by ${payload.writer}` : null,
@@ -592,7 +629,7 @@ async function seedDefaultLore() {
 
   for (const item of DEFAULT_LORE) {
     const id = push(loreRef).key;
-    await set(ref(db, `campaigns/${cid}/lore/${id}`), { ...item, id });
+    await set(ref(db, `lore/${id}`), { ...item, id });
   }
 
   if (btn) { btn.disabled = false; btn.textContent = "Seed Default Lore"; }
@@ -784,7 +821,7 @@ async function seedItemLore() {
 
   for (const item of ITEM_LORE) {
     const id = push(loreRef).key;
-    await set(ref(db, `campaigns/${cid}/lore/${id}`), { ...item, id });
+    await set(ref(db, `lore/${id}`), { ...item, id });
   }
 
   if (btn) { btn.disabled = false; btn.textContent = "Seed Item Lore"; }

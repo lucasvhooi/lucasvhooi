@@ -17,10 +17,6 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
         <iconify-icon icon="lucide:search" class="hdr-search-icon"></iconify-icon>
         <input type="text" id="items-search" class="items-search" placeholder="Search…" />
       </div>
-      <button id="add-item-btn" class="items-btn-add" style="display:none">
-        <iconify-icon icon="lucide:plus"></iconify-icon>
-        Add Item
-      </button>
       <div id="tag-filter" class="tag-filter"></div>
     </div>
   </Header>
@@ -50,20 +46,54 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
         <button class="rarity-filter-btn rfb-vrare"     data-rarity="very rare">Very Rare</button>
         <button class="rarity-filter-btn rfb-legendary" data-rarity="legendary">Legendary</button>
       </div>
+      <div class="items-filter-actions">
+        <button id="add-item-btn" class="items-btn-add" style="display:none">
+          <iconify-icon icon="lucide:plus"></iconify-icon>
+          Add Item
+        </button>
+        <button id="btn-import-dnd5e" class="items-btn-import" style="display:none" title="Replace base items with D&D 5e API data">
+          <iconify-icon icon="lucide:download"></iconify-icon>
+          Import D&D 5e
+        </button>
+      </div>
     </div>
 
-    <!-- Column headers -->
-    <div class="items-col-header">
-      <span class="col-h-name">Name</span>
-      <span class="col-h-type">Type</span>
-      <span class="col-h-rarity">Rarity</span>
-      <span class="col-h-price">Price</span>
-      <span></span>
-    </div>
+    <!-- List + detail panel side by side -->
+    <div class="items-content">
 
-    <!-- Items list -->
-    <div id="items-grid" class="items-list"></div>
-    <div id="items-pagination" class="items-pagination"></div>
+      <div class="items-list-section">
+        <!-- Column headers -->
+        <div class="items-col-header">
+          <span class="col-h-name">Name</span>
+          <span class="col-h-type">Type</span>
+          <span class="col-h-rarity">Rarity</span>
+          <span class="col-h-price">Price</span>
+          <span></span>
+        </div>
+
+        <!-- Items list -->
+        <div id="items-grid" class="items-list"></div>
+        <div id="items-pagination" class="items-pagination"></div>
+      </div>
+
+      <!-- Right: slide-out detail panel -->
+      <div id="item-detail-panel" class="item-detail-panel">
+        <div class="item-detail-inner">
+          <div class="idp-header">
+            <h2 id="idp-title" class="idp-title"></h2>
+            <button id="idp-close" class="idp-close" title="Close">&times;</button>
+          </div>
+          <div class="idp-body">
+            <div id="idp-meta" class="idp-meta"></div>
+            <div id="idp-stats"></div>
+            <hr class="idp-divider" />
+            <div id="idp-description"></div>
+            <div id="idp-abilities"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
 
   </main>
 
@@ -144,6 +174,21 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
         <button id="im-save" class="dm-btn">Save Item</button>
         <button id="im-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
       </div>
+    </div>
+  </div>
+
+  <!-- D&D 5e Import Progress Overlay -->
+  <div id="dnd5e-import-overlay" class="dnd5e-import-overlay" style="display:none">
+    <div class="dnd5e-import-box">
+      <h3 class="dnd5e-import-title">
+        <iconify-icon icon="lucide:download"></iconify-icon>
+        Importing from D&D 5e API
+      </h3>
+      <div class="dnd5e-progress-track">
+        <div id="dnd5e-progress-bar" class="dnd5e-progress-fill"></div>
+      </div>
+      <div id="dnd5e-progress-text" class="dnd5e-progress-text">0 / 0 (0%)</div>
+      <div id="dnd5e-progress-status" class="dnd5e-progress-status">Starting…</div>
     </div>
   </div>
 

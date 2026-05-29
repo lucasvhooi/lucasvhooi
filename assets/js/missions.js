@@ -674,8 +674,20 @@ window.addEventListener("scroll", () => {
 }, { passive: true });
 
 // ── Render grid ───────────────────────────────────────────────────────────────
+const qsCompleted = document.getElementById("qs-completed");
+const qsMain      = document.getElementById("qs-main");
+const qsSide      = document.getElementById("qs-side");
+
+function updateQuestStats() {
+  const all = isAdmin ? quests : quests.filter(q => q.discovered);
+  if (qsCompleted) qsCompleted.textContent = all.filter(q => q.status === "completed").length;
+  if (qsMain)      qsMain.textContent      = all.filter(q => q.type   === "main").length;
+  if (qsSide)      qsSide.textContent      = all.filter(q => q.type   === "side").length;
+}
+
 function renderGrid() {
   questGrid.innerHTML = "";
+  updateQuestStats();
   const visible = quests.filter(q => {
     if (!isAdmin && !q.discovered) return false;
     if (activeFilter === "all")       return true;

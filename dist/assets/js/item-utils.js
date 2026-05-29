@@ -27,7 +27,7 @@ export const CANONICAL_TAGS = new Set([
   "clothing", "ammunition", "ranged", "animal", "plants", "book",
 ]);
 
-const RARITY_KW = new Set(["common", "uncommon", "rare", "very rare", "legendary"]);
+export const RARITY_KW = new Set(["common", "uncommon", "rare", "very rare", "legendary"]);
 
 // Maps granular raw tags → a canonical category (null = drop from display)
 const TAG_NORMALIZE = {
@@ -59,13 +59,24 @@ const TAG_NORMALIZE = {
   // Scroll sub-types
   "spell": "scroll", "fire": "scroll",
   // Wands & staves
-  "staff": "wand",
+  "staff": "wand", "rod": "wand", "staffs": "wand", "rods": "wand",
   // Magic item sub-types (not wand/ring)
   "cloak": "magic", "boots": "magic", "amulet": "magic",
   "container": "magic", "protection": "magic",
   "constitution": "magic", "movement": "magic", "arcane": "magic",
+  "wondrous-item": "magic", "wondrous-items": "magic", "magic-items": "magic",
   // Tool sub-types
   "utility": "tool", "stealth": "tool",
+  // D&D 5e API category tags (plurals / hyphenated forms from the importer)
+  "weapons": "weapon",
+  "potions": "potion",
+  "scrolls": "scroll",
+  "wands": "wand",
+  "rings": "ring",
+  "adventuring-gear": "tool",
+  "tools": "tool",
+  "trade-goods": "tool",
+  "mounts-and-vehicles": null,
   // Drop noisy-but-meaningless tags
   "consumable": null, "melee": null, "magic": "magic",
 };

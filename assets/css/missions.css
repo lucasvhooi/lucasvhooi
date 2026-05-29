@@ -1,5 +1,10 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
 
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    MISSIONS PAGE — Notebook / OneNote-inspired clean layout
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -17,44 +22,30 @@
 }
 .modal-overlay.open { display: flex; }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   HERO
-   ═══════════════════════════════════════════════════════════════════════════ */
-.quest-hero {
-  background: linear-gradient(180deg, #3a1a05 0%, #2a1505 50%, #1a1a1a 100%);
-}
-
+/* ── Filter tabs ── */
 .quest-filter-tabs {
   display: flex;
-  justify-content: center;
-  gap: 4px;
+  gap: 5px;
   flex-wrap: wrap;
-  margin: 16px auto 0;
-  border-bottom: 1px solid #3e2b1b;
-  padding-bottom: 0;
 }
 
 .quest-tab {
-  background: transparent;
-  border: 1px solid transparent;
-  border-bottom: none;
-  color: #7a6a58;
-  padding: 9px 20px;
-  border-radius: 8px 8px 0 0;
   font-family: var(--font);
-  font-size: 13px;
-  letter-spacing: 0.03em;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.45);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-  margin-bottom: -1px;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
-.quest-tab:hover  { color: var(--accent); background: rgba(255,204,102,0.05); }
-.quest-tab.active {
-  background: var(--bg);
-  border-color: #3a2510;
-  color: var(--accent);
-  font-weight: bold;
-}
+.quest-tab:hover  { border-color: var(--accent); color: var(--accent); background: rgba(200,164,92,0.08); }
+.quest-tab.active { background: rgba(200,164,92,0.15); border-color: rgba(200,164,92,0.5); color: var(--accent); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    MAIN GRID
@@ -75,6 +66,80 @@
   margin: 0;
 }
 
+/* ── Filter bar with counters + Add Quest button ── */
+.items-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(200,164,92,0.08);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.quest-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.quest-stat-item {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 0 14px;
+}
+.quest-stat-item:first-child { padding-left: 0; }
+
+.quest-stat-count {
+  font-family: var(--title);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 1;
+  min-width: 1ch;
+  text-align: right;
+}
+
+.quest-stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7a6a58;
+}
+
+.quest-stat-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(200,164,92,0.12);
+  flex-shrink: 0;
+}
+
+.items-btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #8a6010 0%, #c8922a 40%, #e0b040 60%, #b07820 100%);
+  border: 1px solid rgba(220,170,60,0.6);
+  border-radius: 8px;
+  color: #1a1000;
+  font-family: var(--title);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: filter 0.22s, box-shadow 0.25s, transform 0.2s;
+  white-space: nowrap;
+}
+.items-btn-add:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 14px rgba(221,88,26,0.32), 0 4px 16px rgba(0,0,0,0.4);
+  transform: translateY(-1px);
+}
+.items-btn-add:active { transform: translateY(0) scale(0.98); }
+
 .quest-grid {
   display: flex;
   flex-direction: column;
@@ -82,62 +147,77 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   QUEST CARD — notebook-page feel
+   QUEST CARD — spell-row style
    ═══════════════════════════════════════════════════════════════════════════ */
 .quest-card {
-  background: linear-gradient(180deg, #1e1208 0%, #160d05 100%);
-  border: 1px solid #3a2510;
-  border-radius: 8px;
+  --qc: #c8a45c;
+  background: linear-gradient(135deg, #12140e 0%, #0f1009 100%);
+  border: 1px solid rgba(200,164,92,0.09);
+  border-left: 4px solid var(--qc);
+  border-radius: 10px;
   display: flex;
+  align-items: stretch;
   overflow: hidden;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.4);
-  transition:
-    box-shadow 0.36s var(--ease-out-expo),
-    border-color 0.26s ease,
-    transform 0.36s var(--ease-out-expo);
   position: relative;
-  height: 120px;
+  min-height: 64px;
+  transition: border-color 0.25s, box-shadow 0.28s, transform 0.22s;
+  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: transform;
 }
-.quest-card:hover {
-  box-shadow: 0 14px 40px rgba(0,0,0,0.65), 0 4px 12px rgba(0,0,0,0.4);
-  border-color: #5a3a1a;
-  transform: translateY(-6px) scale(1.015);
+
+.quest-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(ellipse 85% 150% at -5% 50%, var(--qc) 0%, transparent 78%);
+  opacity: 0.07;
+  transition: opacity 0.5s;
 }
 
-/* Quest type top border (replaces left accent bar) */
+.quest-card > * { position: relative; z-index: 1; }
+
+.quest-card:hover {
+  border-color: rgba(200,164,92,0.2);
+  border-left-color: color-mix(in srgb, var(--qc) 80%, #fff 20%);
+  box-shadow: 0 6px 22px rgba(0,0,0,0.48), 0 0 0 1px rgba(200,164,92,0.04);
+  transform: translateY(-3px);
+}
+.quest-card:hover::after { opacity: 0.14; }
+
 .qc-accent-bar { display: none; }
-.quest-main     { border-top: 3px solid #c8a45c; background: linear-gradient(180deg, rgba(200,164,92,0.09) 0%, #160d05 60%); }
-.quest-side     { border-top: 3px solid #5aab66; background: linear-gradient(180deg, rgba(90,171,102,0.09) 0%, #160d05 60%); }
-.quest-completed { border-top: 3px solid #3a2510; }
+.quest-main      { --qc: #c8a45c; }
+.quest-side      { --qc: #5aab66; }
+.quest-completed { --qc: #5a5a5a; }
 
 .qc-body {
   flex: 1;
-  padding: 9px 14px 8px 12px;
+  padding: 10px 16px 10px 18px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Card header — single flex row */
+.qc-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  flex-wrap: wrap;
   min-width: 0;
 }
 
-/* Card header */
-.qc-header-row {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  grid-template-areas:
-    "drag title badges"
-    ".    summary .";
-  gap: 2px 8px;
-  align-items: center;
-  margin-bottom: 0;
-}
-
 .qc-drag-handle {
-  grid-area: drag;
   cursor: grab;
   color: #3a2510;
   font-size: 14px;
   line-height: 1;
-  padding: 4px 4px;
+  padding: 4px;
   border-radius: 4px;
   user-select: none;
+  flex-shrink: 0;
   transition: color 0.15s, background 0.15s;
 }
 .qc-drag-handle:hover { color: var(--accent); background: rgba(200,164,92,0.08); }
@@ -163,23 +243,26 @@
 .qc-fold-btn:hover { color: var(--accent); background: rgba(200,164,92,0.08); }
 
 .qc-title-row {
-  grid-area: title;
+  flex: 1;
   display: flex;
-  align-items: baseline;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
   min-width: 0;
 }
 
 .qc-title {
   font-family: 'IM Fell English', 'Garamond', serif;
-  font-size: clamp(0.95rem, 2vw, 1.1rem);
-  color: var(--text);
+  font-size: 15px;
+  color: var(--accent);
   margin: 0;
   font-weight: normal;
   letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.quest-completed .qc-title { color: #6a5a46; text-decoration: line-through; text-decoration-color: #3a2510;}
+.quest-completed .qc-title { color: #6a5a46; text-decoration: line-through; text-decoration-color: #4a3520; }
 
 .qc-location {
   font-size: 12px;
@@ -187,14 +270,16 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-/* Top right badges */
+/* Badges + summary row */
 .qc-top-row {
-  grid-area: badges;
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
   flex-wrap: wrap;
 }
 
@@ -239,13 +324,12 @@
   text-transform: uppercase;
 }
 
-/* Summary chip row — at-a-glance content counts */
+/* Summary chips — inline in the row */
 .qc-summary {
-  grid-area: summary;
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-top: 3px;
+  flex-shrink: 0;
 }
 .qc-chip {
   display: inline-flex;
@@ -527,10 +611,11 @@
 /* Card actions */
 .qc-actions {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 14px 14px 14px 0;
+  flex-direction: row;
+  gap: 4px;
+  padding: 0 14px 0 0;
   flex-shrink: 0;
+  align-items: center;
 }
 .qc-btn {
   width: 32px; height: 32px;

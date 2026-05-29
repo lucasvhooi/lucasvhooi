@@ -1,22 +1,54 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
 ---
 <Layout title="Quests — Essolis" activePage="missions" extraCSS={['/assets/css/missions.css']}>
 
-  <header class="quest-hero page-hero">
-    <button id="quest-add-btn" class="dm-btn quest-hero-add-btn page-hero__add-btn" style="display:none">+ New Quest</button>
-    <h1 class="quest-title page-hero__title">Quests</h1>
-    <p class="quest-subtitle page-hero__sub">Missions and adventures across Enora</p>
-    <div class="quest-filter-tabs">
-      <button class="quest-tab active" data-filter="all">All</button>
-      <button class="quest-tab" data-filter="main">Main</button>
-      <button class="quest-tab" data-filter="side">Side</button>
-      <button class="quest-tab" data-filter="active">Active</button>
-      <button class="quest-tab" data-filter="completed">Completed</button>
+  <Header
+    title="Quests"
+    description="Missions and adventures across Enora"
+    icon="game-icons:crossed-swords"
+    image={headerImg}
+  >
+    <div slot="tabs" class="hdr-tabs-row">
+      <div class="quest-filter-tabs">
+        <button class="quest-tab active" data-filter="all">All</button>
+        <button class="quest-tab" data-filter="main">
+          <iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Main
+        </button>
+        <button class="quest-tab" data-filter="side">
+          <iconify-icon icon="lucide:sparkles"></iconify-icon> Side
+        </button>
+        <button class="quest-tab" data-filter="active">Active</button>
+        <button class="quest-tab" data-filter="completed">Completed</button>
+      </div>
     </div>
-  </header>
+  </Header>
 
   <main class="quest-page-main">
+    <div class="items-filter-bar quest-filter-bar">
+      <div class="quest-stats-row">
+        <div class="quest-stat-item">
+          <span id="qs-completed" class="quest-stat-count">0</span>
+          <span class="quest-stat-label">Completed</span>
+        </div>
+        <div class="quest-stat-divider"></div>
+        <div class="quest-stat-item">
+          <span id="qs-main" class="quest-stat-count">0</span>
+          <span class="quest-stat-label">Main Quests</span>
+        </div>
+        <div class="quest-stat-divider"></div>
+        <div class="quest-stat-item">
+          <span id="qs-side" class="quest-stat-count">0</span>
+          <span class="quest-stat-label">Side Quests</span>
+        </div>
+      </div>
+      <button id="quest-add-btn" class="items-btn-add" style="display:none">
+        <iconify-icon icon="lucide:plus"></iconify-icon>
+        New Quest
+      </button>
+    </div>
     <div id="quest-grid" class="quest-grid"></div>
     <p id="quest-empty" class="quest-empty" style="display:none">No quests found.</p>
   </main>

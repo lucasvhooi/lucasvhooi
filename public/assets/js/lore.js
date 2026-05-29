@@ -13,6 +13,9 @@ const loreRef = ref(db, `campaigns/${cid}/lore`);
 // ── State ─────────────────────────────────────────────────────────────────────
 let loreItems    = [];
 let activeFilter = "all";
+let searchQuery  = "";
+let sortKey      = "name";
+let sortDir      = 1;
 let editingId    = null;
 let selectedType = "book";
 let selectedColor = "#8b4513";
@@ -29,6 +32,16 @@ const COVER_COLORS = [
 const loreGrid   = document.getElementById("lore-grid");
 const loreEmpty  = document.getElementById("lore-empty");
 const loreAddBtn = document.getElementById("lore-add-btn");
+const loreCount  = document.getElementById("lore-count");
+
+// Search
+const loreSearch = document.getElementById("lore-search");
+if (loreSearch) {
+  loreSearch.addEventListener("input", () => {
+    searchQuery = loreSearch.value.toLowerCase().trim();
+    renderGrid();
+  });
+}
 
 // Filter tabs
 document.querySelectorAll(".lore-tab").forEach(tab => {
@@ -36,6 +49,22 @@ document.querySelectorAll(".lore-tab").forEach(tab => {
     document.querySelectorAll(".lore-tab").forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
     activeFilter = tab.dataset.filter;
+    renderGrid();
+  });
+});
+
+// Sort buttons
+document.querySelectorAll(".sort-btn[data-sort]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const key = btn.dataset.sort;
+    if (sortKey === key) {
+      sortDir *= -1;
+    } else {
+      sortKey = key;
+      sortDir = 1;
+    }
+    document.querySelectorAll(".sort-btn[data-sort]").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
     renderGrid();
   });
 });
@@ -92,13 +121,24 @@ onValue(loreRef, snapshot => {
 function renderGrid() {
   loreGrid.innerHTML = "";
 
-  const visible = loreItems.filter(item => {
+  let visible = loreItems.filter(item => {
     if (!isAdmin && !item.discovered) return false;
     if (activeFilter !== "all" && item.type !== activeFilter) return false;
+    if (searchQuery) {
+      const haystack = `${item.title || ""} ${item.writer || ""}`.toLowerCase();
+      if (!haystack.includes(searchQuery)) return false;
+    }
     return true;
   });
 
+  visible.sort((a, b) => {
+    let av = sortKey === "type" ? (a.type || "") : (a.title || "");
+    let bv = sortKey === "type" ? (b.type || "") : (b.title || "");
+    return av.localeCompare(bv) * sortDir;
+  });
+
   loreEmpty.style.display = visible.length === 0 ? "block" : "none";
+  if (loreCount) loreCount.textContent = `${visible.length} item${visible.length !== 1 ? "s" : ""}`;
 
   visible.forEach(item => {
     const card = buildCard(item);
@@ -592,7 +632,7 @@ async function seedDefaultLore() {
 
   for (const item of DEFAULT_LORE) {
     const id = push(loreRef).key;
-    await set(ref(db, `campaigns/${cid}/lore/${id}`), { ...item, id });
+    await set(ref(db, `lore/${id}`), { ...item, id });
   }
 
   if (btn) { btn.disabled = false; btn.textContent = "Seed Default Lore"; }
@@ -784,7 +824,7 @@ async function seedItemLore() {
 
   for (const item of ITEM_LORE) {
     const id = push(loreRef).key;
-    await set(ref(db, `campaigns/${cid}/lore/${id}`), { ...item, id });
+    await set(ref(db, `lore/${id}`), { ...item, id });
   }
 
   if (btn) { btn.disabled = false; btn.textContent = "Seed Item Lore"; }

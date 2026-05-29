@@ -1050,6 +1050,31 @@ body {
   flex-shrink: 0;
 }
 
+.creature-import-progress {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(58,37,16,0.5);
+  flex-shrink: 0;
+}
+.creature-progress-track {
+  background: #1a0e06;
+  border-radius: 4px;
+  height: 5px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+.creature-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #43a047, #81c784);
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+.creature-progress-label {
+  font-size: 11px;
+  color: #666;
+  text-align: center;
+}
+
 .enemy-search-input {
   flex: 1;
   background: #1a0e06;

@@ -1,43 +1,103 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import bgImg from '../../Images/Headers/AccountPageBackground.png';
 ---
-<Layout title="Inventory — Essolis" activePage="inventory" extraCSS={['/assets/css/lore.css', '/assets/css/spells.css', '/assets/css/items.css', '/assets/css/inventory.css']}>
-
-  <header class="inv-hero page-hero">
-    <button class="manage-btn" id="manage-btn" style="display:none"><iconify-icon icon="lucide:settings"></iconify-icon> Players</button>
-    <button class="dm-btn inv-add-btn" id="add-btn" style="display:none">+ Add Item</button>
-
-    <h1 class="inv-hero-title page-hero__title" id="inv-hero-title">Inventory</h1>
-    <p class="inv-hero-sub page-hero__sub" id="inv-hero-sub">Loading…</p>
-
-    <div class="inv-attunement-bar" id="inv-attunement-bar" style="display:none">
-      <span class="inv-attunement-slots" id="inv-attunement-slots">0 / 3 Attunement Slots</span>
-    </div>
-
-    <div class="inv-player-selector" id="player-selector" style="display:none">
-      <label for="player-select">Viewing:</label>
-      <select class="inv-player-select" id="player-select"></select>
-    </div>
-
-    <div class="inv-filter-tabs" id="filter-tabs">
-      <button class="inv-tab active" data-filter="all">All</button>
-      <button class="inv-tab" data-filter="weapon"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Weapons</button>
-      <button class="inv-tab" data-filter="armor"><iconify-icon icon="game-icons:shield"></iconify-icon> Armor</button>
-      <button class="inv-tab" data-filter="potion"><iconify-icon icon="game-icons:potion"></iconify-icon> Potions</button>
-      <button class="inv-tab" data-filter="misc"><iconify-icon icon="lucide:gem"></iconify-icon> Misc</button>
-      <button class="inv-tab inv-tab-lore" data-filter="books-scrolls"><iconify-icon icon="game-icons:bookshelf"></iconify-icon> Books &amp; Scrolls</button>
-      <button class="inv-tab inv-tab-spells" data-filter="spells"><iconify-icon icon="lucide:sparkles"></iconify-icon> Spells</button>
-    </div>
-  </header>
+<Layout title="Inventory — Essolis" activePage="inventory" extraCSS={['/assets/css/lore.css', '/assets/css/items.css', '/assets/css/inventory.css']} pageContentStyle={`background:linear-gradient(rgba(12,9,5,0.78),rgba(12,9,5,0.78)),url('${bgImg.src}') center/cover fixed`}>
 
   <main class="inv-main">
-    <div class="inv-grid-toolbar">
-      <button class="inv-view-toggle" id="inv-view-toggle" title="Toggle compact view" aria-label="Toggle compact view">
-        <span class="toggle-icon-grid">⊞</span>
-        <iconify-icon icon="lucide:list" class="toggle-icon-list"></iconify-icon>
+
+    <!-- Page title + Players button -->
+    <div class="inv-top-bar">
+      <div class="inv-title-side">
+        <span class="inv-viewer-name" id="inv-viewer-name"></span>
+        <div class="inv-player-selector" id="player-selector" style="display:none">
+          <label for="player-select">Viewing:</label>
+          <select class="inv-player-select" id="player-select"></select>
+        </div>
+      </div>
+      <button id="manage-btn" class="inv-manage-btn" style="display:none">
+        <iconify-icon icon="lucide:users"></iconify-icon>
+        Players
       </button>
     </div>
-    <div class="inv-grid" id="inv-grid"></div>
+
+    <!-- Attunement slots -->
+    <div class="inv-section-label-row">
+      <p class="inv-section-label"><iconify-icon icon="lucide:sparkles" style="font-size:11px;vertical-align:-1px;margin-right:5px;opacity:0.7"></iconify-icon>Equipped &amp; Attuned</p>
+      <span id="inv-attunement-bar" class="inv-att-count-badge" style="display:none"><span id="inv-attunement-slots">0 / 3</span></span>
+    </div>
+    <div class="inv-att-slots-row" id="att-slots-row"></div>
+
+    <!-- Search + Add Item + category tabs — all one row -->
+    <div class="inv-actions-row">
+      <div class="hdr-search-wrap">
+        <iconify-icon icon="lucide:search" class="hdr-search-icon"></iconify-icon>
+        <input type="text" id="inv-search" class="items-search" placeholder="Search items…" />
+      </div>
+      <button id="add-btn" class="items-btn-add" style="display:none">
+        <iconify-icon icon="lucide:plus"></iconify-icon>
+        Add Item
+      </button>
+      <div class="inv-filter-tabs" id="filter-tabs">
+        <button class="inv-tab active" data-filter="all">All</button>
+        <button class="inv-tab" data-filter="weapon"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Weapons</button>
+        <button class="inv-tab" data-filter="armor"><iconify-icon icon="game-icons:shield"></iconify-icon> Armor</button>
+        <button class="inv-tab" data-filter="potion"><iconify-icon icon="game-icons:potion"></iconify-icon> Potions</button>
+        <button class="inv-tab" data-filter="misc"><iconify-icon icon="lucide:gem"></iconify-icon> Misc</button>
+        <button class="inv-tab inv-tab-lore" data-filter="books-scrolls"><iconify-icon icon="game-icons:bookshelf"></iconify-icon> Books &amp; Scrolls</button>
+        <button class="inv-tab inv-tab-spells" data-filter="spells"><iconify-icon icon="lucide:sparkles"></iconify-icon> Spells</button>
+      </div>
+    </div>
+
+    <!-- Sort bar -->
+    <div class="items-filter-bar">
+      <div class="items-sort-group">
+        <span class="filter-label">Sort</span>
+        <button class="sort-btn" data-sort="name" id="inv-sort-name">
+          Name <iconify-icon icon="lucide:chevrons-up-down" style="font-size:13px;vertical-align:-2px"></iconify-icon>
+        </button>
+        <button class="sort-btn" data-sort="type" id="inv-sort-type">
+          Type <iconify-icon icon="lucide:chevrons-up-down" style="font-size:13px;vertical-align:-2px"></iconify-icon>
+        </button>
+        <button class="sort-btn" data-sort="rarity" id="inv-sort-rarity">
+          Rarity <iconify-icon icon="lucide:chevrons-up-down" style="font-size:13px;vertical-align:-2px"></iconify-icon>
+        </button>
+      </div>
+      <span class="spells-count" id="inv-count"></span>
+    </div>
+
+    <!-- List + slide-out detail panel -->
+    <div class="inv-content">
+
+      <div class="inv-list-section">
+        <div class="inv-col-header">
+          <span>Item</span>
+          <span class="col-h-type">Type</span>
+          <span>Rarity</span>
+          <span></span>
+        </div>
+        <div id="inv-list" class="inv-list"></div>
+      </div>
+
+      <div id="inv-detail-panel" class="inv-detail-panel">
+        <div class="inv-detail-inner">
+          <div class="idp-header">
+            <h2 id="idp-title" class="idp-title"></h2>
+            <button id="idp-close" class="idp-close" title="Close">&times;</button>
+          </div>
+          <div class="idp-body">
+            <div id="idp-icon" class="idp-icon-wrap"></div>
+            <div id="idp-meta" class="idp-meta"></div>
+            <hr class="idp-divider" />
+            <div id="idp-description"></div>
+            <div id="idp-abilities"></div>
+            <div id="idp-actions"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
   </main>
 
   <!-- Add Item Modal -->
@@ -176,7 +236,7 @@ import Layout from '../layouts/Layout.astro';
   <div class="inv-overlay" id="manage-modal">
     <div class="inv-modal inv-modal-lg">
       <div class="inv-modal-header">
-        <h2 class="inv-modal-title"><iconify-icon icon="lucide:settings"></iconify-icon> Manage Players</h2>
+        <h2 class="inv-modal-title"><iconify-icon icon="lucide:users"></iconify-icon> Manage Players</h2>
         <button class="inv-modal-close" data-close="manage-modal"><iconify-icon icon="lucide:x"></iconify-icon></button>
       </div>
       <div class="inv-modal-body">
@@ -288,25 +348,22 @@ import Layout from '../layouts/Layout.astro';
 
   <script>
     import { animate } from 'framer-motion/dom';
-
-    const grid = document.getElementById('inv-grid');
-    if (grid) {
+    const list = document.getElementById('inv-list');
+    if (list) {
       let batch: HTMLElement[] = [];
       let rebuilding = false;
       let timer: ReturnType<typeof setTimeout> | null = null;
 
       const observer = new MutationObserver(mutations => {
         for (const m of mutations) {
-          if (m.removedNodes.length > 2) {
-            rebuilding = true;
-            batch = [];
-          }
+          if (m.removedNodes.length > 2) { rebuilding = true; batch = []; }
           for (const node of m.addedNodes) {
             const el = node as HTMLElement;
-            if (node.nodeType === 1 && (el.classList?.contains('inv-card') || el.classList?.contains('spell-card'))) {
+            if (node.nodeType === 1 && el.classList?.contains('inv-row')) {
               if (rebuilding) {
+                el.style.animation = 'none';
                 el.style.opacity = '0';
-                el.style.transform = 'translateY(6px) scale(0.98)';
+                el.style.transform = 'translateY(6px)';
                 batch.push(el);
               }
             }
@@ -315,20 +372,17 @@ import Layout from '../layouts/Layout.astro';
         if (!rebuilding) return;
         if (timer) clearTimeout(timer);
         timer = setTimeout(() => {
-          const cards = batch.splice(0);
+          const rows = batch.splice(0);
           rebuilding = false;
-          if (!cards.length) return;
-          cards.forEach((card, i) => {
-            animate(card, { opacity: 1, y: 0, scale: 1 }, {
-              duration: 0.24,
-              delay: Math.min(i * 0.04, 0.4),
-              ease: [0.16, 1, 0.3, 1],
-            });
+          if (!rows.length) return;
+          rows.forEach((row, i) => {
+            const delay = Math.min(i * 0.035, 0.35);
+            animate(row, { opacity: 1, y: 0 }, { duration: 0.24, delay, ease: [0.16, 1, 0.3, 1] });
+            setTimeout(() => row.style.removeProperty('animation'), (0.24 + delay) * 1000 + 40);
           });
         }, 20);
       });
-
-      observer.observe(grid, { childList: true });
+      observer.observe(list, { childList: true });
     }
   </script>
 </Layout>

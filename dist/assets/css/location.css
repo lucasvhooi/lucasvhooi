@@ -1263,6 +1263,33 @@
 .rarity-btn[data-rarity="very rare"].active { background: #9c27b0; border-color: #9c27b0; }
 .rarity-btn[data-rarity="legendary"].active { background: #ff9800; border-color: #ff9800; }
 
+/* Tag filter bar (dynamic, below rarity) */
+.shop-tag-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+
+.shop-tag-btn {
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid #2a3a20;
+  background: transparent;
+  color: #8ab080;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.shop-tag-btn:hover { background: #1a2a14; }
+
+.shop-tag-btn.active {
+  background: #3a6030;
+  border-color: #4a7840;
+  color: #c8e8b0;
+}
+
 .shop-inventory {
   display: grid;
   grid-template-columns: repeat(5, 1fr);

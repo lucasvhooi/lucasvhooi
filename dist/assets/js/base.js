@@ -1,6 +1,9 @@
 (function () {
   // ── Lenis smooth scroll ────────────────────────────────────────────────────
-  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+  // App-shell pages scroll via .page-content — skip Lenis there to avoid height conflict
+  const hasAppShell = !!document.querySelector('.page-content');
+  if (!hasAppShell &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
       !document.body.classList.contains('map-page') &&
       !document.body.classList.contains('combat-page')) {
     const ls = document.createElement('script');

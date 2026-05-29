@@ -227,6 +227,30 @@
 .rfb-vrare.active                       { background: rgba(156,39,176,0.18);  border-color: rgba(156,39,176,0.5);  color: #cc66e8; }
 .rfb-legendary.active                   { background: rgba(255,152,0,0.18);   border-color: rgba(255,152,0,0.55);  color: #ffac20; }
 
+.items-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.items-btn-import {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(200,164,92,0.2);
+  border-radius: 8px;
+  color: #8a8070;
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+  white-space: nowrap;
+}
+.items-btn-import:hover { background: rgba(255,255,255,0.07); border-color: rgba(200,164,92,0.4); color: var(--accent); }
+
 /* ── Pagination ── */
 .items-pagination {
   display: flex;

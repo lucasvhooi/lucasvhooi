@@ -2,7 +2,6 @@ import { db }                          from "./firebase.js";
 import { ref, set, remove, onValue, get }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { parseTags, formatGold } from "./item-utils.js";
 import { openGivePanel }              from "./give-to-player.js";
-import { EQUIP_SEED }                 from "./equip-seed.js";
 
 const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
 const isAdmin = _session?.role === 'admin';
@@ -45,10 +44,19 @@ const RARITY_ORDER = { "common": 1, "uncommon": 2, "rare": 3, "very rare": 4, "l
 let selectedRarity = "common"; // current selection in the modal
 
 // ── DOM Refs ──────────────────────────────────────────────────────────────────
-const itemsGrid   = document.getElementById("items-grid");
-const itemsSearch = document.getElementById("items-search");
-const tagFilter   = document.getElementById("tag-filter");
-const addItemBtn  = document.getElementById("add-item-btn");
+const itemsGrid       = document.getElementById("items-grid");
+const itemsSearch     = document.getElementById("items-search");
+const tagFilter       = document.getElementById("tag-filter");
+const addItemBtn      = document.getElementById("add-item-btn");
+const itemsContent    = document.querySelector(".items-content");
+const itemDetailPanel = document.getElementById("item-detail-panel");
+const itemDetailInner = itemDetailPanel?.querySelector(".item-detail-inner");
+const idpTitle        = document.getElementById("idp-title");
+const idpMeta         = document.getElementById("idp-meta");
+const idpStats        = document.getElementById("idp-stats");
+const idpDescription  = document.getElementById("idp-description");
+const idpAbilities    = document.getElementById("idp-abilities");
+let   _activeItemRow  = null;
 
 const itemModal        = document.getElementById("item-modal");
 const imTitle          = document.getElementById("im-title");
@@ -176,47 +184,36 @@ if (imTagNewInput) {
   });
 }
 
-// ── Equipment Seed ────────────────────────────────────────────────────────────
-const EQUIP_SEED_VERSION = 1;
-const equipSeedFlagRef   = ref(db, `campaigns/${cid}/system/equipSeedVersion`);
-
-async function _writeEquipSeed() {
-  const existingSnap = await get(itemsRef);
-  const existingIds  = new Set(existingSnap.val() ? Object.keys(existingSnap.val()) : []);
-  const ts = Date.now();
-  const writes = [];
-  for (const item of EQUIP_SEED) {
-    if (existingIds.has(item.id)) continue;
-    writes.push(set(ref(db, `campaigns/${cid}/items/${item.id}`), {
-      ...item, description: null, requiresAttunement: false, abilities: null, createdAt: ts,
-    }));
-  }
-  await Promise.all(writes);
-  await set(equipSeedFlagRef, EQUIP_SEED_VERSION);
-}
-
-async function seedEquipmentIfNeeded() {
-  const flagSnap = await get(equipSeedFlagRef);
-  if ((flagSnap.val() || 0) >= EQUIP_SEED_VERSION) return;
-
-  // Campaign already has items → mark as done and skip (avoid duplicating existing libraries)
-  const existingSnap = await get(itemsRef);
-  const existingCount = existingSnap.val() ? Object.keys(existingSnap.val()).length : 0;
-  if (existingCount > 0) {
-    await set(equipSeedFlagRef, EQUIP_SEED_VERSION);
-    showImportBanner(); // offer a manual import button instead
-    return;
-  }
-
-  await _writeEquipSeed();
-}
-
-if (isAdmin) seedEquipmentIfNeeded();
-
 // ── Firebase ──────────────────────────────────────────────────────────────────
+let _pricePatchDone = false;
 onValue(itemsRef, snapshot => {
   const data = snapshot.val();
   items = data ? Object.values(data) : [];
+
+  // One-time patch: apply individual lookup prices to dnd5e items
+  if (isAdmin && !_pricePatchDone) {
+    _pricePatchDone = true;
+    const toFix = items.filter(i => i.source === "dnd5e-api");
+    if (toFix.length > 0) {
+      toFix.forEach(i => {
+        const lookup = DND5E_ITEM_PRICES[i.name.toLowerCase()];
+        if (lookup !== undefined && i.price !== lookup) {
+          set(ref(db, `campaigns/${cid}/items/${i.id}/price`), lookup);
+        } else if (!i.price || i.price <= 0) {
+          set(ref(db, `campaigns/${cid}/items/${i.id}/price`), MAGIC_RARITY_PRICES[i.rarity] || 100);
+        }
+      });
+    }
+  }
+
+  if (isAdmin) {
+    const importBtn = document.getElementById("btn-import-dnd5e");
+    if (importBtn) {
+      const hasDnd5e = items.some(i => i.source === "dnd5e-api");
+      importBtn.style.display = hasDnd5e ? "none" : "inline-flex";
+    }
+  }
+
   renderTagFilter();
   renderItems();
 });
@@ -236,6 +233,7 @@ function getTagList() {
 // ── Tag Filter ────────────────────────────────────────────────────────────────
 function renderTagFilter() {
   const allTags = getTagList();
+  if (activeTag && !allTags.includes(activeTag)) activeTag = null;
   tagFilter.innerHTML = "";
   if (allTags.length === 0) return;
 
@@ -257,15 +255,6 @@ function renderTagFilter() {
     btn.textContent = tag;
     btn.addEventListener("click", () => { activeTag = tag; currentPage = 1; renderTagFilter(); renderItems(); });
     wrap.appendChild(btn);
-
-    if (isAdmin) {
-      const del = document.createElement("button");
-      del.className   = "tag-delete-btn";
-      del.textContent = "×";
-      del.title       = `Remove tag "${tag}" from all items`;
-      del.addEventListener("click", e => { e.stopPropagation(); deleteTag(tag); });
-      wrap.appendChild(del);
-    }
 
     tagFilter.appendChild(wrap);
   });
@@ -377,7 +366,7 @@ function renderItems() {
 
     card.addEventListener("click", e => {
       if (e.target.closest(".item-actions")) return;
-      card.classList.toggle("expanded");
+      openItemPanel(item, card);
     });
 
     if (isAdmin) {
@@ -595,23 +584,86 @@ itemModal.addEventListener("click", e => { if (e.target === itemModal) closeItem
 addItemBtn.addEventListener("click", () => openItemModal(null));
 imName.addEventListener("keydown", e => { if (e.key === "Enter") imSave.click(); });
 
-// ── Delete Tag ────────────────────────────────────────────────────────────────
-async function deleteTag(tag) {
-  if (!confirm(`Remove tag "${tag}" from all items? This cannot be undone.`)) return;
+// ── Item Detail Panel ─────────────────────────────────────────────────────────
+function openItemPanel(item, rowEl) {
+  if (_activeItemRow) _activeItemRow.classList.remove('active');
+  _activeItemRow = rowEl;
+  rowEl.classList.add('active');
 
-  const affected = items.filter(item => parseTags(item.tags).includes(tag));
+  const rarity = getItemRarity(item);
+  const rc = RARITY_COLORS[rarity] || "#9e9e9e";
+  const raritySlug  = rarity.replace(/\s+/g, '-');
+  const rarityLabel = rarity.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  const tags = parseTags(item.tags).filter(t => !RARITY_KEYWORDS.has(t));
 
-  for (const item of affected) {
-    const newTags = parseTags(item.tags)
-      .filter(t => t !== tag && !RARITY_KEYWORDS.has(t))
-      .join(", ") || null;
-    await set(ref(db, `campaigns/${cid}/items/${item.id}/tags`), newTags);
-  }
+  if (itemDetailInner) itemDetailInner.style.setProperty('--rc', rc);
 
-  if (activeTag === tag) {
-    activeTag = null;
-  }
+  idpTitle.textContent = item.name;
+
+  idpMeta.innerHTML = `
+    <span class="idp-rarity-badge rarity-tag-${raritySlug}">${rarityLabel}</span>
+    ${item.requiresAttunement ? '<span class="idp-attune-badge">Requires Attunement</span>' : ''}
+    ${tags.length ? `<div class="idp-tags">${tags.map(t => `<span class="item-tag">${escItemHtml(t)}</span>`).join('')}</div>` : ''}
+  `;
+
+  idpStats.innerHTML = `
+    <div class="idp-stat-row">
+      <div class="idp-stat-item">
+        <span class="idp-stat-label">Price</span>
+        <div class="idp-stat-value">${formatGold(item.price)}</div>
+      </div>
+      ${item.weight ? `<div class="idp-stat-item">
+        <span class="idp-stat-label">Weight</span>
+        <div class="idp-stat-value">${item.weight} lb</div>
+      </div>` : ''}
+    </div>
+  `;
+
+  idpDescription.innerHTML = item.description
+    ? `<p class="idp-section-label">Description</p><div class="idp-desc-text">${
+        escItemHtml(item.description).split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('')
+      }</div>`
+    : '';
+
+  const abilities = Array.isArray(item.abilities) ? item.abilities
+    : item.abilities ? Object.values(item.abilities) : [];
+  const validAbilities = abilities.filter(a => a?.name?.trim());
+
+  idpAbilities.innerHTML = validAbilities.length
+    ? `<p class="idp-section-label" style="margin-top:14px">Abilities</p>` +
+      validAbilities.map(ab => `
+        <div class="idp-ability">
+          <div class="idp-ability-name">${escItemHtml(ab.name)}</div>
+          ${ab.description ? `<div class="idp-ability-desc">${escItemHtml(ab.description).replace(/\n/g, '<br>')}</div>` : ''}
+        </div>`).join('')
+    : '';
+
+  itemDetailPanel.classList.add('open');
+  itemsContent?.classList.add('panel-open');
+
+  const body = itemDetailPanel.querySelector('.idp-body');
+  if (body) body.scrollTop = 0;
 }
+
+function closeItemPanel() {
+  if (_activeItemRow) { _activeItemRow.classList.remove('active'); _activeItemRow = null; }
+  itemDetailPanel.classList.remove('open');
+  itemsContent?.classList.remove('panel-open');
+}
+
+function escItemHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+document.getElementById("idp-close").addEventListener("click", closeItemPanel);
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && itemDetailPanel.classList.contains("open")) closeItemPanel();
+});
 
 // ── Search ────────────────────────────────────────────────────────────────────
 itemsSearch.addEventListener("input", e => { searchQuery = e.target.value; currentPage = 1; renderItems(); });
@@ -639,35 +691,460 @@ function inferTypeFromTags(tags) {
   return "misc";
 }
 
-// ── Equipment Library Import Banner ───────────────────────────────────────────
-function showImportBanner() {
-  const existing = document.getElementById("equip-import-banner");
-  if (existing) return;
+// ── D&D 5e API Import ─────────────────────────────────────────────────────────
+const DND5E_API = "https://www.dnd5eapi.co/api";
 
-  const banner = document.createElement("div");
-  banner.id = "equip-import-banner";
-  banner.className = "equip-import-banner";
-  banner.innerHTML = `
-    <span class="equip-import-text">
-      This campaign already has items. Want to also add the full D&amp;D equipment library (384 items)?
-    </span>
-    <div class="equip-import-actions">
-      <button id="equip-import-yes" class="dm-btn dm-btn-sm">Import Library</button>
-      <button id="equip-import-no"  class="dm-btn dm-btn-sm dm-btn-secondary">Dismiss</button>
-    </div>
-  `;
+// Fallback prices by rarity (when item not in lookup)
+const MAGIC_RARITY_PRICES = {
+  "common":    100,
+  "uncommon":  500,
+  "rare":      5000,
+  "very rare": 50000,
+  "legendary": 200000,
+};
 
-  const main = document.querySelector(".items-main");
-  main.insertBefore(banner, main.firstChild);
+// Per-item prices from the Sane Magical Item Prices community guide
+const DND5E_ITEM_PRICES = {
+  // ── Potions ──
+  "potion of healing":              50,
+  "potion of greater healing":      150,
+  "potion of superior healing":     450,
+  "potion of supreme healing":      1350,
+  "potion of climbing":             180,
+  "potion of fire breath":          150,
+  "potion of flying":               500,
+  "potion of gaseous form":         300,
+  "potion of growth":               270,
+  "potion of heroism":              180,
+  "potion of invisibility":         180,
+  "potion of mind reading":         180,
+  "potion of poison":               100,
+  "potion of resistance":           300,
+  "potion of speed":                400,
+  "potion of water breathing":      180,
+  "potion of vitality":             960,
+  "potion of clairvoyance":         960,
+  "potion of diminution":           270,
+  "potion of animal friendship":    200,
+  "potion of longevity":            9000,
+  "potion of invulnerability":      3840,
+  "elixir of health":               120,
+  "philter of love":                90,
+  "oil of slipperiness":            480,
+  "oil of etherealness":            1920,
+  "oil of sharpness":               3200,
+  // ── Scrolls ──
+  "spell scroll (cantrip)":         10,
+  "spell scroll (1st level)":       60,
+  "spell scroll (2nd level)":       120,
+  "spell scroll (3rd level)":       200,
+  "spell scroll (4th level)":       320,
+  "spell scroll (5th level)":       640,
+  "spell scroll (6th level)":       1280,
+  "spell scroll (7th level)":       2560,
+  "spell scroll (8th level)":       5120,
+  "spell scroll (9th level)":       10240,
+  "scroll of protection":           180,
+  // ── Ammunition ──
+  "ammunition, +1":                 25,
+  "ammunition, +2":                 100,
+  "ammunition, +3":                 400,
+  "arrow of slaying":               600,
+  // ── Weapons ──
+  "weapon, +1":                     1000,
+  "weapon, +2":                     4000,
+  "weapon, +3":                     16000,
+  "vicious weapon":                 350,
+  "dagger of venom":                2500,
+  "dancing sword":                  2000,
+  "flame tongue":                   5000,
+  "frost brand":                    2200,
+  "giant slayer":                   7000,
+  "dragon slayer":                  8000,
+  "dwarven thrower":                18000,
+  "hammer of thunderbolts":         16000,
+  "holy avenger":                   165000,
+  "javelin of lightning":           1500,
+  "mace of disruption":             8000,
+  "mace of smiting":                7000,
+  "mace of terror":                 8000,
+  "nine lives stealer":             8000,
+  "oathbow":                        3500,
+  "scimitar of speed":              6000,
+  "sun blade":                      12000,
+  "sword of answering":             36000,
+  "sword of life stealing":         1000,
+  "sword of sharpness":             1700,
+  "sword of wounding":              2000,
+  "tentacle rod":                   5000,
+  "trident of fish command":        800,
+  "vorpal sword":                   24000,
+  "weapon of warning":              60000,
+  "defender":                       24000,
+  "berserker axe":                  900,
+  "luck blade":                     60000,
+  // ── Armor ──
+  "armor, +1":                      1500,
+  "armor, +2":                      6000,
+  "armor, +3":                      24000,
+  "adamantine armor":               500,
+  "mithral armor":                  800,
+  "dragon scale mail":              4000,
+  "elven chain":                    4000,
+  "efreeti chain":                  20000,
+  "dwarven plate":                  9000,
+  "glamoured studded leather":      2000,
+  "armor of resistance":            6000,
+  "armor of invulnerability":       18000,
+  "armor of vulnerability":         500,
+  "mariner's armor":                1500,
+  "plate armor of etherealness":    48000,
+  // ── Shields ──
+  "shield, +1":                     1500,
+  "shield, +2":                     6000,
+  "shield, +3":                     24000,
+  "animated shield":                6000,
+  "arrow-catching shield":          6000,
+  "sentinel shield":                20000,
+  "shield of missile attraction":   6000,
+  "spellguard shield":              50000,
+  // ── Rings ──
+  "ring of animal influence":       4000,
+  "ring of evasion":                5000,
+  "ring of feather falling":        2000,
+  "ring of fire elemental command": 17000,
+  "ring of free action":            20000,
+  "ring of invisibility":           10000,
+  "ring of jumping":                2500,
+  "ring of mind shielding":         16000,
+  "ring of protection":             3500,
+  "ring of regeneration":           12000,
+  "ring of resistance":             6000,
+  "ring of shooting stars":         14000,
+  "ring of spell storing":          24000,
+  "ring of spell turning":          30000,
+  "ring of swimming":               3000,
+  "ring of telekinesis":            80000,
+  "ring of the ram":                5000,
+  "ring of warmth":                 1000,
+  "ring of water elemental command":25000,
+  "ring of water walking":          1500,
+  "ring of x-ray vision":           6000,
+  "ring of earth elemental command":31000,
+  "ring of air elemental command":  35000,
+  "ring of djinni summoning":       90000,
+  "scarab of protection":           36000,
+  // ── Wondrous items — Amulets & Necklaces ──
+  "amulet of health":               8000,
+  "amulet of proof against detection and location": 20000,
+  "amulet of the planes":           160000,
+  "necklace of adaptation":         1500,
+  "necklace of fireballs":          300,
+  "periapt of health":              5000,
+  "periapt of proof against poison":5000,
+  "periapt of wound closure":       5000,
+  "brooch of shielding":            7500,
+  // ── Wondrous items — Belts & Boots ──
+  "belt of dwarvenkind":            6000,
+  "belt of giant strength (hill)":  8000,
+  "belt of giant strength (stone/frost)": 12000,
+  "belt of giant strength (fire)":  16000,
+  "belt of giant strength (cloud)": 32000,
+  "belt of giant strength (storm)": 48000,
+  "boots of elvenkind":             2500,
+  "boots of levitation":            4000,
+  "boots of speed":                 4000,
+  "boots of striding and springing":5000,
+  "boots of the winterlands":       10000,
+  "horseshoes of a zephyr":         1500,
+  "horseshoes of speed":            5000,
+  "slippers of spider climbing":    5000,
+  "winged boots":                   8000,
+  // ── Wondrous items — Cloaks ──
+  "cloak of arachnida":             5000,
+  "cloak of displacement":          60000,
+  "cloak of elvenkind":             5000,
+  "cloak of invisibility":          80000,
+  "cloak of protection":            3500,
+  "cloak of the bat":               6000,
+  "cloak of the manta ray":         6000,
+  "mantle of spell resistance":     30000,
+  "cape of the mountebank":         8000,
+  // ── Wondrous items — Eyes & Headwear ──
+  "eyes of charming":               3000,
+  "eyes of minute seeing":          2500,
+  "eyes of the eagle":              2500,
+  "goggles of night":               1500,
+  "headband of intellect":          8000,
+  "helm of comprehending languages":500,
+  "helm of telepathy":              12000,
+  "helm of teleportation":          64000,
+  "hat of disguise":                5000,
+  "circlet of blasting":            1500,
+  // ── Wondrous items — Gloves & Gauntlets ──
+  "gauntlets of ogre power":        8000,
+  "gloves of missile snaring":      3000,
+  "gloves of swimming and climbing":2000,
+  "gloves of thievery":             5000,
+  "bracers of archery":             1500,
+  "bracers of defense":             6000,
+  // ── Wondrous items — Bags & Containers ──
+  "bag of beans":                   200,
+  "bag of devouring":               500,
+  "bag of holding":                 4000,
+  "bag of tricks":                  300,
+  "heward's handy haversack":       2000,
+  "portable hole":                  8000,
+  "quiver of ehlonna":              1000,
+  "folding boat":                   10000,
+  // ── Wondrous items — Ropes & Utility ──
+  "rope of climbing":               2000,
+  "rope of entanglement":           4000,
+  "immovable rod":                  5000,
+  "lantern of revealing":           5000,
+  "chime of opening":               1500,
+  "driftglobe":                     750,
+  "eversmoking bottle":             1000,
+  "gem of brightness":              5000,
+  "gem of seeing":                  32000,
+  "dimensional shackles":           3000,
+  "medallion of thoughts":          3000,
+  "sending stones":                 2000,
+  "trident of fish command":        800,
+  "wind fan":                       1500,
+  "saddle of the cavalier":         2000,
+  "cap of water breathing":         1000,
+  "decanter of endless water":      135000,
+  "alchemy jug":                    6000,
+  "apparatus of the crab":          10000,
+  "bead of force":                  960,
+  "cube of force":                  16000,
+  "cubic gate":                     40000,
+  "crystal ball":                   50000,
+  "daern's instant fortress":       75000,
+  "deck of illusions":              6120,
+  "dust of disappearance":          300,
+  "dust of dryness":                120,
+  "dust of sneezing and choking":   480,
+  "elemental gem":                  960,
+  "iron bands of bilarro":          4000,
+  "keoghtom's ointment":            120,
+  "luckstone":                      4200,
+  "stone of good luck":             4200,
+  "medallion of thoughts":          3000,
+  "mirror of life trapping":        18000,
+  "nolzur's marvelous pigments":    200,
+  "oil of slipperiness":            480,
+  "pearl of power":                 6000,
+  "pipes of haunting":              6000,
+  "pipes of the sewers":            2000,
+  "robe of eyes":                   30000,
+  "robe of scintillating colors":   6000,
+  "robe of stars":                  60000,
+  "robe of the archmagi":           34000,
+  "sphere of annihilation":         15000,
+  "talisman of the sphere":         20000,
+  "talisman of pure good":          71680,
+  "talisman of ultimate evil":      61440,
+  "universal solvent":              300,
+  "sovereign glue":                 400,
+  "wings of flying":                5000,
+  "broom of flying":                8000,
+  "carpet of flying":               12000,
+  "ebony fly":                      6000,
+  "bronze griffon":                 8000,
+  "marble elephant":                6000,
+  "onyx dog":                       3000,
+  "serpentine owl":                 8000,
+  "silver raven":                   5000,
+  "golden lions":                   600,
+  // ── Wands ──
+  "wand of binding":                10000,
+  "wand of enemy detection":        4000,
+  "wand of fear":                   10000,
+  "wand of fireballs":              32000,
+  "wand of lightning bolts":        32000,
+  "wand of magic detection":        1500,
+  "wand of magic missiles":         8000,
+  "wand of paralysis":              16000,
+  "wand of polymorph":              32000,
+  "wand of secrets":                1500,
+  "wand of the war mage, +1":       1200,
+  "wand of the war mage, +2":       4800,
+  "wand of the war mage, +3":       19200,
+  "wand of web":                    8000,
+  // ── Rods ──
+  "rod of absorption":              50000,
+  "rod of alertness":               25000,
+  "rod of lordly might":            28000,
+  "rod of rulership":               16000,
+  "rod of security":                90000,
+  "rod of the pact keeper, +1":     12000,
+  "rod of the pact keeper, +2":     16000,
+  "rod of the pact keeper, +3":     28000,
+  // ── Staffs ──
+  "staff of charming":              12000,
+  "staff of fire":                  16000,
+  "staff of frost":                 26000,
+  "staff of healing":               13000,
+  "staff of power":                 95500,
+  "staff of striking":              21000,
+  "staff of swarming insects":      16000,
+  "staff of the adder":             1800,
+  "staff of the python":            2000,
+  "staff of the woodlands":         44000,
+  "staff of thunder and lightning": 10000,
+  "staff of withering":             3000,
+  // ── Ioun Stones ──
+  "ioun stone, absorption":         2400,
+  "ioun stone, agility":            3000,
+  "ioun stone, awareness":          12000,
+  "ioun stone, fortitude":          3000,
+  "ioun stone, greater absorption": 31000,
+  "ioun stone, insight":            3000,
+  "ioun stone, intellect":          3000,
+  "ioun stone, leadership":         3000,
+  "ioun stone, mastery":            15000,
+  "ioun stone, protection":         1200,
+  "ioun stone, regeneration":       4000,
+  "ioun stone, reserve":            6000,
+  "ioun stone, strength":           3000,
+  "ioun stone, sustenance":         1000,
+  // ── Summoning items ──
+  "horn of valhalla (silver)":      5600,
+  "horn of valhalla (brass)":       8400,
+  "horn of valhalla (bronze)":      11200,
+  "horn of valhalla (iron)":        14000,
+  "bowl of commanding water elementals":  8000,
+  "brazier of commanding fire elementals":8000,
+  "censer of controlling air elementals": 8000,
+  "stone of controlling earth elementals":8000,
+  // ── Instruments of the Bards ──
+  "instrument of the bards, fochulan bandlore":  26500,
+  "instrument of the bards, mac-fuirmidh cittern":27000,
+  "instrument of the bards, doss lute":           28500,
+  "instrument of the bards, canaith mandolin":    30000,
+  "instrument of the bards, cli lyre":            35000,
+  "instrument of the bards, anstruth harp":       109000,
+  "instrument of the bards, ollamh harp":         125000,
+};
 
-  document.getElementById("equip-import-yes").addEventListener("click", async () => {
-    const btn = document.getElementById("equip-import-yes");
-    btn.disabled = true;
-    btn.textContent = "Importing…";
-    await _writeEquipSeed();
-    banner.remove();
-  });
+function _mapMagicItem(raw) {
+  const rarity = (raw.rarity?.name || "common").toLowerCase();
+  const cat    = raw.equipment_category?.name || "magic";
+  return {
+    id:                 "dnd5e_" + raw.index,
+    name:               raw.name,
+    description:        Array.isArray(raw.desc) ? raw.desc.join("\n\n") : null,
+    price:              DND5E_ITEM_PRICES[raw.name.toLowerCase()] ?? MAGIC_RARITY_PRICES[rarity] ?? 100,
+    weight:             raw.weight || null,
+    tags:               cat.toLowerCase().replace(/\s+/g, "-"),
+    rarity,
+    shopAvailable:      false,
+    requiresAttunement: !!(raw.requires_attunement),
+    abilities:          null,
+    source:             "dnd5e-api",
+    createdAt:          Date.now(),
+  };
+}
 
-  document.getElementById("equip-import-no").addEventListener("click", () => banner.remove());
+function _mapEquipment(raw) {
+  const cost = raw.cost;
+  let price = 0;
+  if (cost?.quantity && cost?.unit) {
+    if      (cost.unit === "gp") price = cost.quantity;
+    else if (cost.unit === "sp") price = Math.round(cost.quantity / 10 * 100) / 100;
+    else if (cost.unit === "cp") price = Math.round(cost.quantity / 100 * 100) / 100;
+  }
+  const cat = raw.equipment_category?.name || "adventuring-gear";
+  return {
+    id:                 "dnd5e_" + raw.index,
+    name:               raw.name,
+    description:        Array.isArray(raw.desc) ? raw.desc.join("\n\n") : null,
+    price,
+    weight:             raw.weight || null,
+    tags:               cat.toLowerCase().replace(/\s+/g, "-"),
+    rarity:             "common",
+    shopAvailable:      price > 0,
+    requiresAttunement: false,
+    abilities:          null,
+    source:             "dnd5e-api",
+    createdAt:          Date.now(),
+  };
+}
+
+async function importDnd5eItems() {
+  if (!isAdmin) return;
+  if (!confirm(
+    "This replaces all base equipment with the D&D 5e API item library (~600 items).\n" +
+    "Custom items you created will be preserved.\n\n" +
+    "This takes 1–2 minutes. Continue?"
+  )) return;
+
+  const overlay = document.getElementById("dnd5e-import-overlay");
+  const bar     = document.getElementById("dnd5e-progress-bar");
+  const text    = document.getElementById("dnd5e-progress-text");
+  const status  = document.getElementById("dnd5e-progress-status");
+
+  function setProgress(done, total, msg) {
+    const pct = total > 0 ? Math.round(done / total * 100) : 0;
+    bar.style.width = pct + "%";
+    text.textContent = `${done} / ${total}`;
+    if (msg) status.textContent = msg;
+  }
+
+  overlay.style.display = "flex";
+  setProgress(0, 1, "Fetching item lists…");
+
+  try {
+    const [magicRes, equipRes] = await Promise.all([
+      fetch(`${DND5E_API}/magic-items`).then(r => r.json()),
+      fetch(`${DND5E_API}/equipment`).then(r => r.json()),
+    ]);
+    const magicList = magicRes.results || [];
+    const equipList = equipRes.results || [];
+    const total     = magicList.length + equipList.length;
+    let done = 0;
+
+    // Delete old equip-seed items (IDs prefixed "dnd_")
+    const oldItems = items.filter(i => i.id.startsWith("dnd_"));
+    setProgress(0, total, `Removing ${oldItems.length} old base items…`);
+    await Promise.all(oldItems.map(i => remove(ref(db, `campaigns/${cid}/items/${i.id}`))));
+
+    const BATCH = 15;
+    // Import magic items
+    for (let i = 0; i < magicList.length; i += BATCH) {
+      const chunk = magicList.slice(i, i + BATCH);
+      const raws  = await Promise.all(chunk.map(m => fetch(`https://www.dnd5eapi.co${m.url}`).then(r => r.json())));
+      await Promise.all(raws.map(raw => { const item = _mapMagicItem(raw); return set(ref(db, `campaigns/${cid}/items/${item.id}`), item); }));
+      done += chunk.length;
+      setProgress(done, total, `Importing magic items… (${done}/${magicList.length})`);
+    }
+
+    // Import equipment
+    for (let i = 0; i < equipList.length; i += BATCH) {
+      const chunk = equipList.slice(i, i + BATCH);
+      const raws  = await Promise.all(chunk.map(m => fetch(`https://www.dnd5eapi.co${m.url}`).then(r => r.json())));
+      await Promise.all(raws.map(raw => { const item = _mapEquipment(raw); return set(ref(db, `campaigns/${cid}/items/${item.id}`), item); }));
+      done += chunk.length;
+      setProgress(done, total, `Importing equipment… (${done - magicList.length}/${equipList.length})`);
+    }
+
+    setProgress(total, total, `Done! Imported ${total} items.`);
+    document.getElementById("btn-import-dnd5e").style.display = "none";
+    setTimeout(() => { overlay.style.display = "none"; }, 2500);
+
+  } catch (err) {
+    status.textContent = "Error: " + err.message;
+    bar.style.background = "#c62828";
+    setTimeout(() => { overlay.style.display = "none"; }, 4000);
+  }
+}
+
+if (isAdmin) {
+  const importBtn = document.getElementById("btn-import-dnd5e");
+  if (importBtn) {
+    importBtn.addEventListener("click", importDnd5eItems);
+  }
 }
 

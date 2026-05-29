@@ -216,7 +216,12 @@ import Layout from '../layouts/Layout.astro';
         <div class="enemy-list-panel">
           <div class="enemy-list-toolbar">
             <input type="text" id="enemy-search" class="enemy-search-input" placeholder="Search…" />
+            <button id="btn-import-dnd5e-creatures" class="ctrl-btn ctrl-btn-secondary" style="display:none" title="Import all D&amp;D 5e monsters as templates"><iconify-icon icon="lucide:download"></iconify-icon></button>
             <button id="btn-new-enemy" class="ctrl-btn ctrl-btn-primary">+ New</button>
+          </div>
+          <div id="creature-import-progress" class="creature-import-progress" style="display:none">
+            <div class="creature-progress-track"><div id="creature-progress-fill" class="creature-progress-fill"></div></div>
+            <div id="creature-progress-label" class="creature-progress-label">Importing…</div>
           </div>
           <div id="enemy-template-list" class="enemy-template-list"></div>
         </div>

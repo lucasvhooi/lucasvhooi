@@ -1,7 +1,7 @@
 import { db }                          from "./firebase.js";
 import { ref, set, remove, onValue }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { NPC_NAMES, AGE_RANGES, DEFAULT_PROFESSIONS, RACE_PROFESSIONS, RACE_BASE_WEIGHTS, ELF_SUBTYPE_WEIGHTS, NPC_TRAITS } from "./npc-data.js";
-import { parseTags, formatGold, getDisplayTags } from "./item-utils.js";
+import { parseTags, formatGold, getDisplayTags, RARITY_KW } from "./item-utils.js";
 import { openGivePanel } from "./give-to-player.js";
 
 // ── Setup ─────────────────────────────────────────────────────────────────────
@@ -340,7 +340,7 @@ const lmCancel         = document.getElementById("lm-cancel");
 
 function getAllInventoryTags() {
   const tagSet = new Set();
-  globalItems.forEach(item => getDisplayTags(item.tags).forEach(t => tagSet.add(t)));
+  globalItems.forEach(item => parseTags(item.tags).filter(t => !RARITY_KW.has(t)).forEach(t => tagSet.add(t)));
   return [...tagSet].sort();
 }
 
@@ -1124,6 +1124,7 @@ const shInventory         = document.getElementById("sh-inventory");
 const shInventorySection  = document.getElementById("sh-inventory-section");
 const shTypeDot           = document.getElementById("sh-type-dot");
 const shRarityFilter      = document.getElementById("sh-rarity-filter");
+const shTagFilter         = document.getElementById("sh-tag-filter");
 const shGenerateBtn       = document.getElementById("sh-generate-btn");
 const shTavernSection     = document.getElementById("sh-tavern-section");
 const shTavernMeta        = document.getElementById("sh-tavern-meta");
@@ -1139,16 +1140,17 @@ const shopModalBox        = shopModal.querySelector(".shop-modal-box");
 const INVENTORY_TYPES = new Set(["Shop", "Market", "Forge"]);
 
 let shopRarityFilter = "all";
+let shopTagFilter    = null;
 
-// Which item tags each shop type automatically carries
+// Which item tags each shop type automatically carries (canonical tags only)
 const SHOP_TYPE_TAGS = {
-  "Forge":   ["weapon", "melee", "armor", "shield", "ammunition", "tool", "forge"],
-  "Shop":    ["adventuring", "potion", "tool", "light"],
-  "Tavern":  ["food", "drink", "ale", "wine", "potion"],
-  "Temple":  ["potion", "healing", "protection", "holy"],
-  "Guard":   ["weapon", "melee", "ranged", "armor", "shield", "ammunition"],
-  "Market":  ["adventuring", "food", "tool", "light"],
-  "Library": ["book", "scroll", "map", "arcane", "lore"],
+  "Forge":   ["weapon", "armor", "shield", "ammunition", "tool"],
+  "Shop":    ["potion", "tool", "scroll", "magic"],
+  "Tavern":  ["potion"],
+  "Temple":  ["potion", "magic"],
+  "Guard":   ["weapon", "armor", "shield", "ammunition", "ranged"],
+  "Market":  ["weapon", "armor", "potion", "tool", "scroll"],
+  "Library": ["book", "scroll", "magic"],
   "House":   [],
   "Other":   []
 };
@@ -1465,7 +1467,7 @@ function getShopPool(marker) {
     ? parseTags(marker.inventoryTags)
     : (SHOP_TYPE_TAGS[marker.type] || []);
   if (typeTags.length === 0) return [];
-  return globalItems.filter(item => parseTags(item.tags).some(t => typeTags.includes(t)));
+  return globalItems.filter(item => getDisplayTags(item.tags).some(t => typeTags.includes(t)));
 }
 
 function getShopItems(marker) {
@@ -1491,6 +1493,34 @@ function getItemRarity(item) {
   return "common";
 }
 
+function renderShopTagFilter(marker) {
+  const tagSet = new Set();
+  globalItems.forEach(item => parseTags(item.tags).filter(t => !RARITY_KW.has(t)).forEach(t => tagSet.add(t)));
+  const tags = [...tagSet].sort();
+
+  if (tags.length === 0) {
+    shTagFilter.style.display = "none";
+    return;
+  }
+
+  shTagFilter.style.display = "flex";
+  shTagFilter.innerHTML = "";
+
+  const allBtn = document.createElement("button");
+  allBtn.className = "shop-tag-btn" + (shopTagFilter === null ? " active" : "");
+  allBtn.textContent = "All";
+  allBtn.onclick = () => { shopTagFilter = null; renderShopTagFilter(marker); renderShopInventory(marker); };
+  shTagFilter.appendChild(allBtn);
+
+  tags.forEach(tag => {
+    const btn = document.createElement("button");
+    btn.className = "shop-tag-btn" + (shopTagFilter === tag ? " active" : "");
+    btn.textContent = tag;
+    btn.onclick = () => { shopTagFilter = tag; renderShopTagFilter(marker); renderShopInventory(marker); };
+    shTagFilter.appendChild(btn);
+  });
+}
+
 function renderShopInventory(marker) {
   shInventory.innerHTML = "";
 
@@ -1499,6 +1529,11 @@ function renderShopInventory(marker) {
   // Apply rarity filter
   if (shopRarityFilter !== "all") {
     items = items.filter(i => parseTags(i.tags).includes(shopRarityFilter));
+  }
+
+  // Apply tag filter
+  if (shopTagFilter !== null) {
+    items = items.filter(i => parseTags(i.tags).includes(shopTagFilter));
   }
 
   if (items.length === 0) {
@@ -1519,7 +1554,7 @@ function renderShopInventory(marker) {
 
   items.forEach(item => {
     const price = shopPrice(item.price, marker.id, item.id);
-    const tags  = getDisplayTags(item.tags);
+    const tags  = parseTags(item.tags).filter(t => !RARITY_KW.has(t));
     const rarity = getItemRarity(item);
     const rarityColor = RARITY_COLORS[rarity] || "#9e9e9e";
 
@@ -2138,6 +2173,10 @@ function openShopModal(marker) {
       };
     });
 
+    // Tag filter
+    shopTagFilter = null;
+    renderShopTagFilter(marker);
+
     // Generate inventory button — disabled when pinned
     if (getShopPool(marker).length > 0) {
       shGenerateBtn.style.display = "inline-block";
@@ -2149,6 +2188,7 @@ function openShopModal(marker) {
         shGenerateBtn.textContent = "Generating…";
         await generateShopInventory(marker);
         const updated = subMarkers.find(m => m.id === marker.id) || marker;
+        renderShopTagFilter(updated);
         renderShopInventory(updated);
         shGenerateBtn.disabled = false;
         shGenerateBtn.innerHTML = '<iconify-icon icon="lucide:zap"></iconify-icon> Generate Inventory';
