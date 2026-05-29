@@ -1071,7 +1071,7 @@ function buildSummaryChips(blocks) {
 
 function buildCard(q) {
   const card = document.createElement("div");
-  card.className = `quest-card quest-${q.type || "main"}${q.status === "completed" ? " quest-completed" : ""}`;
+  card.className = `quest-card quest-${q.type || "main"}${q.status === "completed" ? " quest-completed" : ""}${q.status === "active" ? " quest-active" : ""}`;
   card.dataset.questId = q.id;
   const blocks = q.blocks ? q.blocks.map(b => ({ ...b })) : [];
 

@@ -5,6 +5,16 @@
   to   { opacity: 1; transform: translateY(0)   scale(1); }
 }
 
+@keyframes quest-active-aura {
+  0%, 100% { opacity: 0.11; }
+  50%       { opacity: 0.36; }
+}
+
+@keyframes quest-active-glow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(220,72,20,0.12), 0 3px 14px rgba(0,0,0,0.45); }
+  50%       { box-shadow: 0 0 0 1px rgba(220,72,20,0.28), 0 4px 22px rgba(200,60,10,0.22), 0 0 18px rgba(200,60,10,0.12); }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    MISSIONS PAGE — Notebook / OneNote-inspired clean layout
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -190,6 +200,13 @@
 .quest-main      { --qc: #c8a45c; }
 .quest-side      { --qc: #5aab66; }
 .quest-completed { --qc: #5a5a5a; }
+.quest-active {
+  --qc: #e05828;
+  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both, quest-active-glow 2.8s ease-in-out 0.3s infinite;
+}
+.quest-active::after {
+  animation: quest-active-aura 2.8s ease-in-out 0.3s infinite;
+}
 
 .qc-body {
   flex: 1;
