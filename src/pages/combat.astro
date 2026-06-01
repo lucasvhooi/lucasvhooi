@@ -1,31 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Header from '../components/Header.astro';
-import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
 ---
 <Layout title="Combat — Essolis" activePage="combat" extraCSS={['/assets/css/combat.css']} pageContentStyle="overflow:hidden">
-
-  <Header
-    title="Combat"
-    description="Track initiative, HP, and encounters in real time."
-    icon="game-icons:crossed-swords"
-    image={headerImg}
-  >
-    <div slot="tabs" class="combat-ctrl-bar">
-      <div class="ccb-left">
-        <div class="round-counter">Round <span id="round-num">1</span></div>
-      </div>
-      <div class="ccb-center" id="turn-banner">
-        <span class="turn-label">&#8212; Not in combat &#8212;</span>
-      </div>
-      <div class="ccb-right">
-        <button id="btn-prev"  class="hero-nav-btn" disabled title="Previous Turn"><iconify-icon icon="lucide:chevron-left"></iconify-icon></button>
-        <button id="btn-next"  class="hero-nav-btn" disabled title="Next Turn (Space)"><iconify-icon icon="lucide:chevron-right"></iconify-icon></button>
-        <button id="btn-start" class="hero-start-btn"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Start Combat</button>
-        <button id="btn-end"   class="hero-end-btn" style="display:none"><iconify-icon icon="lucide:x"></iconify-icon> End Combat</button>
-      </div>
-    </div>
-  </Header>
 
   <!-- Three-column layout: initiative | log | loot -->
   <div class="combat-layout">
@@ -43,7 +19,18 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
       <div id="combatant-list" class="combatant-list"></div>
     </aside>
 
-    <aside class="overlay-panel overlay-right">
+    <!-- Combatant detail panel — slides in from the right of the initiative list -->
+    <div id="combatant-info-panel" class="combatant-info-panel">
+      <div class="cip-inner">
+        <div class="cip-header">
+          <span class="cip-name" id="cip-name">—</span>
+          <button class="cip-close-btn" id="cip-close" title="Close">&times;</button>
+        </div>
+        <div class="cip-body" id="cip-body"></div>
+      </div>
+    </div>
+
+    <aside class="overlay-panel overlay-right" style="display:none">
       <div class="overlay-header">
         <span class="overlay-title"><iconify-icon icon="lucide:scroll-text" style="font-size:14px;opacity:0.7"></iconify-icon> Combat Log</span>
         <button id="btn-clear-log" class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
@@ -53,7 +40,7 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
       </div>
     </aside>
 
-    <aside class="overlay-panel overlay-loot">
+    <aside class="overlay-panel overlay-loot" style="display:none">
       <div class="overlay-header">
         <span class="overlay-title"><iconify-icon icon="game-icons:coins" style="font-size:14px;opacity:0.7"></iconify-icon> Loot</span>
         <button id="btn-clear-loot" class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
@@ -65,18 +52,46 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
 
   </div>
 
-  <!-- Attack bar -->
-  <div id="field-attack-bar" class="field-attack-bar" style="display:none">
-    <span class="attack-bar-attacker" id="attack-attacker-name">—</span>
-    <iconify-icon icon="lucide:arrow-right" class="attack-bar-arrow"></iconify-icon>
-    <span class="attack-bar-target" id="attack-target-name">Select a target from the list</span>
-    <div class="attack-dmg-group" id="attack-dmg-group" style="display:none">
-      <input type="number" id="attack-dmg-input" placeholder="DMG" min="0" />
-      <button id="attack-deal-btn" class="ctrl-btn ctrl-btn-danger"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Deal</button>
-      <button id="attack-heal-btn" class="ctrl-btn ctrl-btn-heal"><iconify-icon icon="lucide:heart"></iconify-icon> Heal</button>
+  <!-- Bottom toolbar: attack bar + round/turn controls -->
+  <div class="combat-ctrl-wrap">
+
+    <!-- Attack bar -->
+    <div id="field-attack-bar" class="combat-ctrl-bar">
+      <select id="attack-attacker-sel" class="atk-select" title="Attacker">
+        <option value="">— Attacker —</option>
+      </select>
+      <iconify-icon icon="lucide:arrow-right" class="attack-bar-arrow"></iconify-icon>
+      <select id="attack-target-sel" class="atk-select" title="Target">
+        <option value="">— Target —</option>
+      </select>
+      <div class="ccb-divider"></div>
+      <input type="number" id="attack-dmg-input" class="attack-dmg-input" placeholder="" min="0" />
+      <button id="attack-deal-btn" class="atk-action-btn atk-deal-btn" title="Deal Damage"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon></button>
+      <button id="attack-heal-btn" class="atk-action-btn atk-heal-btn" title="Heal"><iconify-icon icon="lucide:heart"></iconify-icon></button>
+      <div class="ccb-divider"></div>
+      <button id="attack-cancel-btn" class="hero-nav-btn" title="Clear Selection"><iconify-icon icon="lucide:x"></iconify-icon></button>
     </div>
-    <button id="attack-cancel-btn" class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="lucide:x"></iconify-icon> Cancel</button>
+
+    <!-- Round / turn controls -->
+    <div class="combat-ctrl-bar">
+      <div class="round-counter">Round <span id="round-num">1</span></div>
+      <div class="ccb-divider"></div>
+      <div class="ccb-center" id="turn-banner">
+        <span class="turn-label">&#8212; Not in combat &#8212;</span>
+      </div>
+      <div class="ccb-divider"></div>
+      <button id="btn-prev"  class="hero-nav-btn" disabled title="Previous Turn"><iconify-icon icon="lucide:chevron-left"></iconify-icon></button>
+      <button id="btn-next"  class="hero-nav-btn" disabled title="Next Turn (Space)"><iconify-icon icon="lucide:chevron-right"></iconify-icon></button>
+      <div class="ccb-divider"></div>
+      <button id="btn-toggle-log"  class="hero-nav-btn ccb-panel-btn" title="Combat Log"><iconify-icon icon="lucide:scroll-text"></iconify-icon></button>
+      <button id="btn-toggle-loot" class="hero-nav-btn ccb-panel-btn" title="Loot"><iconify-icon icon="game-icons:coins"></iconify-icon></button>
+      <div class="ccb-divider"></div>
+      <button id="btn-start" class="hero-start-btn"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Start Combat</button>
+      <button id="btn-end"   class="hero-end-btn" style="display:none"><iconify-icon icon="lucide:x"></iconify-icon> End Combat</button>
+    </div>
+
   </div>
+
 
   <!-- Add / Edit Combatant Modal -->
   <div id="combatant-modal" class="modal-overlay">
@@ -108,7 +123,7 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
           <div id="cm-enemy-tmpl-badge" class="preset-selected-badge" style="display:none"></div>
         </div>
         <div class="form-row" id="cm-enemy-count-row" style="display:none">
-          <label>Count <span class="field-hint">adds A, B, C…</span>
+          <label>Count <span class="field-hint">adds 1, 2, 3…</span>
             <input type="number" id="cm-enemy-count" value="1" min="1" max="26" />
           </label>
         </div>
@@ -139,7 +154,7 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
             <label>Armor Class
               <input type="number" id="cm-ac" placeholder="10" min="0" max="30" />
             </label>
-            <label>Count <span class="field-hint">A, B, C…</span>
+            <label>Count <span class="field-hint">1, 2, 3…</span>
               <input type="number" id="cm-count" value="1" min="1" max="26" />
             </label>
           </div>

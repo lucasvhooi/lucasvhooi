@@ -73,7 +73,7 @@ onValue(ref(db, 'npcNames'), snapshot => {
 
 onValue(markerDbRef, snapshot => {
   markerData = snapshot.val();
-  if (markerData) renderHero();
+  if (markerData) { renderHero(); renderQuickInfo(); }
   else locTitle.textContent = "Unknown Location";
 });
 
@@ -89,12 +89,14 @@ onValue(subMarkersRef, snapshot => {
   subMarkers = data ? Object.values(data) : [];
   renderSubMarkers();
   if (isAdmin && !isDraggingBuilding) renderBuildings();
+  renderQuickInfo();
 });
 
 onValue(npcsRef, snapshot => {
   const data = snapshot.val();
   npcs = data ? Object.values(data) : [];
   renderNpcs();
+  renderQuickInfo();
 });
 
 // Global items (for shop modal)
@@ -127,6 +129,37 @@ function renderHero() {
     parts.push(`<span class="stat-badge ${explored ? "explored-badge" : "unexplored-badge"}">${explored ? "Explored" : "Unexplored"}</span>`);
   }
   locStats.innerHTML = parts.join("");
+
+  const editBtn = document.getElementById("loc-edit-location-btn");
+  if (editBtn && isAdmin) editBtn.style.display = "inline-flex";
+}
+
+// ── Render Quick Info ─────────────────────────────────────────────────────────
+function renderQuickInfo() {
+  const sec = document.getElementById("sec-quick-info");
+  const tbl = document.getElementById("qi-table");
+  if (!sec || !tbl || !markerData) return;
+
+  const tavernCount = subMarkers.filter(m => m.type === "Tavern").length;
+  const buildingCount = subMarkers.length;
+  const npcCount = npcs.length;
+
+  const rows = [
+    markerData.type       ? ["Type",       markerData.type]       : null,
+    markerData.population ? ["Population", markerData.population] : null,
+    markerData.wealth     ? ["Wealth",     markerData.wealth]     : null,
+    markerData.mainRace   ? ["Main Race",  markerData.mainRace]   : null,
+    markerData.religion   ? ["Religion",   markerData.religion]   : null,
+    tavernCount > 0       ? ["Taverns",    tavernCount]           : null,
+    buildingCount > 0     ? ["Buildings",  buildingCount]         : null,
+    npcCount > 0          ? ["NPCs",       npcCount]              : null,
+  ].filter(Boolean);
+
+  if (rows.length === 0) { sec.style.display = "none"; return; }
+  sec.style.display = "flex";
+  tbl.innerHTML = rows.map(([k, v]) =>
+    `<div class="qi-row"><span class="qi-label">${k}</span><span class="qi-value">${v}</span></div>`
+  ).join("");
 }
 
 // ── Render Description ────────────────────────────────────────────────────────
@@ -609,17 +642,30 @@ function renderBuildings() {
 
     const color  = TYPE_COLORS[marker.type] || "#BDBDBD";
     const bOwner = marker.ownerId ? npcs.find(n => n.id === marker.ownerId) : null;
+    card.style.setProperty("--bc", color);
+
+    const TYPE_ICONS = {
+      Forge: "game-icons:anvil", Shop: "lucide:shopping-bag", Tavern: "game-icons:beer-stein",
+      House: "lucide:home", Temple: "game-icons:cathedral", Guard: "lucide:shield",
+      Market: "lucide:store", Library: "game-icons:bookshelf", Other: "lucide:map-pin"
+    };
+    const thumbIcon = TYPE_ICONS[marker.type] || "lucide:map-pin";
+    const thumbHtml = marker.picture
+      ? `<img src="${marker.picture}" alt="${marker.name}" />`
+      : `<iconify-icon icon="${thumbIcon}" style="color:${color}"></iconify-icon>`;
+
+    const typeLabel = `${markerDisplayType(marker)}${marker.shopSubtype ? ` · ${marker.shopSubtype}` : ""}${bOwner ? ` · ${bOwner.name}` : ""}`;
 
     card.innerHTML = `
       <iconify-icon icon="lucide:grip-vertical" class="building-drag-handle" title="Drag to reorder"></iconify-icon>
-      <div class="building-dot" style="background:${color}"></div>
+      <div class="building-thumb" style="background:${color}18;border-color:${color}35">${thumbHtml}</div>
       <div class="building-info">
         <div class="building-name">${marker.name}</div>
-        <div class="building-type">${markerDisplayType(marker)}${marker.shopSubtype ? ` · ${marker.shopSubtype}` : ""}${bOwner ? ` · ${bOwner.name}` : ""}</div>
+        <div class="building-type">${typeLabel}</div>
         ${marker.notes ? `<div class="building-notes">${marker.notes}</div>` : ""}
       </div>
       <div class="building-card-actions">
-        <button class="building-open-btn dm-btn dm-btn-sm" title="View shop">Open</button>
+        <button class="building-open-btn dm-btn dm-btn-sm" title="View">Open</button>
         <button class="building-vis-btn${marker.discovered ? " active" : ""}" title="${marker.discovered ? "Hide from players" : "Reveal to players"}"><iconify-icon icon="lucide:eye"></iconify-icon></button>
       </div>
     `;
@@ -727,29 +773,29 @@ function renderNpcs() {
     return;
   }
 
-  sorted.forEach((npc, index) => {
+  sorted.forEach((npc) => {
     const card = document.createElement("div");
     card.className = "npc-card" + (npc.talkedTo ? " npc-talked" : "");
 
-    const num      = String(index + 1).padStart(3, "0");
     const agePart  = npc.age ? `Age ${npc.age}` : null;
-    const subtitle = [npc.race, npc.role, agePart].filter(Boolean).join(" • ");
+    const subtitle = [npc.race, npc.role, agePart].filter(Boolean).join(" · ");
+    const initial  = (npc.name || "?").charAt(0).toUpperCase();
 
     card.innerHTML = `
-      <div class="npc-header">
-        <div class="npc-num">#${num}</div>
-        <div class="npc-main">
+      <div class="npc-avatar">${initial}</div>
+      <div class="npc-main">
+        <div class="npc-header">
           <div class="npc-name">${npc.name}</div>
-          ${subtitle ? `<div class="npc-subtitle">${subtitle}</div>` : ""}
+          <div class="npc-actions">
+            <button class="npc-talk-btn${npc.talkedTo ? " active" : ""}" title="${npc.talkedTo ? "Mark as not talked to" : "Mark as talked to"}"><iconify-icon icon="lucide:check"></iconify-icon></button>
+            <button class="marker-edit-btn dm-btn dm-btn-sm npc-edit-btn">Edit</button>
+            <button class="marker-delete-btn dm-btn dm-btn-sm npc-del-btn">Del</button>
+          </div>
         </div>
-        <div class="npc-actions">
-          <button class="npc-talk-btn${npc.talkedTo ? " active" : ""}" title="${npc.talkedTo ? "Mark as not talked to" : "Mark as talked to"}"><iconify-icon icon="lucide:check"></iconify-icon></button>
-          <button class="marker-edit-btn dm-btn dm-btn-sm npc-edit-btn">Edit</button>
-          <button class="marker-delete-btn dm-btn dm-btn-sm npc-del-btn">Del</button>
-        </div>
+        ${subtitle ? `<div class="npc-subtitle">${subtitle}</div>` : ""}
+        ${npc.description ? `<p class="npc-desc">${npc.description}</p>` : ""}
+        ${npc.notes ? `<div class="npc-notes">DM: ${npc.notes}</div>` : ""}
       </div>
-      ${npc.description ? `<p class="npc-desc">${npc.description}</p>` : ""}
-      ${npc.notes ? `<div class="npc-notes">DM: ${npc.notes}</div>` : ""}
     `;
 
     card.querySelector(".npc-talk-btn").addEventListener("click", () => {

@@ -7,6 +7,7 @@ import Layout from '../layouts/Layout.astro';
   <header class="loc-hero">
     <div class="loc-hero-bg" id="loc-hero-bg"></div>
     <a href="/map" class="back-link" id="back-to-map"><iconify-icon icon="lucide:arrow-left"></iconify-icon> Back to Map</a>
+    <button id="loc-edit-location-btn" class="loc-edit-location-btn" style="display:none"><iconify-icon icon="lucide:pencil"></iconify-icon> Edit Location</button>
     <h1 class="loc-title" id="loc-title">Loading&hellip;</h1>
     <div class="loc-stats" id="loc-stats"></div>
     <label for="loc-feature-upload" id="loc-feature-upload-btn" class="loc-hero-upload-btn" style="display:none" title="Upload location image"><iconify-icon icon="lucide:camera"></iconify-icon></label>
@@ -16,6 +17,7 @@ import Layout from '../layouts/Layout.astro';
   <main class="loc-main">
 
     <div class="loc-feature-row anim-1" id="loc-feature-row">
+      <!-- About -->
       <div class="loc-feature-desc-wrap">
         <div class="sec-header-row">
           <h2 class="sec-heading">About</h2>
@@ -24,8 +26,16 @@ import Layout from '../layouts/Layout.astro';
         <p id="loc-desc-text" class="loc-description" style="display:none"></p>
         <p id="loc-desc-empty" class="loc-desc-empty">No description added yet.</p>
       </div>
+      <!-- Quick Info (inline, right of About) -->
+      <div class="loc-feature-qi" id="sec-quick-info" style="display:none">
+        <div class="sec-header-row">
+          <h2 class="sec-heading">Quick Info</h2>
+        </div>
+        <div class="qi-table" id="qi-table"></div>
+      </div>
     </div>
 
+    <!-- Left column: map + NPCs -->
     <div class="loc-col loc-col-map">
       <section class="loc-section anim-2" id="sec-map">
         <div class="sec-header-row">
@@ -49,19 +59,8 @@ import Layout from '../layouts/Layout.astro';
           </div>
         </div>
       </section>
-    </div>
 
-    <div class="loc-col loc-col-buildings">
-      <section class="loc-section anim-3" id="sec-buildings" style="display:none">
-        <div class="sec-header-row">
-          <h2 class="sec-heading">Buildings <span class="dm-badge">DM Only</span></h2>
-        </div>
-        <div id="loc-buildings-list" class="buildings-list"></div>
-      </section>
-    </div>
-
-    <div class="loc-col loc-col-npcs">
-      <section class="loc-section anim-4" id="sec-npcs" style="display:none">
+      <section class="loc-section anim-3" id="sec-npcs" style="display:none">
         <div class="sec-header-row">
           <h2 class="sec-heading">NPCs <span class="dm-badge">DM Only</span></h2>
           <div style="display:flex;gap:6px;align-items:center;">
@@ -69,7 +68,6 @@ import Layout from '../layouts/Layout.astro';
             <button id="loc-add-npc-btn" class="dm-btn dm-btn-sm">+ Add NPC</button>
           </div>
         </div>
-
         <div class="npc-generator-panel" id="npc-generator-panel" style="display:none">
           <div class="generator-controls">
             <span class="generator-label">Generate</span>
@@ -81,11 +79,20 @@ import Layout from '../layouts/Layout.astro';
           <p id="gen-hint" class="gen-hint">Uses this location's Main Race &amp; population for weighted generation.</p>
           <p id="gen-status" class="gen-status"></p>
         </div>
-
         <div class="npc-search-row">
           <input type="text" id="npc-search" class="npc-search-input" placeholder="Search NPCs…" />
         </div>
         <div id="loc-npc-list" class="npc-list"></div>
+      </section>
+    </div>
+
+    <!-- Right column: buildings -->
+    <div class="loc-col loc-col-buildings">
+      <section class="loc-section anim-3" id="sec-buildings" style="display:none">
+        <div class="sec-header-row">
+          <h2 class="sec-heading">Buildings <span class="dm-badge">DM Only</span></h2>
+        </div>
+        <div id="loc-buildings-list" class="buildings-list"></div>
       </section>
     </div>
 
