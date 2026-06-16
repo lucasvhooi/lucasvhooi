@@ -51,6 +51,7 @@ let isDraggingBuilding  = false;
 let dragSrcId           = null;
 let isDayTime           = true;
 let currentTavernMarker = null;
+let npcExpanded         = false;
 
 // ── DOM Refs ──────────────────────────────────────────────────────────────────
 const locTitle        = document.getElementById("loc-title");
@@ -95,7 +96,8 @@ onValue(subMarkersRef, snapshot => {
 onValue(npcsRef, snapshot => {
   const data = snapshot.val();
   npcs = data ? Object.values(data) : [];
-  renderNpcs();
+  _updateNpcChip();
+  if (npcExpanded) renderNpcs();
   renderQuickInfo();
 });
 
@@ -156,7 +158,7 @@ function renderQuickInfo() {
   ].filter(Boolean);
 
   if (rows.length === 0) { sec.style.display = "none"; return; }
-  sec.style.display = "flex";
+  sec.style.display = "block";
   tbl.innerHTML = rows.map(([k, v]) =>
     `<div class="qi-row"><span class="qi-label">${k}</span><span class="qi-value">${v}</span></div>`
   ).join("");
@@ -165,13 +167,16 @@ function renderQuickInfo() {
 // ── Render Description ────────────────────────────────────────────────────────
 function renderDescription() {
   const desc = locationInfo.description;
+  const heroAbout = document.getElementById("loc-hero-about");
   if (desc) {
     locDescText.textContent = desc;
     locDescText.style.display = "block";
     locDescEmpty.style.display = "none";
+    if (heroAbout) heroAbout.style.display = "";
   } else {
     locDescText.style.display = "none";
-    locDescEmpty.style.display = "block";
+    locDescEmpty.style.display = isAdmin ? "block" : "none";
+    if (heroAbout && !isAdmin) heroAbout.style.display = "none";
   }
 }
 
@@ -215,6 +220,185 @@ const TYPE_COLORS = {
   Other:   "#BDBDBD"
 };
 
+const TYPE_ICONS = {
+  Forge:   "game-icons:anvil",
+  Shop:    "lucide:shopping-bag",
+  Tavern:  "game-icons:beer-stein",
+  House:   "lucide:home",
+  Temple:  "game-icons:cathedral",
+  Guard:   "lucide:shield",
+  Market:  "lucide:store",
+  Library: "game-icons:bookshelf",
+  Other:   "lucide:map-pin"
+};
+
+// ── Location map zoom / pan state ─────────────────────────────────────────────
+const locMapWrapper  = document.getElementById("loc-map-wrapper");
+let _locScale        = 1;
+let _locOriginX      = 0;
+let _locOriginY      = 0;
+let _locIsDragging   = false;
+let _locDidDrag      = false;
+let _locStartX       = 0;
+let _locStartY       = 0;
+let _locRafPending   = false;
+let _locWheelTimer   = 0;
+let _locIsPinching   = false;
+let _locInitDist     = 0;
+let _locInitScale    = 1;
+let _locTouchStartX  = 0;
+let _locTouchStartY  = 0;
+
+function _updateLocTransform() {
+  if (locMapWrapper)
+    locMapWrapper.style.transform = `translate3d(${_locOriginX}px,${_locOriginY}px,0) scale(${_locScale})`;
+}
+
+function _clampLocBounds() {
+  const cw = locMapContainer.offsetWidth;
+  const ch = locMapContainer.offsetHeight;
+  _locOriginX = Math.min(0, Math.max(cw  * (1 - _locScale), _locOriginX));
+  _locOriginY = Math.min(0, Math.max(ch  * (1 - _locScale), _locOriginY));
+}
+
+function _scheduleLocTransform() {
+  if (_locRafPending) return;
+  _locRafPending = true;
+  requestAnimationFrame(() => {
+    _clampLocBounds();
+    _updateLocTransform();
+    _locRafPending = false;
+  });
+}
+
+function _flushLocMarkerScale() {
+  const t = `translate3d(-50%,-50%,0) scale(${1 / _locScale})`;
+  locMarkerLayer.querySelectorAll(".loc-marker").forEach(el => { el.style.transform = t; });
+}
+
+function _scheduleMarkerScaleFlush() {
+  clearTimeout(_locWheelTimer);
+  _locWheelTimer = setTimeout(_flushLocMarkerScale, 120);
+}
+
+function resetLocZoom() {
+  _locScale = 1; _locOriginX = 0; _locOriginY = 0;
+  _updateLocTransform();
+  _flushLocMarkerScale();
+}
+
+function _zoomLocAt(cx, cy, newScale) {
+  newScale = Math.min(Math.max(newScale, 1), 5);
+  _locOriginX -= (cx - _locOriginX) * (newScale / _locScale - 1);
+  _locOriginY -= (cy - _locOriginY) * (newScale / _locScale - 1);
+  _locScale = newScale;
+  _clampLocBounds();
+  _updateLocTransform();
+  _flushLocMarkerScale();
+}
+
+// Wheel zoom
+locMapContainer.addEventListener("wheel", e => {
+  e.preventDefault();
+  const rect = locMapContainer.getBoundingClientRect();
+  _zoomLocAt(e.clientX - rect.left, e.clientY - rect.top,
+             _locScale * (1 - e.deltaY * 0.001));
+}, { passive: false });
+
+// Pointer drag (desktop pan)
+locMapContainer.addEventListener("pointerdown", e => {
+  if (e.button !== 0) return;
+  if (e.target.closest(".loc-marker") || e.target.closest(".loc-dm-toolbar") || e.target.closest(".loc-zoom-controls")) return;
+  _locIsDragging = true;
+  _locDidDrag    = false;
+  _locStartX = e.clientX;
+  _locStartY = e.clientY;
+  locMapContainer.setPointerCapture(e.pointerId);
+  if (!placingMode) locMapContainer.classList.add("loc-dragging");
+});
+
+locMapContainer.addEventListener("pointermove", e => {
+  if (!_locIsDragging) return;
+  const dx = e.clientX - _locStartX;
+  const dy = e.clientY - _locStartY;
+  if (Math.abs(dx) > 3 || Math.abs(dy) > 3) _locDidDrag = true;
+  _locStartX = e.clientX;
+  _locStartY = e.clientY;
+  _locOriginX += dx;
+  _locOriginY += dy;
+  _scheduleLocTransform();
+}, { passive: true });
+
+locMapContainer.addEventListener("pointerup", () => {
+  _locIsDragging = false;
+  locMapContainer.classList.remove("loc-dragging");
+});
+
+locMapContainer.addEventListener("pointercancel", () => {
+  _locIsDragging = false;
+  locMapContainer.classList.remove("loc-dragging");
+});
+
+// Zoom control buttons
+document.getElementById("loc-zoom-in")?.addEventListener("click", e => {
+  e.stopPropagation();
+  const cw = locMapContainer.offsetWidth, ch = locMapContainer.offsetHeight;
+  _zoomLocAt(cw / 2, ch / 2, _locScale * 1.35);
+});
+document.getElementById("loc-zoom-out")?.addEventListener("click", e => {
+  e.stopPropagation();
+  const cw = locMapContainer.offsetWidth, ch = locMapContainer.offsetHeight;
+  _zoomLocAt(cw / 2, ch / 2, _locScale / 1.35);
+});
+document.getElementById("loc-zoom-reset")?.addEventListener("click", e => {
+  e.stopPropagation();
+  resetLocZoom();
+});
+
+// Stop zoom-control pointer events from bleeding into the map
+document.getElementById("loc-zoom-controls")?.addEventListener("pointerdown", e => e.stopPropagation());
+
+// Touch pinch + pan
+function _locTouchDist(t1, t2) {
+  return Math.sqrt((t1.clientX - t2.clientX) ** 2 + (t1.clientY - t2.clientY) ** 2);
+}
+
+locMapContainer.addEventListener("touchstart", e => {
+  if (e.target.closest(".loc-marker") || e.target.closest(".loc-dm-toolbar") || e.target.closest(".loc-zoom-controls")) return;
+  if (e.touches.length === 2) {
+    _locIsPinching = true;
+    _locInitDist   = _locTouchDist(e.touches[0], e.touches[1]);
+    _locInitScale  = _locScale;
+    e.preventDefault();
+  } else {
+    _locTouchStartX = e.touches[0].clientX;
+    _locTouchStartY = e.touches[0].clientY;
+  }
+}, { passive: false });
+
+locMapContainer.addEventListener("touchmove", e => {
+  if (e.target.closest(".loc-marker") || e.target.closest(".loc-dm-toolbar")) return;
+  e.preventDefault();
+  if (_locIsPinching && e.touches.length === 2) {
+    const rect = locMapContainer.getBoundingClientRect();
+    const newDist  = _locTouchDist(e.touches[0], e.touches[1]);
+    const newScale = Math.min(Math.max(_locInitScale * (newDist / _locInitDist), 1), 5);
+    const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+    const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+    _locOriginX -= (midX - _locOriginX) * (newScale / _locScale - 1);
+    _locOriginY -= (midY - _locOriginY) * (newScale / _locScale - 1);
+    _locScale = newScale;
+    _scheduleLocTransform();
+    _scheduleMarkerScaleFlush();
+  } else if (!_locIsPinching && e.touches.length === 1) {
+    const cx = e.touches[0].clientX, cy = e.touches[0].clientY;
+    _locOriginX += cx - _locTouchStartX;
+    _locOriginY += cy - _locTouchStartY;
+    _locTouchStartX = cx; _locTouchStartY = cy;
+    _scheduleLocTransform();
+  }
+}, { passive: false });
+
 function markerDisplayType(marker) {
   return (marker.type === "Other" && marker.customType)
     ? marker.customType
@@ -223,21 +407,27 @@ function markerDisplayType(marker) {
 
 function renderSubMarkers() {
   locMarkerLayer.innerHTML = "";
+  const counterScale = `translate3d(-50%,-50%,0) scale(${1 / _locScale})`;
 
   subMarkers.forEach(marker => {
     // Players only see markers the DM has marked as discovered
     if (!isAdmin && !marker.discovered) return;
 
     const el = document.createElement("div");
-    el.className    = "loc-marker";
-    el.dataset.id   = marker.id;
-    el.style.left   = marker.x + "%";
-    el.style.top    = marker.y + "%";
+    el.className       = "loc-marker";
+    el.dataset.id      = marker.id;
+    el.style.left      = marker.x + "%";
+    el.style.top       = marker.y + "%";
+    el.style.transform = counterScale;
     el.addEventListener("pointerdown", e => e.stopPropagation());
 
+    const color = TYPE_COLORS[marker.type] || "#BDBDBD";
+    const icon  = TYPE_ICONS[marker.type]  || "lucide:map-pin";
+    el.style.setProperty("--mc", color);
+
     const pin = document.createElement("div");
-    pin.className  = "loc-marker-pin";
-    pin.style.background = TYPE_COLORS[marker.type] || "#BDBDBD";
+    pin.className = "loc-marker-pin";
+    pin.innerHTML = `<iconify-icon icon="${icon}"></iconify-icon>`;
 
     const ownerNpc = marker.ownerId ? npcs.find(n => n.id === marker.ownerId) : null;
 
@@ -315,31 +505,41 @@ if (locBtnPlace) {
   });
 }
 
-// Click on location map to place a sub-marker
+// Helper: convert screen coords (relative to container) → marker % coords
+function _screenToMarkerPct(sx, sy) {
+  const wrapperX = (sx - _locOriginX) / _locScale;
+  const wrapperY = (sy - _locOriginY) / _locScale;
+  const cw = locMapContainer.offsetWidth;
+  const ch = locMapContainer.offsetHeight;
+  return {
+    x: Math.max(0, Math.min(100, (wrapperX / cw) * 100)),
+    y: Math.max(0, Math.min(100, (wrapperY / ch) * 100))
+  };
+}
+
+// Click on location map to place a sub-marker (desktop)
 locMapContainer.addEventListener("click", e => {
   if (!placingMode || !isAdmin) return;
-  if (e.target.closest(".loc-marker") || e.target.closest(".loc-dm-toolbar")) return;
-
+  if (_locDidDrag) return; // was a pan, not a click
+  if (e.target.closest(".loc-marker") || e.target.closest(".loc-dm-toolbar") || e.target.closest(".loc-zoom-controls")) return;
   const rect = locMapContainer.getBoundingClientRect();
-  pendingCoords = {
-    x: Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width)  * 100)),
-    y: Math.max(0, Math.min(100, ((e.clientY - rect.top)  / rect.height) * 100))
-  };
+  pendingCoords = _screenToMarkerPct(e.clientX - rect.left, e.clientY - rect.top);
   openSubMarkerModal(null);
 });
 
-// Touch tap to place
+// Touch tap to place (mobile)
 locMapContainer.addEventListener("touchend", e => {
-  if (!placingMode || !isAdmin) return;
+  if (e.touches.length < 2) _locIsPinching = false;
+  if (e.touches.length === 0) _flushLocMarkerScale();
+
+  if (!placingMode || !isAdmin || _locIsPinching) return;
   if (e.changedTouches.length !== 1) return;
   const touch = e.changedTouches[0];
-  const rect  = locMapContainer.getBoundingClientRect();
-  const dx = Math.abs(touch.clientX - rect.left);
-  if (dx > rect.width) return; // outside
-  pendingCoords = {
-    x: Math.max(0, Math.min(100, ((touch.clientX - rect.left) / rect.width)  * 100)),
-    y: Math.max(0, Math.min(100, ((touch.clientY - rect.top)  / rect.height) * 100))
-  };
+  if (Math.abs(touch.clientX - _locTouchStartX) > 10 ||
+      Math.abs(touch.clientY - _locTouchStartY) > 10) return; // was a pan
+  if (e.target.closest(".loc-marker") || e.target.closest(".loc-dm-toolbar") || e.target.closest(".loc-zoom-controls")) return;
+  const rect = locMapContainer.getBoundingClientRect();
+  pendingCoords = _screenToMarkerPct(touch.clientX - rect.left, touch.clientY - rect.top);
   openSubMarkerModal(null);
 });
 
@@ -876,13 +1076,37 @@ locNpcModal.addEventListener("click", e => { if (e.target === locNpcModal) close
 
 document.getElementById("loc-add-npc-btn").addEventListener("click", () => openNpcModal(null));
 
+// ── NPC expand / collapse ─────────────────────────────────────────────────────
+const npcSectionBody    = document.getElementById("npc-section-body");
+const npcExpandToggle   = document.getElementById("npc-expand-toggle");
+const npcToggleRow      = document.getElementById("npc-toggle-row");
+
+function _updateNpcChip() {
+  const chip = document.getElementById("npc-count-chip");
+  if (chip) chip.textContent = npcs.length > 0 ? `(${npcs.length})` : "";
+}
+
+function _toggleNpcs() {
+  npcExpanded = !npcExpanded;
+  if (npcSectionBody) npcSectionBody.style.display = npcExpanded ? "" : "none";
+  if (npcExpandToggle) {
+    const icon = npcExpandToggle.querySelector("iconify-icon");
+    if (icon) icon.setAttribute("icon", npcExpanded ? "lucide:chevron-up" : "lucide:chevron-down");
+  }
+  if (npcExpanded) renderNpcs();
+}
+
+npcExpandToggle?.addEventListener("click", e => { e.stopPropagation(); _toggleNpcs(); });
+npcToggleRow?.addEventListener("click", e => { if (!e.target.closest(".dm-btn")) _toggleNpcs(); });
+
 // ── NPC Generator Toggle ──────────────────────────────────────────────────────
 const npcGeneratorPanel = document.getElementById("npc-generator-panel");
 const toggleGenBtn      = document.getElementById("loc-toggle-gen-btn");
 let generatorOpen = false;
 
 if (toggleGenBtn && npcGeneratorPanel) {
-  toggleGenBtn.addEventListener("click", () => {
+  toggleGenBtn.addEventListener("click", e => {
+    e.stopPropagation();
     generatorOpen = !generatorOpen;
     npcGeneratorPanel.style.display = generatorOpen ? "" : "none";
     toggleGenBtn.innerHTML = generatorOpen ? 'Generator <iconify-icon icon="lucide:chevron-down"></iconify-icon>' : 'Generator <iconify-icon icon="lucide:chevron-right"></iconify-icon>';
@@ -895,7 +1119,7 @@ const npcSearchInput = document.getElementById("npc-search");
 if (npcSearchInput) {
   npcSearchInput.addEventListener("input", e => {
     npcSearchQuery = e.target.value;
-    renderNpcs();
+    if (npcExpanded) renderNpcs();
   });
 }
 

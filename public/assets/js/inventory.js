@@ -27,7 +27,7 @@ let allAttunements = {};
 let allSpells      = {};
 let allSpellbooks  = {};
 let viewingId      = session.id;
-let activeFilter   = "all";
+let activeFilter   = sessionStorage.getItem("inv-filter") || "all";
 let sendItemId     = null;
 let sendItemOwner  = null;
 let selectedSendTarget = null;
@@ -199,10 +199,15 @@ function _updateSortUI() {
 
 // ── Filter tabs ───────────────────────────────────────────────────────────────
 document.querySelectorAll(".inv-tab").forEach(tab => {
+  if (tab.dataset.filter === activeFilter) {
+    document.querySelectorAll(".inv-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+  }
   tab.addEventListener("click", () => {
     document.querySelectorAll(".inv-tab").forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
     activeFilter = tab.dataset.filter;
+    sessionStorage.setItem("inv-filter", activeFilter);
     closeItemPanel();
     renderList();
   });

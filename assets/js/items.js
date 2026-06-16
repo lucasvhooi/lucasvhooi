@@ -346,6 +346,7 @@ function renderItems() {
           ${item.requiresAttunement
             ? `<span class="item-meta-badge attune-badge"><iconify-icon icon="lucide:sparkles" style="font-size:11px;vertical-align:-1px"></iconify-icon> Attunement</span>`
             : `<span class="item-meta-badge no-attune-badge"><iconify-icon icon="lucide:sparkles-off" style="font-size:11px;vertical-align:-1px"></iconify-icon> No Attunement</span>`}
+          <span class="item-meta-badge item-meta-price"><iconify-icon icon="lucide:coins" style="font-size:11px;vertical-align:-1px"></iconify-icon> ${formatGold(item.price)}</span>
         </div>
       </div>
       <div class="item-row-type">
@@ -661,6 +662,8 @@ function escItemHtml(str) {
 }
 
 document.getElementById("idp-close").addEventListener("click", closeItemPanel);
+// On mobile the panel is a centered modal — clicking the backdrop closes it
+itemDetailPanel.addEventListener("click", e => { if (e.target === itemDetailPanel) closeItemPanel(); });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape" && itemDetailPanel.classList.contains("open")) closeItemPanel();
 });

@@ -18,6 +18,7 @@ const {
   bodyClass = '',
   pageContentStyle = '',
 } = Astro.props;
+
 ---
 <!DOCTYPE html>
 <html lang="en" class={showNav ? 'app-layout' : undefined}>
@@ -36,6 +37,16 @@ const {
 <body class={bodyClass || undefined}>
   {showNav && (
     <div class="app-shell">
+      <header class="mobile-topbar">
+        <button class="mobile-nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+        <span class="mobile-topbar-title">Essolis</span>
+        <a href="/campaigns" class="mobile-topbar-logo" aria-label="Essolis home">
+          <img src="/Images/EssolisLogo.webp" alt="Essolis" />
+        </a>
+      </header>
+      <div class="mobile-nav-backdrop"></div>
       <Sidebar activePage={activePage} />
       <div class="page-content" style={pageContentStyle || undefined}>
         <slot />

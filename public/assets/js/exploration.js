@@ -395,6 +395,8 @@ function closeCharPanel() {
 }
 
 document.getElementById("cdp-close").addEventListener("click", closeCharPanel);
+// On mobile the panel is a centered modal — clicking the backdrop closes it
+charDetailPanel.addEventListener("click", e => { if (e.target === charDetailPanel) closeCharPanel(); });
 
 // ── Edit modal ────────────────────────────────────────────────────────────────
 function openEditModal(c = null) {

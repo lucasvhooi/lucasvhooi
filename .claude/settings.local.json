@@ -76,7 +76,8 @@
       "PowerShell($html = Get-Content \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\\\\dist\\\\lore.html\" -Raw; $idx = $html.IndexOf\\('id=\"lore-grid\"'\\); Write-Output \"Position: $idx\"; Write-Output \"Context: $\\($html.Substring\\([Math]::Max\\(0,$idx-200\\), 400\\)\\)\")",
       "PowerShell($html = Get-Content \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\\\\dist\\\\lore.html\" -Raw; \\($html | Select-String -Pattern 'id=\"lore-grid\"' -AllMatches\\).Matches.Count)",
       "Bash(fc /b \"assets\\\\js\\\\lore.js\" \"public\\\\assets\\\\js\\\\lore.js\")",
-      "Bash(curl -s http://localhost:4321/lore)"
+      "Bash(curl -s http://localhost:4321/lore)",
+      "Bash(Select-String *)"
     ]
   }
 }

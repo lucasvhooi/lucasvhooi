@@ -649,6 +649,14 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
       .main { padding: 24px 16px 48px; }
       .campaign-grid { grid-template-columns: 1fr; }
       .campaign-card-img { width: 90px; }
+
+      /* Toolbar: let the label sit on its own line and the two actions
+         share a full-width row so neither button runs off-screen */
+      .toolbar { flex-wrap: wrap; }
+      .toolbar-actions { width: 100%; }
+      .toolbar-actions .btn-join,
+      .toolbar-actions .btn-add { flex: 1; justify-content: center; }
+      .btn-add { font-size: 14px; padding: 11px 16px; }
     }
   </style>
 

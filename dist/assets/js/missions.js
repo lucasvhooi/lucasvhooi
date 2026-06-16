@@ -99,7 +99,12 @@ let markerNames     = [];
 let activeFilter    = "all";
 let editingId         = null;
 let currentBlocks     = [];
-let currentCellColors = {};   // "row,col" -> "#hexcolor"
+let currentCellColors = {};   // legacy — retained only for old-draft compatibility
+let currentGiver         = null;            // { id, name, picture, profession }
+let currentRewards       = { xp: "", gold: "", items: [] };
+let currentObjectives    = [];              // [{ id, text, done }]
+let currentPrerequisites = [];              // [questId]
+let currentRecommendedLevel = "";
 let firebaseTemplates = [];   // enemy templates from Firebase
 let allItems          = [];   // items from Firebase items tab
 let allLoreItems      = [];   // lore items from Firebase lore tab
@@ -119,7 +124,7 @@ let blockResizeState = null;  // {index, dir, startClientX, startClientY, startW
 let canvasPanState   = null;  // {startX, startY, startPanX, startPanY}
 
 let currentConnections = [];  // [{id, from, fromSide, to, toSide, label}]
-let connDragState = null;    // {fromIndex, fromSide, curX, curY, snapToIndex, snapToSide}
+let connDragState = null;    // {fromId, fromSide, curX, curY, snapToId, snapToSide}
 let canvasSvg     = null;  // the SVG overlay element
 let selectedBlockSet = new Set(); // indices of selected blocks
 let blockClipboard   = null;      // deep copy of a block for paste
@@ -134,6 +139,30 @@ function migrateBlock(b) {
     b.height = (b.rowSpan || 1) * BLOCK_DEFAULT_H + Math.max(0, (b.rowSpan || 1) - 1) * 20;
   }
   return b;
+}
+
+// ── Stable IDs ────────────────────────────────────────────────────────────────
+// Blocks carry a permanent `id`; connections and groups reference blocks by that
+// id (never array index) so deletes/pastes/reorders can never desync them.
+function newId() { return "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function blockById(id)   { return currentBlocks.find(b => b.id === id); }
+function blockIndexById(id) { return currentBlocks.findIndex(b => b.id === id); }
+function blockElById(id)  { return canvasWorld?.querySelector(`[data-block-id="${id}"]`); }
+
+// Normalise a quest's blocks/connections/groups onto stable ids. Accepts legacy
+// index-based connections ({from:Number}) and groups ({indices:[Number]}) and
+// rewrites them in place. Safe to run on already-migrated (id-based) data.
+function migrateRefsToIds(blocks, connections, groups) {
+  blocks.forEach(b => { if (!b.id) b.id = newId(); });
+  const idAt = i => (typeof i === "number" ? blocks[i]?.id : i);
+  const conns = (connections || []).map(c => ({
+    ...c, from: idAt(c.from), to: idAt(c.to),
+  })).filter(c => c.from && c.to && blocks.some(b => b.id === c.from) && blocks.some(b => b.id === c.to));
+  const grps = (groups || []).map(g => {
+    const blockIds = (g.blockIds || (g.indices || []).map(idAt)).filter(id => id && blocks.some(b => b.id === id));
+    return { id: g.id || newId(), title: g.title || "", color: g.color || "#ffcc66", blockIds };
+  }).filter(g => g.blockIds.length > 0);
+  return { conns, grps };
 }
 
 function applyCanvasTransform() {
@@ -159,6 +188,22 @@ function resetCanvasView() {
   applyCanvasTransform();
 }
 
+// World coordinates currently at the centre of the visible canvas viewport.
+function canvasCenterWorld() {
+  const rect = _getCanvasRect() || qmBlockCanvas.getBoundingClientRect();
+  return {
+    x: (rect.width  / 2 - canvasPanX) / canvasZoom,
+    y: (rect.height / 2 - canvasPanY) / canvasZoom,
+  };
+}
+// Top-left for a new block so its centre lands on the viewport centre, with a
+// small cascade offset so repeated adds don't stack exactly on top of each other.
+function centeredBlockOrigin(w = BLOCK_DEFAULT_W, h = BLOCK_DEFAULT_H) {
+  const c = canvasCenterWorld();
+  const stagger = (currentBlocks.length % 6) * 26;
+  return { x: Math.round(c.x - w / 2 + stagger), y: Math.round(c.y - h / 2 + stagger) };
+}
+
 // ── Undo / redo / autosave state ──────────────────────────────────────────────
 const UNDO_LIMIT     = 80;
 let undoStack        = [];
@@ -171,7 +216,14 @@ let hasUnsavedChanges = false;
 let isPlayerPreview  = false;
 
 function applyBlockBgColor(wrap, color) {
-  wrap.style.background = color ? hexToRgba(color, 0.22) : "";
+  wrap.style.background = "";
+  if (color) {
+    wrap.style.setProperty("--blk-cc", color);
+    wrap.classList.add("blk-colored");
+  } else {
+    wrap.style.removeProperty("--blk-cc");
+    wrap.classList.remove("blk-colored");
+  }
 }
 
 const CONN_SIDES = ['top', 'right', 'bottom', 'left'];
@@ -202,10 +254,10 @@ const GROUP_PAD = 20, GROUP_TOP = 38;
 
 function getGroupBounds(group) {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  group.indices.forEach(idx => {
-    const b = currentBlocks[idx];
+  (group.blockIds || []).forEach(id => {
+    const b = blockById(id);
     if (!b) return;
-    const el = canvasWorld?.querySelector(`[data-index="${idx}"]`);
+    const el = blockElById(id);
     const w = b.width || BLOCK_DEFAULT_W;
     const h = el?.offsetHeight || b.height || BLOCK_DEFAULT_H;
     minX = Math.min(minX, b.worldX || 0); minY = Math.min(minY, b.worldY || 0);
@@ -243,7 +295,7 @@ function buildGroupsInEditor() {
       </div>`;
 
     const titleInp = el.querySelector(".blk-group-title");
-    titleInp.addEventListener("input", e2 => { currentGroups[gi].title = e2.target.value; onEditTick(); });
+    titleInp.addEventListener("input", e2 => { currentGroups[gi].title = e2.target.value; onEditTick(); renderOutline(); });
     titleInp.addEventListener("pointerdown", e2 => e2.stopPropagation());
 
     const colorPick = el.querySelector(".blk-group-color-pick");
@@ -271,11 +323,11 @@ function buildGroupsInEditor() {
       if (e2.target.closest("button, input, label")) return;
       e2.stopPropagation();
       hdr.setPointerCapture(e2.pointerId);
-      const members = group.indices.filter(idx => currentBlocks[idx]).map(idx => ({
-        idx,
-        startX: currentBlocks[idx].worldX || 0,
-        startY: currentBlocks[idx].worldY || 0,
-        el: canvasWorld.querySelector(`[data-index="${idx}"]`),
+      const members = (group.blockIds || []).map(id => blockById(id)).filter(Boolean).map(b => ({
+        id: b.id,
+        startX: b.worldX || 0,
+        startY: b.worldY || 0,
+        el: blockElById(b.id),
       }));
       const startCX = e2.clientX, startCY = e2.clientY;
       const startBX = bounds.x, startBY = bounds.y;
@@ -284,7 +336,8 @@ function buildGroupsInEditor() {
         const dx = (e3.clientX - startCX) / canvasZoom;
         const dy = (e3.clientY - startCY) / canvasZoom;
         members.forEach(m => {
-          const b = currentBlocks[m.idx];
+          const b = blockById(m.id);
+          if (!b) return;
           b.worldX = m.startX + dx; b.worldY = m.startY + dy;
           if (m.el) { m.el.style.left = b.worldX + "px"; m.el.style.top = b.worldY + "px"; }
         });
@@ -305,21 +358,14 @@ function buildGroupsInEditor() {
   });
 }
 
-function remapGroupsAfterInsert(insertAt) {
-  currentGroups = currentGroups.map(g => ({
-    ...g, indices: g.indices.map(idx => idx >= insertAt ? idx + 1 : idx),
-  }));
-}
-
-function remapGroupsAfterDelete(deletedArr) {
-  const deletedSet = new Set(deletedArr);
-  const sorted = [...deletedArr].sort((a, b) => a - b);
-  currentGroups = currentGroups.map(g => ({
-    ...g,
-    indices: g.indices
-      .filter(idx => !deletedSet.has(idx))
-      .map(idx => idx - sorted.filter(d => d < idx).length),
-  })).filter(g => g.indices.length > 0);
+// Drop a set of block ids from blocks, connections and groups (no index math).
+function deleteBlocksByIds(ids) {
+  const drop = new Set(ids);
+  currentBlocks = currentBlocks.filter(b => !drop.has(b.id));
+  currentConnections = currentConnections.filter(c => !drop.has(c.from) && !drop.has(c.to));
+  currentGroups = currentGroups
+    .map(g => ({ ...g, blockIds: g.blockIds.filter(id => !drop.has(id)) }))
+    .filter(g => g.blockIds.length > 0);
 }
 
 function hexToRgba(hex, alpha) {
@@ -414,7 +460,10 @@ qmBlockCanvas.appendChild(marqueeEl);
 
 function refreshSelectionClasses() {
   canvasWorld?.querySelectorAll(".qm-block").forEach(el => {
-    el.classList.toggle("blk-selected", selectedBlockSet.has(parseInt(el.dataset.index)));
+    el.classList.toggle("blk-selected", selectedBlockSet.has(el.dataset.blockId));
+  });
+  document.getElementById("qm-outline")?.querySelectorAll(".qm-ol-item").forEach(el => {
+    el.classList.toggle("sel", selectedBlockSet.has(el.dataset.id));
   });
 }
 
@@ -477,12 +526,12 @@ qmBlockCanvas.addEventListener("pointerup", e => {
       // Convert screen marquee to world space
       const wx1 = (sx1 - canvasPanX) / canvasZoom, wy1 = (sy1 - canvasPanY) / canvasZoom;
       const wx2 = (sx2 - canvasPanX) / canvasZoom, wy2 = (sy2 - canvasPanY) / canvasZoom;
-      currentBlocks.forEach((b, idx) => {
-        const bel = canvasWorld?.querySelector(`[data-index="${idx}"]`);
+      currentBlocks.forEach(b => {
+        const bel = blockElById(b.id);
         const bx1 = b.worldX || 0, by1 = b.worldY || 0;
         const bx2 = bx1 + (b.width || BLOCK_DEFAULT_W);
         const by2 = by1 + (bel?.offsetHeight || b.height || BLOCK_DEFAULT_H);
-        if (bx2 > wx1 && bx1 < wx2 && by2 > wy1 && by1 < wy2) selectedBlockSet.add(idx);
+        if (bx2 > wx1 && bx1 < wx2 && by2 > wy1 && by1 < wy2) selectedBlockSet.add(b.id);
       });
       refreshSelectionClasses();
     }
@@ -573,10 +622,13 @@ qmBlockCanvas.addEventListener("drop", e => {
   const worldX = (e.clientX - rect.left - canvasPanX) / canvasZoom - BLOCK_DEFAULT_W / 2;
   const worldY = (e.clientY - rect.top  - canvasPanY) / canvasZoom - BLOCK_DEFAULT_H / 2;
   if (dragPaletteType !== null) {
-    currentBlocks.push({ ...BLOCK_DEFAULTS[dragPaletteType], worldX, worldY, width: BLOCK_DEFAULT_W, height: BLOCK_DEFAULT_H });
+    currentBlocks.push({ ...BLOCK_DEFAULTS[dragPaletteType], id: newId(), worldX, worldY, width: BLOCK_DEFAULT_W, height: BLOCK_DEFAULT_H });
     dragPaletteType = null;
   } else if (dragPaletteTemplate !== null) {
-    applyTemplateAtPosition(dragPaletteTemplate, worldX, worldY);
+    // Centre the template's bounding box on the drop point (cursor in world space)
+    applyTemplateAtPosition(dragPaletteTemplate,
+      (e.clientX - rect.left - canvasPanX) / canvasZoom,
+      (e.clientY - rect.top  - canvasPanY) / canvasZoom);
     dragPaletteTemplate = null;
   }
   qmBlockCanvas.classList.remove("qm-drag-active");
@@ -627,6 +679,7 @@ qmLocationDrop.addEventListener("mousedown", e => {
   const item = e.target.closest(".loc-drop-item");
   if (!item) return; e.preventDefault();
   qmLocationInp.value = item.dataset.name; hideDrop(qmLocationDrop);
+  if (questModal.classList.contains("open")) onEditTick();
 });
 qmLocationDrop.addEventListener("keydown", e => {
   if (e.key === "Enter") { qmLocationInp.value = document.activeElement.dataset.name || ""; hideDrop(qmLocationDrop); }
@@ -718,7 +771,7 @@ function renderGrid() {
 const STATUS_LABEL = { active: "Active", not_started: "Not Started", completed: "Completed" };
 const STATUS_CLASS = { active: "status-active", not_started: "status-pending", completed: "status-done" };
 
-const BLOCK_TYPE_ICON  = { text:'<iconify-icon icon="lucide:type"></iconify-icon>', phase:'<iconify-icon icon="lucide:chevron-right"></iconify-icon>', loot:'<iconify-icon icon="game-icons:open-treasure-chest"></iconify-icon>', boss:'<iconify-icon icon="game-icons:skull"></iconify-icon>', encounter:'<iconify-icon icon="game-icons:crossed-swords"></iconify-icon>', puzzle:'<iconify-icon icon="game-icons:puzzle"></iconify-icon>', character:'<iconify-icon icon="lucide:user"></iconify-icon>', loreref:'<iconify-icon icon="game-icons:bookshelf"></iconify-icon>', note:'<iconify-icon icon="lucide:file-text"></iconify-icon>', divider:'<iconify-icon icon="lucide:minus"></iconify-icon>' };
+const BLOCK_TYPE_ICON  = { text:'<iconify-icon icon="lucide:type"></iconify-icon>', phase:'<iconify-icon icon="lucide:chevron-right"></iconify-icon>', loot:'<iconify-icon icon="game-icons:open-treasure-chest"></iconify-icon>', boss:'<iconify-icon icon="game-icons:death-skull"></iconify-icon>', encounter:'<iconify-icon icon="game-icons:crossed-swords"></iconify-icon>', puzzle:'<iconify-icon icon="game-icons:puzzle"></iconify-icon>', character:'<iconify-icon icon="lucide:user"></iconify-icon>', loreref:'<iconify-icon icon="game-icons:bookshelf"></iconify-icon>', note:'<iconify-icon icon="lucide:file-text"></iconify-icon>', divider:'<iconify-icon icon="lucide:minus"></iconify-icon>' };
 const BLOCK_TYPE_LABEL = { text:"Text", phase:"Phase", loot:"Loot", boss:"Enemy", encounter:"Encounter", puzzle:"Puzzle", character:"Character", loreref:"Lore", note:"DM Note", divider:"Divider" };
 
 function buildBlockROContent(b) {
@@ -740,7 +793,7 @@ function buildBlockROContent(b) {
     case "boss": {
       const enemies = b.enemies?.length ? b.enemies : (b.name ? [{name:b.name,cr:b.cr||"",ac:b.ac||"",hp:b.hp||"",notes:b.notes||""}] : []);
       if (!enemies.length) return titleHtml;
-      return titleHtml + enemies.map(en => `<div class="qcro-boss-row"><iconify-icon icon="game-icons:skull" class="qcb-boss-icon"></iconify-icon><span class="qcb-boss-name">${esc(en.name)}</span>${en.cr?`<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>`:""}${en.ac?`<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>`:""}${en.hp?`<span class="qcb-boss-stat">HP ${esc(en.hp)}</span>`:""}</div>${en.notes?`<p class="qcro-text">${escBr(en.notes)}</p>`:""}`).join("");
+      return titleHtml + enemies.map(en => `<div class="qcro-boss-row"><iconify-icon icon="game-icons:death-skull" class="qcb-boss-icon"></iconify-icon><span class="qcb-boss-name">${esc(en.name)}</span>${en.cr?`<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>`:""}${en.ac?`<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>`:""}${en.hp?`<span class="qcb-boss-stat">HP ${esc(en.hp)}</span>`:""}</div>${en.notes?`<p class="qcro-text">${escBr(en.notes)}</p>`:""}`).join("");
     }
     case "encounter": {
       const enemies = b.enemies?.length ? b.enemies : [];
@@ -775,8 +828,8 @@ function buildBlockROContent(b) {
 
 function buildQuestCanvasDOM(q) {
   const blocks = q.blocks ? q.blocks.map(b => migrateBlock({...b})) : [];
-  const connections = q.connections || [];
-  const groups = q.groups || [];
+  const { conns: connections, grps: groups } = migrateRefsToIds(blocks, q.connections, q.groups);
+  const localById = id => blocks.find(b => b.id === id);
 
   const container = document.createElement("div");
   container.className = "qc-ro-canvas";
@@ -798,8 +851,8 @@ function buildQuestCanvasDOM(q) {
   // Render groups behind blocks (uses same bounds logic as editor, but with local blocks array)
   groups.forEach(group => {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    (group.indices || []).forEach(idx => {
-      const b = blocks[idx];
+    (group.blockIds || []).forEach(id => {
+      const b = localById(id);
       if (!b) return;
       const w = b.width || BLOCK_DEFAULT_W, h = b.height || BLOCK_DEFAULT_H;
       minX = Math.min(minX, b.worldX || 0); minY = Math.min(minY, b.worldY || 0);
@@ -830,12 +883,13 @@ function buildQuestCanvasDOM(q) {
     const wrap = document.createElement("div");
     wrap.className = "qm-block qc-block-ro";
     wrap.dataset.index = String(idx);
+    wrap.dataset.blockId = b.id;
     wrap.dataset.session = b.sessionMarker || "";
     wrap.style.left  = `${b.worldX || 0}px`;
     wrap.style.top   = `${b.worldY || 0}px`;
     wrap.style.width = `${b.width  || BLOCK_DEFAULT_W}px`;
     if (b.height) wrap.style.minHeight = `${b.height}px`;
-    if (b.bgColor) wrap.style.background = hexToRgba(b.bgColor, 0.22);
+    if (b.bgColor) { wrap.style.setProperty("--blk-cc", b.bgColor); wrap.classList.add("blk-colored"); }
 
     const sessionPill = b.sessionMarker
       ? `<span class="qcro-session-pill ${sessionColorClass(b.sessionMarker)}">${esc(b.sessionMarker)}</span>`
@@ -879,10 +933,10 @@ function buildQuestCanvasDOM(q) {
   const renderROConns = () => {
     svg.querySelectorAll(".conn-path").forEach(el => el.remove());
     connections.forEach(conn => {
-      const fb = blocks[conn.from], tb = blocks[conn.to];
+      const fb = localById(conn.from), tb = localById(conn.to);
       if (!fb || !tb) return;
-      const fromEl = world.querySelector(`[data-index="${conn.from}"]`);
-      const toEl   = world.querySelector(`[data-index="${conn.to}"]`);
+      const fromEl = world.querySelector(`[data-block-id="${conn.from}"]`);
+      const toEl   = world.querySelector(`[data-block-id="${conn.to}"]`);
       const fromSide = conn.fromSide || "right", toSide = conn.toSide || "left";
       const p1 = blockPortPos(fb, fromSide, fromEl);
       const p2 = blockPortPos(tb, toSide,   toEl);
@@ -931,118 +985,38 @@ function buildQuestCanvasDOM(q) {
   });
   container.addEventListener("pointerup", () => { roPanState = null; container.style.cursor = ""; });
 
+  // Expose data + focus controls so the viewer's navigation sidebar can drive it.
+  container.questBlocks = blocks;
+  container.questGroups = groups;
+  container.focusBlock = (id) => {
+    const b = localById(id); if (!b) return;
+    const el = world.querySelector(`[data-block-id="${id}"]`);
+    const w = b.width || BLOCK_DEFAULT_W, h = el?.offsetHeight || b.height || BLOCK_DEFAULT_H;
+    const cw = container.offsetWidth || 400, ch = container.offsetHeight || 400;
+    if (roZoom < 0.6 || roZoom > 1.4) roZoom = 1;
+    roPanX = cw / 2 - ((b.worldX || 0) + w / 2) * roZoom;
+    roPanY = ch / 2 - ((b.worldY || 0) + h / 2) * roZoom;
+    applyROTransform(); renderROConns();
+    if (el) { el.classList.add("blk-focus-flash"); setTimeout(() => el.classList.remove("blk-focus-flash"), 1000); }
+  };
+  container.focusGroup = (group) => {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    (group.blockIds || []).forEach(id => {
+      const b = localById(id); if (!b) return;
+      const w = b.width || BLOCK_DEFAULT_W, h = b.height || BLOCK_DEFAULT_H;
+      minX = Math.min(minX, b.worldX || 0); minY = Math.min(minY, b.worldY || 0);
+      maxX = Math.max(maxX, (b.worldX || 0) + w); maxY = Math.max(maxY, (b.worldY || 0) + h);
+    });
+    if (!isFinite(minX)) return;
+    const pad = 48, cw = container.offsetWidth || 400, ch = container.offsetHeight || 400;
+    const bw = maxX - minX + pad * 2, bh = maxY - minY + pad * 2;
+    roZoom = Math.min(1.1, Math.max(0.2, Math.min(cw / bw, ch / bh)));
+    roPanX = cw / 2 - (minX + (maxX - minX) / 2) * roZoom;
+    roPanY = ch / 2 - (minY + (maxY - minY) / 2) * roZoom;
+    applyROTransform(); renderROConns();
+  };
+
   return container;
-}
-
-// Builds a grid HTML string that exactly mirrors the editor layout (explicit row/col, ghost cells, dynamic row heights)
-function buildCardGrid(blocks, cellColors) {
-  if (!blocks.length) return "";
-  cellColors = cellColors || {};
-  autoPlaceBlocks(blocks);
-  const maxRow = blocks.reduce((m, b) => Math.max(m, (b.row || 1) + (b.rowSpan || 1) - 1), 0);
-  if (!maxRow) return "";
-
-  // Dynamic row heights: divider-only rows are compact
-  const rowTypes = {};
-  blocks.forEach(b => {
-    for (let r = b.row; r < b.row + (b.rowSpan || 1); r++) {
-      if (!rowTypes[r]) rowTypes[r] = [];
-      rowTypes[r].push(b.type);
-    }
-  });
-  const rowHeights = Array.from({ length: maxRow }, (_, i) => {
-    const types = rowTypes[i + 1] || [];
-    return (types.length > 0 && types.every(t => t === "divider")) ? "40px" : "minmax(120px, auto)";
-  }).join(" ");
-
-  // Occupied cells
-  const occupied = new Set();
-  blocks.forEach(b => {
-    const span = Math.min(b.span || 1, 4);
-    for (let r = b.row; r < b.row + (b.rowSpan || 1); r++)
-      for (let c = b.col; c < b.col + span; c++)
-        occupied.add(`${r},${c}`);
-  });
-
-  // Ghost cells for every unoccupied position
-  let ghostHtml = "";
-  for (let r = 1; r <= maxRow; r++)
-    for (let c = 1; c <= 4; c++) {
-      if (!occupied.has(`${r},${c}`)) {
-        const cc = cellColors[`${r},${c}`];
-        const bgStyle = cc ? `background:${hexToRgba(cc, 0.35)};border-color:${hexToRgba(cc, 0.8)};` : "";
-        ghostHtml += `<div class="qc-ghost-cell" style="grid-row:${r};grid-column:${c};${bgStyle}"></div>`;
-      }
-    }
-
-  // Block cells (autoPlaceBlocks already set row/col)
-  const blockHtml = blocks.map(b => renderBlockInCard(b, cellColors)).filter(Boolean).join("");
-
-  return `<div class="qc-grid" style="grid-template-rows:${rowHeights}">${ghostHtml}${blockHtml}</div>`;
-}
-
-function buildCardChapters(blocks, cellColors) {
-  if (!blocks.length) return "";
-  cellColors = cellColors || {};
-  autoPlaceBlocks(blocks);
-  const sorted = [...blocks].sort((a, b) => (a.row - b.row) || (a.col - b.col));
-
-  const chapters = [];
-  let current = { divider: null, blocks: [] };
-  for (const b of sorted) {
-    if (b.type === "divider") {
-      chapters.push(current);
-      current = { divider: b, blocks: [] };
-    } else {
-      current.blocks.push(b);
-    }
-  }
-  chapters.push(current);
-
-  return chapters.map(ch => {
-    const gridHtml = buildChapterGrid(ch.blocks, cellColors);
-    if (!ch.divider && !gridHtml) return "";
-    const header = ch.divider ? `
-      <div class="qc-chapter-header" data-open="true">
-        <iconify-icon icon="lucide:chevron-down" class="qc-chapter-arrow"></iconify-icon>
-        <span class="qc-chapter-line"></span>
-        ${ch.divider.title ? `<span class="qc-chapter-title">${esc(ch.divider.title)}</span>` : ""}
-        <span class="qc-chapter-line"></span>
-      </div>` : "";
-    return `<div class="qc-chapter">${header}<div class="qc-chapter-body">${gridHtml}</div></div>`;
-  }).join("");
-}
-
-function buildChapterGrid(blocks, cellColors) {
-  if (!blocks.length) return "";
-  const minRow = blocks.reduce((m, b) => Math.min(m, b.row || 1), Infinity);
-  const offset = minRow - 1;
-  const normalizedColors = {};
-  Object.entries(cellColors || {}).forEach(([key, val]) => {
-    const [r, c] = key.split(",").map(Number);
-    const nr = r - offset;
-    if (nr >= 1) normalizedColors[`${nr},${c}`] = val;
-  });
-  const nb = blocks.map(b => ({ ...b, row: (b.row || 1) - offset }));
-  const maxRow = nb.reduce((m, b) => Math.max(m, (b.row || 1) + (b.rowSpan || 1) - 1), 0);
-  const rowTypes = {};
-  nb.forEach(b => { for (let r = b.row; r < b.row + (b.rowSpan || 1); r++) { if (!rowTypes[r]) rowTypes[r] = []; rowTypes[r].push(b.type); } });
-  const rowHeights = Array.from({ length: maxRow }, (_, i) => {
-    const types = rowTypes[i + 1] || [];
-    return (types.length > 0 && types.every(t => t === "divider")) ? "40px" : "minmax(120px, auto)";
-  }).join(" ");
-  const occupied = new Set();
-  nb.forEach(b => { const s = Math.min(b.span || 1, 4); for (let r = b.row; r < b.row + (b.rowSpan || 1); r++) for (let c = b.col; c < b.col + s; c++) occupied.add(`${r},${c}`); });
-  let ghostHtml = "";
-  for (let r = 1; r <= maxRow; r++) for (let c = 1; c <= 4; c++) {
-    if (!occupied.has(`${r},${c}`)) {
-      const cc = normalizedColors[`${r},${c}`];
-      const bgStyle = cc ? `background:${hexToRgba(cc, 0.35)};border-color:${hexToRgba(cc, 0.8)};` : "";
-      ghostHtml += `<div class="qc-ghost-cell" style="grid-row:${r};grid-column:${c};${bgStyle}"></div>`;
-    }
-  }
-  const blockHtml = nb.map(b => renderBlockInCard(b, normalizedColors)).filter(Boolean).join("");
-  return `<div class="qc-grid" style="grid-template-rows:${rowHeights}">${ghostHtml}${blockHtml}</div>`;
 }
 
 // Build at-a-glance content summary chips (phase/enemy/loot counts) for a quest card
@@ -1060,7 +1034,7 @@ function buildSummaryChips(blocks) {
   }
   const chips = [];
   if (phases)  chips.push(`<span class="qc-chip qc-chip-phase"><iconify-icon icon="lucide:chevron-right" class="qc-chip-icon"></iconify-icon><span class="qc-chip-count">${phases}</span> ${phases === 1 ? "phase" : "phases"}</span>`);
-  if (enemies) chips.push(`<span class="qc-chip qc-chip-boss"><iconify-icon icon="game-icons:skull" class="qc-chip-icon"></iconify-icon><span class="qc-chip-count">${enemies}</span> ${enemies === 1 ? "enemy" : "enemies"}</span>`);
+  if (enemies) chips.push(`<span class="qc-chip qc-chip-boss"><iconify-icon icon="game-icons:death-skull" class="qc-chip-icon"></iconify-icon><span class="qc-chip-count">${enemies}</span> ${enemies === 1 ? "enemy" : "enemies"}</span>`);
   if (loot)    chips.push(`<span class="qc-chip qc-chip-loot"><iconify-icon icon="game-icons:open-treasure-chest" class="qc-chip-icon"></iconify-icon><span class="qc-chip-count">${loot}</span> loot</span>`);
   if (puzzles) chips.push(`<span class="qc-chip qc-chip-puzzle"><iconify-icon icon="game-icons:puzzle" class="qc-chip-icon"></iconify-icon><span class="qc-chip-count">${puzzles}</span> ${puzzles === 1 ? "puzzle" : "puzzles"}</span>`);
   if (chars)   chips.push(`<span class="qc-chip qc-chip-char"><iconify-icon icon="lucide:user" class="qc-chip-icon"></iconify-icon><span class="qc-chip-count">${chars}</span> NPC${chars === 1 ? "" : "s"}</span>`);
@@ -1069,29 +1043,67 @@ function buildSummaryChips(blocks) {
   return `<div class="qc-summary">${chips.join("")}</div>`;
 }
 
+// ── Quest-meta helpers (rewards / objectives / chain / gating) ─────────────────
+function questRewardsSummary(q) {
+  const r = q.rewards; if (!r) return "";
+  const parts = [];
+  if (r.xp   && parseInt(r.xp))   parts.push(`<span class="qc-reward"><iconify-icon icon="game-icons:sparkles"></iconify-icon> ${esc(String(r.xp))} XP</span>`);
+  if (r.gold && parseInt(r.gold)) parts.push(`<span class="qc-reward"><iconify-icon icon="game-icons:two-coins"></iconify-icon> ${esc(String(r.gold))} gp</span>`);
+  if (r.items && r.items.length)  parts.push(`<span class="qc-reward"><iconify-icon icon="game-icons:open-treasure-chest"></iconify-icon> ${r.items.length} item${r.items.length > 1 ? "s" : ""}</span>`);
+  return parts.length ? `<div class="qc-rewards-row">${parts.join("")}</div>` : "";
+}
+function questObjProgress(q) {
+  const o = q.objectives; if (!o || !o.length) return null;
+  return { done: o.filter(x => x.done).length, total: o.length };
+}
+function prereqsMet(q) {
+  if (!Array.isArray(q.prerequisites) || !q.prerequisites.length) return true;
+  return q.prerequisites.every(qid => { const p = quests.find(x => x.id === qid); return p && p.status === "completed"; });
+}
+function questPrereqList(q) {
+  return (q.prerequisites || []).map(qid => quests.find(x => x.id === qid)).filter(Boolean);
+}
+
 function buildCard(q) {
   const card = document.createElement("div");
-  card.className = `quest-card quest-${q.type || "main"}${q.status === "completed" ? " quest-completed" : ""}${q.status === "active" ? " quest-active" : ""}`;
+  const locked = !isAdmin && !prereqsMet(q);
+  card.className = `quest-card quest-${q.type || "main"}${q.status === "completed" ? " quest-completed" : ""}${q.status === "active" ? " quest-active" : ""}${locked ? " quest-locked" : ""}`;
   card.dataset.questId = q.id;
   const blocks = q.blocks ? q.blocks.map(b => ({ ...b })) : [];
+  const prog = questObjProgress(q);
+  const objPill = prog ? `<span class="qc-obj-pill${prog.done === prog.total ? " complete" : ""}"><iconify-icon icon="lucide:check-square"></iconify-icon> ${prog.done}/${prog.total} objectives</span>` : "";
+  const giverHtml = q.giver && q.giver.name ? `<div class="qc-giver"><iconify-icon icon="lucide:user-round"></iconify-icon> ${esc(q.giver.name)}</div>` : "";
+  const prereqNames = questPrereqList(q);
+  const requiresHtml = prereqNames.length ? `<div class="qc-requires"><iconify-icon icon="lucide:lock"></iconify-icon> Requires: ${prereqNames.map(p => esc(p.title || "?")).join(", ")}</div>` : "";
+
+  const emblemIcon = q.status === "completed" ? "lucide:check"
+    : q.type === "side" ? "lucide:sparkles"
+    : "game-icons:crossed-swords";
 
   card.innerHTML = `
     <div class="qc-accent-bar"></div>
     <div class="qc-body">
+      <div class="qc-emblem"><iconify-icon icon="${emblemIcon}"></iconify-icon></div>
       <div class="qc-header-row">
         ${isAdmin ? `<iconify-icon icon="lucide:grip-vertical" class="qc-drag-handle" title="Drag to reorder quests"></iconify-icon>` : ""}
         <div class="qc-title-row">
           <h3 class="qc-title">${esc(q.title || "")}</h3>
           ${q.location ? `<div class="qc-location"><iconify-icon icon="lucide:map-pin"></iconify-icon> ${esc(q.location)}</div>` : ""}
+          ${giverHtml}
         </div>
         <div class="qc-top-row">
           <span class="qc-type-badge">${q.type === "main" ? "Main Quest" : "Side Quest"}</span>
           <span class="qc-status ${STATUS_CLASS[q.status] || ""}">${STATUS_LABEL[q.status] || "Unknown"}</span>
+          ${q.recommendedLevel ? `<span class="qc-level-badge"><iconify-icon icon="lucide:shield"></iconify-icon> Lv ${esc(q.recommendedLevel)}</span>` : ""}
           ${isAdmin && !q.discovered ? `<span class="qc-hidden-badge"><iconify-icon icon="lucide:eye"></iconify-icon> DM Only</span>` : ""}
         </div>
         ${buildSummaryChips(blocks)}
+        ${objPill ? `<div class="qc-obj-row">${objPill}</div>` : ""}
+        ${questRewardsSummary(q)}
+        ${requiresHtml}
       </div>
     </div>
+    ${locked ? `<div class="qc-lock-overlay"><iconify-icon icon="lucide:lock"></iconify-icon></div>` : ""}
     ${isAdmin ? `
       <div class="qc-actions">
         <button class="qc-btn qc-edit-btn" title="Edit"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
@@ -1099,8 +1111,11 @@ function buildCard(q) {
       </div>` : ""}
   `;
 
-  // Click card body → open full-screen quest view
-  card.querySelector(".qc-body").addEventListener("click", () => openQuestView(q));
+  // Click card body → open full-screen quest view (or explain the lock for players)
+  card.querySelector(".qc-body").addEventListener("click", () => {
+    if (locked) { alert(`Complete first: ${prereqNames.map(p => p.title || "?").join(", ")}`); return; }
+    openQuestView(q);
+  });
 
   if (isAdmin) {
     card.querySelector(".qc-edit-btn").addEventListener("click", e => { e.stopPropagation(); openModal(q); });
@@ -1111,6 +1126,108 @@ function buildCard(q) {
     initQuestCardDrag(card, q.id);
   }
   return card;
+}
+
+// Renders the rewards / objectives / chain brief strip inside the quest view.
+function renderQuestBrief(brief, q) {
+  const r = q.rewards;
+  const rewardItems = (r && r.items) || [];
+  const rewardHtml = (r && (parseInt(r.xp) || parseInt(r.gold) || rewardItems.length)) ? `
+    <div class="qview-brief-block">
+      <div class="qview-brief-label">Rewards</div>
+      <div class="qview-rewards">
+        ${parseInt(r.xp)   ? `<span class="qc-reward"><iconify-icon icon="game-icons:sparkles"></iconify-icon> ${esc(String(r.xp))} XP</span>` : ""}
+        ${parseInt(r.gold) ? `<span class="qc-reward"><iconify-icon icon="game-icons:two-coins"></iconify-icon> ${esc(String(r.gold))} gp</span>` : ""}
+        ${rewardItems.map(it => `<span class="qc-reward qc-reward-item"><iconify-icon icon="game-icons:open-treasure-chest"></iconify-icon> ${esc(it.name)}${it.value ? ` <span class="loot-item-value">${esc(it.value)}</span>` : ""}</span>`).join("")}
+      </div>
+    </div>` : "";
+
+  const objs = q.objectives || [];
+  const objHtml = objs.length ? `
+    <div class="qview-brief-block">
+      <div class="qview-brief-label">Objectives <span class="qview-obj-count">${objs.filter(o => o.done).length}/${objs.length}</span></div>
+      <div class="qview-obj-list">
+        ${objs.map((o, i) => `<button type="button" class="qview-obj${o.done ? " done" : ""}" data-idx="${i}"${isAdmin ? "" : " disabled"}>
+          <iconify-icon icon="${o.done ? "lucide:check-square" : "lucide:square"}"></iconify-icon>
+          <span>${esc(o.text || "")}</span>
+        </button>`).join("")}
+      </div>
+    </div>` : "";
+
+  const prereqs = questPrereqList(q);
+  const leads = quests.filter(x => Array.isArray(x.prerequisites) && x.prerequisites.includes(q.id) && (isAdmin || x.discovered));
+  const chainHtml = (prereqs.length || leads.length) ? `
+    <div class="qview-brief-block">
+      <div class="qview-brief-label">Quest chain</div>
+      <div class="qview-chain">
+        ${prereqs.map(p => `<button type="button" class="qview-chain-link" data-qid="${esc(p.id)}"><iconify-icon icon="lucide:arrow-left"></iconify-icon> ${esc(p.title || "?")} <span class="qc-status ${STATUS_CLASS[p.status] || ""}">${STATUS_LABEL[p.status] || ""}</span></button>`).join("")}
+        ${leads.map(p => `<button type="button" class="qview-chain-link" data-qid="${esc(p.id)}">${esc(p.title || "?")} <iconify-icon icon="lucide:arrow-right"></iconify-icon></button>`).join("")}
+      </div>
+    </div>` : "";
+
+  if (!rewardHtml && !objHtml && !chainHtml) { brief.style.display = "none"; brief.innerHTML = ""; return; }
+  brief.style.display = "flex";
+  brief.innerHTML = rewardHtml + objHtml + chainHtml;
+
+  if (isAdmin) {
+    brief.querySelectorAll(".qview-obj").forEach(btn => btn.addEventListener("click", async () => {
+      const i = Number(btn.dataset.idx);
+      const next = (q.objectives || []).map(o => ({ ...o }));
+      if (!next[i]) return;
+      next[i].done = !next[i].done;
+      q.objectives = next;
+      try { await set(ref(db, `campaigns/${cid}/quests/${q.id}/objectives`), next); } catch {}
+      renderQuestBrief(brief, q);
+    }));
+  }
+  brief.querySelectorAll(".qview-chain-link").forEach(btn => btn.addEventListener("click", () => {
+    const target = quests.find(x => x.id === btn.dataset.qid);
+    if (target) openQuestView(target);
+  }));
+}
+
+// Builds the read-only navigation sidebar for the quest viewer. Reuses the
+// editor's outline item markup; clicking an item focuses it on the RO canvas.
+function renderViewOutline(nav, canvasDom) {
+  const allBlocks = (canvasDom.questBlocks || []).filter(b => isAdmin || b.type !== "note");
+  const groups = canvasDom.questGroups || [];
+  if (!allBlocks.length) { nav.style.display = "none"; nav.innerHTML = ""; return; }
+  nav.style.display = "flex";
+
+  const visible = new Set(allBlocks.map(b => b.id));
+  const grouped = new Set();
+  groups.forEach(g => (g.blockIds || []).forEach(id => grouped.add(id)));
+
+  let html = `<div class="qview-nav-label"><iconify-icon icon="lucide:list-tree"></iconify-icon> Navigate</div><div class="qm-outline">`;
+  groups.forEach(g => {
+    const members = (g.blockIds || []).filter(id => visible.has(id));
+    if (!members.length) return;
+    const col = g.color || "#ffcc66";
+    html += `<div class="qm-ol-group">
+      <div class="qm-ol-group-hdr">
+        <button type="button" class="qm-ol-group-focus" data-gid="${esc(g.id)}">
+          <span class="qm-ol-dot" style="background:${esc(col)}"></span>
+          <span class="qm-ol-group-name">${esc(g.title || "Untitled group")}</span>
+          <span class="qm-ol-count">${members.length}</span>
+        </button>
+      </div>
+      <div class="qm-ol-group-body">${members.map(id => { const b = allBlocks.find(x => x.id === id); return b ? outlineItemHtml(b, null) : ""; }).join("")}</div>
+    </div>`;
+  });
+  const ungrouped = allBlocks.filter(b => !grouped.has(b.id));
+  if (ungrouped.length) {
+    html += `<div class="qm-ol-group qm-ol-ungrouped">
+      ${groups.length ? `<div class="qm-ol-group-hdr"><span class="qm-ol-group-name qm-ol-ungrouped-name">Other</span><span class="qm-ol-count">${ungrouped.length}</span></div>` : ""}
+      <div class="qm-ol-group-body">${ungrouped.map(b => outlineItemHtml(b, null)).join("")}</div>
+    </div>`;
+  }
+  html += `</div>`;
+  nav.innerHTML = html;
+
+  nav.querySelectorAll(".qm-ol-focus").forEach(btn => btn.addEventListener("click", () => canvasDom.focusBlock(btn.dataset.id)));
+  nav.querySelectorAll(".qm-ol-group-focus").forEach(btn => btn.addEventListener("click", () => {
+    const g = groups.find(x => x.id === btn.dataset.gid); if (g) canvasDom.focusGroup(g);
+  }));
 }
 
 // ── Quest View Overlay ────────────────────────────────────────────────────────
@@ -1132,8 +1249,20 @@ function openQuestView(q) {
       <span class="qc-type-badge">${q.type === "main" ? "Main Quest" : "Side Quest"}</span>
       <span class="qc-status ${STATUS_CLASS[q.status] || ""}">${STATUS_LABEL[q.status] || ""}</span>
       ${q.location ? `<span class="qc-location"><iconify-icon icon="lucide:map-pin"></iconify-icon> ${esc(q.location)}</span>` : ""}
+      ${q.recommendedLevel ? `<span class="qc-level-badge"><iconify-icon icon="lucide:shield"></iconify-icon> Lv ${esc(q.recommendedLevel)}</span>` : ""}
+      ${q.giver && q.giver.name ? `<span class="qc-giver"><iconify-icon icon="lucide:user-round"></iconify-icon> ${esc(q.giver.name)}</span>` : ""}
     </div>
   `;
+
+  // Brief strip: rewards · objectives checklist · quest chain (inserted once, above canvas)
+  let brief = document.getElementById("qview-brief");
+  if (!brief) {
+    brief = document.createElement("div");
+    brief.id = "qview-brief";
+    brief.className = "qview-brief";
+    sessionBar.parentNode.insertBefore(brief, sessionBar);
+  }
+  renderQuestBrief(brief, q);
 
   // Admin: edit button
   if (isAdmin) {
@@ -1174,9 +1303,14 @@ function openQuestView(q) {
     sessionBar.innerHTML = "";
   }
 
-  // Canvas
+  // Canvas + navigation sidebar (mirrors the editor's Outline)
   canvasWrap.innerHTML = "";
-  canvasWrap.appendChild(buildQuestCanvasDOM(q));
+  const canvasDom = buildQuestCanvasDOM(q);
+  const navAside = document.createElement("aside");
+  navAside.className = "qview-nav";
+  renderViewOutline(navAside, canvasDom);
+  canvasWrap.appendChild(navAside);
+  canvasWrap.appendChild(canvasDom);
 
   // Encounter "Start Encounter" buttons
   canvasWrap.addEventListener("click", e => {
@@ -1267,159 +1401,6 @@ function reorderQuests(srcId, targetId) {
   ids.forEach((id, i) => set(ref(db, `campaigns/${cid}/quests/${id}/order`), i));
 }
 
-function renderBlockInCard(b, cellColors) {
-  cellColors = cellColors || {};
-  const span    = b.span    || 1;
-  const rowSpan = b.rowSpan || 1;
-  const colStyle = b.col ? `grid-column:${b.col}/span ${span};` : `grid-column:span ${span};`;
-  const rowStyle = b.row ? `grid-row:${b.row}/span ${rowSpan};` : "";
-  const cc = cellColors[`${b.row},${b.col}`];
-  const ccStyle = cc
-    ? `background:${hexToRgba(cc, 0.28)};border-left-color:${cc};`
-    : "";
-  const spanStyle = colStyle + rowStyle + ccStyle;
-  const titleStyle = b.titleColor ? `color:${esc(b.titleColor)}` : "";
-  const titleHtml = b.blockTitle
-    ? `<div class="qcb-block-title" style="${titleStyle}">${esc(b.blockTitle)}</div>`
-    : "";
-
-  const cellTxtStyle = [
-    b.textAlign  ? `text-align:${b.textAlign}`   : "",
-    b.fontWeight && b.fontWeight !== "normal"  ? `font-weight:${b.fontWeight}` : "",
-    b.fontStyle  && b.fontStyle  !== "normal"  ? `font-style:${b.fontStyle}`   : "",
-  ].filter(Boolean).join(";");
-
-  const sessionPill = b.sessionMarker
-    ? `<span class="qcb-session-pill ${sessionColorClass(b.sessionMarker)}">${esc(b.sessionMarker)}</span>`
-    : "";
-
-  switch (b.type) {
-    case "text":
-      if (!b.content) return "";
-      return `<div class="qcb-cell qcb-cell-text" style="${spanStyle}">${sessionPill}${titleHtml}<div class="qcb-text" style="${cellTxtStyle}">${contentToHtml(b.content)}</div></div>`;
-
-    case "phase":
-      return `<div class="qcb-cell qcb-cell-phase" style="${spanStyle}">${sessionPill}${titleHtml}
-        <button class="qc-phase-toggle" data-open="false">
-          <iconify-icon icon="lucide:chevron-right" class="toggle-arrow"></iconify-icon>
-          <span class="phase-label">${esc(b.title || "Phase")}</span>
-        </button>
-        <div class="qc-phase-body" style="display:none">
-          ${b.description ? `<div class="qcb-phase-desc" style="${cellTxtStyle}">${contentToHtml(b.description)}</div>` : ""}
-        </div>
-      </div>`;
-
-    case "loot": {
-      const lootItems = b.items?.length ? b.items
-        : (b.name ? [{ name: b.name, value: b.value || "", description: b.description || "" }] : []);
-      if (!lootItems.length) return "";
-      return `<div class="qcb-cell qcb-cell-loot" style="${spanStyle}">${sessionPill}${titleHtml}
-        ${lootItems.map(it => `
-          <div class="qcb-loot" style="${cellTxtStyle}">
-            <iconify-icon icon="game-icons:open-treasure-chest" class="qcb-loot-icon"></iconify-icon>
-            <span class="qcb-loot-name">${esc(it.name)}</span>
-            ${it.value ? `<span class="qcb-loot-value">${esc(it.value)}</span>` : ""}
-            ${it.description ? `<span class="qcb-loot-desc">${escBr(it.description)}</span>` : ""}
-          </div>`).join("")}
-      </div>`;
-    }
-
-    case "boss": {
-      const enemies = b.enemies?.length ? b.enemies
-        : (b.name ? [{ name: b.name, ac: b.ac || "", hp: b.hp || "", cr: b.cr || "", notes: b.notes || "" }] : []);
-      if (!enemies.length) return "";
-      return `<div class="qcb-cell qcb-cell-boss" style="${spanStyle}">${sessionPill}${titleHtml}
-        ${enemies.map(en => `
-          <div class="qcb-boss">
-            <div class="qcb-boss-header">
-              <iconify-icon icon="game-icons:skull" class="qcb-boss-icon"></iconify-icon>
-              <span class="qcb-boss-name">${esc(en.name)}</span>
-              ${en.cr ? `<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>` : ""}
-              ${en.ac ? `<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>` : ""}
-              ${en.hp ? `<span class="qcb-boss-stat">HP ${esc(en.hp)}</span>` : ""}
-            </div>
-            ${en.notes ? `<p class="qcb-boss-notes" style="${cellTxtStyle}">${escBr(en.notes)}</p>` : ""}
-          </div>`).join("")}
-      </div>`;
-    }
-
-    case "encounter": {
-      const enemies = b.enemies || [];
-      if (!enemies.length) return "";
-      const enemyJson = esc(JSON.stringify(enemies));
-      return `<div class="qcb-cell qcb-cell-encounter" style="${spanStyle}">${sessionPill}${titleHtml}
-        ${enemies.map(en => `
-          <div class="qcb-boss">
-            <div class="qcb-boss-header">
-              <iconify-icon icon="game-icons:crossed-swords" class="qcb-encounter-icon"></iconify-icon>
-              <span class="qcb-boss-name">${esc(en.name)}${en.count > 1 ? ` <span class="qcb-encounter-count">×${en.count}</span>` : ""}</span>
-              ${en.cr ? `<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>` : ""}
-              ${en.ac ? `<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>` : ""}
-              ${en.hp ? `<span class="qcb-boss-stat">HP ${esc(en.hp)}</span>` : ""}
-            </div>
-          </div>`).join("")}
-        ${isAdmin ? `<button class="qcb-start-encounter-btn" data-enemies="${enemyJson}"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Start Encounter</button>` : ""}
-      </div>`;
-    }
-
-    case "note":
-      if (!isAdmin || !b.content) return "";
-      return `<div class="qcb-cell qcb-cell-note" style="${spanStyle}">${sessionPill}${titleHtml}<div class="qcb-note" style="${cellTxtStyle}"><iconify-icon icon="lucide:file-text"></iconify-icon> ${escBr(b.content)}</div></div>`;
-
-    case "puzzle":
-      if (!b.description && !b.title) return "";
-      return `<div class="qcb-cell qcb-cell-puzzle" style="${spanStyle}">${sessionPill}${titleHtml}
-        <div class="qcb-puzzle-header"><iconify-icon icon="game-icons:puzzle" class="qcb-puzzle-icon"></iconify-icon><span class="qcb-puzzle-name">${esc(b.title || "Puzzle")}</span></div>
-        ${b.description ? `<p class="qcb-puzzle-desc" style="${cellTxtStyle}">${escBr(b.description)}</p>` : ""}
-        ${b.hint ? `<div class="qcb-puzzle-hint"><iconify-icon icon="lucide:lightbulb"></iconify-icon> ${esc(b.hint)}</div>` : ""}
-        ${isAdmin && b.solution ? `<div class="qcb-puzzle-solution"><iconify-icon icon="lucide:key"></iconify-icon> ${esc(b.solution)}</div>` : ""}
-      </div>`;
-
-    case "divider":
-      return `<div class="qcb-divider-cell" style="${spanStyle}">${
-        b.title
-          ? `<div class="qcb-divider qcb-divider--titled"><span class="qcb-divider-title">${esc(b.title)}</span></div>`
-          : `<div class="qcb-divider"></div>`
-      }</div>`;
-
-    case "character": {
-      const chars = b.characters || [];
-      if (!chars.length) return "";
-      return `<div class="qcb-cell qcb-cell-character" style="${spanStyle}">${sessionPill}${titleHtml}
-        ${chars.map(ch => `
-          <div class="qcb-character">
-            ${ch.picture
-              ? `<img class="qcb-char-pic" src="${esc(ch.picture)}" alt="${esc(ch.name)}" />`
-              : `<div class="qcb-char-pic qcb-char-pic-ph"><iconify-icon icon="lucide:user"></iconify-icon></div>`}
-            <div class="qcb-char-info">
-              <div class="qcb-char-name">${esc(ch.name)}</div>
-              ${ch.profession ? `<div class="qcb-char-meta">${esc(ch.profession)}</div>` : ""}
-              ${(ch.race || ch.age) ? `<div class="qcb-char-sub">${[ch.race, ch.age ? `Age ${esc(ch.age)}` : ""].filter(Boolean).join(" · ")}</div>` : ""}
-            </div>
-          </div>`).join("")}
-      </div>`;
-    }
-
-    case "loreref": {
-      const loreItems = b.items || [];
-      if (!loreItems.length) return "";
-      return `<div class="qcb-cell qcb-cell-loreref" style="${spanStyle}">${sessionPill}${titleHtml}
-        ${loreItems.map(it => `
-          <div class="qcb-loreref">
-            <iconify-icon icon="${it.type === 'scroll' ? 'game-icons:scroll-unfurled' : 'game-icons:open-book'}" class="qcb-loreref-icon"></iconify-icon>
-            <div class="qcb-loreref-info">
-              <span class="qcb-loreref-title">${esc(it.title || "")}</span>
-              ${it.writer ? `<span class="qcb-loreref-writer">by ${esc(it.writer)}</span>` : ""}
-            </div>
-          </div>`).join("")}
-      </div>`;
-    }
-
-    default:
-      return "";
-  }
-}
-
 // ── Modal open/close ──────────────────────────────────────────────────────────
 function openModal(q) {
   editingId    = q ? q.id : null;
@@ -1442,8 +1423,22 @@ function openModal(q) {
   } else {
     currentBlocks = [];
   }
-  currentConnections = q?.connections ? JSON.parse(JSON.stringify(q.connections)) : [];
-  currentGroups      = q?.groups      ? JSON.parse(JSON.stringify(q.groups))      : [];
+  currentBlocks.forEach(migrateBlock);
+  const _refs = migrateRefsToIds(
+    currentBlocks,
+    q?.connections ? JSON.parse(JSON.stringify(q.connections)) : [],
+    q?.groups      ? JSON.parse(JSON.stringify(q.groups))      : []
+  );
+  currentConnections = _refs.conns;
+  currentGroups      = _refs.grps;
+
+  // Quest-level metadata (giver / rewards / objectives / prerequisites)
+  currentGiver         = q?.giver ? { ...q.giver } : null;
+  currentRewards       = q?.rewards ? { xp: q.rewards.xp || "", gold: q.rewards.gold || "", items: [...(q.rewards.items || [])] } : { xp: "", gold: "", items: [] };
+  currentObjectives    = Array.isArray(q?.objectives) ? q.objectives.map(o => ({ ...o })) : [];
+  currentPrerequisites = Array.isArray(q?.prerequisites) ? [...q.prerequisites] : [];
+  currentRecommendedLevel = q?.recommendedLevel || "";
+
   qmTitle.textContent  = q ? "Edit Quest" : "New Quest";
   qmName.value         = q ? (q.title    || "") : "";
   qmLocationInp.value  = q ? (q.location || "") : "";
@@ -1462,6 +1457,8 @@ function openModal(q) {
   syncTypeBtns();
   resetCanvasView();
   buildBlocksEditor();
+  syncDetailsPanel();
+  resetSidebarTab();
   questModal.classList.add("open");
   qmName.focus();
 
@@ -1477,6 +1474,8 @@ function closeModal() {
   editingId = null; currentBlocks = []; currentCellColors = {};
   blockDragState = null; blockResizeState = null; canvasPanState = null; connDragState = null;
   currentConnections = []; canvasSvg = null; currentGroups = []; selectedBlockSet.clear(); marqueeState = null;
+  currentGiver = null; currentRewards = { xp: "", gold: "", items: [] };
+  currentObjectives = []; currentPrerequisites = []; currentRecommendedLevel = "";
   hideDrop(qmLocationDrop);
   hideSlashMenu();
   setPreviewMode(false);
@@ -1492,6 +1491,13 @@ qmSave.addEventListener("click", async () => {
   const title = qmName.value.trim();
   if (!title) { qmError.textContent = "Title is required."; return; }
   qmError.textContent = "";
+  const rewardsClean = {
+    xp:    String(currentRewards.xp || "").trim(),
+    gold:  String(currentRewards.gold || "").trim(),
+    items: currentRewards.items || [],
+  };
+  const hasRewards = rewardsClean.xp || rewardsClean.gold || rewardsClean.items.length;
+  const objClean = currentObjectives.map(o => ({ id: o.id, text: (o.text || "").trim(), done: !!o.done })).filter(o => o.text);
   const payload = {
     id:          editingId || push(questsRef).key,
     title,
@@ -1502,6 +1508,11 @@ qmSave.addEventListener("click", async () => {
     discovered:  qmDiscovered.checked,
     connections: currentConnections.length > 0 ? currentConnections : null,
     groups:      currentGroups.length > 0 ? currentGroups : null,
+    giver:           currentGiver || null,
+    rewards:         hasRewards ? rewardsClean : null,
+    objectives:      objClean.length ? objClean : null,
+    prerequisites:   currentPrerequisites.length ? currentPrerequisites : null,
+    recommendedLevel: String(currentRecommendedLevel || "").trim() || null,
   };
   await set(ref(db, `campaigns/${cid}/quests/${payload.id}`), payload);
   // Clear local draft on successful save
@@ -1545,8 +1556,8 @@ const BLOCK_DEFAULTS = {
 // ── Block palette ─────────────────────────────────────────────────────────────
 document.querySelectorAll(".qm-add-block-btn").forEach(btn => {
   btn.addEventListener("click", () => {
-    const maxY = currentBlocks.reduce((m, b) => Math.max(m, (b.worldY || 0) + (b.height || BLOCK_DEFAULT_H) + 20), 20);
-    currentBlocks.push({ ...BLOCK_DEFAULTS[btn.dataset.blockType], worldX: 20, worldY: maxY, width: BLOCK_DEFAULT_W, height: BLOCK_DEFAULT_H });
+    const origin = centeredBlockOrigin();
+    currentBlocks.push({ ...BLOCK_DEFAULTS[btn.dataset.blockType], id: newId(), worldX: origin.x, worldY: origin.y, width: BLOCK_DEFAULT_W, height: BLOCK_DEFAULT_H });
     onEditTick();
     buildBlocksEditor();
   });
@@ -1579,8 +1590,9 @@ function showTplPreview(templateKey, x, y) {
   const tpl = BLOCK_TEMPLATES[templateKey];
   if (!tpl) return;
   const preview = getTplPreview();
-  const BLOCK_ICONS = { phase:"lucide:chevron-right", boss:"game-icons:skull", encounter:"game-icons:crossed-swords", loot:"game-icons:open-treasure-chest", puzzle:"game-icons:puzzle", character:"lucide:user", loreref:"game-icons:bookshelf", note:"lucide:file-text", text:"lucide:type", divider:"lucide:minus" };
-  const BLOCK_COLORS = { phase:"#2a5c8a", boss:"#8a2a2a", encounter:"#7a2a50", loot:"#4a7a2a", puzzle:"#7a4a8a", character:"#5a4a2a", loreref:"#2a5a4a", note:"#5a5a2a", text:"#3a3a5a", divider:"#4a4a4a" };
+  const BLOCK_ICONS = { phase:"lucide:chevron-right", boss:"game-icons:death-skull", encounter:"game-icons:crossed-swords", loot:"game-icons:open-treasure-chest", puzzle:"game-icons:puzzle", character:"lucide:user", loreref:"game-icons:bookshelf", note:"lucide:file-text", text:"lucide:type", divider:"lucide:minus" };
+  // Palette-sanctioned tints only: bronze neutral, red = danger, green = DM.
+  const BLOCK_COLORS = { phase:"#c8a45c", boss:"#e05050", encounter:"#e05050", loot:"#c8a45c", puzzle:"#c8a45c", character:"#c8a45c", loreref:"#c8a45c", note:"#66bb6a", text:"#c8a45c", divider:"#3a2510" };
   const rows = [];
   let col = 1, row = 1, curRow = [];
   tpl.forEach(t => {
@@ -1617,40 +1629,6 @@ function hideTplPreview() {
 
 function clearDragHighlights() {
   hideTplPreview();
-}
-
-// ── Auto-place blocks that have no explicit row/col ───────────────────────────
-function autoPlaceBlocks(blocks) {
-  const occupied = new Set();
-  blocks.forEach(b => {
-    if (!b.row || !b.col) return;
-    const span    = Math.min(b.span    || 1, 4);
-    const rowSpan = b.rowSpan || 1;
-    for (let r = b.row; r < b.row + rowSpan; r++)
-      for (let c = b.col; c < b.col + span; c++) occupied.add(`${r},${c}`);
-  });
-
-  let curRow = 1, curCol = 1;
-
-  blocks.forEach(b => {
-    if (b.row && b.col) return;
-    const span = Math.min(b.span || 1, 4);
-    while (true) {
-      if (curCol + span - 1 > 4) { curRow++; curCol = 1; }
-      let fits = true;
-      for (let c = curCol; c < curCol + span; c++) {
-        if (occupied.has(`${curRow},${c}`)) { fits = false; break; }
-      }
-      if (fits) break;
-      curCol++;
-    }
-    b.row = curRow; b.col = curCol;
-    const rowSpan = b.rowSpan || 1;
-    for (let r = b.row; r < b.row + rowSpan; r++)
-      for (let c = curCol; c < curCol + span; c++) occupied.add(`${r},${c}`);
-    curCol += span;
-    if (curCol > 4) { curRow++; curCol = 1; }
-  });
 }
 
 // ── @mention system ──────────────────────────────────────────────────────────
@@ -1844,8 +1822,9 @@ function buildBlocksEditor() {
 
   currentBlocks.forEach((block, i) => {
     const wrap = document.createElement("div");
-    wrap.className = `qm-block qm-block-${block.type}${selectedBlockSet.has(i) ? " blk-selected" : ""}`;
+    wrap.className = `qm-block qm-block-${block.type}${selectedBlockSet.has(block.id) ? " blk-selected" : ""}`;
     wrap.dataset.index = i;
+    wrap.dataset.blockId = block.id;
     wrap.style.left  = (block.worldX || 0) + "px";
     wrap.style.top   = (block.worldY || 0) + "px";
     wrap.style.width = (block.width  || BLOCK_DEFAULT_W) + "px";
@@ -1858,11 +1837,11 @@ function buildBlocksEditor() {
     wrap.addEventListener("pointerdown", e => {
       if (e.target.closest("button, input, label, select, a, [contenteditable]")) return;
       // Don't clear selection if this block is already in it (preserves multi-select for drag)
-      if (!e.shiftKey && !selectedBlockSet.has(i)) {
+      if (!e.shiftKey && !selectedBlockSet.has(block.id)) {
         selectedBlockSet.clear();
         refreshSelectionClasses();
       }
-      selectedBlockSet.add(i);
+      selectedBlockSet.add(block.id);
       wrap.classList.add("blk-selected");
     }, { capture: true });
 
@@ -1910,23 +1889,23 @@ function buildBlocksEditor() {
         header.setPointerCapture(e.pointerId);
 
         // If block isn't in selection, replace selection with just this block
-        if (!selectedBlockSet.has(i)) {
+        if (!selectedBlockSet.has(block.id)) {
           selectedBlockSet.clear();
           refreshSelectionClasses();
-          selectedBlockSet.add(i);
+          selectedBlockSet.add(block.id);
           wrap.classList.add("blk-selected");
         }
 
         // Record start positions for all blocks in the drag group
-        const group = [...selectedBlockSet].map(idx => ({
-          idx,
-          startWorldX: currentBlocks[idx].worldX || 0,
-          startWorldY: currentBlocks[idx].worldY || 0,
-          el: canvasWorld.querySelector(`[data-index="${idx}"]`),
+        const group = [...selectedBlockSet].map(id => blockById(id)).filter(Boolean).map(b => ({
+          id: b.id,
+          startWorldX: b.worldX || 0,
+          startWorldY: b.worldY || 0,
+          el: blockElById(b.id),
         }));
 
         blockDragState = {
-          index: i,
+          id: block.id,
           startClientX: e.clientX,
           startClientY: e.clientY,
           startWorldX: block.worldX || 0,
@@ -1937,7 +1916,7 @@ function buildBlocksEditor() {
         group.forEach(g => { g.el?.classList.add("dragging"); if (g.el) g.el.style.zIndex = "10"; });
       });
       header.addEventListener("pointermove", e => {
-        if (!blockDragState || blockDragState.index !== i) return;
+        if (!blockDragState || blockDragState.id !== block.id) return;
         const dx = (e.clientX - blockDragState.startClientX) / canvasZoom;
         const dy = (e.clientY - blockDragState.startClientY) / canvasZoom;
 
@@ -1948,7 +1927,7 @@ function buildBlocksEditor() {
         const bH = block.height || BLOCK_DEFAULT_H;
         let snapX = rawX, snapY = rawY;
         for (let j = 0; j < currentBlocks.length; j++) {
-          if (selectedBlockSet.has(j)) continue; // skip blocks in the group
+          if (selectedBlockSet.has(currentBlocks[j].id)) continue; // skip blocks in the group
           const other = currentBlocks[j];
           const oW = other.width  || BLOCK_DEFAULT_W;
           const oH = other.height || BLOCK_DEFAULT_H;
@@ -1965,7 +1944,8 @@ function buildBlocksEditor() {
         const snappedDy = snapY - blockDragState.startWorldY;
 
         blockDragState.group.forEach(g => {
-          const b = currentBlocks[g.idx];
+          const b = blockById(g.id);
+          if (!b) return;
           b.worldX = g.startWorldX + snappedDx;
           b.worldY = g.startWorldY + snappedDy;
           if (g.el) { g.el.style.left = b.worldX + "px"; g.el.style.top = b.worldY + "px"; }
@@ -1982,21 +1962,20 @@ function buildBlocksEditor() {
         renderConnections();
       });
       header.addEventListener("pointerup", () => {
-        if (!blockDragState || blockDragState.index !== i) return;
+        if (!blockDragState || blockDragState.id !== block.id) return;
         blockDragState.group.forEach(g => { g.el?.classList.remove("dragging"); if (g.el) g.el.style.zIndex = ""; });
 
-        // Group membership: add dragged blocks into any group whose bounds they land in;
-        // remove from groups if they've been dragged out
+        // Group membership: add dragged blocks into any group whose bounds they land in
         blockDragState.group.forEach(g => {
-          const b = currentBlocks[g.idx];
+          const b = blockById(g.id);
           if (!b) return;
-          const bel = canvasWorld.querySelector(`[data-index="${g.idx}"]`);
+          const bel = blockElById(g.id);
           const bCX = (b.worldX || 0) + (b.width || BLOCK_DEFAULT_W) / 2;
           const bCY = (b.worldY || 0) + (bel?.offsetHeight || b.height || BLOCK_DEFAULT_H) / 2;
           currentGroups.forEach(grp => {
             const bounds = getGroupBounds(grp);
             const inside = bounds && bCX >= bounds.x && bCX <= bounds.x + bounds.w && bCY >= bounds.y && bCY <= bounds.y + bounds.h;
-            if (inside && !grp.indices.includes(g.idx)) grp.indices.push(g.idx);
+            if (inside && !grp.blockIds.includes(g.id)) grp.blockIds.push(g.id);
           });
         });
         // Clear group hover highlights
@@ -2027,11 +2006,11 @@ function buildBlocksEditor() {
         e.preventDefault();
         rh.setPointerCapture(e.pointerId);
         blockResizeState = {
-          index: i, dir,
+          id: block.id, dir,
           startClientX: e.clientX,
           startClientY: e.clientY,
-          startW: block.width  || BLOCK_DEFAULT_W,
-          startH: block.height || wrap.offsetHeight,
+          startW: block.width  || wrap.offsetWidth || BLOCK_DEFAULT_W,
+          startH: block.height || wrap.offsetHeight || BLOCK_DEFAULT_H,
           startWorldX: block.worldX || 0,
           startWorldY: block.worldY || 0,
           wrap,
@@ -2039,7 +2018,7 @@ function buildBlocksEditor() {
         wrap.classList.add("resizing");
       });
       rh.addEventListener("pointermove", e => {
-        if (!blockResizeState || blockResizeState.index !== i) return;
+        if (!blockResizeState || blockResizeState.id !== block.id) return;
         const dx = (e.clientX - blockResizeState.startClientX) / canvasZoom;
         const dy = (e.clientY - blockResizeState.startClientY) / canvasZoom;
         // Right edge
@@ -2073,7 +2052,7 @@ function buildBlocksEditor() {
         renderConnections();
       });
       rh.addEventListener("pointerup", () => {
-        if (!blockResizeState || blockResizeState.index !== i) return;
+        if (!blockResizeState || blockResizeState.id !== block.id) return;
         blockResizeState.wrap.classList.remove("resizing");
         blockResizeState = null;
         onEditTick();
@@ -2081,17 +2060,10 @@ function buildBlocksEditor() {
       wrap.appendChild(rh);
     });
 
-    // Delete — also remove any connections involving this block and remap remaining indices
+    // Delete — drops the block plus any connections/group memberships referencing it
     wrap.querySelector(".blk-del")?.addEventListener("click", () => {
-      currentBlocks.splice(i, 1);
-      currentConnections = currentConnections
-        .filter(c => c.from !== i && c.to !== i)
-        .map(c => ({
-          ...c,
-          from: c.from > i ? c.from - 1 : c.from,
-          to:   c.to   > i ? c.to   - 1 : c.to,
-        }));
-      remapGroupsAfterDelete([i]);
+      deleteBlocksByIds([block.id]);
+      selectedBlockSet.delete(block.id);
       onEditTick();
       buildBlocksEditor();
     });
@@ -2110,6 +2082,7 @@ function buildBlocksEditor() {
     wireInput(wrap, block, "solution",    "[data-f=solution]");
     wireInput(wrap, block, "blockTitle",  "[data-f=blockTitle]");
     wireInput(wrap, block, "titleColor",  "[data-f=titleColor]");
+    wireInput(wrap, block, "sessionMarker", "[data-f=sessionMarker]");
 
     // Rich text / rich phase blocks (contenteditable) — inline formatting + @ / # / $ / ^ / slash
     const richEl = wrap.querySelector(".blk-rich-text") || wrap.querySelector(".blk-rich-phase");
@@ -2582,50 +2555,51 @@ function buildBlocksEditor() {
         const rect = qmBlockCanvas.getBoundingClientRect();
         const curX = (e.clientX - rect.left - canvasPanX) / canvasZoom;
         const curY = (e.clientY - rect.top  - canvasPanY) / canvasZoom;
-        connDragState = { fromIndex: i, fromSide: side, curX, curY, snapToIndex: null, snapToSide: null };
+        connDragState = { fromId: block.id, fromSide: side, curX, curY, snapToId: null, snapToSide: null };
         port.classList.add("drag-active");
         renderConnections();
       });
       port.addEventListener("pointermove", e => {
-        if (!connDragState || connDragState.fromIndex !== i || connDragState.fromSide !== side) return;
+        if (!connDragState || connDragState.fromId !== block.id || connDragState.fromSide !== side) return;
         const rect = qmBlockCanvas.getBoundingClientRect();
         connDragState.curX = (e.clientX - rect.left - canvasPanX) / canvasZoom;
         connDragState.curY = (e.clientY - rect.top  - canvasPanY) / canvasZoom;
         // Snap detection — 40px in screen space
         const SNAP_R = 40 / canvasZoom;
-        let bestDist = SNAP_R, bestIdx = null, bestSide = null;
-        currentBlocks.forEach((b, j) => {
-          if (j === i) return;
-          const el = canvasWorld.querySelector(`[data-index="${j}"]`);
+        let bestDist = SNAP_R, bestId = null, bestSide = null;
+        currentBlocks.forEach(b => {
+          if (b.id === block.id) return;
+          const el = blockElById(b.id);
           CONN_SIDES.forEach(s => {
             const p = blockPortPos(b, s, el);
             const d = Math.hypot(connDragState.curX - p.x, connDragState.curY - p.y);
-            if (d < bestDist) { bestDist = d; bestIdx = j; bestSide = s; }
+            if (d < bestDist) { bestDist = d; bestId = b.id; bestSide = s; }
           });
         });
-        connDragState.snapToIndex = bestIdx;
-        connDragState.snapToSide  = bestSide;
+        connDragState.snapToId  = bestId;
+        connDragState.snapToSide = bestSide;
         // Highlight snap target port
         canvasWorld.querySelectorAll(".blk-port.snap-target").forEach(el => el.classList.remove("snap-target"));
-        if (bestIdx !== null) {
-          const targetEl = canvasWorld.querySelector(`[data-index="${bestIdx}"] .blk-port-${bestSide}`);
+        if (bestId !== null) {
+          const targetEl = canvasWorld.querySelector(`[data-block-id="${bestId}"] .blk-port-${bestSide}`);
           targetEl?.classList.add("snap-target");
         }
         renderConnections();
       });
       port.addEventListener("pointerup", () => {
-        if (!connDragState || connDragState.fromIndex !== i || connDragState.fromSide !== side) return;
+        if (!connDragState || connDragState.fromId !== block.id || connDragState.fromSide !== side) return;
         port.classList.remove("drag-active");
-        if (connDragState.snapToIndex !== null) {
+        if (connDragState.snapToId !== null) {
+          const target = connDragState.snapToId;
           const already = currentConnections.some(c =>
-            (c.from === i && c.to === connDragState.snapToIndex) ||
-            (c.from === connDragState.snapToIndex && c.to === i)
+            (c.from === block.id && c.to === target) ||
+            (c.from === target && c.to === block.id)
           );
           if (!already) {
             currentConnections.push({
-              id: Date.now().toString(36),
-              from: i, fromSide: side,
-              to: connDragState.snapToIndex, toSide: connDragState.snapToSide,
+              id: newId(),
+              from: block.id, fromSide: side,
+              to: target, toSide: connDragState.snapToSide,
               label: ""
             });
             onEditTick();
@@ -2651,6 +2625,7 @@ function buildBlocksEditor() {
   });
 
   requestAnimationFrame(() => { renderConnections(); buildGroupsInEditor(); });
+  renderOutline();
 }
 
 
@@ -2661,11 +2636,12 @@ function renderConnections() {
 
   // Draw snap guides if dragging
   if (blockDragState) {
-    const block = currentBlocks[blockDragState.index];
+    const block = blockById(blockDragState.id);
+    if (block) {
     const bW = block.width || BLOCK_DEFAULT_W;
     const bH = block.height || BLOCK_DEFAULT_H;
     for (let j = 0; j < currentBlocks.length; j++) {
-      if (j === blockDragState.index) continue;
+      if (currentBlocks[j].id === blockDragState.id) continue;
       const other = currentBlocks[j];
       const oH = other.height || BLOCK_DEFAULT_H;
       const oW = other.width  || BLOCK_DEFAULT_W;
@@ -2692,18 +2668,20 @@ function renderConnections() {
         }
       }
     }
+    }
   }
 
   // Draw connection drag preview
   if (connDragState) {
-    const fromBlock = currentBlocks[connDragState.fromIndex];
-    const fromEl = canvasWorld?.querySelector(`[data-index="${connDragState.fromIndex}"]`);
+    const fromBlock = blockById(connDragState.fromId);
+    const fromEl = blockElById(connDragState.fromId);
+    if (fromBlock) {
     const p1 = blockPortPos(fromBlock, connDragState.fromSide, fromEl);
     let x2 = connDragState.curX, y2 = connDragState.curY;
     let previewSide = null;
-    if (connDragState.snapToIndex !== null) {
-      const toBlock = currentBlocks[connDragState.snapToIndex];
-      const toEl = canvasWorld?.querySelector(`[data-index="${connDragState.snapToIndex}"]`);
+    if (connDragState.snapToId !== null) {
+      const toBlock = blockById(connDragState.snapToId);
+      const toEl = blockElById(connDragState.snapToId);
       const snap = blockPortPos(toBlock, connDragState.snapToSide, toEl);
       x2 = snap.x; y2 = snap.y; previewSide = connDragState.snapToSide;
     }
@@ -2715,16 +2693,17 @@ function renderConnections() {
     preview.setAttribute("d", `M${p1.x},${p1.y} C${p1.x+cv1.dx},${p1.y+cv1.dy} ${x2+cv2.dx},${y2+cv2.dy} ${x2},${y2}`);
     preview.setAttribute("class", "conn-path conn-preview");
     canvasSvg.appendChild(preview);
+    }
   }
 
   // Draw each connection
   currentConnections.forEach((conn, ci) => {
-    const fromBlock = currentBlocks[conn.from];
-    const toBlock   = currentBlocks[conn.to];
+    const fromBlock = blockById(conn.from);
+    const toBlock   = blockById(conn.to);
     if (!fromBlock || !toBlock) return;
 
-    const fromEl = canvasWorld?.querySelector(`[data-index="${conn.from}"]`);
-    const toEl   = canvasWorld?.querySelector(`[data-index="${conn.to}"]`);
+    const fromEl = blockElById(conn.from);
+    const toEl   = blockElById(conn.to);
 
     // Use stored port sides if available, otherwise fall back to right→left center
     const fromSide = conn.fromSide || 'right';
@@ -2864,8 +2843,14 @@ function buildBlockEditorHtml(b, i) {
       <input type="color" class="blk-bg-pick" value="${b.bgColor || '#c8903a'}" />
     </label>
     <button type="button" class="blk-ctrl blk-bg-clear${b.bgColor ? ' visible' : ''}" title="Clear block color"><iconify-icon icon="lucide:x"></iconify-icon></button>`;
+  const sessionCtrl = b.type !== "divider" ? `
+    <label class="blk-session-label" title="Session tag — shown as a filter pill in the player view">
+      <iconify-icon icon="lucide:bookmark" class="blk-session-icon"></iconify-icon>
+      <input type="text" class="blk-session-input" data-f="sessionMarker" maxlength="8" placeholder="S#" value="${esc(b.sessionMarker || "")}" />
+    </label>` : "";
   const controls = `
     <div class="blk-controls">
+      ${sessionCtrl}
       ${bgColorHtml}
       <button type="button" class="blk-ctrl blk-del" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
     </div>`;
@@ -2917,7 +2902,7 @@ function buildBlockEditorHtml(b, i) {
 
     case "boss":
       return `
-        <div class="blk-header"><iconify-icon icon="game-icons:skull" class="blk-type-icon"></iconify-icon><span class="blk-type-label">Enemy</span>${controls}</div>
+        <div class="blk-header"><iconify-icon icon="game-icons:death-skull" class="blk-type-icon"></iconify-icon><span class="blk-type-label">Enemy</span>${controls}</div>
         ${titleRow}
         ${fmtBar(b)}
         <div class="boss-search-wrap">
@@ -3053,6 +3038,11 @@ function captureState() {
     blocks:      JSON.parse(JSON.stringify(currentBlocks || [])),
     connections: JSON.parse(JSON.stringify(currentConnections || [])),
     groups:      JSON.parse(JSON.stringify(currentGroups || [])),
+    giver:           currentGiver ? { ...currentGiver } : null,
+    rewards:         JSON.parse(JSON.stringify(currentRewards || { xp: "", gold: "", items: [] })),
+    objectives:      JSON.parse(JSON.stringify(currentObjectives || [])),
+    prerequisites:   [...(currentPrerequisites || [])],
+    recommendedLevel: currentRecommendedLevel || "",
   };
 }
 
@@ -3065,10 +3055,16 @@ function applyState(snap) {
   qmStatus.value      = snap.status || "not_started";
   qmDiscovered.checked = !!snap.discovered;
   currentBlocks       = JSON.parse(JSON.stringify(snap.blocks || []));
-  currentConnections  = JSON.parse(JSON.stringify(snap.connections || []));
-  currentGroups       = JSON.parse(JSON.stringify(snap.groups || []));
+  currentBlocks.forEach(migrateBlock);
+  { const r = migrateRefsToIds(currentBlocks, snap.connections || [], snap.groups || []); currentConnections = r.conns; currentGroups = r.grps; }
+  currentGiver         = snap.giver ? { ...snap.giver } : null;
+  currentRewards       = JSON.parse(JSON.stringify(snap.rewards || { xp: "", gold: "", items: [] }));
+  currentObjectives    = JSON.parse(JSON.stringify(snap.objectives || []));
+  currentPrerequisites = [...(snap.prerequisites || [])];
+  currentRecommendedLevel = snap.recommendedLevel || "";
   syncTypeBtns();
   buildBlocksEditor();
+  if (typeof syncDetailsPanel === "function") syncDetailsPanel();
   isApplyingSnap = false;
 }
 
@@ -3200,32 +3196,25 @@ document.addEventListener("keydown", e => {
   else if (key === "s") { e.preventDefault(); qmSave.click(); }
   else if (key === "g" && selectedBlockSet.size > 0 && !e.target.closest("input, textarea, [contenteditable]")) {
     e.preventDefault();
-    const indices = [...selectedBlockSet].sort((a, b) => a - b);
-    currentGroups.push({ id: Date.now().toString(36), title: "", color: "#ffcc66", indices });
+    currentGroups.push({ id: newId(), title: "", color: "#ffcc66", blockIds: [...selectedBlockSet] });
     onEditTick();
     buildBlocksEditor();
   }
   else if (key === "c" && selectedBlockSet.size > 0 && !e.target.closest("input, textarea, [contenteditable]")) {
     e.preventDefault();
-    const idx = Math.min(...selectedBlockSet);
-    blockClipboard = JSON.parse(JSON.stringify(currentBlocks[idx]));
+    blockClipboard = [...selectedBlockSet].map(id => blockById(id)).filter(Boolean).map(b => JSON.parse(JSON.stringify(b)));
   }
-  else if (key === "v" && blockClipboard && !e.target.closest("input, textarea, [contenteditable]")) {
+  else if (key === "v" && blockClipboard && blockClipboard.length && !e.target.closest("input, textarea, [contenteditable]")) {
     e.preventDefault();
-    const src = JSON.parse(JSON.stringify(blockClipboard));
-    src.worldX = (src.worldX || 0) + 30;
-    src.worldY = (src.worldY || 0) + 30;
-    delete src.id;
-    const newIdx = selectedBlockSet.size > 0 ? Math.max(...selectedBlockSet) + 1 : currentBlocks.length;
-    currentBlocks.splice(newIdx, 0, src);
-    currentConnections = currentConnections.map(c => ({
-      ...c,
-      from: c.from >= newIdx ? c.from + 1 : c.from,
-      to:   c.to   >= newIdx ? c.to   + 1 : c.to,
-    }));
-    remapGroupsAfterInsert(newIdx);
     selectedBlockSet.clear();
-    selectedBlockSet.add(newIdx);
+    blockClipboard.forEach(srcBlk => {
+      const src = JSON.parse(JSON.stringify(srcBlk));
+      src.id = newId();
+      src.worldX = (src.worldX || 0) + 30;
+      src.worldY = (src.worldY || 0) + 30;
+      currentBlocks.push(src);
+      selectedBlockSet.add(src.id);
+    });
     onEditTick();
     buildBlocksEditor();
   }
@@ -3238,21 +3227,7 @@ document.addEventListener("keydown", e => {
   if (e.target.closest("input, textarea, [contenteditable]")) return;
   if (selectedBlockSet.size === 0) return;
   e.preventDefault();
-
-  const toDelete = [...selectedBlockSet].sort((a, b) => a - b);
-  const deletedSet = new Set(toDelete);
-
-  // Drop connections touching deleted blocks, then remap surviving indices
-  currentConnections = currentConnections
-    .filter(c => !deletedSet.has(c.from) && !deletedSet.has(c.to))
-    .map(c => {
-      const shiftFrom = toDelete.filter(d => d < c.from).length;
-      const shiftTo   = toDelete.filter(d => d < c.to).length;
-      return { ...c, from: c.from - shiftFrom, to: c.to - shiftTo };
-    });
-
-  remapGroupsAfterDelete(toDelete);
-  toDelete.reverse().forEach(idx => currentBlocks.splice(idx, 1));
+  deleteBlocksByIds([...selectedBlockSet]);
   selectedBlockSet.clear();
   onEditTick();
   buildBlocksEditor();
@@ -3277,82 +3252,69 @@ function setPreviewMode(on) {
 
 function buildPreviewPanel() {
   const panel = ensurePreviewPanel();
-  // Filter out DM-only blocks the way the card view would see them as a player
-  const visibleBlocks = (currentBlocks || [])
-    .filter(b => b.type !== "note")                      // DM notes never shown
-    .map(b => {
-      if (b.type === "puzzle") {
-        const { solution, ...rest } = b;                 // strip solution field
-        return rest;
-      }
-      return b;
-    });
-  const title = qmName.value.trim() || "Untitled quest";
-  const location = qmLocationInp.value.trim();
-  const gridHtml = buildCardChapters(
-    visibleBlocks.map(b => ({ ...b })),
-    currentCellColors
-  );
+  // Render with the SAME renderer players actually see (buildQuestCanvasDOM), so
+  // the preview matches the live view exactly. Player view already hides DM notes
+  // and puzzle solutions, so no separate filtering is needed here.
+  const previewQuest = {
+    id: editingId || "preview",
+    title: qmName.value.trim() || "Untitled quest",
+    location: qmLocationInp.value.trim(),
+    type: selectedType,
+    status: qmStatus.value,
+    blocks: currentBlocks.map(b => ({ ...b })),
+    connections: JSON.parse(JSON.stringify(currentConnections || [])),
+    groups: JSON.parse(JSON.stringify(currentGroups || [])),
+  };
   panel.innerHTML = `
     <div class="qm-preview-watermark">
       <iconify-icon icon="lucide:eye" class="qm-preview-watermark-icon"></iconify-icon>
       <span>This is how players see this quest — DM notes and puzzle solutions are hidden.</span>
-    </div>
-    <div class="quest-card quest-${selectedType} preview-card">
-      <div class="qc-accent-bar"></div>
-      <div class="qc-body">
-        <div class="qc-header-row">
-          <div class="qc-title-row">
-            <h3 class="qc-title">${esc(title)}</h3>
-            ${location ? `<div class="qc-location"><iconify-icon icon="lucide:map-pin"></iconify-icon> ${esc(location)}</div>` : ""}
-          </div>
-          <div class="qc-top-row">
-            <span class="qc-type-badge">${selectedType === "main" ? "Main Quest" : "Side Quest"}</span>
-          </div>
-          ${buildSummaryChips(visibleBlocks)}
-        </div>
-        <div class="qc-content">${gridHtml || '<p style="color:#6a5a42;font-style:italic;padding:20px">(No player-visible content yet.)</p>'}</div>
-      </div>
-    </div>
-  `;
-  // Wire chapter folds and phase toggles inside the preview
-  panel.querySelectorAll(".qc-chapter-header").forEach(header => {
-    header.addEventListener("click", () => {
-      const open = header.dataset.open === "true";
-      header.dataset.open = String(!open);
-      header.querySelector(".qc-chapter-arrow").setAttribute("icon", open ? "lucide:chevron-right" : "lucide:chevron-down");
-      header.nextElementSibling.style.display = open ? "none" : "";
-    });
-  });
-  panel.querySelectorAll(".qc-phase-toggle").forEach(btn => {
-    const body = btn.nextElementSibling;
-    btn.addEventListener("click", () => {
-      const open = btn.dataset.open === "true";
-      btn.dataset.open = String(!open);
-      body.style.display = open ? "none" : "block";
-      btn.querySelector(".toggle-arrow").setAttribute("icon", open ? "lucide:chevron-right" : "lucide:chevron-down");
-    });
-  });
+    </div>`;
+  const stage = document.createElement("div");
+  stage.className = "qm-preview-stage";
+  // Force the read-only canvas to render as a player would (hide note blocks,
+  // strip solutions) by temporarily masking admin flag is overkill; instead the
+  // renderer already gates on isAdmin. For an accurate player preview, drop the
+  // DM-only blocks up front.
+  previewQuest.blocks = previewQuest.blocks
+    .filter(b => b.type !== "note")
+    .map(b => b.type === "puzzle" ? (() => { const { solution, ...rest } = b; return rest; })() : b);
+  stage.appendChild(buildQuestCanvasDOM(previewQuest));
+  panel.appendChild(stage);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // BLOCK TEMPLATES
 // ═══════════════════════════════════════════════════════════════════════════
 
-function applyTemplateAtPosition(templateKey, originX, originY) {
+// Places a template so its whole bounding box is centred on (centerX, centerY)
+// — or on the current viewport centre when no point is given.
+function applyTemplateAtPosition(templateKey, centerX = null, centerY = null) {
   const tpl = BLOCK_TEMPLATES[templateKey];
   if (!tpl) return;
   const gap = 20;
-  let x = originX ?? 20;
-  let y = originY ?? (currentBlocks.reduce((m, b) => Math.max(m, (b.worldY || 0) + (b.height || BLOCK_DEFAULT_H)), 0) + gap);
   const rowW = 4 * (BLOCK_DEFAULT_W + gap);
-  tpl.forEach(t => {
+
+  // First pass: lay blocks out relative to (0,0) and measure the bounding box.
+  let x = 0, y = 0, maxRight = 0, maxBottom = 0;
+  const placed = tpl.map(t => {
     const w = Math.round((t.span || 1) * (BLOCK_DEFAULT_W + gap) - gap);
-    const block = { ...BLOCK_DEFAULTS[t.type], ...t, worldX: x, worldY: y, width: w, height: BLOCK_DEFAULT_H };
+    if (x > 0 && x + w > rowW) { x = 0; y += BLOCK_DEFAULT_H + gap; }   // wrap row
+    const p = { t, rx: x, ry: y, w };
+    x += w + gap;
+    maxRight  = Math.max(maxRight,  p.rx + w);
+    maxBottom = Math.max(maxBottom, p.ry + BLOCK_DEFAULT_H);
+    return p;
+  });
+
+  // Second pass: offset every block so the box is centred on the target point.
+  const c = (centerX != null && centerY != null) ? { x: centerX, y: centerY } : canvasCenterWorld();
+  const offX = Math.round(c.x - maxRight  / 2);
+  const offY = Math.round(c.y - maxBottom / 2);
+  placed.forEach(p => {
+    const block = { ...BLOCK_DEFAULTS[p.t.type], ...p.t, id: newId(), worldX: offX + p.rx, worldY: offY + p.ry, width: p.w, height: BLOCK_DEFAULT_H };
     delete block.span; delete block.rowSpan; delete block.row; delete block.col;
     currentBlocks.push(block);
-    x += w + gap;
-    if (x > (originX ?? 20) + rowW) { x = originX ?? 20; y += BLOCK_DEFAULT_H + gap; }
   });
 }
 
@@ -3408,7 +3370,7 @@ document.querySelectorAll(".qm-template-btn").forEach(btn => {
   });
   btn.addEventListener("click", () => {
     if (!BLOCK_TEMPLATES[btn.dataset.template]) return;
-    applyTemplateAtPosition(btn.dataset.template, null, null);
+    applyTemplateAtPosition(btn.dataset.template);   // auto-centres on the view
     onEditTick();
     buildBlocksEditor();
   });
@@ -3419,13 +3381,12 @@ document.querySelectorAll(".qm-template-btn").forEach(btn => {
 // ═══════════════════════════════════════════════════════════════════════════
 const SLASH_ITEMS = [
   { type: "phase",     icon: '<iconify-icon icon="lucide:chevron-right"></iconify-icon>',         name: "Phase",      hint: "A quest step" },
-  { type: "boss",      icon: '<iconify-icon icon="game-icons:skull"></iconify-icon>',             name: "Enemy",      hint: "Creature stat block" },
+  { type: "boss",      icon: '<iconify-icon icon="game-icons:death-skull"></iconify-icon>',             name: "Enemy",      hint: "Creature stat block" },
   { type: "loot",      icon: '<iconify-icon icon="game-icons:open-treasure-chest"></iconify-icon>', name: "Loot",     hint: "Items or rewards" },
   { type: "puzzle",    icon: '<iconify-icon icon="game-icons:puzzle"></iconify-icon>',            name: "Puzzle",     hint: "Riddle or skill check" },
   { type: "character", icon: '<iconify-icon icon="lucide:user"></iconify-icon>',                  name: "Character",  hint: "NPC reference" },
   { type: "loreref",   icon: '<iconify-icon icon="game-icons:bookshelf"></iconify-icon>',         name: "Lore",       hint: "Book or scroll reference" },
   { type: "note",      icon: '<iconify-icon icon="lucide:file-text"></iconify-icon>',             name: "DM Note",    hint: "Private to you" },
-  { type: "divider",   icon: '<iconify-icon icon="lucide:minus"></iconify-icon>',                 name: "Divider",    hint: "Chapter break" },
   { type: "text",      icon: '<iconify-icon icon="lucide:type"></iconify-icon>',                  name: "Text",       hint: "Paragraph" },
 ];
 
@@ -3512,7 +3473,7 @@ function insertSlashBlock(type) {
   }
   hideSlashMenu();
   // Insert the new block positioned below the source block
-  const newBlock = { ...BLOCK_DEFAULTS[type], width: BLOCK_DEFAULT_W, height: BLOCK_DEFAULT_H };
+  const newBlock = { ...BLOCK_DEFAULTS[type], id: newId(), width: BLOCK_DEFAULT_W, height: BLOCK_DEFAULT_H };
   const insertAt = blockIndex >= 0 ? blockIndex + 1 : currentBlocks.length;
   if (blockIndex >= 0) {
     const src = currentBlocks[blockIndex];
@@ -3759,4 +3720,311 @@ function sessionColorClass(marker) {
   let hash = 0;
   for (let i = 0; i < marker.length; i++) hash = (hash * 31 + marker.charCodeAt(i)) >>> 0;
   return `session-color-${(hash % 8) + 1}`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QUEST DETAILS PANEL — giver · rewards · recommended level · objectives · chain
+// ═══════════════════════════════════════════════════════════════════════════
+const qmGiverSearch      = document.getElementById("qm-giver-search");
+const qmGiverDrop        = document.getElementById("qm-giver-drop");
+const qmGiverSel         = document.getElementById("qm-giver-selected");
+const qmRewardXp         = document.getElementById("qm-reward-xp");
+const qmRewardGold       = document.getElementById("qm-reward-gold");
+const qmRewardItemSearch = document.getElementById("qm-reward-item-search");
+const qmRewardItemDrop   = document.getElementById("qm-reward-item-drop");
+const qmRewardItems      = document.getElementById("qm-reward-items");
+const qmRecLevel         = document.getElementById("qm-reclevel");
+const qmObjList          = document.getElementById("qm-obj-list");
+const qmObjInput         = document.getElementById("qm-obj-input");
+const qmObjAdd           = document.getElementById("qm-obj-add");
+const qmPrereqList       = document.getElementById("qm-prereq-list");
+const qmPrereqSearch     = document.getElementById("qm-prereq-search");
+const qmPrereqDrop       = document.getElementById("qm-prereq-drop");
+
+// Sidebar Content / Details tab switching
+function resetSidebarTab() {
+  document.querySelectorAll(".qm-sidebar-tab").forEach(t => t.classList.toggle("active", t.dataset.tab === "content"));
+  document.querySelectorAll(".qm-sidebar-pane").forEach(p => { p.hidden = p.dataset.pane !== "content"; });
+}
+document.querySelectorAll(".qm-sidebar-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".qm-sidebar-tab").forEach(t => t.classList.toggle("active", t === tab));
+    document.querySelectorAll(".qm-sidebar-pane").forEach(p => { p.hidden = p.dataset.pane !== tab.dataset.tab; });
+  });
+});
+
+// Generic dropdown keyboard helper reused by the detail search inputs
+function wireDropKeys(srch, drop, onPick) {
+  srch?.addEventListener("keydown", e => {
+    if (e.key === "ArrowDown") { e.preventDefault(); drop.querySelector(".loc-drop-item")?.focus(); }
+    if (e.key === "Escape")    hideDrop(drop);
+  });
+  drop?.addEventListener("mousedown", e => {
+    const item = e.target.closest(".loc-drop-item"); if (!item) return; e.preventDefault(); onPick(item.dataset);
+  });
+  drop?.addEventListener("keydown", e => {
+    if (e.key === "Enter") { onPick(document.activeElement.dataset); }
+    if (e.key === "ArrowDown") { e.preventDefault(); document.activeElement.nextElementSibling?.focus(); }
+    if (e.key === "ArrowUp")   { e.preventDefault(); (document.activeElement.previousElementSibling || srch).focus(); }
+    if (e.key === "Escape")    hideDrop(drop);
+  });
+  srch?.addEventListener("blur", () => setTimeout(() => hideDrop(drop), 150));
+}
+
+// ── Quest giver ───────────────────────────────────────────────────────────────
+function renderGiver() {
+  if (!qmGiverSel) return;
+  if (!currentGiver) { qmGiverSel.style.display = "none"; qmGiverSel.innerHTML = ""; return; }
+  qmGiverSel.style.display = "flex";
+  qmGiverSel.innerHTML = `
+    ${currentGiver.picture ? `<img class="char-item-pic" src="${esc(currentGiver.picture)}" alt="" />` : `<div class="char-item-pic char-item-pic-ph"><iconify-icon icon="lucide:user"></iconify-icon></div>`}
+    <span class="char-item-name">${esc(currentGiver.name || "")}</span>
+    ${currentGiver.profession ? `<span class="char-item-meta">${esc(currentGiver.profession)}</span>` : ""}
+    <button type="button" class="blk-ctrl qm-giver-clear" title="Remove giver"><iconify-icon icon="lucide:x"></iconify-icon></button>`;
+  qmGiverSel.querySelector(".qm-giver-clear").addEventListener("click", () => { currentGiver = null; renderGiver(); onEditTick(); });
+}
+qmGiverSearch?.addEventListener("input", () => {
+  const q = qmGiverSearch.value.trim().toLowerCase();
+  if (!q) { hideDrop(qmGiverDrop); return; }
+  const hits = allCharacters.filter(c => c.name && c.name.toLowerCase().includes(q)).slice(0, 10);
+  if (!hits.length) { hideDrop(qmGiverDrop); return; }
+  qmGiverDrop.innerHTML = hits.map(c =>
+    `<div class="loc-drop-item" tabindex="0" data-id="${esc(c.id || "")}" data-name="${esc(c.name || "")}" data-profession="${esc(c.profession || "")}" data-picture="${esc(c.picture || "")}">
+      <span>${esc(c.name)}</span>${c.profession ? `<span class="boss-drop-meta">${esc(c.profession)}</span>` : ""}
+    </div>`).join("");
+  qmGiverDrop.style.display = "block";
+});
+wireDropKeys(qmGiverSearch, qmGiverDrop, d => {
+  currentGiver = { id: d.id || "", name: d.name || "", profession: d.profession || "", picture: d.picture || "" };
+  qmGiverSearch.value = ""; hideDrop(qmGiverDrop); renderGiver(); onEditTick();
+});
+
+// ── Rewards (xp / gold / items) ────────────────────────────────────────────────
+function renderRewardItems() {
+  if (!qmRewardItems) return;
+  qmRewardItems.innerHTML = (currentRewards.items || []).map((it, idx) => `
+    <div class="qm-reward-item-row" data-idx="${idx}">
+      <iconify-icon icon="game-icons:open-treasure-chest" class="qm-reward-item-icon"></iconify-icon>
+      <span class="loot-item-name">${esc(it.name)}</span>
+      ${it.value ? `<span class="loot-item-value">${esc(it.value)}</span>` : ""}
+      <button type="button" class="loot-item-del blk-ctrl" data-idx="${idx}" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
+    </div>`).join("");
+  qmRewardItems.querySelectorAll(".loot-item-del").forEach(btn => {
+    btn.addEventListener("click", () => { currentRewards.items.splice(Number(btn.dataset.idx), 1); renderRewardItems(); onEditTick(); });
+  });
+}
+qmRewardXp?.addEventListener("input",   () => { currentRewards.xp   = qmRewardXp.value;   onEditTick(); });
+qmRewardGold?.addEventListener("input", () => { currentRewards.gold = qmRewardGold.value; onEditTick(); });
+qmRewardItemSearch?.addEventListener("input", () => {
+  const q = qmRewardItemSearch.value.trim().toLowerCase();
+  if (!q) { hideDrop(qmRewardItemDrop); return; }
+  const hits = allItems.filter(m => m.name && m.name.toLowerCase().includes(q)).slice(0, 10);
+  if (!hits.length) { hideDrop(qmRewardItemDrop); return; }
+  qmRewardItemDrop.innerHTML = hits.map(m =>
+    `<div class="loc-drop-item" tabindex="0" data-name="${esc(m.name)}" data-value="${esc(m.price != null ? formatGold(m.price) : "")}">
+      <span>${esc(m.name)}</span>${m.price != null ? `<span class="boss-drop-meta">${formatGold(m.price)}</span>` : ""}
+    </div>`).join("");
+  qmRewardItemDrop.style.display = "block";
+});
+wireDropKeys(qmRewardItemSearch, qmRewardItemDrop, d => {
+  currentRewards.items.push({ name: d.name || "", value: d.value || "" });
+  qmRewardItemSearch.value = ""; hideDrop(qmRewardItemDrop); renderRewardItems(); onEditTick();
+});
+
+// ── Recommended level ──────────────────────────────────────────────────────────
+qmRecLevel?.addEventListener("input", () => { currentRecommendedLevel = qmRecLevel.value; onEditTick(); });
+
+// ── Objectives ─────────────────────────────────────────────────────────────────
+function renderObjectives() {
+  if (!qmObjList) return;
+  qmObjList.innerHTML = currentObjectives.map((o, idx) => `
+    <div class="qm-obj-row" data-idx="${idx}">
+      <button type="button" class="qm-obj-check${o.done ? " done" : ""}" data-idx="${idx}" title="Toggle complete">
+        <iconify-icon icon="${o.done ? "lucide:check-square" : "lucide:square"}"></iconify-icon>
+      </button>
+      <input type="text" class="qm-obj-text qm-input${o.done ? " done" : ""}" data-idx="${idx}" value="${esc(o.text || "")}" placeholder="Objective…" />
+      <button type="button" class="qm-obj-up blk-ctrl"   data-idx="${idx}" title="Move up"><iconify-icon icon="lucide:chevron-up"></iconify-icon></button>
+      <button type="button" class="qm-obj-del blk-ctrl"  data-idx="${idx}" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
+    </div>`).join("");
+  qmObjList.querySelectorAll(".qm-obj-check").forEach(btn => btn.addEventListener("click", () => {
+    const o = currentObjectives[Number(btn.dataset.idx)]; if (o) { o.done = !o.done; renderObjectives(); onEditTick(); }
+  }));
+  qmObjList.querySelectorAll(".qm-obj-text").forEach(inp => inp.addEventListener("input", () => {
+    const o = currentObjectives[Number(inp.dataset.idx)]; if (o) { o.text = inp.value; onEditTick(); }
+  }));
+  qmObjList.querySelectorAll(".qm-obj-up").forEach(btn => btn.addEventListener("click", () => {
+    const i = Number(btn.dataset.idx);
+    if (i > 0) { [currentObjectives[i - 1], currentObjectives[i]] = [currentObjectives[i], currentObjectives[i - 1]]; renderObjectives(); onEditTick(); }
+  }));
+  qmObjList.querySelectorAll(".qm-obj-del").forEach(btn => btn.addEventListener("click", () => {
+    currentObjectives.splice(Number(btn.dataset.idx), 1); renderObjectives(); onEditTick();
+  }));
+}
+function addObjective(text) {
+  if (!text.trim()) return;
+  currentObjectives.push({ id: newId(), text: text.trim(), done: false });
+  renderObjectives(); onEditTick();
+}
+qmObjAdd?.addEventListener("click", () => { addObjective(qmObjInput.value); qmObjInput.value = ""; qmObjInput.focus(); });
+qmObjInput?.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addObjective(qmObjInput.value); qmObjInput.value = ""; } });
+
+// ── Prerequisites (quest chain) ────────────────────────────────────────────────
+function renderPrereqs() {
+  if (!qmPrereqList) return;
+  qmPrereqList.innerHTML = currentPrerequisites.map((qid, idx) => {
+    const q = quests.find(x => x.id === qid);
+    return `<div class="qm-prereq-chip" data-idx="${idx}">
+      <iconify-icon icon="lucide:link"></iconify-icon>
+      <span>${esc(q ? (q.title || "Untitled") : "Unknown quest")}</span>
+      <button type="button" class="qm-prereq-del" data-idx="${idx}" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
+    </div>`;
+  }).join("");
+  qmPrereqList.querySelectorAll(".qm-prereq-del").forEach(btn => btn.addEventListener("click", () => {
+    currentPrerequisites.splice(Number(btn.dataset.idx), 1); renderPrereqs(); onEditTick();
+  }));
+}
+qmPrereqSearch?.addEventListener("input", () => {
+  const q = qmPrereqSearch.value.trim().toLowerCase();
+  if (!q) { hideDrop(qmPrereqDrop); return; }
+  const hits = quests.filter(x => x.title && x.id !== editingId && !currentPrerequisites.includes(x.id) && x.title.toLowerCase().includes(q)).slice(0, 10);
+  if (!hits.length) { hideDrop(qmPrereqDrop); return; }
+  qmPrereqDrop.innerHTML = hits.map(x =>
+    `<div class="loc-drop-item" tabindex="0" data-id="${esc(x.id)}">
+      <span>${esc(x.title)}</span>${x.location ? `<span class="boss-drop-meta">${esc(x.location)}</span>` : ""}
+    </div>`).join("");
+  qmPrereqDrop.style.display = "block";
+});
+wireDropKeys(qmPrereqSearch, qmPrereqDrop, d => {
+  if (d.id && !currentPrerequisites.includes(d.id)) currentPrerequisites.push(d.id);
+  qmPrereqSearch.value = ""; hideDrop(qmPrereqDrop); renderPrereqs(); onEditTick();
+});
+
+// Refresh the whole Details panel from current state (called on open / undo / restore)
+function syncDetailsPanel() {
+  if (qmRewardXp)   qmRewardXp.value   = currentRewards.xp   || "";
+  if (qmRewardGold) qmRewardGold.value = currentRewards.gold || "";
+  if (qmRecLevel)   qmRecLevel.value   = currentRecommendedLevel || "";
+  renderGiver();
+  renderRewardItems();
+  renderObjectives();
+  renderPrereqs();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// OUTLINE / TIMELINE — view, find, focus and reorder groups & blocks
+// ═══════════════════════════════════════════════════════════════════════════
+const qmOutline = document.getElementById("qm-outline");
+
+// Best human label for a block in the outline list.
+function blockOutlineLabel(b) {
+  const t = (b.blockTitle || "").trim() || (b.title || "").trim();
+  if (t) return t;
+  if (b.type === "text" && b.content) {
+    const tmp = document.createElement("div"); tmp.innerHTML = b.content;
+    const s = (tmp.textContent || "").trim(); if (s) return s.slice(0, 42);
+  }
+  if (b.type === "loot"     && b.items?.length)      return b.items.map(i => i.name).filter(Boolean).slice(0, 2).join(", ");
+  if ((b.type === "boss" || b.type === "encounter") && b.enemies?.length) return b.enemies.map(e => e.name).filter(Boolean).slice(0, 2).join(", ");
+  if (b.type === "character" && b.characters?.length) return b.characters.map(c => c.name).filter(Boolean).slice(0, 2).join(", ");
+  if (b.type === "loreref"  && b.items?.length)      return b.items.map(i => i.title).filter(Boolean).slice(0, 2).join(", ");
+  return BLOCK_TYPE_LABEL[b.type] || b.type;
+}
+
+function outlineItemHtml(b, ctx) {
+  const cls = (b.type === "boss" || b.type === "encounter") ? " qm-ol-danger" : b.type === "note" ? " qm-ol-dm" : "";
+  const reorder = ctx ? `
+    <button type="button" class="qm-ol-mv qm-ol-bup" data-gi="${ctx.gi}" data-bi="${ctx.bi}" title="Move up"><iconify-icon icon="lucide:chevron-up"></iconify-icon></button>
+    <button type="button" class="qm-ol-mv qm-ol-bdn" data-gi="${ctx.gi}" data-bi="${ctx.bi}" title="Move down"><iconify-icon icon="lucide:chevron-down"></iconify-icon></button>` : "";
+  return `<div class="qm-ol-item${cls}${selectedBlockSet.has(b.id) ? " sel" : ""}" data-id="${b.id}">
+    <button type="button" class="qm-ol-focus" data-id="${b.id}">
+      <span class="qm-ol-icon">${BLOCK_TYPE_ICON[b.type] || ""}</span>
+      <span class="qm-ol-label">${esc(blockOutlineLabel(b))}</span>
+      ${b.sessionMarker ? `<span class="qm-ol-session ${sessionColorClass(b.sessionMarker)}">${esc(b.sessionMarker)}</span>` : ""}
+    </button>${reorder}
+  </div>`;
+}
+
+function renderOutline() {
+  if (!qmOutline) return;
+  if (!currentBlocks.length) { qmOutline.innerHTML = `<p class="qm-outline-empty">No blocks yet. Add content to build your quest.</p>`; return; }
+
+  const grouped = new Set();
+  currentGroups.forEach(g => g.blockIds.forEach(id => grouped.add(id)));
+  let html = "";
+
+  currentGroups.forEach((g, gi) => {
+    const col = g.color || "#ffcc66";
+    html += `<div class="qm-ol-group" data-gi="${gi}">
+      <div class="qm-ol-group-hdr">
+        <button type="button" class="qm-ol-group-focus" data-gi="${gi}">
+          <span class="qm-ol-dot" style="background:${esc(col)}"></span>
+          <span class="qm-ol-group-name">${esc(g.title || "Untitled group")}</span>
+          <span class="qm-ol-count">${g.blockIds.length}</span>
+        </button>
+        <button type="button" class="qm-ol-mv qm-ol-gup" data-gi="${gi}" title="Move group up"><iconify-icon icon="lucide:chevron-up"></iconify-icon></button>
+        <button type="button" class="qm-ol-mv qm-ol-gdn" data-gi="${gi}" title="Move group down"><iconify-icon icon="lucide:chevron-down"></iconify-icon></button>
+      </div>
+      <div class="qm-ol-group-body">
+        ${g.blockIds.map((id, bi) => { const b = blockById(id); return b ? outlineItemHtml(b, { gi, bi }) : ""; }).join("")}
+      </div>
+    </div>`;
+  });
+
+  const ungrouped = currentBlocks.filter(b => !grouped.has(b.id));
+  if (ungrouped.length) {
+    html += `<div class="qm-ol-group qm-ol-ungrouped">
+      ${currentGroups.length ? `<div class="qm-ol-group-hdr"><span class="qm-ol-group-name qm-ol-ungrouped-name">Ungrouped</span><span class="qm-ol-count">${ungrouped.length}</span></div>` : ""}
+      <div class="qm-ol-group-body">${ungrouped.map(b => outlineItemHtml(b, null)).join("")}</div>
+    </div>`;
+  }
+  qmOutline.innerHTML = html;
+
+  qmOutline.querySelectorAll(".qm-ol-focus").forEach(btn => btn.addEventListener("click", () => focusBlock(btn.dataset.id)));
+  qmOutline.querySelectorAll(".qm-ol-group-focus").forEach(btn => btn.addEventListener("click", () => focusGroup(Number(btn.dataset.gi))));
+  qmOutline.querySelectorAll(".qm-ol-gup").forEach(btn => btn.addEventListener("click", () => moveGroup(Number(btn.dataset.gi), -1)));
+  qmOutline.querySelectorAll(".qm-ol-gdn").forEach(btn => btn.addEventListener("click", () => moveGroup(Number(btn.dataset.gi), 1)));
+  qmOutline.querySelectorAll(".qm-ol-bup").forEach(btn => btn.addEventListener("click", () => moveBlockInGroup(Number(btn.dataset.gi), Number(btn.dataset.bi), -1)));
+  qmOutline.querySelectorAll(".qm-ol-bdn").forEach(btn => btn.addEventListener("click", () => moveBlockInGroup(Number(btn.dataset.gi), Number(btn.dataset.bi), 1)));
+}
+
+function moveGroup(gi, dir) {
+  const j = gi + dir;
+  if (j < 0 || j >= currentGroups.length) return;
+  [currentGroups[gi], currentGroups[j]] = [currentGroups[j], currentGroups[gi]];
+  onEditTick(); renderOutline(); buildGroupsInEditor();
+}
+function moveBlockInGroup(gi, bi, dir) {
+  const g = currentGroups[gi]; if (!g) return;
+  const j = bi + dir;
+  if (j < 0 || j >= g.blockIds.length) return;
+  [g.blockIds[bi], g.blockIds[j]] = [g.blockIds[j], g.blockIds[bi]];
+  onEditTick(); renderOutline();
+}
+
+// Pan/zoom the canvas so a block sits centred & readable, then select + flash it.
+function focusBlock(id) {
+  const b = blockById(id); if (!b) return;
+  const rect = _getCanvasRect() || qmBlockCanvas.getBoundingClientRect();
+  const el = blockElById(id);
+  const w = b.width || BLOCK_DEFAULT_W, h = el?.offsetHeight || b.height || BLOCK_DEFAULT_H;
+  if (canvasZoom < 0.6 || canvasZoom > 1.4) canvasZoom = 1;
+  canvasPanX = rect.width  / 2 - ((b.worldX || 0) + w / 2) * canvasZoom;
+  canvasPanY = rect.height / 2 - ((b.worldY || 0) + h / 2) * canvasZoom;
+  applyCanvasTransform();
+  selectedBlockSet.clear(); selectedBlockSet.add(id); refreshSelectionClasses();
+  const e2 = blockElById(id);
+  if (e2) { e2.classList.add("blk-focus-flash"); setTimeout(() => e2.classList.remove("blk-focus-flash"), 1000); }
+}
+
+// Fit the canvas to a group's bounds and select all its members.
+function focusGroup(gi) {
+  const g = currentGroups[gi]; if (!g) return;
+  const bounds = getGroupBounds(g); if (!bounds) return;
+  const rect = _getCanvasRect() || qmBlockCanvas.getBoundingClientRect();
+  const pad = 48;
+  canvasZoom = Math.min(1.1, Math.max(0.25, Math.min(rect.width / (bounds.w + pad * 2), rect.height / (bounds.h + pad * 2))));
+  canvasPanX = rect.width  / 2 - (bounds.x + bounds.w / 2) * canvasZoom;
+  canvasPanY = rect.height / 2 - (bounds.y + bounds.h / 2) * canvasZoom;
+  applyCanvasTransform();
+  selectedBlockSet.clear(); g.blockIds.forEach(id => selectedBlockSet.add(id)); refreshSelectionClasses();
 }

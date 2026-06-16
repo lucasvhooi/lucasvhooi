@@ -16,6 +16,20 @@
   50%       { box-shadow: 0 0 22px rgba(255,204,102,0.25), inset 0 0 20px rgba(0,0,0,0.4); }
 }
 
+@keyframes loc-marker-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--mc, #BDBDBD) 22%, transparent),
+      0 3px 12px rgba(0,0,0,0.7);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--mc, #BDBDBD) 48%, transparent),
+      0 0 14px color-mix(in srgb, var(--mc, #BDBDBD) 32%, transparent),
+      0 4px 16px rgba(0,0,0,0.75);
+  }
+}
+
 @keyframes shimmer {
   0%   { background-position: -200% center; }
   100% { background-position:  200% center; }
@@ -146,43 +160,55 @@
 .explored-badge   { border-color: #FFD700; color: #FFD700; }
 .unexplored-badge { border-color: #FF8A80; color: #FF8A80; }
 
+/* ── About card + Quick Info card (in the right sidebar column) ── */
+.loc-hero-about-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.loc-hero-about-label {
+  font-size: 10px;
+  color: rgba(200,164,92,0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--font);
+}
+
+.loc-about-card .loc-description {
+  color: rgba(255,255,255,0.72);
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.loc-about-card .loc-desc-empty { color: #555; margin: 0; }
+
+.loc-qi-hdr {
+  margin-bottom: 8px;
+}
+
 /* ── Main layout ── */
 .loc-main {
-  padding: 28px 20px 60px;
+  padding: 16px 20px 60px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 7fr 3fr;
+  grid-template-areas:
+    "map      buildings"
+    "npcs     npcs";
   gap: 20px;
-  align-items: start;
+  align-items: center;
 }
 
-/* ── Location feature banner — About + Quick Info side by side ── */
-.loc-feature-row {
-  grid-column: 1 / -1;
-  background: #161614;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 10px;
-  overflow: hidden;
-  display: flex;
-  align-items: stretch;
-}
+#sec-map           { grid-area: map; }
+.loc-col-buildings { grid-area: buildings; }
+.loc-col-npcs      { grid-area: npcs; }
 
-.loc-feature-desc-wrap {
-  flex: 1;
-  min-width: 0;
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Quick Info inline panel */
-.loc-feature-qi {
-  width: 220px;
-  flex-shrink: 0;
-  border-left: 1px solid rgba(255,255,255,0.08);
-  padding: 16px 18px;
-  display: flex;
-  flex-direction: column;
-}
 
 /* DM camera upload button in the hero */
 .loc-hero-upload-btn {
@@ -220,9 +246,6 @@
   min-width: 0; /* prevent grid blowout */
 }
 
-.loc-col-map {
-  position: static;
-}
 
 /* ── Sections ── */
 .loc-section {
@@ -332,23 +355,37 @@
 .loc-map-container {
   position: relative;
   width: 100%;
-  aspect-ratio: 3 / 4;
-  min-height: 480px;
+  aspect-ratio: 1 / 1;
+  min-height: 260px;
   border: 2px solid rgba(255,255,255,0.12);
   border-radius: 8px;
   overflow: hidden;
   background: #111;
   animation: mapGlow 4s ease-in-out infinite;
-  cursor: default;
+  cursor: grab;
+  user-select: none;
 }
 
-.loc-map-container.placing-mode { cursor: crosshair; }
+.loc-map-container.loc-dragging                  { cursor: grabbing; }
+.loc-map-container.placing-mode                  { cursor: crosshair; }
+.loc-map-container.placing-mode.loc-dragging     { cursor: crosshair; }
+
+/* Zoomable wrapper — JS applies transform3d here */
+#loc-map-wrapper {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
 
 #loc-map-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .map-placeholder {
@@ -379,6 +416,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+  /* sits inside #loc-map-wrapper and scales with it */
 }
 
 .loc-placing-banner {
@@ -400,41 +438,99 @@
 }
 .loc-placing-banner.visible { opacity: 1; }
 
+/* ── Zoom controls ── */
+.loc-zoom-controls {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 50;
+  pointer-events: auto;
+}
+
+.loc-zoom-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  background: rgba(12,9,5,0.88);
+  border: 1px solid rgba(200,164,92,0.3);
+  color: var(--accent);
+  font-size: 18px;
+  font-family: var(--font);
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  user-select: none;
+  padding: 0;
+}
+
+.loc-zoom-btn:hover {
+  background: rgba(200,164,92,0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(200,164,92,0.2);
+}
+
+.loc-zoom-reset-btn {
+  font-size: 14px;
+}
+
 /* ── Sub-markers ── */
 .loc-marker {
   position: absolute;
-  transform: translate(-50%, -50%);
+  /* transform set by JS for counter-scale; base is translate(-50%,-50%) */
   pointer-events: auto;
   cursor: pointer;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .loc-marker:hover  { z-index: 100 !important; }
 .loc-marker.active { z-index: 100 !important; }
 
 .loc-marker-pin {
-  width: 13px;
-  height: 13px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  border: 2px solid rgba(0,0,0,0.6);
-  box-shadow: 0 0 6px rgba(0,0,0,0.8);
-  transition: transform 0.15s, box-shadow 0.15s;
+  background: linear-gradient(145deg, #1c1409 0%, #0d0b08 100%);
+  border: 2px solid color-mix(in srgb, var(--mc, #BDBDBD) 70%, #000);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mc, #BDBDBD);
+  font-size: 16px;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
   position: relative;
+  flex-shrink: 0;
+  animation: loc-marker-glow 3s ease-in-out infinite;
 }
 
-/* Larger touch target */
-.loc-marker-pin::before {
-  content: "";
+/* Downward triangle tail */
+.loc-marker-pin::after {
+  content: '';
   position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 40px; height: 40px;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid color-mix(in srgb, var(--mc, #BDBDBD) 60%, #000);
 }
 
 .loc-marker:hover .loc-marker-pin,
 .loc-marker.active .loc-marker-pin {
-  transform: scale(1.45);
-  box-shadow: 0 0 12px rgba(255,255,255,0.3);
+  transform: scale(1.2);
+  border-color: var(--mc, #BDBDBD);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--mc, #BDBDBD) 45%, transparent),
+    0 0 20px color-mix(in srgb, var(--mc, #BDBDBD) 38%, transparent),
+    0 6px 18px rgba(0,0,0,0.8);
 }
 
 .loc-marker-tooltip {
@@ -742,6 +838,38 @@
   background: rgba(255,204,102,0.15);
   border-color: var(--accent);
   color: var(--accent);
+}
+
+/* ── NPC expand toggle ── */
+.npc-toggle-row { cursor: pointer; user-select: none; }
+
+.npc-count-chip {
+  font-family: var(--font);
+  font-size: 11px;
+  color: #666;
+  font-weight: normal;
+  margin-left: 6px;
+  letter-spacing: 0;
+}
+
+.npc-expand-toggle {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.npc-expand-toggle:hover {
+  color: var(--accent);
+  border-color: rgba(200,164,92,0.3);
+  background: rgba(200,164,92,0.07);
 }
 
 /* ── NPC Search ── */
@@ -2133,29 +2261,24 @@
   margin-right: auto;
 }
 
-.player-view .loc-feature-row {
-  max-width: 100%;
-}
-
 /* ── Responsive layout ── */
 @media (max-width: 1000px) {
-  .loc-main { gap: 14px; padding: 20px 16px 48px; }
-  .loc-feature-qi { width: 180px; }
+  .loc-main { gap: 14px; padding: 16px 16px 48px; }
 }
 
 @media (max-width: 720px) {
   .loc-main {
     grid-template-columns: 1fr;
-    padding: 16px 12px 48px;
+    grid-template-areas:
+      "map"
+      "buildings"
+      "npcs";
+    padding: 12px 12px 48px;
     gap: 12px;
   }
-  .loc-map-container { min-height: 300px; aspect-ratio: 4 / 3; }
+  .loc-map-container { aspect-ratio: 4 / 3; min-height: 260px; }
 }
 
-@media (max-width: 680px) {
-  .loc-feature-row   { flex-direction: column; }
-  .loc-feature-qi    { width: 100%; border-left: none; border-top: 1px solid rgba(255,255,255,0.08); }
-}
 
 @media (max-width: 600px) {
   .loc-hero { padding: 56px 16px 24px; }

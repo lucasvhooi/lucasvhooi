@@ -69,6 +69,12 @@ function escHtmlNl(s) {
   return escHtml(s ?? "").replace(/\n/g, "<br>");
 }
 function roll(sides) { return Math.floor(Math.random() * sides) + 1; }
+// Firebase serialises JS arrays as {0:{…},1:{…}} objects — normalise back to arrays.
+function toArr(v) {
+  if (!v) return null;
+  const a = Array.isArray(v) ? v : Object.values(v);
+  return a.length ? a : null;
+}
 
 // ── Log ───────────────────────────────────────────────────────────────────────
 const logEl = document.getElementById("combat-log");
@@ -95,10 +101,28 @@ document.getElementById("btn-clear-log").addEventListener("click", () => {
   logEl.innerHTML = '<p class="log-empty">Combat log will appear here.</p>';
 });
 
+// ── Panel toggles (Log / Loot) ────────────────────────────────────────────────
+(function() {
+  const overlayRight = document.querySelector('.overlay-right');
+  const overlayLoot  = document.querySelector('.overlay-loot');
+  const btnLog  = document.getElementById('btn-toggle-log');
+  const btnLoot = document.getElementById('btn-toggle-loot');
+
+  function toggle(panel, btn) {
+    const visible = panel.style.display !== 'none';
+    panel.style.display = visible ? 'none' : 'flex';
+    btn.classList.toggle('active', !visible);
+  }
+
+  btnLog.addEventListener('click',  () => toggle(overlayRight, btnLog));
+  btnLoot.addEventListener('click', () => toggle(overlayLoot,  btnLoot));
+})();
+
 // ── Render ────────────────────────────────────────────────────────────────────
 function render() {
   renderHero();
   renderCombatants();
+  if (typeof renderAttackDropdowns === "function") renderAttackDropdowns();
   if (typeof renderField === "function") renderField();
   save();
 }
@@ -182,9 +206,10 @@ function buildCard(c, idx) {
     <div class="card-stats-row">
       ${["str","dex","con","int","wis","cha"].map(k => s[k] != null ? `<span class="card-stat"><span class="card-stat-name">${k.toUpperCase()}</span><span class="card-stat-val">${s[k]}</span><span class="card-stat-mod">${statMod(s[k])}</span></span>` : "").join("")}
     </div>` : "";
-  const attacksHtml = (c.attacks && c.attacks.length) ? `
+  const _atks = toArr(c.attacks);
+  const attacksHtml = _atks ? `
     <div class="card-attacks">
-      ${c.attacks.map(a => `
+      ${_atks.map(a => `
         <div class="card-attack-row">
           <div class="card-atk-header">
             <span class="card-atk-name">${escHtml(a.name)}</span>
@@ -228,9 +253,9 @@ function buildCard(c, idx) {
       ${condHtml ? `<div class="card-conditions">${condHtml}</div>` : ""}
     </div>
     <div class="card-actions">
-      ${!isPlayer ? `<button class="card-btn hp-btn"   title="Adjust HP">HP ±</button>` : ""}
+      ${!isPlayer ? `<button class="card-btn hp-btn"   title="Adjust HP"><iconify-icon icon="lucide:heart-pulse"></iconify-icon></button>` : ""}
       <button class="card-btn cond-btn" title="Conditions"><iconify-icon icon="lucide:zap"></iconify-icon></button>
-      ${hasConds   ? `<button class="card-btn clear-fx-btn" title="Clear all conditions"><iconify-icon icon="lucide:x"></iconify-icon> FX</button>` : ""}
+      ${hasConds   ? `<button class="card-btn clear-fx-btn" title="Clear all conditions"><iconify-icon icon="lucide:zap-off"></iconify-icon></button>` : ""}
       <button class="card-btn edit-btn" title="Edit"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
       <button class="card-btn del-btn"  title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
     </div>`;
@@ -655,9 +680,8 @@ cmSave.addEventListener("click", () => {
     if (isNaN(initVal)) { cmError.textContent = "Enter an initiative value."; return; }
     const count = Math.max(1, Math.min(26, parseInt(cmEnemyCountInput.value, 10) || 1));
     const t = selectedEnemyTmpl;
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     for (let i = 0; i < count; i++) {
-      const suffix = count > 1 ? " " + letters[i] : "";
+      const suffix = count > 1 ? " " + (i + 1) : "";
       const initForThis = count > 1 ? roll(20) + (t.initMod ?? 0) : initVal;
       state.combatants.push({
         id:         genId(),
@@ -915,92 +939,171 @@ document.addEventListener("keydown", e => {
 });
 
 // ── Card Attack Flow ──────────────────────────────────────────────────────────
-const fieldAttackBar     = document.getElementById("field-attack-bar");
-const attackAttackerName = document.getElementById("attack-attacker-name");
-const attackTargetName   = document.getElementById("attack-target-name");
-const attackDmgGroup     = document.getElementById("attack-dmg-group");
-const attackDmgInput     = document.getElementById("attack-dmg-input");
+const attackerSelect = document.getElementById("attack-attacker-sel");
+const targetSelect   = document.getElementById("attack-target-sel");
+const attackDmgInput = document.getElementById("attack-dmg-input");
+const cipPanel       = document.getElementById("combatant-info-panel");
+const cipName        = document.getElementById("cip-name");
+const cipBody        = document.getElementById("cip-body");
 
-function onCardClick(id) {
-  const c = state.combatants.find(x => x.id === id);
-  if (!c) return;
-
-  if (attackMode) {
-    // In attack mode: clicking a card picks the target — full render needed
-    if (attackState.attackerId === id) {
-      attackMode = false;
-      attackState.targetId = null;
-      showAttackBar(c, null);
-    } else {
-      attackState.targetId = id;
-      const attacker = state.combatants.find(x => x.id === attackState.attackerId);
-      showAttackBar(attacker, c);
-    }
-    render();
-  } else {
-    // Not in attack mode: just update selection highlighting, no DOM rebuild
-    attackState = { attackerId: id, targetId: null };
-    showAttackBar(c, null);
-    patchCardClasses();
-  }
+function syncAttackDmgGroup() {
+  // DMG group is always visible; nothing to sync
 }
 
-// Lightweight class-only update — avoids full DOM rebuild on simple selection change
-function patchCardClasses() {
+function renderAttackDropdowns() {
+  const prevA = attackState.attackerId || "";
+  const prevT = attackState.targetId   || "";
+  attackerSelect.innerHTML = '<option value="">— Attacker —</option>';
+  targetSelect.innerHTML   = '<option value="">— Target —</option>';
   state.combatants.forEach(c => {
-    const card = listEl.querySelector(`.combatant-card[data-id="${c.id}"]`);
-    if (!card) return;
-    const isAttacker    = attackState.attackerId === c.id;
-    const isTarget      = attackState.targetId   === c.id;
-    const isAttackReady = isAttacker && attackMode;
-    card.classList.toggle("is-attacker",    isAttacker);
-    card.classList.toggle("is-target",      isTarget);
-    card.classList.toggle("is-attack-mode", isAttackReady);
+    const isDead = c.type !== "player" && c.maxHp > 0 && c.hp <= 0;
+    const label  = c.name + (isDead ? " ☠" : "");
+    attackerSelect.appendChild(new Option(label, c.id, false, c.id === prevA));
+    targetSelect.appendChild(  new Option(label, c.id, false, c.id === prevT));
   });
+  syncAttackDmgGroup();
 }
 
-function onCardDblClick(id) {
+function showCombatantInfo(id) {
   const c = state.combatants.find(x => x.id === id);
-  if (!c) return;
-  // Enter attack mode with this combatant as the attacker
-  attackMode  = true;
-  attackState = { attackerId: id, targetId: null };
-  showAttackBar(c, null);
-  render();
+  if (!c) { hideCombatantInfo(); return; }
+  const col      = TYPE_COLORS[c.type] || TYPE_COLORS.npc;
+  const isPlayer = c.type === "player";
+  const isDead   = !isPlayer && c.maxHp > 0 && c.hp <= 0;
+  const hpPct    = c.maxHp > 0 ? Math.max(0, Math.min(100, (c.hp / c.maxHp) * 100)) : 0;
+  const hpColor  = hpPct > 60 ? "#4caf50" : hpPct > 30 ? "#ff9800" : "#e53935";
+  const statMod  = v => { const m = Math.floor((v - 10) / 2); return (m >= 0 ? "+" : "") + m; };
+
+  // Fall back to template data for old combatants that predate full stat saving
+  const tmpl = (window._enemyTemplates || []).find(
+    t => t.id === c.templateId || t.name.toLowerCase() === c.name.replace(/ \d+$/, "").toLowerCase()
+  );
+  const src = {
+    stats:     c.stats     ?? tmpl?.stats     ?? null,
+    attacks:   c.attacks   ?? tmpl?.attacks   ?? null,
+    speed:     c.speed     ?? tmpl?.speed     ?? null,
+    saves:     c.saves     ?? tmpl?.saves     ?? null,
+    condImm:   c.condImm   ?? tmpl?.condImm   ?? null,
+    languages: c.languages ?? tmpl?.languages ?? null,
+    notes:     c.notes     ?? tmpl?.notes     ?? null,
+    cr:        c.cr        ?? tmpl?.cr        ?? null,
+  };
+
+  cipName.textContent = c.name;
+  cipName.style.color = col.border;
+
+  let html = "";
+
+  // HP / AC / Initiative / CR chips
+  if (!isPlayer && c.maxHp > 0) {
+    html += `<div class="cip-hp-row">
+      <div class="hp-bar-wrap" style="flex:1;min-width:60px">
+        <div class="hp-bar-fill" style="width:${hpPct}%;background:${hpColor}"></div>
+      </div>
+      <span class="cip-stat-chip">${isDead ? "☠ Dead" : `${c.hp} / ${c.maxHp} HP`}</span>
+      ${c.ac         != null ? `<span class="cip-stat-chip"><iconify-icon icon="game-icons:shield"></iconify-icon> AC ${c.ac}</span>` : ""}
+      ${c.initiative != null ? `<span class="cip-stat-chip">Init ${c.initiative}</span>` : ""}
+      ${src.cr       ? `<span class="cip-stat-chip">CR ${src.cr}</span>` : ""}
+    </div>`;
+  }
+
+  // Ability scores
+  if (src.stats) {
+    html += `<div class="cip-stats-row">
+      ${["str","dex","con","int","wis","cha"].map(k => src.stats[k] != null ? `
+        <div class="cip-stat-block">
+          <span class="cip-stat-name">${k.toUpperCase()}</span>
+          <span class="cip-stat-val">${src.stats[k]}</span>
+          <span class="cip-stat-mod">${statMod(src.stats[k])}</span>
+        </div>` : "").join("")}
+    </div>`;
+  }
+
+  // Attacks
+  const atks = toArr(src.attacks);
+  if (atks) {
+    html += `<div class="cip-section">
+      <div class="cip-section-title">Attacks</div>
+      ${atks.map(a => `
+        <div class="cip-attack-row">
+          <span class="cip-atk-name">${escHtml(a.name)}</span>
+          ${a.hit    ? `<span class="cip-atk-chip">${escHtml(a.hit)}</span>` : ""}
+          ${a.damage ? `<span class="cip-atk-dmg">${escHtmlNl(a.damage)}</span>` : ""}
+        </div>`).join("")}
+    </div>`;
+  }
+
+  // Extra fields
+  const extras = [
+    src.speed     ? ["Speed",  src.speed]     : null,
+    src.saves     ? ["Saves",  src.saves]     : null,
+    src.condImm   ? ["Immune", src.condImm]   : null,
+    src.languages ? ["Lang",   src.languages] : null,
+    src.notes     ? ["Notes",  src.notes]     : null,
+  ].filter(Boolean);
+  if (extras.length) {
+    html += `<div class="cip-section">
+      ${extras.map(([lbl, val]) => `
+        <div class="cip-extra-row">
+          <span class="cip-extra-label">${lbl}</span>
+          <span>${escHtmlNl(val)}</span>
+        </div>`).join("")}
+    </div>`;
+  }
+
+  // Conditions
+  if (c.conditions && c.conditions.length) {
+    const condHtml = c.conditions.map(cond => {
+      const cd = CONDITIONS.find(x => x.id === cond.id);
+      if (!cd) return "";
+      const rounds = cond.rounds != null ? ` (${cond.rounds})` : "";
+      return `<span class="condition-pill" style="border-color:${cd.color};color:${cd.color}"><iconify-icon icon="${cd.icon}"></iconify-icon> ${cd.label}${rounds}</span>`;
+    }).join("");
+    if (condHtml) html += `<div class="card-conditions">${condHtml}</div>`;
+  }
+
+  // No data at all — guide user to re-import
+  if (!src.stats && !atks && !extras.length && !c.conditions?.length) {
+    html += `<p style="font-size:12px;color:#555;font-style:italic;margin:4px 0">No stat data. Re-import D&amp;D 5e templates or edit this template to add a stat block.</p>`;
+  }
+
+  // Set the accent colour on the inner element to match combatant type
+  const inner = cipPanel.querySelector(".cip-inner");
+  if (inner) inner.style.setProperty("--cip-accent", col.border);
+
+  cipBody.innerHTML = html;
+  cipPanel.classList.add("open");
 }
 
-function showAttackBar(attacker, target) {
-  fieldAttackBar.style.display = "flex";
-  attackAttackerName.textContent = attacker ? attacker.name : "—";
+function hideCombatantInfo() {
+  cipPanel.classList.remove("open");
+}
 
-  if (!target) {
-    if (attackMode) {
-      attackTargetName.textContent  = "Select a target…";
-      attackTargetName.style.fontStyle = "italic";
-      attackTargetName.style.color     = "#e57373";
-    } else {
-      attackTargetName.textContent  = "Double-click to attack";
-      attackTargetName.style.fontStyle = "italic";
-      attackTargetName.style.color     = "#888";
-    }
-    attackDmgGroup.style.display = "none";
-  } else {
-    const hpText = (target.type !== "player" && target.maxHp > 0)
-      ? `  (${target.hp}/${target.maxHp} HP)` : "";
-    attackTargetName.textContent     = target.name + hpText;
-    attackTargetName.style.fontStyle = "normal";
-    attackTargetName.style.color     = "#e57373";
-    attackDmgGroup.style.display = "flex";
+// Sync selects + dmg group to current attackState; open info panel for target
+function showAttackBar(attacker, target) {
+  if (attacker) attackerSelect.value = attacker.id;
+  if (target) {
+    attackState.targetId = target.id;
+    targetSelect.value   = target.id;
+    showCombatantInfo(target.id);
     attackDmgInput.value = "";
     setTimeout(() => attackDmgInput.focus(), 50);
+  } else {
+    attackState.targetId = null;
+    targetSelect.value   = "";
+    hideCombatantInfo();
   }
+  syncAttackDmgGroup();
 }
 
 function cancelAttack() {
-  attackMode  = false;
+  attackMode = false;
   attackState = { attackerId: null, targetId: null };
-  fieldAttackBar.style.display = "none";
-  render();
+  attackerSelect.value = "";
+  targetSelect.value   = "";
+  syncAttackDmgGroup();
+  hideCombatantInfo();
+  patchCardClasses();
 }
 
 function resolveAttack(isDamage) {
@@ -1037,9 +1140,86 @@ function resolveAttack(isDamage) {
   render();
 }
 
+// ── Card click handlers ───────────────────────────────────────────────────────
+function onCardClick(id) {
+  const c = state.combatants.find(x => x.id === id);
+  if (!c) return;
+
+  // Always show info panel for the clicked card
+  showCombatantInfo(id);
+
+  if (attackMode) {
+    if (attackState.attackerId === id) {
+      // Clicking the attacker again exits attack mode
+      attackMode = false;
+      attackState.targetId = null;
+      targetSelect.value   = "";
+      syncAttackDmgGroup();
+    } else {
+      // Pick this card as the target
+      attackState.targetId = id;
+      targetSelect.value   = id;
+      const attacker = state.combatants.find(x => x.id === attackState.attackerId);
+      showAttackBar(attacker, c);
+    }
+    render();
+  } else {
+    attackState = { attackerId: id, targetId: null };
+    attackerSelect.value = id;
+    targetSelect.value   = "";
+    syncAttackDmgGroup();
+    patchCardClasses();
+  }
+}
+
+function patchCardClasses() {
+  state.combatants.forEach(c => {
+    const card = listEl.querySelector(`.combatant-card[data-id="${c.id}"]`);
+    if (!card) return;
+    const isAttacker    = attackState.attackerId === c.id;
+    const isTarget      = attackState.targetId   === c.id;
+    const isAttackReady = isAttacker && attackMode;
+    card.classList.toggle("is-attacker",    isAttacker);
+    card.classList.toggle("is-target",      isTarget);
+    card.classList.toggle("is-attack-mode", isAttackReady);
+  });
+}
+
+function onCardDblClick(id) {
+  const c = state.combatants.find(x => x.id === id);
+  if (!c) return;
+  attackMode  = true;
+  attackState = { attackerId: id, targetId: null };
+  attackerSelect.value = id;
+  targetSelect.value   = "";
+  syncAttackDmgGroup();
+  render();
+}
+
+// ── Dropdown change handlers ──────────────────────────────────────────────────
+attackerSelect.addEventListener("change", () => {
+  attackState.attackerId = attackerSelect.value || null;
+  syncAttackDmgGroup();
+  patchCardClasses();
+});
+
+targetSelect.addEventListener("change", () => {
+  attackState.targetId = targetSelect.value || null;
+  syncAttackDmgGroup();
+  patchCardClasses();
+  if (attackState.targetId) {
+    showCombatantInfo(attackState.targetId);
+    attackDmgInput.value = "";
+    setTimeout(() => attackDmgInput.focus(), 50);
+  } else {
+    hideCombatantInfo();
+  }
+});
+
 document.getElementById("attack-deal-btn").addEventListener("click",  () => resolveAttack(true));
 document.getElementById("attack-heal-btn").addEventListener("click",  () => resolveAttack(false));
 document.getElementById("attack-cancel-btn").addEventListener("click", cancelAttack);
+document.getElementById("cip-close").addEventListener("click", hideCombatantInfo);
 attackDmgInput.addEventListener("keydown", e => {
   if (e.key === "Enter")  resolveAttack(true);
   if (e.key === "Escape") cancelAttack();
@@ -1694,7 +1874,7 @@ etSpawnBtn.addEventListener("click", () => {
       notes:       tmpl.notes     || null,
       speed:       tmpl.speed     || null,
       stats:       tmpl.stats     || null,
-      attacks:     tmpl.attacks?.length ? tmpl.attacks : null,
+      attacks:     toArr(tmpl.attacks),
       saves:       tmpl.saves     || null,
       condImm:     tmpl.condImm   || null,
       languages:   tmpl.languages || null,
@@ -2017,16 +2197,52 @@ if (btnImportCreatures) {
           if (customNames.has(m.name.toLowerCase())) return Promise.resolve();
           const ac      = Array.isArray(m.armor_class) ? (m.armor_class[0]?.value ?? 10) : (m.armor_class || 10);
           const initMod = Math.floor(((m.dexterity || 10) - 10) / 2);
+
+          // Full stat block
+          const stats = {
+            str: m.strength    || 10,
+            dex: m.dexterity   || 10,
+            con: m.constitution|| 10,
+            int: m.intelligence|| 10,
+            wis: m.wisdom      || 10,
+            cha: m.charisma    || 10,
+          };
+
+          // Attacks from actions that have an attack roll or damage
+          const attacks = (m.actions || [])
+            .filter(a => a.attack_bonus != null || (a.damage && a.damage.length))
+            .slice(0, 8)
+            .map(a => ({
+              name:   a.name,
+              hit:    a.attack_bonus != null ? `+${a.attack_bonus} to hit` : "",
+              damage: (a.damage || [])
+                .map(d => `${d.damage_dice || ""} ${d.damage_type?.name || ""}`.trim())
+                .filter(Boolean).join(" + "),
+            }));
+
+          // Speed
+          const speedParts = m.speed ? Object.entries(m.speed)
+            .map(([k, v]) => k === "walk" ? v : `${k} ${v}`) : [];
+          const speed = speedParts.join(", ") || null;
+
+          // Condition immunities
+          const condImm = (m.condition_immunities || []).map(c => c.name).join(", ") || null;
+
           return window._saveEnemyTemplate({
-            id:       "dnd5e_" + m.index,
-            name:     m.name,
-            hp:       m.hit_points,
+            id:        "dnd5e_" + m.index,
+            name:      m.name,
+            hp:        m.hit_points,
             ac,
             initMod,
-            cr:       _fmtCR(m.challenge_rating),
-            type:     m.type || null,
-            builtin:  true,
-            loot:     { gpMin: 0, gpMax: 0, itemsMin: 0, itemsMax: 0 },
+            cr:        _fmtCR(m.challenge_rating),
+            speed,
+            notes:     m.type ? `${m.type}${m.subtype ? ` (${m.subtype})` : ""}` : null,
+            stats,
+            attacks,
+            condImm,
+            languages: m.languages || null,
+            builtin:   true,
+            loot:      { gpMin: 0, gpMax: 0, itemsMin: 0, itemsMax: 0 },
             lootItems: [],
           });
         }));
