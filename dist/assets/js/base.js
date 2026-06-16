@@ -82,8 +82,10 @@
   } catch(e) { /* ignore */ }
 
   // ── Hamburger menu ────────────────────────────────────────────────────────
+  // Only show when there are actual nav links (not just the user/login li)
   const nav = document.querySelector("nav");
-  if (nav) {
+  const _navLiCount = document.querySelectorAll("nav ul li").length;
+  if (nav && _navLiCount > 1) {
     const burger = document.createElement("button");
     burger.className = "nav-hamburger";
     burger.setAttribute("aria-label", "Toggle navigation");
@@ -116,6 +118,27 @@
 
     backdrop.addEventListener("click", () => closeNav());
   }
+
+  // ── Sidebar mobile drawer ───────────────────────────────────────────────────
+  (function () {
+    const shell    = document.querySelector(".app-shell");
+    const toggle   = document.querySelector(".mobile-nav-toggle");
+    const backdrop = document.querySelector(".mobile-nav-backdrop");
+    if (!shell || !toggle) return;
+
+    function open()  { shell.classList.add("nav-open");    toggle.setAttribute("aria-expanded", "true");  }
+    function close() { shell.classList.remove("nav-open"); toggle.setAttribute("aria-expanded", "false"); }
+
+    toggle.addEventListener("click", e => {
+      e.stopPropagation();
+      shell.classList.contains("nav-open") ? close() : open();
+    });
+    if (backdrop) backdrop.addEventListener("click", close);
+    shell.querySelectorAll(".sidebar a").forEach(a => a.addEventListener("click", close));
+    document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+    // Reset drawer state if resized up to desktop
+    window.matchMedia("(min-width: 901px)").addEventListener("change", e => { if (e.matches) close(); });
+  })();
 
   // ── Page exit transition ──────────────────────────────────────────────────
   (function () {

@@ -1,22 +1,54 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
 ---
-<Layout title="Quests — DnD Campaign" showCampaignTabs={true} activePage="missions" extraCSS={['/assets/css/missions.css']}>
+<Layout title="Quests — Essolis" activePage="missions" extraCSS={['/assets/css/missions.css']}>
 
-  <header class="quest-hero page-hero">
-    <button id="quest-add-btn" class="dm-btn quest-hero-add-btn page-hero__add-btn" style="display:none">+ New Quest</button>
-    <h1 class="quest-title page-hero__title">Quests</h1>
-    <p class="quest-subtitle page-hero__sub">Missions and adventures across Enora</p>
-    <div class="quest-filter-tabs">
-      <button class="quest-tab active" data-filter="all">All</button>
-      <button class="quest-tab" data-filter="main">Main</button>
-      <button class="quest-tab" data-filter="side">Side</button>
-      <button class="quest-tab" data-filter="active">Active</button>
-      <button class="quest-tab" data-filter="completed">Completed</button>
+  <Header
+    title="Quests"
+    description="Missions and adventures across Enora"
+    icon="game-icons:crossed-swords"
+    image={headerImg}
+  >
+    <div slot="tabs" class="hdr-tabs-row">
+      <div class="quest-filter-tabs">
+        <button class="quest-tab active" data-filter="all">All</button>
+        <button class="quest-tab" data-filter="main">
+          <iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Main
+        </button>
+        <button class="quest-tab" data-filter="side">
+          <iconify-icon icon="lucide:sparkles"></iconify-icon> Side
+        </button>
+        <button class="quest-tab" data-filter="active">Active</button>
+        <button class="quest-tab" data-filter="completed">Completed</button>
+      </div>
     </div>
-  </header>
+  </Header>
 
   <main class="quest-page-main">
+    <div class="items-filter-bar quest-filter-bar">
+      <div class="quest-stats-row">
+        <div class="quest-stat-item">
+          <span id="qs-completed" class="quest-stat-count">0</span>
+          <span class="quest-stat-label">Completed</span>
+        </div>
+        <div class="quest-stat-divider"></div>
+        <div class="quest-stat-item">
+          <span id="qs-main" class="quest-stat-count">0</span>
+          <span class="quest-stat-label">Main Quests</span>
+        </div>
+        <div class="quest-stat-divider"></div>
+        <div class="quest-stat-item">
+          <span id="qs-side" class="quest-stat-count">0</span>
+          <span class="quest-stat-label">Side Quests</span>
+        </div>
+      </div>
+      <button id="quest-add-btn" class="items-btn-add" style="display:none">
+        <iconify-icon icon="lucide:plus"></iconify-icon>
+        New Quest
+      </button>
+    </div>
     <div id="quest-grid" class="quest-grid"></div>
     <p id="quest-empty" class="quest-empty" style="display:none">No quests found.</p>
   </main>
@@ -91,18 +123,24 @@ import Layout from '../layouts/Layout.astro';
 
         <!-- Left sidebar -->
         <aside class="qm-sidebar">
+          <div class="qm-sidebar-tabs">
+            <button type="button" class="qm-sidebar-tab active" data-tab="content"><iconify-icon icon="lucide:layout-grid"></iconify-icon> Content</button>
+            <button type="button" class="qm-sidebar-tab" data-tab="outline"><iconify-icon icon="lucide:list-tree"></iconify-icon> Outline</button>
+            <button type="button" class="qm-sidebar-tab" data-tab="details"><iconify-icon icon="lucide:scroll-text"></iconify-icon> Details</button>
+          </div>
+
+          <div class="qm-sidebar-pane" data-pane="content">
           <div class="qm-sidebar-section">
             <div class="qm-sidebar-label">Add content</div>
             <button type="button" class="qm-add-block-btn" data-block-type="text"      title="Paragraph of text"><iconify-icon icon="lucide:type" class="qm-ab-icon"></iconify-icon><span class="qm-ab-text">Text</span></button>
             <button type="button" class="qm-add-block-btn" data-block-type="phase"     title="Quest phase / step"><iconify-icon icon="lucide:chevron-right" class="qm-ab-icon qm-ab-phase"></iconify-icon><span class="qm-ab-text">Phase</span></button>
             <button type="button" class="qm-add-block-btn" data-block-type="loot"      title="Loot / rewards"><iconify-icon icon="game-icons:open-treasure-chest" class="qm-ab-icon qm-ab-loot"></iconify-icon><span class="qm-ab-text">Loot</span></button>
-            <button type="button" class="qm-add-block-btn" data-block-type="boss"      title="Enemy list (reference only)"><iconify-icon icon="game-icons:skull" class="qm-ab-icon qm-ab-boss"></iconify-icon><span class="qm-ab-text">Enemy</span></button>
+            <button type="button" class="qm-add-block-btn" data-block-type="boss"      title="Enemy list (reference only)"><iconify-icon icon="game-icons:death-skull" class="qm-ab-icon qm-ab-boss"></iconify-icon><span class="qm-ab-text">Enemy</span></button>
             <button type="button" class="qm-add-block-btn" data-block-type="encounter" title="Encounter — launch directly to combat"><iconify-icon icon="game-icons:crossed-swords" class="qm-ab-icon qm-ab-encounter"></iconify-icon><span class="qm-ab-text">Encounter</span></button>
             <button type="button" class="qm-add-block-btn" data-block-type="puzzle"    title="Puzzle / riddle"><iconify-icon icon="game-icons:puzzle" class="qm-ab-icon qm-ab-puzzle"></iconify-icon><span class="qm-ab-text">Puzzle</span></button>
             <button type="button" class="qm-add-block-btn" data-block-type="character" title="Character / NPC"><iconify-icon icon="lucide:user" class="qm-ab-icon qm-ab-char"></iconify-icon><span class="qm-ab-text">Character</span></button>
             <button type="button" class="qm-add-block-btn" data-block-type="loreref"   title="Lore reference"><iconify-icon icon="game-icons:bookshelf" class="qm-ab-icon qm-ab-lore"></iconify-icon><span class="qm-ab-text">Lore</span></button>
             <button type="button" class="qm-add-block-btn" data-block-type="note"      title="DM-only note"><iconify-icon icon="lucide:file-text" class="qm-ab-icon qm-ab-note"></iconify-icon><span class="qm-ab-text">DM Note</span></button>
-            <button type="button" class="qm-add-block-btn" data-block-type="divider"   title="Chapter divider"><iconify-icon icon="lucide:minus" class="qm-ab-icon qm-ab-div"></iconify-icon><span class="qm-ab-text">Divider</span></button>
           </div>
 
           <div class="qm-sidebar-section qm-sidebar-templates">
@@ -144,6 +182,71 @@ import Layout from '../layouts/Layout.astro';
               <li><span class="qm-kbd">Ctrl+Z</span> undo, <span class="qm-kbd">Ctrl+Y</span> redo.</li>
             </ul>
           </div>
+          </div><!-- /content pane -->
+
+          <div class="qm-sidebar-pane" data-pane="outline" hidden>
+            <div class="qm-sidebar-label">Quest outline</div>
+            <p class="qm-outline-hint">Click an item to focus it on the canvas. Use the arrows to reorder.</p>
+            <div id="qm-outline" class="qm-outline"></div>
+          </div><!-- /outline pane -->
+
+          <div class="qm-sidebar-pane" data-pane="details" hidden>
+            <!-- Quest giver -->
+            <div class="qm-detail-section">
+              <div class="qm-sidebar-label">Quest giver</div>
+              <div id="qm-giver-selected" class="qm-giver-selected" style="display:none"></div>
+              <div class="qm-detail-search-wrap">
+                <input type="text" id="qm-giver-search" class="qm-input qm-detail-input" placeholder="Search characters…" autocomplete="off" />
+                <div id="qm-giver-drop" class="loc-dropdown" style="display:none"></div>
+              </div>
+            </div>
+
+            <!-- Rewards -->
+            <div class="qm-detail-section">
+              <div class="qm-sidebar-label">Rewards</div>
+              <div class="qm-reward-row">
+                <label class="qm-reward-field">
+                  <span class="qm-reward-icon"><iconify-icon icon="game-icons:sparkles"></iconify-icon> XP</span>
+                  <input type="number" id="qm-reward-xp" class="qm-input qm-detail-input" min="0" placeholder="0" />
+                </label>
+                <label class="qm-reward-field">
+                  <span class="qm-reward-icon"><iconify-icon icon="game-icons:two-coins"></iconify-icon> Gold</span>
+                  <input type="number" id="qm-reward-gold" class="qm-input qm-detail-input" min="0" placeholder="0" />
+                </label>
+              </div>
+              <div class="qm-detail-search-wrap">
+                <input type="text" id="qm-reward-item-search" class="qm-input qm-detail-input" placeholder="Add item reward…" autocomplete="off" />
+                <div id="qm-reward-item-drop" class="loc-dropdown" style="display:none"></div>
+              </div>
+              <div id="qm-reward-items" class="qm-reward-items"></div>
+            </div>
+
+            <!-- Recommended level -->
+            <div class="qm-detail-section">
+              <div class="qm-sidebar-label">Recommended level</div>
+              <input type="text" id="qm-reclevel" class="qm-input qm-detail-input" placeholder="e.g. 3–5" />
+            </div>
+
+            <!-- Objectives -->
+            <div class="qm-detail-section">
+              <div class="qm-sidebar-label">Objectives</div>
+              <div id="qm-obj-list" class="qm-obj-list"></div>
+              <div class="qm-obj-add-row">
+                <input type="text" id="qm-obj-input" class="qm-input qm-detail-input" placeholder="Add an objective…" />
+                <button type="button" id="qm-obj-add" class="qm-detail-add-btn" title="Add objective"><iconify-icon icon="lucide:plus"></iconify-icon></button>
+              </div>
+            </div>
+
+            <!-- Prerequisites -->
+            <div class="qm-detail-section">
+              <div class="qm-sidebar-label">Requires (prerequisite quests)</div>
+              <div id="qm-prereq-list" class="qm-prereq-list"></div>
+              <div class="qm-detail-search-wrap">
+                <input type="text" id="qm-prereq-search" class="qm-input qm-detail-input" placeholder="Link a prerequisite quest…" autocomplete="off" />
+                <div id="qm-prereq-drop" class="loc-dropdown" style="display:none"></div>
+              </div>
+            </div>
+          </div><!-- /details pane -->
         </aside>
 
         <!-- Right: main canvas -->

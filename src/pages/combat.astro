@@ -1,54 +1,49 @@
 ---
 import Layout from '../layouts/Layout.astro';
 ---
-<Layout title="Combat — DnD Campaign" showCampaignTabs={true} activePage="combat" extraCSS={['/assets/css/combat.css']} bodyClass="combat-page">
-  <!-- Hero bar -->
-  <header class="combat-hero">
-    <div class="hero-left">
-      <h1 class="combat-title"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Combat</h1>
-      <div class="round-counter">Round <span id="round-num">1</span></div>
-    </div>
-    <div class="hero-center" id="turn-banner">
-      <span class="turn-label">&#8212; Not in combat &#8212;</span>
-    </div>
-    <div class="hero-right">
-      <button id="btn-prev"  class="hero-nav-btn" disabled title="Previous Turn"><iconify-icon icon="lucide:chevron-left"></iconify-icon></button>
-      <button id="btn-next"  class="hero-nav-btn" disabled title="Next Turn (Space)"><iconify-icon icon="lucide:chevron-right"></iconify-icon></button>
-      <button id="btn-start" class="hero-start-btn"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Start Combat</button>
-      <button id="btn-end"   class="hero-end-btn" style="display:none"><iconify-icon icon="lucide:x"></iconify-icon> End Combat</button>
-    </div>
-  </header>
+<Layout title="Combat — Essolis" activePage="combat" extraCSS={['/assets/css/combat.css']} pageContentStyle="overflow:hidden">
 
-  <!-- Two-column layout -->
+  <!-- Three-column layout: initiative | log | loot -->
   <div class="combat-layout">
 
     <aside class="overlay-panel overlay-left">
       <div class="overlay-header">
-        <span class="overlay-title">Initiative</span>
+        <span class="overlay-title"><iconify-icon icon="game-icons:rank-3" style="font-size:14px;opacity:0.7"></iconify-icon> Initiative</span>
         <div class="list-actions">
           <button id="btn-enemy-list" class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="game-icons:skull"></iconify-icon> Enemies</button>
           <button id="btn-sort"  class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="lucide:arrow-up-down"></iconify-icon></button>
           <button id="btn-clear" class="ctrl-btn ctrl-btn-danger"><iconify-icon icon="lucide:x"></iconify-icon></button>
-          <button id="btn-add"   class="ctrl-btn ctrl-btn-primary">+ Add</button>
+          <button id="btn-add"   class="ctrl-btn ctrl-btn-primary"><iconify-icon icon="lucide:plus"></iconify-icon> Add</button>
         </div>
       </div>
       <div id="combatant-list" class="combatant-list"></div>
     </aside>
 
-    <aside class="overlay-panel overlay-right">
+    <!-- Combatant detail panel — slides in from the right of the initiative list -->
+    <div id="combatant-info-panel" class="combatant-info-panel">
+      <div class="cip-inner">
+        <div class="cip-header">
+          <span class="cip-name" id="cip-name">—</span>
+          <button class="cip-close-btn" id="cip-close" title="Close">&times;</button>
+        </div>
+        <div class="cip-body" id="cip-body"></div>
+      </div>
+    </div>
+
+    <aside class="overlay-panel overlay-right" style="display:none">
       <div class="overlay-header">
-        <span class="overlay-title">Combat Log</span>
-        <button id="btn-clear-log" class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="lucide:x"></iconify-icon></button>
+        <span class="overlay-title"><iconify-icon icon="lucide:scroll-text" style="font-size:14px;opacity:0.7"></iconify-icon> Combat Log</span>
+        <button id="btn-clear-log" class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
       </div>
       <div id="combat-log" class="combat-log">
         <p class="log-empty">Combat log will appear here.</p>
       </div>
     </aside>
 
-    <aside class="overlay-panel overlay-loot">
+    <aside class="overlay-panel overlay-loot" style="display:none">
       <div class="overlay-header">
-        <span class="overlay-title"><iconify-icon icon="game-icons:coins"></iconify-icon> Loot</span>
-        <button id="btn-clear-loot" class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="lucide:x"></iconify-icon></button>
+        <span class="overlay-title"><iconify-icon icon="game-icons:coins" style="font-size:14px;opacity:0.7"></iconify-icon> Loot</span>
+        <button id="btn-clear-loot" class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
       </div>
       <div id="loot-panel" class="loot-panel">
         <p class="loot-panel-empty">Loot drops when enemies fall.</p>
@@ -57,127 +52,157 @@ import Layout from '../layouts/Layout.astro';
 
   </div>
 
-  <!-- Attack bar -->
-  <div id="field-attack-bar" class="field-attack-bar" style="display:none">
-    <span class="attack-bar-attacker" id="attack-attacker-name">—</span>
-    <iconify-icon icon="lucide:arrow-right" class="attack-bar-arrow"></iconify-icon>
-    <span class="attack-bar-target" id="attack-target-name">Select a target from the list</span>
-    <div class="attack-dmg-group" id="attack-dmg-group" style="display:none">
-      <input type="number" id="attack-dmg-input" placeholder="DMG" min="0" />
-      <button id="attack-deal-btn" class="ctrl-btn ctrl-btn-danger"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Deal</button>
-      <button id="attack-heal-btn" class="ctrl-btn" style="background:#154a1a;color:#a5d6a7;border:1px solid #2a7a30"><iconify-icon icon="lucide:heart"></iconify-icon> Heal</button>
+  <!-- Bottom toolbar: attack bar + round/turn controls -->
+  <div class="combat-ctrl-wrap">
+
+    <!-- Attack bar -->
+    <div id="field-attack-bar" class="combat-ctrl-bar">
+      <select id="attack-attacker-sel" class="atk-select" title="Attacker">
+        <option value="">— Attacker —</option>
+      </select>
+      <iconify-icon icon="lucide:arrow-right" class="attack-bar-arrow"></iconify-icon>
+      <select id="attack-target-sel" class="atk-select" title="Target">
+        <option value="">— Target —</option>
+      </select>
+      <div class="ccb-divider"></div>
+      <input type="number" id="attack-dmg-input" class="attack-dmg-input" placeholder="" min="0" />
+      <button id="attack-deal-btn" class="atk-action-btn atk-deal-btn" title="Deal Damage"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon></button>
+      <button id="attack-heal-btn" class="atk-action-btn atk-heal-btn" title="Heal"><iconify-icon icon="lucide:heart"></iconify-icon></button>
+      <div class="ccb-divider"></div>
+      <button id="attack-cancel-btn" class="hero-nav-btn" title="Clear Selection"><iconify-icon icon="lucide:x"></iconify-icon></button>
     </div>
-    <button id="attack-cancel-btn" class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="lucide:x"></iconify-icon> Cancel</button>
+
+    <!-- Round / turn controls -->
+    <div class="combat-ctrl-bar">
+      <div class="round-counter">Round <span id="round-num">1</span></div>
+      <div class="ccb-divider"></div>
+      <div class="ccb-center" id="turn-banner">
+        <span class="turn-label">&#8212; Not in combat &#8212;</span>
+      </div>
+      <div class="ccb-divider"></div>
+      <button id="btn-prev"  class="hero-nav-btn" disabled title="Previous Turn"><iconify-icon icon="lucide:chevron-left"></iconify-icon></button>
+      <button id="btn-next"  class="hero-nav-btn" disabled title="Next Turn (Space)"><iconify-icon icon="lucide:chevron-right"></iconify-icon></button>
+      <div class="ccb-divider"></div>
+      <button id="btn-toggle-log"  class="hero-nav-btn ccb-panel-btn" title="Combat Log"><iconify-icon icon="lucide:scroll-text"></iconify-icon></button>
+      <button id="btn-toggle-loot" class="hero-nav-btn ccb-panel-btn" title="Loot"><iconify-icon icon="game-icons:coins"></iconify-icon></button>
+      <div class="ccb-divider"></div>
+      <button id="btn-start" class="hero-start-btn"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Start Combat</button>
+      <button id="btn-end"   class="hero-end-btn" style="display:none"><iconify-icon icon="lucide:x"></iconify-icon> End Combat</button>
+    </div>
+
   </div>
 
-  <!-- Add / Edit Combatant -->
+
+  <!-- Add / Edit Combatant Modal -->
   <div id="combatant-modal" class="modal-overlay">
     <div class="modal-box">
       <h2 id="cm-title">Add Combatant</h2>
-      <div class="form-row" id="cm-name-row">
-        <label>Name <span class="req">*</span>
-          <input type="text" id="cm-name" placeholder="e.g. Gandalf" />
-        </label>
-      </div>
-      <div class="form-row" id="cm-player-pick-row" style="display:none">
-        <span class="field-label">Select Player <span class="req">*</span></span>
-        <div id="cm-player-list" class="cm-player-list"></div>
-      </div>
-      <div class="form-row">
-        <span class="field-label">Type</span>
-        <div class="type-selector" id="cm-type-btns">
-          <button type="button" class="type-btn active" data-type="player">Player</button>
-          <button type="button" class="type-btn"        data-type="enemy">Enemy</button>
-          <button type="button" class="type-btn"        data-type="ally">Ally</button>
-          <button type="button" class="type-btn"        data-type="npc">NPC</button>
-        </div>
-      </div>
-      <div class="form-row" id="cm-enemy-tmpl-row" style="display:none">
-        <span class="field-label">Enemy Template <span class="req">*</span></span>
-        <input type="text" id="cm-enemy-tmpl-search" placeholder="Search your enemy templates…" autocomplete="off" />
-        <div id="cm-enemy-tmpl-list" class="preset-list"></div>
-        <div id="cm-enemy-tmpl-badge" class="preset-selected-badge" style="display:none"></div>
-      </div>
-      <div class="form-row" id="cm-enemy-count-row" style="display:none">
-        <label>Count <span class="field-hint">adds A, B, C…</span>
-          <input type="number" id="cm-enemy-count" value="1" min="1" max="26" />
-        </label>
-      </div>
-      <div class="form-row" id="cm-preset-row">
-        <span class="field-label">Monster Preset <span class="field-hint">optional — auto-fills stats</span></span>
-        <input type="text" id="cm-preset-search" placeholder="Search monsters… e.g. Goblin" autocomplete="off" />
-        <div id="cm-preset-list" class="preset-list"></div>
-        <div id="cm-preset-selected" class="preset-selected-badge" style="display:none"></div>
-      </div>
-      <div class="form-row">
-        <label id="cm-init-label">Initiative rolled
-          <div class="init-group">
-            <input type="number" id="cm-initiative" placeholder="e.g. 14" min="-5" max="50" />
-            <button type="button" id="cm-roll-init" class="roll-btn">d20</button>
-          </div>
-        </label>
-      </div>
-      <div id="cm-non-player-rows">
-        <div class="form-row two-col">
-          <label>Current HP
-            <input type="number" id="cm-hp" placeholder="e.g. 10" min="0" max="9999" />
-          </label>
-          <label>Max HP <span class="req">*</span>
-            <input type="number" id="cm-maxhp" placeholder="e.g. 10" min="1" max="9999" />
+      <div class="modal-body">
+        <div class="form-row" id="cm-name-row">
+          <label>Name <span class="req">*</span>
+            <input type="text" id="cm-name" placeholder="e.g. Gandalf" />
           </label>
         </div>
-        <div class="form-row two-col">
-          <label>Armor Class
-            <input type="number" id="cm-ac" placeholder="10" min="0" max="30" />
-          </label>
-          <label>Count <span class="field-hint">A, B, C…</span>
-            <input type="number" id="cm-count" value="1" min="1" max="26" />
-          </label>
+        <div class="form-row" id="cm-player-pick-row" style="display:none">
+          <span class="field-label">Select Player <span class="req">*</span></span>
+          <div id="cm-player-list" class="cm-player-list"></div>
         </div>
         <div class="form-row">
-          <label>Notes <span class="field-hint">optional</span>
-            <textarea id="cm-notes" placeholder="e.g. Fire resist, flying, rage…" rows="2"></textarea>
+          <span class="field-label">Type</span>
+          <div class="type-selector" id="cm-type-btns">
+            <button type="button" class="type-btn active" data-type="player">Player</button>
+            <button type="button" class="type-btn"        data-type="enemy">Enemy</button>
+            <button type="button" class="type-btn"        data-type="ally">Ally</button>
+            <button type="button" class="type-btn"        data-type="npc">NPC</button>
+          </div>
+        </div>
+        <div class="form-row" id="cm-enemy-tmpl-row" style="display:none">
+          <span class="field-label">Enemy Template <span class="req">*</span></span>
+          <input type="text" id="cm-enemy-tmpl-search" placeholder="Search your enemy templates…" autocomplete="off" />
+          <div id="cm-enemy-tmpl-list" class="preset-list"></div>
+          <div id="cm-enemy-tmpl-badge" class="preset-selected-badge" style="display:none"></div>
+        </div>
+        <div class="form-row" id="cm-enemy-count-row" style="display:none">
+          <label>Count <span class="field-hint">adds 1, 2, 3…</span>
+            <input type="number" id="cm-enemy-count" value="1" min="1" max="26" />
           </label>
         </div>
-
-        <div id="cm-loot-rows" style="display:none">
-          <div class="loot-section-divider"><iconify-icon icon="game-icons:coins"></iconify-icon> Loot Table</div>
+        <div class="form-row" id="cm-preset-row">
+          <span class="field-label">Monster Preset <span class="field-hint">optional — auto-fills stats</span></span>
+          <input type="text" id="cm-preset-search" placeholder="Search monsters… e.g. Goblin" autocomplete="off" />
+          <div id="cm-preset-list" class="preset-list"></div>
+          <div id="cm-preset-selected" class="preset-selected-badge" style="display:none"></div>
+        </div>
+        <div class="form-row">
+          <label id="cm-init-label">Initiative rolled
+            <div class="init-group">
+              <input type="number" id="cm-initiative" placeholder="e.g. 14" min="-5" max="50" />
+              <button type="button" id="cm-roll-init" class="roll-btn">d20</button>
+            </div>
+          </label>
+        </div>
+        <div id="cm-non-player-rows">
           <div class="form-row two-col">
-            <label>Min Gold (gp)
-              <input type="number" id="cm-loot-gp-min" value="0" min="0" max="9999" />
+            <label>Current HP
+              <input type="number" id="cm-hp" placeholder="e.g. 10" min="0" max="9999" />
             </label>
-            <label>Max Gold (gp)
-              <input type="number" id="cm-loot-gp-max" value="0" min="0" max="9999" />
+            <label>Max HP <span class="req">*</span>
+              <input type="number" id="cm-maxhp" placeholder="e.g. 10" min="1" max="9999" />
             </label>
           </div>
           <div class="form-row two-col">
-            <label>Min Items
-              <input type="number" id="cm-loot-items-min" value="0" min="0" max="10" />
+            <label>Armor Class
+              <input type="number" id="cm-ac" placeholder="10" min="0" max="30" />
             </label>
-            <label>Max Items
-              <input type="number" id="cm-loot-items-max" value="0" min="0" max="10" />
+            <label>Count <span class="field-hint">1, 2, 3…</span>
+              <input type="number" id="cm-count" value="1" min="1" max="26" />
             </label>
           </div>
           <div class="form-row">
-            <span class="field-label">Item Tags <span class="field-hint">click to toggle — pulls from your Items tab</span></span>
-            <div class="loot-tag-grid" id="cm-loot-tags">
-              <button type="button" class="loot-tag-btn" data-tag="weapon"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Weapon</button>
-              <button type="button" class="loot-tag-btn" data-tag="armor"><iconify-icon icon="game-icons:shield"></iconify-icon> Armor</button>
-              <button type="button" class="loot-tag-btn" data-tag="potion"><iconify-icon icon="game-icons:potion"></iconify-icon> Potion</button>
-              <button type="button" class="loot-tag-btn" data-tag="magic"><iconify-icon icon="lucide:sparkles"></iconify-icon> Magic</button>
-              <button type="button" class="loot-tag-btn" data-tag="tool"><iconify-icon icon="lucide:hammer"></iconify-icon> Tool</button>
-              <button type="button" class="loot-tag-btn" data-tag="food"><iconify-icon icon="lucide:utensils"></iconify-icon> Food</button>
-              <button type="button" class="loot-tag-btn" data-tag="book"><iconify-icon icon="game-icons:bookshelf"></iconify-icon> Book</button>
-              <button type="button" class="loot-tag-btn" data-tag="misc"><iconify-icon icon="lucide:package"></iconify-icon> Misc</button>
+            <label>Notes <span class="field-hint">optional</span>
+              <textarea id="cm-notes" placeholder="e.g. Fire resist, flying, rage…" rows="2"></textarea>
+            </label>
+          </div>
+
+          <div id="cm-loot-rows" style="display:none">
+            <div class="loot-section-divider"><iconify-icon icon="game-icons:coins"></iconify-icon> Loot Table</div>
+            <div class="form-row two-col">
+              <label>Min Gold (gp)
+                <input type="number" id="cm-loot-gp-min" value="0" min="0" max="9999" />
+              </label>
+              <label>Max Gold (gp)
+                <input type="number" id="cm-loot-gp-max" value="0" min="0" max="9999" />
+              </label>
+            </div>
+            <div class="form-row two-col">
+              <label>Min Items
+                <input type="number" id="cm-loot-items-min" value="0" min="0" max="10" />
+              </label>
+              <label>Max Items
+                <input type="number" id="cm-loot-items-max" value="0" min="0" max="10" />
+              </label>
+            </div>
+            <div class="form-row">
+              <span class="field-label">Item Tags <span class="field-hint">click to toggle — pulls from your Items tab</span></span>
+              <div class="loot-tag-grid" id="cm-loot-tags">
+                <button type="button" class="loot-tag-btn" data-tag="weapon"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Weapon</button>
+                <button type="button" class="loot-tag-btn" data-tag="armor"><iconify-icon icon="game-icons:shield"></iconify-icon> Armor</button>
+                <button type="button" class="loot-tag-btn" data-tag="potion"><iconify-icon icon="game-icons:potion"></iconify-icon> Potion</button>
+                <button type="button" class="loot-tag-btn" data-tag="magic"><iconify-icon icon="lucide:sparkles"></iconify-icon> Magic</button>
+                <button type="button" class="loot-tag-btn" data-tag="tool"><iconify-icon icon="lucide:hammer"></iconify-icon> Tool</button>
+                <button type="button" class="loot-tag-btn" data-tag="food"><iconify-icon icon="lucide:utensils"></iconify-icon> Food</button>
+                <button type="button" class="loot-tag-btn" data-tag="book"><iconify-icon icon="game-icons:bookshelf"></iconify-icon> Book</button>
+                <button type="button" class="loot-tag-btn" data-tag="misc"><iconify-icon icon="lucide:package"></iconify-icon> Misc</button>
+              </div>
             </div>
           </div>
-        </div>
 
+        </div>
+        <div id="cm-error" class="modal-error"></div>
       </div>
-      <div id="cm-error" class="modal-error"></div>
       <div class="modal-actions">
-        <button id="cm-save"   class="dm-btn">Add</button>
         <button id="cm-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
+        <button id="cm-save"   class="dm-btn">Add</button>
       </div>
     </div>
   </div>
@@ -216,7 +241,12 @@ import Layout from '../layouts/Layout.astro';
         <div class="enemy-list-panel">
           <div class="enemy-list-toolbar">
             <input type="text" id="enemy-search" class="enemy-search-input" placeholder="Search…" />
-            <button id="btn-new-enemy" class="ctrl-btn ctrl-btn-primary">+ New</button>
+            <button id="btn-import-dnd5e-creatures" class="ctrl-btn ctrl-btn-secondary" style="display:none" title="Import all D&amp;D 5e monsters as templates"><iconify-icon icon="lucide:download"></iconify-icon></button>
+            <button id="btn-new-enemy" class="ctrl-btn ctrl-btn-primary"><iconify-icon icon="lucide:plus"></iconify-icon> New</button>
+          </div>
+          <div id="creature-import-progress" class="creature-import-progress" style="display:none">
+            <div class="creature-progress-track"><div id="creature-progress-fill" class="creature-progress-fill"></div></div>
+            <div id="creature-progress-label" class="creature-progress-label">Importing…</div>
           </div>
           <div id="enemy-template-list" class="enemy-template-list"></div>
         </div>
@@ -293,7 +323,7 @@ import Layout from '../layouts/Layout.astro';
             <div class="editor-section">
               <div class="editor-section-title-row">
                 <span class="editor-section-title"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Attacks</span>
-                <button type="button" id="et-add-attack-btn" class="ctrl-btn ctrl-btn-sm">+ Add Attack</button>
+                <button type="button" id="et-add-attack-btn" class="ctrl-btn ctrl-btn-sm ctrl-btn-secondary"><iconify-icon icon="lucide:plus"></iconify-icon> Add Attack</button>
               </div>
               <div id="et-attacks-list" class="et-attacks-list"></div>
             </div>
@@ -345,13 +375,13 @@ import Layout from '../layouts/Layout.astro';
 
             <div class="editor-footer">
               <div class="editor-footer-left">
-                <button id="et-delete-btn" class="ctrl-btn ctrl-btn-danger"><iconify-icon icon="lucide:x"></iconify-icon> Delete</button>
+                <button id="et-delete-btn" class="ctrl-btn ctrl-btn-danger"><iconify-icon icon="lucide:trash-2"></iconify-icon> Delete</button>
               </div>
               <div class="editor-footer-right">
                 <button id="et-save-btn" class="ctrl-btn ctrl-btn-primary"><iconify-icon icon="lucide:check"></iconify-icon> Save Template</button>
                 <div class="add-to-combat-group">
                   <input type="number" id="et-spawn-count" value="1" min="1" max="20" class="spawn-count-input" title="Count" />
-                  <button id="et-spawn-btn" class="ctrl-btn" style="background:#1a3a1a;color:#a5d6a7;border:1px solid #2a6a2a"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Add to Combat</button>
+                  <button id="et-spawn-btn" class="ctrl-btn ctrl-btn-spawn"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Add to Combat</button>
                 </div>
               </div>
             </div>
@@ -461,7 +491,6 @@ import Layout from '../layouts/Layout.astro';
               (node as HTMLElement).classList?.contains('combatant-card')
             ) {
               const card = node as HTMLElement;
-              // Suppress CSS slideIn; Framer Motion owns entry
               card.style.animation = 'none';
               card.style.opacity = '0';
               card.style.transform = 'translateY(8px) scale(0.97)';
@@ -482,7 +511,6 @@ import Layout from '../layouts/Layout.astro';
               delay,
               ease: [0.16, 1, 0.3, 1],
             });
-            // Re-enable CSS cardBreath after entry animation completes
             setTimeout(() => {
               card.style.removeProperty('animation');
             }, (0.28 + delay) * 1000 + 40);

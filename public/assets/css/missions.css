@@ -1,5 +1,20 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
 
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+@keyframes quest-active-aura {
+  0%, 100% { opacity: 0.11; }
+  50%       { opacity: 0.36; }
+}
+
+@keyframes quest-active-glow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(220,72,20,0.12), 0 3px 14px rgba(0,0,0,0.45); }
+  50%       { box-shadow: 0 0 0 1px rgba(220,72,20,0.28), 0 4px 22px rgba(200,60,10,0.22), 0 0 18px rgba(200,60,10,0.12); }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    MISSIONS PAGE — Notebook / OneNote-inspired clean layout
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -17,44 +32,30 @@
 }
 .modal-overlay.open { display: flex; }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   HERO
-   ═══════════════════════════════════════════════════════════════════════════ */
-.quest-hero {
-  background: linear-gradient(180deg, #3a1a05 0%, #2a1505 50%, #1a1a1a 100%);
-}
-
+/* ── Filter tabs ── */
 .quest-filter-tabs {
   display: flex;
-  justify-content: center;
-  gap: 4px;
+  gap: 5px;
   flex-wrap: wrap;
-  margin: 16px auto 0;
-  border-bottom: 1px solid #3e2b1b;
-  padding-bottom: 0;
 }
 
 .quest-tab {
-  background: transparent;
-  border: 1px solid transparent;
-  border-bottom: none;
-  color: #7a6a58;
-  padding: 9px 20px;
-  border-radius: 8px 8px 0 0;
   font-family: var(--font);
-  font-size: 13px;
-  letter-spacing: 0.03em;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.45);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-  margin-bottom: -1px;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
-.quest-tab:hover  { color: var(--accent); background: rgba(255,204,102,0.05); }
-.quest-tab.active {
-  background: var(--bg);
-  border-color: #3a2510;
-  color: var(--accent);
-  font-weight: bold;
-}
+.quest-tab:hover  { border-color: var(--accent); color: var(--accent); background: rgba(200,164,92,0.08); }
+.quest-tab.active { background: rgba(200,164,92,0.15); border-color: rgba(200,164,92,0.5); color: var(--accent); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    MAIN GRID
@@ -75,6 +76,80 @@
   margin: 0;
 }
 
+/* ── Filter bar with counters + Add Quest button ── */
+.items-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(200,164,92,0.08);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.quest-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.quest-stat-item {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 0 14px;
+}
+.quest-stat-item:first-child { padding-left: 0; }
+
+.quest-stat-count {
+  font-family: var(--title);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 1;
+  min-width: 1ch;
+  text-align: right;
+}
+
+.quest-stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7a6a58;
+}
+
+.quest-stat-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(200,164,92,0.12);
+  flex-shrink: 0;
+}
+
+.items-btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #8a6010 0%, #c8922a 40%, #e0b040 60%, #b07820 100%);
+  border: 1px solid rgba(220,170,60,0.6);
+  border-radius: 8px;
+  color: #1a1000;
+  font-family: var(--title);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: filter 0.22s, box-shadow 0.25s, transform 0.2s;
+  white-space: nowrap;
+}
+.items-btn-add:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 14px rgba(221,88,26,0.32), 0 4px 16px rgba(0,0,0,0.4);
+  transform: translateY(-1px);
+}
+.items-btn-add:active { transform: translateY(0) scale(0.98); }
+
 .quest-grid {
   display: flex;
   flex-direction: column;
@@ -82,62 +157,84 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   QUEST CARD — notebook-page feel
+   QUEST CARD — spell-row style
    ═══════════════════════════════════════════════════════════════════════════ */
 .quest-card {
-  background: linear-gradient(180deg, #1e1208 0%, #160d05 100%);
-  border: 1px solid #3a2510;
-  border-radius: 8px;
+  --qc: #c8a45c;
+  background: linear-gradient(135deg, #12140e 0%, #0f1009 100%);
+  border: 1px solid rgba(200,164,92,0.09);
+  border-left: 4px solid var(--qc);
+  border-radius: 10px;
   display: flex;
+  align-items: stretch;
   overflow: hidden;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.4);
-  transition:
-    box-shadow 0.36s var(--ease-out-expo),
-    border-color 0.26s ease,
-    transform 0.36s var(--ease-out-expo);
   position: relative;
-  height: 120px;
+  min-height: 64px;
+  transition: border-color 0.25s, box-shadow 0.28s, transform 0.22s;
+  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: transform;
 }
-.quest-card:hover {
-  box-shadow: 0 14px 40px rgba(0,0,0,0.65), 0 4px 12px rgba(0,0,0,0.4);
-  border-color: #5a3a1a;
-  transform: translateY(-6px) scale(1.015);
+
+.quest-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(ellipse 85% 150% at -5% 50%, var(--qc) 0%, transparent 78%);
+  opacity: 0.07;
+  transition: opacity 0.5s;
 }
 
-/* Quest type top border (replaces left accent bar) */
+.quest-card > * { position: relative; z-index: 1; }
+
+.quest-card:hover {
+  border-color: rgba(200,164,92,0.2);
+  border-left-color: color-mix(in srgb, var(--qc) 80%, #fff 20%);
+  box-shadow: 0 6px 22px rgba(0,0,0,0.48), 0 0 0 1px rgba(200,164,92,0.04);
+  transform: translateY(-3px);
+}
+.quest-card:hover::after { opacity: 0.14; }
+
 .qc-accent-bar { display: none; }
-.quest-main     { border-top: 3px solid #c8a45c; background: linear-gradient(180deg, rgba(200,164,92,0.09) 0%, #160d05 60%); }
-.quest-side     { border-top: 3px solid #5aab66; background: linear-gradient(180deg, rgba(90,171,102,0.09) 0%, #160d05 60%); }
-.quest-completed { border-top: 3px solid #3a2510; }
+.quest-main      { --qc: #c8a45c; }
+.quest-side      { --qc: #5aab66; }
+.quest-completed { --qc: #5a5a5a; }
+.quest-active {
+  --qc: #e05828;
+  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both, quest-active-glow 2.8s ease-in-out 0.3s infinite;
+}
+.quest-active::after {
+  animation: quest-active-aura 2.8s ease-in-out 0.3s infinite;
+}
 
 .qc-body {
   flex: 1;
-  padding: 9px 14px 8px 12px;
+  padding: 10px 16px 10px 18px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Card header — single flex row */
+.qc-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  flex-wrap: wrap;
   min-width: 0;
 }
 
-/* Card header */
-.qc-header-row {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  grid-template-areas:
-    "drag title badges"
-    ".    summary .";
-  gap: 2px 8px;
-  align-items: center;
-  margin-bottom: 0;
-}
-
 .qc-drag-handle {
-  grid-area: drag;
   cursor: grab;
   color: #3a2510;
   font-size: 14px;
   line-height: 1;
-  padding: 4px 4px;
+  padding: 4px;
   border-radius: 4px;
   user-select: none;
+  flex-shrink: 0;
   transition: color 0.15s, background 0.15s;
 }
 .qc-drag-handle:hover { color: var(--accent); background: rgba(200,164,92,0.08); }
@@ -163,23 +260,26 @@
 .qc-fold-btn:hover { color: var(--accent); background: rgba(200,164,92,0.08); }
 
 .qc-title-row {
-  grid-area: title;
+  flex: 1;
   display: flex;
-  align-items: baseline;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
   min-width: 0;
 }
 
 .qc-title {
   font-family: 'IM Fell English', 'Garamond', serif;
-  font-size: clamp(0.95rem, 2vw, 1.1rem);
-  color: var(--text);
+  font-size: 15px;
+  color: var(--accent);
   margin: 0;
   font-weight: normal;
   letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.quest-completed .qc-title { color: #6a5a46; text-decoration: line-through; text-decoration-color: #3a2510;}
+.quest-completed .qc-title { color: #6a5a46; text-decoration: line-through; text-decoration-color: #4a3520; }
 
 .qc-location {
   font-size: 12px;
@@ -187,14 +287,16 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-/* Top right badges */
+/* Badges + summary row */
 .qc-top-row {
-  grid-area: badges;
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
   flex-wrap: wrap;
 }
 
@@ -239,13 +341,12 @@
   text-transform: uppercase;
 }
 
-/* Summary chip row — at-a-glance content counts */
+/* Summary chips — inline in the row */
 .qc-summary {
-  grid-area: summary;
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-top: 3px;
+  flex-shrink: 0;
 }
 .qc-chip {
   display: inline-flex;
@@ -527,10 +628,11 @@
 /* Card actions */
 .qc-actions {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 14px 14px 14px 0;
+  flex-direction: row;
+  gap: 4px;
+  padding: 0 14px 0 0;
   flex-shrink: 0;
+  align-items: center;
 }
 .qc-btn {
   width: 32px; height: 32px;
@@ -1185,20 +1287,21 @@
 }
 .qm-block:focus-within {
   border-color: #5a3a1a;
-  box-shadow: 0 0 0 2px rgba(90,58,26,0.4);
+  box-shadow: var(--shadow-card-hover);
 }
 
-/* Type accent bar (top) */
-.qm-block-text    { border-top: 3px solid #7a6a58; }
-.qm-block-phase   { border-top: 3px solid var(--accent); }
-.qm-block-loot    { border-top: 3px solid #ffd54f; }
-.qm-block-boss      { border-top: 3px solid #e57373; }
-.qm-block-encounter { border-top: 3px solid #e879a0; }
-.qm-block-note      { border-top: 3px solid #7aa27a; }
-.qm-block-puzzle  { border-top: 3px solid #b28dfd; }
-.qm-block-character { border-top: 3px solid #a0c4ff; }
-.qm-block-loreref   { border-top: 3px solid #d4a574; }
-.qm-block-divider   { border-top: 3px solid #3a2a4a; align-self: start; height: auto; min-height: 90px; overflow: hidden;}
+/* Type accent bar (top). One Voice Rule: bronze neutral by default; only the
+   DM (green) and danger/combat (red) domains carry sanctioned palette color. */
+.qm-block-text,
+.qm-block-phase,
+.qm-block-loot,
+.qm-block-puzzle,
+.qm-block-character,
+.qm-block-loreref { border-top: 2px solid var(--bronze); }
+.qm-block-boss,
+.qm-block-encounter { border-top: 2px solid var(--hazard-red); }
+.qm-block-note      { border-top: 2px solid var(--health-green); }
+.qm-block-divider   { border-top: 2px solid var(--leather-border); align-self: start; height: auto; min-height: 90px; overflow: hidden;}
 
 /* Block header — acts as drag handle */
 .blk-header {
@@ -1227,16 +1330,13 @@
   text-transform: uppercase;
   flex: 1;
 }
-.qm-block-text    .blk-type-icon, .qm-block-text    .blk-type-label { color: #9a8670; }
-.qm-block-phase   .blk-type-icon, .qm-block-phase   .blk-type-label { color: var(--accent); }
-.qm-block-loot    .blk-type-icon, .qm-block-loot    .blk-type-label { color: #ffd54f; }
-.qm-block-boss      .blk-type-icon, .qm-block-boss      .blk-type-label { color: #e57373; }
-.qm-block-encounter .blk-type-icon, .qm-block-encounter .blk-type-label { color: #e879a0; }
-.qm-block-note      .blk-type-icon, .qm-block-note      .blk-type-label { color: #7aa27a; }
-.qm-block-puzzle  .blk-type-icon, .qm-block-puzzle  .blk-type-label { color: #b28dfd; }
-.qm-block-character .blk-type-icon, .qm-block-character .blk-type-label { color: #a0c4ff; }
-.qm-block-loreref   .blk-type-icon, .qm-block-loreref   .blk-type-label { color: #d4a574; }
-.qm-block-divider   .blk-type-icon, .qm-block-divider   .blk-type-label { color: #8a75a8; }
+/* Type label is metadata: sans-serif caps. Icon carries identity; color stays
+   within the sanctioned palette (bronze neutral, green = DM, red = danger). */
+.blk-type-label { color: var(--smoke); }
+.blk-type-icon  { color: var(--bronze); }
+.qm-block-boss      .blk-type-icon, .qm-block-encounter .blk-type-icon { color: var(--hazard-red); }
+.qm-block-note      .blk-type-icon { color: var(--health-green); }
+.qm-block-divider   .blk-type-icon, .qm-block-divider .blk-type-label { color: var(--deep-smoke); }
 
 /* Block controls */
 .blk-controls { display: flex; align-items: center; gap: 4px; margin-left: auto; flex-shrink: 0; }
@@ -1912,6 +2012,12 @@
 }
 
 @media (max-width: 600px) {
+  /* Stack the stat counters above a full-width "New Quest" button so it
+     doesn't overflow off the right edge */
+  .quest-filter-bar { flex-direction: column; align-items: stretch; }
+  .quest-stats-row { flex-wrap: wrap; justify-content: space-around; }
+  .quest-filter-bar .items-btn-add { width: 100%; justify-content: center; }
+
   .qm-block-canvas { min-height: 380px; }
   .qm-canvas-wrap { padding: 14px 14px 20px; }
   .qm-details-card { padding: 6px 10px 6px 14px; }
@@ -2590,8 +2696,6 @@
 
 .qc-block-ro { pointer-events: none; }
 .qc-block-ro .blk-body { pointer-events: auto; }
-.qc-block-ro .qcb-start-encounter-btn { pointer-events: auto; cursor: pointer; }
-.qc-ro-canvas .conn-label-group { pointer-events: none; cursor: default; }
 
 .qcro-header { cursor: default !important; }
 
@@ -2609,12 +2713,10 @@
 
 /* Block content styles */
 .qcro-block-title {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--accent, #ffcc66);
-  padding-bottom: 6px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid rgba(255,204,102,0.22);
+  margin-bottom: 4px;
   letter-spacing: 0.03em;
 }
 
@@ -2783,3 +2885,598 @@
 /* Cards are now tap-to-open buttons */
 .quest-card { cursor: pointer; }
 .quest-card:active { transform: scale(0.995); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   QUEST EDITOR REWORK — sidebar tabs, details panel, new features, view brief
+   Design tokens (base.css): amber = action/state only; bronze neutral warm;
+   green = DM domain; red = danger; rarity colors reserved for items.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Sidebar widened slightly to host the Details panel */
+.qm-sidebar { flex-basis: 350px; }
+
+/* ── Sidebar Content / Details tabs ─────────────────────────────────────────── */
+.qm-sidebar-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 2px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--leather-border);
+  border-radius: var(--rounded-md);
+}
+.qm-sidebar-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 8px;
+  background: transparent;
+  border: none;
+  border-radius: var(--rounded-sm);
+  color: var(--smoke);
+  font-family: var(--font);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.15s var(--ease-out-quart), color 0.15s var(--ease-out-quart);
+}
+.qm-sidebar-tab:hover { color: var(--ivory); }
+.qm-sidebar-tab.active { background: rgba(255,204,102,0.12); color: var(--accent); }
+.qm-sidebar-tab iconify-icon { font-size: 14px; }
+
+.qm-sidebar-pane { display: flex; flex-direction: column; gap: 20px; }
+.qm-sidebar-pane[hidden] { display: none; }
+
+/* ── Details panel ──────────────────────────────────────────────────────────── */
+.qm-detail-section { display: flex; flex-direction: column; gap: 7px; position: relative; }
+.qm-detail-input { width: 100%; font-size: 16px; }
+.qm-detail-search-wrap { position: relative; }
+
+.qm-giver-selected,
+.qm-reward-item-row,
+.qm-obj-row,
+.qm-prereq-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--crypt-surface);
+  border: 1px solid var(--leather-border);
+  border-radius: var(--rounded-md);
+  padding: 6px 8px;
+}
+.qm-giver-selected .char-item-name { font-size: 13px; color: var(--ivory); }
+.qm-giver-selected .char-item-meta { font-size: 11px; color: var(--smoke); }
+.qm-giver-selected .char-item-pic { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+.qm-giver-clear { margin-left: auto; }
+
+.qm-reward-row { display: flex; gap: 8px; }
+.qm-reward-field { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.qm-reward-icon {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--smoke);
+}
+.qm-reward-icon iconify-icon { color: var(--bronze); }
+.qm-reward-items { display: flex; flex-direction: column; gap: 5px; }
+.qm-reward-item-icon { color: var(--bronze); font-size: 15px; flex-shrink: 0; }
+.qm-reward-item-row .loot-item-name { font-size: 13px; color: var(--ivory); }
+.qm-reward-item-row .loot-item-value { margin-left: auto; font-size: 11px; color: var(--bronze); }
+
+/* Objectives */
+.qm-obj-list { display: flex; flex-direction: column; gap: 5px; }
+.qm-obj-row { padding: 4px 6px; }
+.qm-obj-check {
+  background: none; border: none; cursor: pointer; padding: 2px;
+  color: var(--smoke); font-size: 16px; display: inline-flex; flex-shrink: 0;
+  transition: color 0.15s var(--ease-out-quart);
+}
+.qm-obj-check:hover { color: var(--accent); }
+.qm-obj-check.done { color: var(--health-green); }
+.qm-obj-text { flex: 1; min-width: 0; font-size: 16px; }
+.qm-obj-text.done { text-decoration: line-through; color: var(--deep-smoke); }
+.qm-obj-add-row { display: flex; gap: 6px; align-items: center; }
+.qm-detail-add-btn {
+  flex-shrink: 0; width: 34px; min-height: 34px;
+  background: rgba(255,204,102,0.12); border: 1px solid rgba(255,204,102,0.35);
+  color: var(--accent); border-radius: var(--rounded-md); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 0.15s var(--ease-out-quart);
+}
+.qm-detail-add-btn:hover { background: rgba(255,204,102,0.2); }
+
+/* Prerequisites */
+.qm-prereq-list { display: flex; flex-direction: column; gap: 5px; }
+.qm-prereq-chip { font-size: 13px; color: var(--ivory); }
+.qm-prereq-chip iconify-icon { color: var(--bronze); flex-shrink: 0; }
+.qm-prereq-chip span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qm-prereq-del, .qm-obj-up, .qm-obj-del { flex-shrink: 0; }
+
+/* ── Per-block session tag control ──────────────────────────────────────────── */
+.blk-session-label {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 1px 4px; border-radius: var(--rounded-sm);
+  border: 1px solid transparent;
+}
+.blk-session-icon { font-size: 12px; color: var(--deep-smoke); }
+.blk-session-input {
+  width: 34px; background: transparent; border: none;
+  color: var(--bronze); font-family: var(--font); font-size: 11px;
+  text-align: center; padding: 1px 0;
+}
+.blk-session-input::placeholder { color: var(--deep-smoke); }
+.blk-session-input:focus { outline: none; color: var(--accent); }
+
+/* ── Quest card additions ───────────────────────────────────────────────────── */
+.qc-giver { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--smoke); margin-top: 3px; }
+.qc-giver iconify-icon { color: var(--bronze); }
+.qc-level-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--bronze); border: 1px solid var(--leather-border);
+  border-radius: var(--rounded-pill); padding: 2px 9px;
+}
+.qc-obj-row { margin-top: 8px; }
+.qc-obj-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--smoke);
+  background: rgba(0,0,0,0.25); border: 1px solid var(--leather-border);
+  border-radius: var(--rounded-pill); padding: 3px 10px;
+}
+.qc-obj-pill.complete { color: var(--health-green); border-color: rgba(102,187,106,0.4); }
+.qc-obj-pill iconify-icon { font-size: 13px; }
+.qc-rewards-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.qc-reward {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--ivory);
+}
+.qc-reward iconify-icon { color: var(--bronze); font-size: 14px; }
+.qc-requires {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--deep-smoke); margin-top: 8px;
+}
+.qc-requires iconify-icon { font-size: 12px; }
+
+/* Player-locked quest (unmet prerequisites) */
+.quest-card.quest-locked { opacity: 0.6; }
+.quest-card.quest-locked .qc-lock-overlay {
+  position: absolute; top: 10px; right: 12px;
+  color: var(--deep-smoke); font-size: 18px; pointer-events: none;
+}
+
+/* ── Quest view: brief strip (rewards / objectives / chain) ──────────────────── */
+.qview-brief {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  padding: 14px clamp(16px, 4vw, 40px);
+  background: linear-gradient(180deg, #221505 0%, var(--crypt-surface) 100%);
+  border-bottom: 1px solid var(--leather-border);
+}
+.qview-brief-block { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.qview-brief-label {
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--smoke); font-weight: bold;
+  display: flex; align-items: center; gap: 8px;
+}
+.qview-obj-count { color: var(--bronze); letter-spacing: 0; }
+.qview-rewards { display: flex; flex-wrap: wrap; gap: 14px; }
+.qview-rewards .qc-reward { font-size: 14px; }
+.qview-obj-list { display: flex; flex-direction: column; gap: 4px; }
+.qview-obj {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: none; border: none; padding: 2px 0;
+  color: var(--ivory); font-family: var(--font); font-size: 14px;
+  text-align: left; cursor: pointer;
+}
+.qview-obj[disabled] { cursor: default; }
+.qview-obj iconify-icon { font-size: 17px; color: var(--smoke); flex-shrink: 0; }
+.qview-obj.done span { text-decoration: line-through; color: var(--deep-smoke); }
+.qview-obj.done iconify-icon { color: var(--health-green); }
+.qview-obj:not([disabled]):hover iconify-icon { color: var(--accent); }
+.qview-chain { display: flex; flex-wrap: wrap; gap: 8px; }
+.qview-chain-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(0,0,0,0.25); border: 1px solid var(--leather-border);
+  border-radius: var(--rounded-pill); padding: 5px 12px;
+  color: var(--ivory); font-family: var(--font); font-size: 13px; cursor: pointer;
+  transition: border-color 0.15s var(--ease-out-quart), color 0.15s var(--ease-out-quart);
+}
+.qview-chain-link:hover { border-color: var(--bronze); color: var(--accent); }
+.qview-chain-link iconify-icon { color: var(--bronze); }
+
+/* Player preview stage reuses the read-only canvas renderer */
+.qm-preview-stage { position: relative; flex: 1; min-height: 360px; display: flex; }
+.qm-preview-stage .qc-ro-canvas { flex: 1; }
+
+@media (max-width: 768px) {
+  .qm-sidebar { flex-basis: auto; }
+  .qview-brief { gap: 18px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VISUAL SYSTEM REFRESH — match the site's new look (location.css et al.):
+   cool neutral surfaces, white-alpha borders/text, IM Fell amber headings with
+   glow, dm-btn buttons with amber hover glow, more compact chrome.
+   Scoped to the quest editor + view so other pages are untouched.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.quest-edit-box, .qview-overlay {
+  --q-surface:      #16181d;   /* cool grey-blue */
+  --q-surface-2:    #1b1e24;
+  --q-surface-deep: #101216;
+  --q-border:       rgba(180,196,224,0.12);
+  --q-border-soft:  rgba(180,196,224,0.07);
+  --q-text:         rgba(232,238,248,0.85);
+  --q-text-dim:     rgba(200,210,228,0.50);
+  --q-glow:         0 0 12px rgba(255,204,102,0.18);
+  --q-glow-strong:  0 0 18px rgba(255,204,102,0.30);
+}
+
+/* Surfaces → cool grey-blue */
+.quest-edit-box { background: var(--q-surface-deep); color: var(--q-text); }
+.quest-edit-box .qm-sidebar {
+  background: linear-gradient(180deg, #15171c 0%, #0e1014 100%);
+  border-right: 1px solid var(--q-border);
+}
+.quest-edit-box .qm-canvas-wrap { background: #0d0f13; }
+/* Baked grey-blue grid canvas */
+.quest-edit-box .qm-block-canvas { background: radial-gradient(circle at 50% 38%, #181b22 0%, #0d0f13 78%); }
+.quest-edit-box .qm-block-canvas::before {
+  background-image: radial-gradient(circle, rgba(150,170,205,0.07) 1px, transparent 1px);
+}
+.qview-overlay { background: #0d0f13; }
+
+/* Headings & labels: IM Fell amber + subtle glow */
+.quest-edit-box .qm-topbar h2,
+.qview-title {
+  font-family: 'IM Fell English', 'Garamond', serif;
+  color: var(--accent);
+  text-shadow: 0 0 16px rgba(255,204,102,0.22);
+}
+.quest-edit-box .qm-sidebar-label { color: rgba(200,164,92,0.65); }
+
+/* ── Compact top bar ──────────────────────────────────────────────────────── */
+.quest-edit-box .qm-topbar {
+  padding: 5px 12px;
+  gap: 5px;
+  background: linear-gradient(180deg, #1b1b19 0%, #131312 100%);
+  border-bottom: 1px solid var(--q-border);
+  flex-wrap: nowrap;
+}
+.quest-edit-box .qm-topbar-left { gap: 5px; flex-wrap: wrap; min-width: 0; }
+.quest-edit-box .qm-topbar-icon { font-size: 14px; }
+.quest-edit-box .qm-topbar-name { width: 150px; padding: 3px 7px !important; font-size: 13px !important; }
+.quest-edit-box .qm-topbar-loc  { width: 120px; padding: 3px 7px !important; font-size: 12px !important; }
+.quest-edit-box .qm-topbar-status { padding: 3px 6px !important; font-size: 12px !important; }
+.quest-edit-box .qm-topbar-vis .qm-toggle-text { font-size: 10px; color: var(--q-text-dim); }
+.quest-edit-box .qm-topbar-btn { padding: 4px 8px; gap: 4px; }
+.quest-edit-box .qm-topbar-btn-icon { font-size: 14px; }
+.quest-edit-box .qm-topbar-btn-label { font-size: 11px; }
+.quest-edit-box .qm-autosave-status { font-size: 11px; }
+.quest-edit-box .quest-type-btn { padding: 4px 9px; font-size: 12px; }
+@media (max-width: 1100px) {
+  .quest-edit-box .qm-topbar-btn-label { display: none; }
+}
+
+/* Topbar / canvas buttons: dm-btn family + amber hover glow */
+.quest-edit-box .qm-topbar-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--q-border);
+  color: var(--q-text);
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, color 0.15s;
+}
+.quest-edit-box .qm-topbar-btn:hover:not(:disabled) {
+  background: rgba(255,204,102,0.12);
+  border-color: rgba(255,204,102,0.4);
+  color: var(--accent);
+  box-shadow: var(--q-glow);
+}
+.quest-edit-box .qm-preview-btn.active,
+.quest-edit-box .qm-topbar-btn.active {
+  background: rgba(255,204,102,0.16);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: var(--q-glow);
+}
+
+/* ── Blocks → neutral surface + glow on hover/selection ───────────────────── */
+.quest-edit-box .qm-block {
+  background: var(--q-surface);
+  border: 1px solid var(--q-border);
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+.quest-edit-box .qm-block:hover { box-shadow: 0 6px 22px rgba(0,0,0,0.5); }
+.quest-edit-box .qm-block.blk-selected {
+  border-color: rgba(255,204,102,0.75);
+  box-shadow: var(--q-glow-strong), 0 0 0 1px rgba(255,204,102,0.35);
+}
+.quest-edit-box .blk-header { background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--q-border-soft); }
+
+/* Colored blocks → tinted gradient + colored glow ring (matches item cards),
+   not a flat solid fill. Driven by --blk-cc set in JS. */
+.quest-edit-box .qm-block.blk-colored,
+.qview-overlay .qm-block.blk-colored {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--blk-cc) 26%, var(--q-surface, #161614)) 0%,
+    color-mix(in srgb, var(--blk-cc) 12%, var(--q-surface, #161614)) 100%);
+  border-color: color-mix(in srgb, var(--blk-cc) 55%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--blk-cc) 30%, transparent),
+    0 0 18px color-mix(in srgb, var(--blk-cc) 16%, transparent),
+    0 4px 18px rgba(0,0,0,0.5);
+}
+.quest-edit-box .qm-block.blk-colored:hover,
+.qview-overlay .qm-block.blk-colored:hover {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--blk-cc) 48%, transparent),
+    0 0 26px color-mix(in srgb, var(--blk-cc) 26%, transparent),
+    0 6px 22px rgba(0,0,0,0.55);
+}
+/* Slow breathing aura over the tint (like the item cards) */
+.quest-edit-box .qm-block.blk-colored::after,
+.qview-overlay .qm-block.blk-colored::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse 120% 90% at 50% 0%, var(--blk-cc) 0%, transparent 70%);
+  opacity: 0.10;
+  animation: blkAuraBreath 5.5s ease-in-out infinite;
+}
+.quest-edit-box .qm-block.blk-colored > *,
+.qview-overlay .qm-block.blk-colored > * { position: relative; z-index: 1; }
+@keyframes blkAuraBreath { 0%, 100% { opacity: 0.07; } 50% { opacity: 0.18; } }
+/* Colored header pickup so the tint reads in the header too */
+.quest-edit-box .qm-block.blk-colored .blk-header,
+.qview-overlay .qm-block.blk-colored .blk-header {
+  background: color-mix(in srgb, var(--blk-cc) 14%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--blk-cc) 22%, transparent);
+}
+/* Selection still wins on colored blocks: amber ring layered over the color glow */
+.quest-edit-box .qm-block.blk-colored.blk-selected {
+  border-color: rgba(255,204,102,0.8);
+  box-shadow:
+    0 0 0 1px rgba(255,204,102,0.4),
+    var(--q-glow-strong),
+    0 0 20px color-mix(in srgb, var(--blk-cc) 22%, transparent);
+}
+/* Brief amber flash when an outline item is focused */
+@keyframes blkFocusFlash {
+  0%   { box-shadow: 0 0 0 2px rgba(255,204,102,0.9), 0 0 26px rgba(255,204,102,0.55); }
+  100% { box-shadow: 0 0 0 0 rgba(255,204,102,0),   0 0 0 rgba(255,204,102,0); }
+}
+.quest-edit-box .qm-block.blk-focus-flash { animation: blkFocusFlash 1s var(--ease-out-expo); }
+
+/* Inputs → neutral */
+.quest-edit-box .qm-input,
+.quest-edit-box .qm-select,
+.quest-edit-box .blk-input,
+.quest-edit-box .blk-textarea {
+  background: rgba(255,255,255,0.04);
+  border-color: var(--q-border);
+  color: var(--q-text);
+}
+.quest-edit-box .qm-input:focus,
+.quest-edit-box .qm-select:focus,
+.quest-edit-box .blk-input:focus,
+.quest-edit-box .blk-textarea:focus { border-color: var(--accent); box-shadow: none; }
+
+/* Footer buttons */
+.quest-edit-box .qm-footer { background: linear-gradient(180deg, #161614, #121211); border-top: 1px solid var(--q-border); }
+.quest-edit-box .qm-save-btn:hover { box-shadow: var(--q-glow); }
+
+/* Sidebar add/template buttons: glow on hover */
+.quest-edit-box .qm-add-block-btn:hover,
+.quest-edit-box .qm-template-btn:hover {
+  background: rgba(255,204,102,0.1);
+  border-color: rgba(255,204,102,0.35);
+  color: var(--accent);
+  box-shadow: var(--q-glow);
+}
+
+/* ── Quest view chrome → grey-blue ───────────────────────────────────────── */
+.qview-header { background: linear-gradient(180deg, #1a1d23 0%, #101216 100%); border-bottom: 1px solid var(--q-border); }
+.qview-brief  { background: linear-gradient(180deg, #181b21 0%, #101216 100%); border-bottom: 1px solid var(--q-border); }
+.qview-back-btn:hover, .qview-edit-btn:hover { box-shadow: var(--q-glow); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   QUEST CARDS — intensified, distinctive, living. Grey-blue body, a glowing
+   type emblem, a breathing type-colored aura, and a strong lift on hover.
+   --qc is the per-type accent (main amber · side green · active orange · done grey).
+   ═══════════════════════════════════════════════════════════════════════════ */
+.quest-card {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--qc) 9%, #161922) 0%, #0f1116 100%);
+  border: 1px solid color-mix(in srgb, var(--qc) 22%, transparent);
+  border-left: none;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  transition: border-color 0.22s var(--ease-out-quart), box-shadow 0.26s var(--ease-out-quart), transform 0.22s var(--ease-out-quart);
+  animation: fadeInUp 0.4s var(--ease-out-expo) both;
+}
+/* Breathing type-colored aura sweeping from the emblem side */
+.quest-card::after {
+  background: radial-gradient(ellipse 70% 130% at 0% 50%, var(--qc) 0%, transparent 68%);
+  opacity: 0.10;
+  animation: questCardBreath 6.5s ease-in-out infinite;
+}
+.quest-card:hover {
+  border-color: color-mix(in srgb, var(--qc) 50%, transparent);
+  box-shadow:
+    0 12px 32px rgba(0,0,0,0.55),
+    0 0 22px color-mix(in srgb, var(--qc) 24%, transparent);
+  transform: translateY(-4px);
+}
+.quest-card:hover::after { opacity: 0.22; }
+@keyframes questCardBreath { 0%, 100% { opacity: 0.07; } 50% { opacity: 0.15; } }
+
+/* Glowing type emblem (identity at a glance) */
+.qc-emblem {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  margin-right: 4px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+  color: var(--qc);
+  background: radial-gradient(circle at 50% 32%, color-mix(in srgb, var(--qc) 30%, #14171d), color-mix(in srgb, var(--qc) 7%, #0f1116));
+  border: 1px solid color-mix(in srgb, var(--qc) 48%, transparent);
+  box-shadow:
+    inset 0 0 12px color-mix(in srgb, var(--qc) 20%, transparent),
+    0 0 16px color-mix(in srgb, var(--qc) 16%, transparent);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--qc) 60%, transparent);
+}
+.quest-card:hover .qc-emblem {
+  box-shadow:
+    inset 0 0 14px color-mix(in srgb, var(--qc) 30%, transparent),
+    0 0 24px color-mix(in srgb, var(--qc) 30%, transparent);
+}
+.quest-completed .qc-emblem { opacity: 0.7; }
+
+.quest-card .qc-title { font-family: 'IM Fell English', 'Garamond', serif; font-size: 16px; }
+
+/* Active quests pulse more insistently so they pull the eye */
+.quest-active {
+  animation: fadeInUp 0.4s var(--ease-out-expo) both, questActivePulse 2.8s ease-in-out 0.4s infinite;
+}
+.quest-active::after { opacity: 0.16; animation: questCardBreath 2.8s ease-in-out infinite; }
+.quest-active:hover { transform: translateY(-4px); }
+@keyframes questActivePulse {
+  0%, 100% { box-shadow: 0 2px 10px rgba(0,0,0,0.42); }
+  50%      { box-shadow: 0 4px 16px rgba(0,0,0,0.5), 0 0 24px color-mix(in srgb, var(--qc) 36%, transparent); }
+}
+
+/* Respect reduced-motion: drop the breathing/pulse, keep static styling */
+@media (prefers-reduced-motion: reduce) {
+  .quest-card, .quest-active, .quest-card::after, .quest-active::after,
+  .quest-edit-box .qm-block.blk-colored::after { animation: none !important; }
+}
+
+/* ── Outline / timeline panel ─────────────────────────────────────────────── */
+.qm-outline-hint { font-size: 11px; color: var(--q-text-dim); margin: -6px 2px 4px; line-height: 1.4; }
+.qm-outline { display: flex; flex-direction: column; gap: 10px; }
+.qm-outline-empty { font-size: 12px; color: var(--q-text-dim); font-style: italic; padding: 8px 4px; }
+.qm-ol-group { border: 1px solid var(--q-border); border-radius: var(--rounded-md); background: rgba(255,255,255,0.02); overflow: hidden; }
+.qm-ol-group-hdr { display: flex; align-items: center; gap: 2px; padding: 4px 5px; background: rgba(255,255,255,0.03); }
+.qm-ol-group-focus {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 7px;
+  background: none; border: none; cursor: pointer; padding: 3px 4px;
+  color: var(--q-text); font-family: var(--font); font-size: 12px; text-align: left;
+}
+.qm-ol-group-focus:hover { color: var(--accent); }
+.qm-ol-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 6px rgba(255,204,102,0.3); }
+.qm-ol-group-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0.03em; }
+.qm-ol-ungrouped-name { color: var(--q-text-dim); text-transform: uppercase; font-size: 10px; letter-spacing: 0.1em; }
+.qm-ol-count { font-size: 10px; color: var(--q-text-dim); background: rgba(0,0,0,0.3); border-radius: 8px; padding: 1px 7px; flex-shrink: 0; }
+.qm-ol-group-body { display: flex; flex-direction: column; gap: 2px; padding: 4px; }
+.qm-ol-item { display: flex; align-items: center; gap: 1px; border-radius: var(--rounded-sm); }
+.qm-ol-item.sel { background: rgba(255,204,102,0.12); box-shadow: inset 0 0 0 1px rgba(255,204,102,0.3); }
+.qm-ol-focus {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 7px;
+  background: none; border: none; cursor: pointer; padding: 5px 6px;
+  color: var(--q-text); font-family: var(--font); font-size: 12px; text-align: left;
+}
+.qm-ol-focus:hover { color: var(--accent); }
+.qm-ol-icon { font-size: 13px; color: var(--bronze); flex-shrink: 0; }
+.qm-ol-danger .qm-ol-icon { color: var(--hazard-red); }
+.qm-ol-dm .qm-ol-icon { color: var(--health-green); }
+.qm-ol-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qm-ol-session { font-size: 9px; padding: 1px 5px; border-radius: 7px; flex-shrink: 0; background: rgba(255,255,255,0.08); color: var(--q-text); }
+.qm-ol-mv {
+  flex-shrink: 0; width: 22px; height: 22px; padding: 0;
+  background: none; border: none; color: var(--q-text-dim); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; border-radius: 4px;
+  transition: color 0.12s, background 0.12s;
+}
+.qm-ol-mv:hover { color: var(--accent); background: rgba(255,204,102,0.1); }
+.qm-ol-mv iconify-icon { font-size: 14px; }
+
+/* ── Compact Details pane (was visually oversized vs. the rest) ────────────── */
+.qm-sidebar-pane[data-pane="details"] { gap: 13px; }
+.qm-sidebar-pane[data-pane="details"] .qm-sidebar-label { font-size: 9px; padding-bottom: 4px; }
+.qm-detail-section { gap: 5px; }
+.qm-detail-input { font-size: 13px; padding: 6px 9px; }
+.qm-giver-selected, .qm-reward-item-row, .qm-obj-row, .qm-prereq-chip { padding: 5px 7px; gap: 6px; }
+.qm-giver-selected .char-item-name { font-size: 12px; }
+.qm-giver-selected .char-item-meta { font-size: 10px; }
+.qm-giver-selected .char-item-pic { width: 24px; height: 24px; }
+.qm-reward-row { gap: 7px; }
+.qm-reward-field { gap: 3px; }
+.qm-reward-icon { font-size: 9px; }
+.qm-reward-item-row .loot-item-name { font-size: 12px; }
+.qm-reward-item-row .loot-item-value { font-size: 10px; }
+.qm-reward-item-icon { font-size: 13px; }
+.qm-obj-list, .qm-reward-items, .qm-prereq-list { gap: 4px; }
+.qm-obj-row { padding: 3px 5px; }
+.qm-obj-check { font-size: 14px; }
+.qm-obj-text { font-size: 13px; }
+.qm-obj-add-row { gap: 5px; }
+.qm-detail-add-btn { width: 30px; min-height: 30px; }
+.qm-prereq-chip { font-size: 12px; }
+.qm-detail-section .blk-ctrl,
+.qm-obj-up, .qm-obj-del, .qm-prereq-del { width: 20px; height: 20px; }
+
+/* ── Quest viewer: navigation sidebar (mirrors the editor's Outline) ───────── */
+.qview-canvas-wrap { display: flex; }
+.qview-canvas-wrap .qc-ro-canvas { flex: 1; min-width: 0; }
+.qview-nav {
+  flex: 0 0 216px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 10px;
+  background: linear-gradient(180deg, #15171c 0%, #0e1014 100%);
+  border-right: 1px solid var(--q-border);
+  overflow-y: auto;
+}
+.qview-nav-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(200,164,92,0.65);
+  font-weight: bold;
+  padding: 0 4px 4px;
+}
+.qview-nav-label iconify-icon { font-size: 13px; }
+/* Focus flash for viewer blocks (the editor flash is scoped to .quest-edit-box) */
+.qview-overlay .qm-block.blk-focus-flash { animation: blkFocusFlash 1s var(--ease-out-expo); }
+@media (max-width: 768px) {
+  .qview-nav { flex-basis: 150px; padding: 10px 7px; }
+}
+
+/* ── Read-only canvas (quest viewer + in-editor preview) → grey-blue ─────────
+   The earlier surface overrides were scoped to .quest-edit-box, so the
+   read-only canvas (.qc-ro-canvas / .qc-block-ro) kept the old brown. These
+   rules retheme it to match the editor in both the viewer and the preview. */
+.qc-ro-canvas {
+  background: radial-gradient(circle at 50% 38%, #181b22 0%, #0d0f13 78%);
+  border-color: rgba(180,196,224,0.12);
+}
+.qc-ro-canvas::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(150,170,205,0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.qc-block-ro {
+  background: var(--q-surface, #16181d);
+  border-color: var(--q-border, rgba(180,196,224,0.12));
+}
+.qc-block-ro .blk-header {
+  background: rgba(255,255,255,0.03);
+  border-bottom-color: var(--q-border-soft, rgba(180,196,224,0.07));
+}
+.qc-block-ro .blk-type-label { color: var(--q-text-dim, rgba(200,210,228,0.5)); }
+.qcro-text { color: var(--q-text, rgba(232,238,248,0.85)); }
+.qc-ro-empty { color: var(--q-text-dim, rgba(200,210,228,0.5)); }
+

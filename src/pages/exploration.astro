@@ -1,30 +1,140 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
 ---
-<Layout title="Characters — DnD Campaign" showCampaignTabs={true} activePage="exploration" extraCSS={['/assets/css/exploration.css']}>
+<Layout title="Characters — Essolis" activePage="exploration" extraCSS={['/assets/css/exploration.css']}>
 
-  <header class="expl-hero page-hero">
-    <button id="char-add-btn" class="dm-btn char-add-btn page-hero__add-btn" style="display:none">+ New Character</button>
-    <h1 class="expl-hero-title page-hero__title">Characters</h1>
-    <p class="expl-hero-sub page-hero__sub">People you've encountered across Enora</p>
-    <div class="expl-search-wrap">
-      <input class="expl-search" type="text" id="char-search" placeholder="Search characters…" autocomplete="off" />
+  <Header
+    title="Characters"
+    description="People you've encountered across your world."
+    icon="lucide:users"
+    image={headerImg}
+  >
+    <div slot="tabs" class="hdr-tabs-row"></div>
+  </Header>
+
+  <main class="chars-main">
+
+    <!-- Role stat cards -->
+    <div class="chars-stats-bar">
+      <button class="chars-stat-card chars-stat-total active" data-role="" id="stat-card-total">
+        <iconify-icon icon="lucide:users" class="chars-stat-icon"></iconify-icon>
+        <span class="chars-stat-count" id="stat-total">0</span>
+        <span class="chars-stat-label">Total</span>
+      </button>
+      <button class="chars-stat-card chars-stat-villain" data-role="villain" id="stat-card-villain">
+        <iconify-icon icon="lucide:skull" class="chars-stat-icon"></iconify-icon>
+        <span class="chars-stat-count" id="stat-villains">0</span>
+        <span class="chars-stat-label">Villains</span>
+      </button>
+      <button class="chars-stat-card chars-stat-ally" data-role="ally" id="stat-card-ally">
+        <iconify-icon icon="lucide:handshake" class="chars-stat-icon"></iconify-icon>
+        <span class="chars-stat-count" id="stat-allies">0</span>
+        <span class="chars-stat-label">Allies</span>
+      </button>
+      <button class="chars-stat-card chars-stat-deity" data-role="deity" id="stat-card-deity">
+        <iconify-icon icon="lucide:sun" class="chars-stat-icon"></iconify-icon>
+        <span class="chars-stat-count" id="stat-deities">0</span>
+        <span class="chars-stat-label">Deities</span>
+      </button>
+      <button class="chars-stat-card chars-stat-npc" data-role="npc" id="stat-card-npc">
+        <iconify-icon icon="lucide:user-round" class="chars-stat-icon"></iconify-icon>
+        <span class="chars-stat-count" id="stat-npcs">0</span>
+        <span class="chars-stat-label">NPCs</span>
+      </button>
+      <button class="chars-stat-card chars-stat-creature" data-role="creature" id="stat-card-creature">
+        <iconify-icon icon="lucide:paw-print" class="chars-stat-icon"></iconify-icon>
+        <span class="chars-stat-count" id="stat-creatures">0</span>
+        <span class="chars-stat-label">Creatures</span>
+      </button>
     </div>
-  </header>
 
-  <main class="expl-main">
-    <div id="char-grid" class="char-grid"></div>
-    <p id="char-empty" class="expl-empty" style="display:none">No characters found.</p>
+    <!-- Sort & filter bar -->
+    <div class="items-filter-bar">
+      <div class="items-sort-group">
+        <span class="filter-label">Sort</span>
+        <button class="sort-btn" data-sort="name" id="sort-name">
+          Name <iconify-icon icon="lucide:chevrons-up-down" style="font-size:13px;vertical-align:-2px"></iconify-icon>
+        </button>
+        <button class="sort-btn" data-sort="profession" id="sort-profession">
+          Profession <iconify-icon icon="lucide:chevrons-up-down" style="font-size:13px;vertical-align:-2px"></iconify-icon>
+        </button>
+        <button class="sort-btn" data-sort="race" id="sort-race">
+          Race <iconify-icon icon="lucide:chevrons-up-down" style="font-size:13px;vertical-align:-2px"></iconify-icon>
+        </button>
+      </div>
+      <div class="chars-filter-group">
+        <span class="filter-label">Race</span>
+        <select id="race-filter" class="spells-select-sm">
+          <option value="">All</option>
+        </select>
+      </div>
+      <div class="chars-filter-actions">
+        <span class="spells-count" id="char-count"></span>
+        <div class="hdr-search-wrap">
+          <iconify-icon icon="lucide:search" class="hdr-search-icon"></iconify-icon>
+          <input type="text" id="chars-search" class="items-search" placeholder="Search characters…" />
+        </div>
+        <button id="char-add-btn" class="items-btn-add" style="display:none">
+          <iconify-icon icon="lucide:plus"></iconify-icon>
+          New Character
+        </button>
+      </div>
+    </div>
+
+    <!-- List + detail panel side by side -->
+    <div class="chars-content">
+
+      <div class="chars-list-section">
+        <!-- Column headers -->
+        <div class="chars-col-header">
+          <span>Name</span>
+          <span class="col-h-profession">Profession</span>
+          <span>Race</span>
+          <span>Age</span>
+          <span></span>
+        </div>
+
+        <!-- Characters list -->
+        <div id="chars-grid" class="chars-list"></div>
+        <div id="chars-pagination" class="items-pagination"></div>
+      </div>
+
+      <!-- Right: slide-out detail panel -->
+      <div id="char-detail-panel" class="char-detail-panel">
+        <div class="char-detail-inner">
+          <div class="cdp-header">
+            <img id="cdp-hero-img" class="cdp-hero-img" src="" alt="" style="display:none" />
+            <div id="cdp-hero-placeholder" class="cdp-hero-placeholder">
+              <iconify-icon icon="lucide:user"></iconify-icon>
+            </div>
+            <div class="cdp-hero-overlay"></div>
+            <button id="cdp-close" class="cdp-close" title="Close">&times;</button>
+            <h2 id="cdp-title" class="cdp-title"></h2>
+          </div>
+          <div class="cdp-body">
+            <div id="cdp-meta" class="cdp-meta"></div>
+            <hr class="cdp-divider" />
+            <div id="cdp-description"></div>
+            <div id="cdp-notes"></div>
+            <div id="cdp-actions"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
   </main>
 
-  <!-- Character Editor Modal -->
-  <div id="char-modal" class="char-modal-overlay">
-    <div class="char-edit-box">
-      <div class="char-modal-header">
+  <!-- Character edit modal -->
+  <div id="char-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
         <h2 id="char-modal-title">New Character</h2>
-        <button id="char-modal-close" class="char-close-btn"><iconify-icon icon="lucide:x"></iconify-icon></button>
+        <button class="modal-close-x" id="char-modal-close">&times;</button>
       </div>
-      <div class="char-modal-body">
+      <div class="modal-body">
         <div class="char-pic-section">
           <div class="char-pic-preview" id="char-pic-preview" title="Click to upload image">
             <iconify-icon icon="lucide:user"></iconify-icon>
@@ -32,55 +142,147 @@ import Layout from '../layouts/Layout.astro';
           </div>
           <input type="file" id="char-pic-file" accept="image/*" style="display:none" />
           <div class="char-pic-field">
-            <label class="char-label">Picture</label>
-            <div class="char-pic-url-row">
-              <input type="text" id="char-picture" class="char-input" placeholder="Paste URL or click portrait to upload…" />
-              <button type="button" id="char-upload-btn" class="char-upload-btn" title="Upload image"><iconify-icon icon="lucide:camera"></iconify-icon></button>
+            <div class="form-row" style="margin-bottom:0">
+              <label>Picture
+                <div class="char-pic-url-row">
+                  <input type="text" id="char-picture" placeholder="Paste URL or click portrait to upload…" />
+                  <button type="button" id="char-upload-btn" class="char-upload-btn" title="Upload image">
+                    <iconify-icon icon="lucide:camera"></iconify-icon>
+                  </button>
+                </div>
+              </label>
             </div>
             <span id="char-upload-status" class="char-upload-status"></span>
           </div>
         </div>
-        <div class="char-fields">
-          <label class="char-label">Name <span class="required">*</span></label>
-          <input type="text" id="char-name" class="char-input" placeholder="Character name…" />
 
-          <div class="char-fields-row">
-            <div class="char-field-group">
-              <label class="char-label">Profession</label>
-              <input type="text" id="char-profession" class="char-input" placeholder="e.g. Blacksmith" />
-            </div>
-            <div class="char-field-group">
-              <label class="char-label">Race</label>
-              <input type="text" id="char-race" class="char-input" placeholder="e.g. Human" />
-            </div>
-            <div class="char-field-group char-field-age">
-              <label class="char-label">Age</label>
-              <input type="text" id="char-age" class="char-input" placeholder="e.g. 35" />
-            </div>
-          </div>
-
-          <label class="char-label">Description</label>
-          <textarea id="char-description" class="char-input char-textarea" placeholder="Describe this character…" rows="3"></textarea>
-
-          <label class="char-label char-label-dm"><iconify-icon icon="lucide:eye"></iconify-icon> DM Notes</label>
-          <textarea id="char-notes" class="char-input char-textarea char-notes-ta" placeholder="Private DM notes…" rows="2"></textarea>
+        <div class="form-row im-name-row">
+          <label>Name <span class="req">*</span>
+            <input type="text" id="char-name" placeholder="Character name…" />
+          </label>
         </div>
-      </div>
-      <div id="char-error" class="char-error"></div>
-      <div class="char-modal-footer">
-        <button id="char-cancel" class="char-cancel-btn">Cancel</button>
-        <button id="char-save" class="dm-btn">Save Character</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- Character Detail View Modal -->
-  <div id="char-view-modal" class="char-modal-overlay">
-    <div class="char-view-box">
-      <button id="char-view-close" class="char-close-btn"><iconify-icon icon="lucide:x"></iconify-icon></button>
-      <div id="char-view-content" class="char-view-content"></div>
+        <div class="form-row two-col">
+          <label>Profession
+            <input type="text" id="char-profession" placeholder="e.g. Blacksmith" />
+          </label>
+          <label>Race
+            <input type="text" id="char-race" placeholder="e.g. Human" />
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label>Age
+            <input type="text" id="char-age" placeholder="e.g. 35" />
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label>Description
+            <textarea id="char-description" rows="4" placeholder="Describe this character…"></textarea>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label>DM Notes
+            <textarea id="char-notes" rows="2" placeholder="Private DM notes…"></textarea>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label style="text-transform:uppercase;font-size:11px;color:#888;letter-spacing:.07em">Role</label>
+          <div class="role-selector" id="char-role-selector">
+            <button type="button" class="role-sel-btn" data-role="">None</button>
+            <button type="button" class="role-sel-btn role-villain" data-role="villain">
+              <iconify-icon icon="lucide:skull" style="font-size:11px;vertical-align:-1px"></iconify-icon> Villain
+            </button>
+            <button type="button" class="role-sel-btn role-ally" data-role="ally">
+              <iconify-icon icon="lucide:handshake" style="font-size:11px;vertical-align:-1px"></iconify-icon> Ally
+            </button>
+            <button type="button" class="role-sel-btn role-deity" data-role="deity">
+              <iconify-icon icon="lucide:sun" style="font-size:11px;vertical-align:-1px"></iconify-icon> Deity
+            </button>
+            <button type="button" class="role-sel-btn role-npc" data-role="npc">
+              <iconify-icon icon="lucide:user-round" style="font-size:11px;vertical-align:-1px"></iconify-icon> NPC
+            </button>
+            <button type="button" class="role-sel-btn role-creature" data-role="creature">
+              <iconify-icon icon="lucide:paw-print" style="font-size:11px;vertical-align:-1px"></iconify-icon> Creature
+            </button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="char-encountered" />
+            <span class="checkbox-box"></span>
+            Encountered by players
+          </label>
+        </div>
+
+        <div id="char-error" class="modal-error"></div>
+      </div>
+      <div class="modal-actions">
+        <button id="char-save" class="dm-btn">Save Character</button>
+        <button id="char-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
+      </div>
     </div>
   </div>
 
   <script is:inline type="module" src="/assets/js/exploration.js"></script>
+
+  <!-- Framer Motion: staggered row entry on filter/search rebuild -->
+  <script>
+    import { animate } from 'framer-motion/dom';
+
+    const grid = document.getElementById('chars-grid');
+    if (grid) {
+      let batch: HTMLElement[] = [];
+      let rebuilding = false;
+      let timer: ReturnType<typeof setTimeout> | null = null;
+
+      const observer = new MutationObserver(mutations => {
+        for (const m of mutations) {
+          if (m.removedNodes.length > 2) {
+            rebuilding = true;
+            batch = [];
+          }
+
+          for (const node of m.addedNodes) {
+            const el = node as HTMLElement;
+            if (node.nodeType === 1 && el.classList?.contains('char-row')) {
+              if (rebuilding) {
+                el.style.animation = 'none';
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(6px)';
+                batch.push(el);
+              }
+            }
+          }
+        }
+
+        if (!rebuilding) return;
+
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          const rows = batch.splice(0);
+          rebuilding = false;
+          if (!rows.length) return;
+
+          rows.forEach((row, i) => {
+            const delay = Math.min(i * 0.035, 0.35);
+            animate(row, { opacity: 1, y: 0 }, {
+              duration: 0.24,
+              delay,
+              ease: [0.16, 1, 0.3, 1],
+            });
+            setTimeout(() => {
+              row.style.removeProperty('animation');
+            }, (0.24 + delay) * 1000 + 40);
+          });
+        }, 20);
+      });
+
+      observer.observe(grid, { childList: true });
+    }
+  </script>
 </Layout>

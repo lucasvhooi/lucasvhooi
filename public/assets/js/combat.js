@@ -22,113 +22,6 @@ const CONDITIONS = [
   { id: "hidden",        label: "Hidden",        icon: "lucide:ghost",               color: "#607d8b" },
 ];
 
-// ── Monster presets ───────────────────────────────────────────────────────────
-// { name, ac, hp (avg), initMod (DEX mod), cr }
-const MONSTER_PRESETS = [
-  // ── Common humanoids ──
-  { name: "Bandit",           ac: 12, hp: 11,  initMod:  1, cr: "1/8"  },
-  { name: "Bandit Captain",   ac: 15, hp: 65,  initMod:  2, cr: "2"    },
-  { name: "Cultist",          ac: 12, hp: 9,   initMod:  1, cr: "1/8"  },
-  { name: "Cult Fanatic",     ac: 13, hp: 33,  initMod:  2, cr: "2"    },
-  { name: "Guard",            ac: 16, hp: 11,  initMod:  1, cr: "1/8"  },
-  { name: "Knight",           ac: 18, hp: 52,  initMod:  0, cr: "3"    },
-  { name: "Gladiator",        ac: 16, hp: 112, initMod:  2, cr: "5"    },
-  { name: "Veteran",          ac: 17, hp: 58,  initMod:  1, cr: "3"    },
-  { name: "Mage",             ac: 12, hp: 40,  initMod:  2, cr: "6"    },
-  { name: "Archmage",         ac: 12, hp: 99,  initMod:  2, cr: "12"   },
-  { name: "Spy",              ac: 12, hp: 27,  initMod:  2, cr: "1"    },
-  { name: "Assassin",         ac: 15, hp: 78,  initMod:  4, cr: "8"    },
-  { name: "Thug",             ac: 11, hp: 32,  initMod:  0, cr: "1/2"  },
-  { name: "Berserker",        ac: 13, hp: 67,  initMod:  1, cr: "2"    },
-  { name: "Scout",            ac: 13, hp: 16,  initMod:  2, cr: "1/2"  },
-  // ── Goblinoids ──
-  { name: "Goblin",           ac: 15, hp: 7,   initMod:  2, cr: "1/4"  },
-  { name: "Hobgoblin",        ac: 18, hp: 11,  initMod:  1, cr: "1/2"  },
-  { name: "Bugbear",          ac: 16, hp: 27,  initMod:  2, cr: "1"    },
-  { name: "Bugbear Chief",    ac: 17, hp: 65,  initMod:  2, cr: "3"    },
-  { name: "Goblin Boss",      ac: 17, hp: 21,  initMod:  3, cr: "1"    },
-  // ── Orcs / Giants ──
-  { name: "Orc",              ac: 13, hp: 15,  initMod:  1, cr: "1/2"  },
-  { name: "Orc War Chief",    ac: 16, hp: 93,  initMod:  2, cr: "4"    },
-  { name: "Half-Orc",         ac: 13, hp: 30,  initMod:  1, cr: "1"    },
-  { name: "Ogre",             ac: 11, hp: 59,  initMod: -1, cr: "2"    },
-  { name: "Troll",            ac: 15, hp: 84,  initMod:  1, cr: "5"    },
-  { name: "Hill Giant",       ac: 13, hp: 105, initMod: -1, cr: "5"    },
-  { name: "Stone Giant",      ac: 17, hp: 126, initMod:  2, cr: "7"    },
-  { name: "Frost Giant",      ac: 15, hp: 138, initMod: -1, cr: "8"    },
-  { name: "Fire Giant",       ac: 18, hp: 162, initMod: -1, cr: "9"    },
-  // ── Undead ──
-  { name: "Skeleton",         ac: 13, hp: 13,  initMod:  2, cr: "1/4"  },
-  { name: "Zombie",           ac: 8,  hp: 22,  initMod: -2, cr: "1/4"  },
-  { name: "Ghoul",            ac: 12, hp: 22,  initMod:  2, cr: "1"    },
-  { name: "Ghast",            ac: 13, hp: 36,  initMod:  3, cr: "2"    },
-  { name: "Shadow",           ac: 12, hp: 16,  initMod:  2, cr: "1/2"  },
-  { name: "Wight",            ac: 14, hp: 45,  initMod:  2, cr: "3"    },
-  { name: "Wraith",           ac: 13, hp: 67,  initMod:  3, cr: "5"    },
-  { name: "Specter",          ac: 12, hp: 22,  initMod:  2, cr: "1"    },
-  { name: "Vampire",          ac: 16, hp: 144, initMod:  4, cr: "13"   },
-  { name: "Vampire Spawn",    ac: 15, hp: 82,  initMod:  4, cr: "5"    },
-  { name: "Lich",             ac: 17, hp: 135, initMod:  3, cr: "21"   },
-  // ── Beasts ──
-  { name: "Wolf",             ac: 13, hp: 11,  initMod:  2, cr: "1/4"  },
-  { name: "Dire Wolf",        ac: 14, hp: 37,  initMod:  2, cr: "1"    },
-  { name: "Brown Bear",       ac: 11, hp: 34,  initMod:  0, cr: "1"    },
-  { name: "Lion",             ac: 12, hp: 26,  initMod:  2, cr: "1"    },
-  { name: "Tiger",            ac: 12, hp: 37,  initMod:  2, cr: "1"    },
-  { name: "Giant Spider",     ac: 14, hp: 26,  initMod:  3, cr: "1"    },
-  { name: "Crocodile",        ac: 12, hp: 19,  initMod:  0, cr: "1/2"  },
-  { name: "Giant Crocodile",  ac: 14, hp: 114, initMod: -1, cr: "5"    },
-  // ── Monsters ──
-  { name: "Kobold",           ac: 12, hp: 5,   initMod:  2, cr: "1/8"  },
-  { name: "Gnoll",            ac: 15, hp: 22,  initMod:  1, cr: "1/2"  },
-  { name: "Lizardfolk",       ac: 15, hp: 22,  initMod:  0, cr: "1/2"  },
-  { name: "Harpy",            ac: 11, hp: 38,  initMod:  1, cr: "1"    },
-  { name: "Minotaur",         ac: 14, hp: 76,  initMod:  0, cr: "3"    },
-  { name: "Basilisk",         ac: 15, hp: 52,  initMod: -1, cr: "3"    },
-  { name: "Manticore",        ac: 14, hp: 68,  initMod:  1, cr: "3"    },
-  { name: "Werewolf",         ac: 11, hp: 58,  initMod:  1, cr: "3"    },
-  { name: "Medusa",           ac: 15, hp: 127, initMod:  2, cr: "6"    },
-  { name: "Wyvern",           ac: 13, hp: 110, initMod:  0, cr: "6"    },
-  { name: "Doppelganger",     ac: 14, hp: 52,  initMod:  4, cr: "3"    },
-  { name: "Gargoyle",         ac: 15, hp: 52,  initMod:  0, cr: "2"    },
-  { name: "Rust Monster",     ac: 14, hp: 27,  initMod:  4, cr: "1/2"  },
-  { name: "Gelatinous Cube",  ac: 6,  hp: 84,  initMod: -2, cr: "2"    },
-  { name: "Owlbear",          ac: 13, hp: 59,  initMod:  1, cr: "3"    },
-  { name: "Displacer Beast",  ac: 13, hp: 85,  initMod:  2, cr: "3"    },
-  { name: "Beholder",         ac: 18, hp: 180, initMod:  2, cr: "13"   },
-  { name: "Mind Flayer",      ac: 15, hp: 71,  initMod:  4, cr: "7"    },
-  // ── Drow ──
-  { name: "Drow",             ac: 15, hp: 13,  initMod:  2, cr: "1/4"  },
-  { name: "Drow Elite Warrior", ac: 18, hp: 71, initMod: 2, cr: "5"   },
-  { name: "Drow Mage",        ac: 12, hp: 45,  initMod:  2, cr: "7"    },
-  // ── Fiends ──
-  { name: "Imp",              ac: 13, hp: 10,  initMod:  3, cr: "1"    },
-  { name: "Quasit",           ac: 13, hp: 7,   initMod:  3, cr: "1"    },
-  { name: "Dretch",           ac: 11, hp: 18,  initMod:  0, cr: "1/4"  },
-  { name: "Hell Hound",       ac: 15, hp: 45,  initMod:  1, cr: "3"    },
-  { name: "Bearded Devil",    ac: 13, hp: 52,  initMod:  2, cr: "3"    },
-  { name: "Barbed Devil",     ac: 15, hp: 110, initMod:  3, cr: "5"    },
-  { name: "Vrock",            ac: 15, hp: 104, initMod:  1, cr: "6"    },
-  { name: "Hezrou",           ac: 16, hp: 136, initMod:  1, cr: "8"    },
-  { name: "Balor",            ac: 19, hp: 262, initMod:  2, cr: "19"   },
-  // ── Dragons ──
-  { name: "Dragon Wyrmling (Black)",  ac: 17, hp: 33,  initMod: 2, cr: "2"  },
-  { name: "Dragon Wyrmling (Blue)",   ac: 17, hp: 38,  initMod: 0, cr: "2"  },
-  { name: "Dragon Wyrmling (Green)",  ac: 17, hp: 38,  initMod: 1, cr: "2"  },
-  { name: "Dragon Wyrmling (Red)",    ac: 17, hp: 75,  initMod: 0, cr: "4"  },
-  { name: "Dragon Wyrmling (White)",  ac: 16, hp: 32,  initMod: 0, cr: "2"  },
-  { name: "Young Black Dragon",  ac: 18, hp: 127, initMod: 2, cr: "7"  },
-  { name: "Young Blue Dragon",   ac: 18, hp: 152, initMod: 0, cr: "9"  },
-  { name: "Young Green Dragon",  ac: 18, hp: 136, initMod: 1, cr: "8"  },
-  { name: "Young Red Dragon",    ac: 18, hp: 178, initMod: 0, cr: "10" },
-  { name: "Young White Dragon",  ac: 17, hp: 133, initMod: 0, cr: "6"  },
-  { name: "Adult Black Dragon",  ac: 19, hp: 195, initMod: 2, cr: "14" },
-  { name: "Adult Blue Dragon",   ac: 19, hp: 225, initMod: 0, cr: "16" },
-  { name: "Adult Green Dragon",  ac: 19, hp: 207, initMod: 1, cr: "15" },
-  { name: "Adult Red Dragon",    ac: 19, hp: 256, initMod: 0, cr: "17" },
-  { name: "Adult White Dragon",  ac: 18, hp: 200, initMod: 0, cr: "13" },
-];
-
 // ── Type colours ──────────────────────────────────────────────────────────────
 const TYPE_COLORS = {
   player: { border: "#ffcc66", bg: "rgba(255,204,102,0.11)", activeBg: "rgba(80,55,0,0.45)",   badge: "#c9a030", badgeBg: "rgba(255,204,102,0.14)" },
@@ -176,6 +69,12 @@ function escHtmlNl(s) {
   return escHtml(s ?? "").replace(/\n/g, "<br>");
 }
 function roll(sides) { return Math.floor(Math.random() * sides) + 1; }
+// Firebase serialises JS arrays as {0:{…},1:{…}} objects — normalise back to arrays.
+function toArr(v) {
+  if (!v) return null;
+  const a = Array.isArray(v) ? v : Object.values(v);
+  return a.length ? a : null;
+}
 
 // ── Log ───────────────────────────────────────────────────────────────────────
 const logEl = document.getElementById("combat-log");
@@ -202,10 +101,28 @@ document.getElementById("btn-clear-log").addEventListener("click", () => {
   logEl.innerHTML = '<p class="log-empty">Combat log will appear here.</p>';
 });
 
+// ── Panel toggles (Log / Loot) ────────────────────────────────────────────────
+(function() {
+  const overlayRight = document.querySelector('.overlay-right');
+  const overlayLoot  = document.querySelector('.overlay-loot');
+  const btnLog  = document.getElementById('btn-toggle-log');
+  const btnLoot = document.getElementById('btn-toggle-loot');
+
+  function toggle(panel, btn) {
+    const visible = panel.style.display !== 'none';
+    panel.style.display = visible ? 'none' : 'flex';
+    btn.classList.toggle('active', !visible);
+  }
+
+  btnLog.addEventListener('click',  () => toggle(overlayRight, btnLog));
+  btnLoot.addEventListener('click', () => toggle(overlayLoot,  btnLoot));
+})();
+
 // ── Render ────────────────────────────────────────────────────────────────────
 function render() {
   renderHero();
   renderCombatants();
+  if (typeof renderAttackDropdowns === "function") renderAttackDropdowns();
   if (typeof renderField === "function") renderField();
   save();
 }
@@ -289,9 +206,10 @@ function buildCard(c, idx) {
     <div class="card-stats-row">
       ${["str","dex","con","int","wis","cha"].map(k => s[k] != null ? `<span class="card-stat"><span class="card-stat-name">${k.toUpperCase()}</span><span class="card-stat-val">${s[k]}</span><span class="card-stat-mod">${statMod(s[k])}</span></span>` : "").join("")}
     </div>` : "";
-  const attacksHtml = (c.attacks && c.attacks.length) ? `
+  const _atks = toArr(c.attacks);
+  const attacksHtml = _atks ? `
     <div class="card-attacks">
-      ${c.attacks.map(a => `
+      ${_atks.map(a => `
         <div class="card-attack-row">
           <div class="card-atk-header">
             <span class="card-atk-name">${escHtml(a.name)}</span>
@@ -335,9 +253,9 @@ function buildCard(c, idx) {
       ${condHtml ? `<div class="card-conditions">${condHtml}</div>` : ""}
     </div>
     <div class="card-actions">
-      ${!isPlayer ? `<button class="card-btn hp-btn"   title="Adjust HP">HP ±</button>` : ""}
+      ${!isPlayer ? `<button class="card-btn hp-btn"   title="Adjust HP"><iconify-icon icon="lucide:heart-pulse"></iconify-icon></button>` : ""}
       <button class="card-btn cond-btn" title="Conditions"><iconify-icon icon="lucide:zap"></iconify-icon></button>
-      ${hasConds   ? `<button class="card-btn clear-fx-btn" title="Clear all conditions"><iconify-icon icon="lucide:x"></iconify-icon> FX</button>` : ""}
+      ${hasConds   ? `<button class="card-btn clear-fx-btn" title="Clear all conditions"><iconify-icon icon="lucide:zap-off"></iconify-icon></button>` : ""}
       <button class="card-btn edit-btn" title="Edit"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
       <button class="card-btn del-btn"  title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
     </div>`;
@@ -622,7 +540,7 @@ cmRollBtn.addEventListener("click", () => {
 cmPresetSearch.addEventListener("input", () => {
   const q = cmPresetSearch.value.trim().toLowerCase();
   if (!q) { cmPresetList.innerHTML = ""; cmPresetList.style.display = "none"; return; }
-  const matches = MONSTER_PRESETS.filter(m => m.name.toLowerCase().includes(q)).slice(0, 12);
+  const matches = enemyTemplates.filter(m => m.name.toLowerCase().includes(q)).slice(0, 12);
   if (matches.length === 0) { cmPresetList.innerHTML = ""; cmPresetList.style.display = "none"; return; }
 
   cmPresetList.innerHTML = "";
@@ -762,9 +680,8 @@ cmSave.addEventListener("click", () => {
     if (isNaN(initVal)) { cmError.textContent = "Enter an initiative value."; return; }
     const count = Math.max(1, Math.min(26, parseInt(cmEnemyCountInput.value, 10) || 1));
     const t = selectedEnemyTmpl;
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     for (let i = 0; i < count; i++) {
-      const suffix = count > 1 ? " " + letters[i] : "";
+      const suffix = count > 1 ? " " + (i + 1) : "";
       const initForThis = count > 1 ? roll(20) + (t.initMod ?? 0) : initVal;
       state.combatants.push({
         id:         genId(),
@@ -1022,92 +939,171 @@ document.addEventListener("keydown", e => {
 });
 
 // ── Card Attack Flow ──────────────────────────────────────────────────────────
-const fieldAttackBar     = document.getElementById("field-attack-bar");
-const attackAttackerName = document.getElementById("attack-attacker-name");
-const attackTargetName   = document.getElementById("attack-target-name");
-const attackDmgGroup     = document.getElementById("attack-dmg-group");
-const attackDmgInput     = document.getElementById("attack-dmg-input");
+const attackerSelect = document.getElementById("attack-attacker-sel");
+const targetSelect   = document.getElementById("attack-target-sel");
+const attackDmgInput = document.getElementById("attack-dmg-input");
+const cipPanel       = document.getElementById("combatant-info-panel");
+const cipName        = document.getElementById("cip-name");
+const cipBody        = document.getElementById("cip-body");
 
-function onCardClick(id) {
-  const c = state.combatants.find(x => x.id === id);
-  if (!c) return;
-
-  if (attackMode) {
-    // In attack mode: clicking a card picks the target — full render needed
-    if (attackState.attackerId === id) {
-      attackMode = false;
-      attackState.targetId = null;
-      showAttackBar(c, null);
-    } else {
-      attackState.targetId = id;
-      const attacker = state.combatants.find(x => x.id === attackState.attackerId);
-      showAttackBar(attacker, c);
-    }
-    render();
-  } else {
-    // Not in attack mode: just update selection highlighting, no DOM rebuild
-    attackState = { attackerId: id, targetId: null };
-    showAttackBar(c, null);
-    patchCardClasses();
-  }
+function syncAttackDmgGroup() {
+  // DMG group is always visible; nothing to sync
 }
 
-// Lightweight class-only update — avoids full DOM rebuild on simple selection change
-function patchCardClasses() {
+function renderAttackDropdowns() {
+  const prevA = attackState.attackerId || "";
+  const prevT = attackState.targetId   || "";
+  attackerSelect.innerHTML = '<option value="">— Attacker —</option>';
+  targetSelect.innerHTML   = '<option value="">— Target —</option>';
   state.combatants.forEach(c => {
-    const card = listEl.querySelector(`.combatant-card[data-id="${c.id}"]`);
-    if (!card) return;
-    const isAttacker    = attackState.attackerId === c.id;
-    const isTarget      = attackState.targetId   === c.id;
-    const isAttackReady = isAttacker && attackMode;
-    card.classList.toggle("is-attacker",    isAttacker);
-    card.classList.toggle("is-target",      isTarget);
-    card.classList.toggle("is-attack-mode", isAttackReady);
+    const isDead = c.type !== "player" && c.maxHp > 0 && c.hp <= 0;
+    const label  = c.name + (isDead ? " ☠" : "");
+    attackerSelect.appendChild(new Option(label, c.id, false, c.id === prevA));
+    targetSelect.appendChild(  new Option(label, c.id, false, c.id === prevT));
   });
+  syncAttackDmgGroup();
 }
 
-function onCardDblClick(id) {
+function showCombatantInfo(id) {
   const c = state.combatants.find(x => x.id === id);
-  if (!c) return;
-  // Enter attack mode with this combatant as the attacker
-  attackMode  = true;
-  attackState = { attackerId: id, targetId: null };
-  showAttackBar(c, null);
-  render();
+  if (!c) { hideCombatantInfo(); return; }
+  const col      = TYPE_COLORS[c.type] || TYPE_COLORS.npc;
+  const isPlayer = c.type === "player";
+  const isDead   = !isPlayer && c.maxHp > 0 && c.hp <= 0;
+  const hpPct    = c.maxHp > 0 ? Math.max(0, Math.min(100, (c.hp / c.maxHp) * 100)) : 0;
+  const hpColor  = hpPct > 60 ? "#4caf50" : hpPct > 30 ? "#ff9800" : "#e53935";
+  const statMod  = v => { const m = Math.floor((v - 10) / 2); return (m >= 0 ? "+" : "") + m; };
+
+  // Fall back to template data for old combatants that predate full stat saving
+  const tmpl = (window._enemyTemplates || []).find(
+    t => t.id === c.templateId || t.name.toLowerCase() === c.name.replace(/ \d+$/, "").toLowerCase()
+  );
+  const src = {
+    stats:     c.stats     ?? tmpl?.stats     ?? null,
+    attacks:   c.attacks   ?? tmpl?.attacks   ?? null,
+    speed:     c.speed     ?? tmpl?.speed     ?? null,
+    saves:     c.saves     ?? tmpl?.saves     ?? null,
+    condImm:   c.condImm   ?? tmpl?.condImm   ?? null,
+    languages: c.languages ?? tmpl?.languages ?? null,
+    notes:     c.notes     ?? tmpl?.notes     ?? null,
+    cr:        c.cr        ?? tmpl?.cr        ?? null,
+  };
+
+  cipName.textContent = c.name;
+  cipName.style.color = col.border;
+
+  let html = "";
+
+  // HP / AC / Initiative / CR chips
+  if (!isPlayer && c.maxHp > 0) {
+    html += `<div class="cip-hp-row">
+      <div class="hp-bar-wrap" style="flex:1;min-width:60px">
+        <div class="hp-bar-fill" style="width:${hpPct}%;background:${hpColor}"></div>
+      </div>
+      <span class="cip-stat-chip">${isDead ? "☠ Dead" : `${c.hp} / ${c.maxHp} HP`}</span>
+      ${c.ac         != null ? `<span class="cip-stat-chip"><iconify-icon icon="game-icons:shield"></iconify-icon> AC ${c.ac}</span>` : ""}
+      ${c.initiative != null ? `<span class="cip-stat-chip">Init ${c.initiative}</span>` : ""}
+      ${src.cr       ? `<span class="cip-stat-chip">CR ${src.cr}</span>` : ""}
+    </div>`;
+  }
+
+  // Ability scores
+  if (src.stats) {
+    html += `<div class="cip-stats-row">
+      ${["str","dex","con","int","wis","cha"].map(k => src.stats[k] != null ? `
+        <div class="cip-stat-block">
+          <span class="cip-stat-name">${k.toUpperCase()}</span>
+          <span class="cip-stat-val">${src.stats[k]}</span>
+          <span class="cip-stat-mod">${statMod(src.stats[k])}</span>
+        </div>` : "").join("")}
+    </div>`;
+  }
+
+  // Attacks
+  const atks = toArr(src.attacks);
+  if (atks) {
+    html += `<div class="cip-section">
+      <div class="cip-section-title">Attacks</div>
+      ${atks.map(a => `
+        <div class="cip-attack-row">
+          <span class="cip-atk-name">${escHtml(a.name)}</span>
+          ${a.hit    ? `<span class="cip-atk-chip">${escHtml(a.hit)}</span>` : ""}
+          ${a.damage ? `<span class="cip-atk-dmg">${escHtmlNl(a.damage)}</span>` : ""}
+        </div>`).join("")}
+    </div>`;
+  }
+
+  // Extra fields
+  const extras = [
+    src.speed     ? ["Speed",  src.speed]     : null,
+    src.saves     ? ["Saves",  src.saves]     : null,
+    src.condImm   ? ["Immune", src.condImm]   : null,
+    src.languages ? ["Lang",   src.languages] : null,
+    src.notes     ? ["Notes",  src.notes]     : null,
+  ].filter(Boolean);
+  if (extras.length) {
+    html += `<div class="cip-section">
+      ${extras.map(([lbl, val]) => `
+        <div class="cip-extra-row">
+          <span class="cip-extra-label">${lbl}</span>
+          <span>${escHtmlNl(val)}</span>
+        </div>`).join("")}
+    </div>`;
+  }
+
+  // Conditions
+  if (c.conditions && c.conditions.length) {
+    const condHtml = c.conditions.map(cond => {
+      const cd = CONDITIONS.find(x => x.id === cond.id);
+      if (!cd) return "";
+      const rounds = cond.rounds != null ? ` (${cond.rounds})` : "";
+      return `<span class="condition-pill" style="border-color:${cd.color};color:${cd.color}"><iconify-icon icon="${cd.icon}"></iconify-icon> ${cd.label}${rounds}</span>`;
+    }).join("");
+    if (condHtml) html += `<div class="card-conditions">${condHtml}</div>`;
+  }
+
+  // No data at all — guide user to re-import
+  if (!src.stats && !atks && !extras.length && !c.conditions?.length) {
+    html += `<p style="font-size:12px;color:#555;font-style:italic;margin:4px 0">No stat data. Re-import D&amp;D 5e templates or edit this template to add a stat block.</p>`;
+  }
+
+  // Set the accent colour on the inner element to match combatant type
+  const inner = cipPanel.querySelector(".cip-inner");
+  if (inner) inner.style.setProperty("--cip-accent", col.border);
+
+  cipBody.innerHTML = html;
+  cipPanel.classList.add("open");
 }
 
-function showAttackBar(attacker, target) {
-  fieldAttackBar.style.display = "flex";
-  attackAttackerName.textContent = attacker ? attacker.name : "—";
+function hideCombatantInfo() {
+  cipPanel.classList.remove("open");
+}
 
-  if (!target) {
-    if (attackMode) {
-      attackTargetName.textContent  = "Select a target…";
-      attackTargetName.style.fontStyle = "italic";
-      attackTargetName.style.color     = "#e57373";
-    } else {
-      attackTargetName.textContent  = "Double-click to attack";
-      attackTargetName.style.fontStyle = "italic";
-      attackTargetName.style.color     = "#888";
-    }
-    attackDmgGroup.style.display = "none";
-  } else {
-    const hpText = (target.type !== "player" && target.maxHp > 0)
-      ? `  (${target.hp}/${target.maxHp} HP)` : "";
-    attackTargetName.textContent     = target.name + hpText;
-    attackTargetName.style.fontStyle = "normal";
-    attackTargetName.style.color     = "#e57373";
-    attackDmgGroup.style.display = "flex";
+// Sync selects + dmg group to current attackState; open info panel for target
+function showAttackBar(attacker, target) {
+  if (attacker) attackerSelect.value = attacker.id;
+  if (target) {
+    attackState.targetId = target.id;
+    targetSelect.value   = target.id;
+    showCombatantInfo(target.id);
     attackDmgInput.value = "";
     setTimeout(() => attackDmgInput.focus(), 50);
+  } else {
+    attackState.targetId = null;
+    targetSelect.value   = "";
+    hideCombatantInfo();
   }
+  syncAttackDmgGroup();
 }
 
 function cancelAttack() {
-  attackMode  = false;
+  attackMode = false;
   attackState = { attackerId: null, targetId: null };
-  fieldAttackBar.style.display = "none";
-  render();
+  attackerSelect.value = "";
+  targetSelect.value   = "";
+  syncAttackDmgGroup();
+  hideCombatantInfo();
+  patchCardClasses();
 }
 
 function resolveAttack(isDamage) {
@@ -1144,9 +1140,86 @@ function resolveAttack(isDamage) {
   render();
 }
 
+// ── Card click handlers ───────────────────────────────────────────────────────
+function onCardClick(id) {
+  const c = state.combatants.find(x => x.id === id);
+  if (!c) return;
+
+  // Always show info panel for the clicked card
+  showCombatantInfo(id);
+
+  if (attackMode) {
+    if (attackState.attackerId === id) {
+      // Clicking the attacker again exits attack mode
+      attackMode = false;
+      attackState.targetId = null;
+      targetSelect.value   = "";
+      syncAttackDmgGroup();
+    } else {
+      // Pick this card as the target
+      attackState.targetId = id;
+      targetSelect.value   = id;
+      const attacker = state.combatants.find(x => x.id === attackState.attackerId);
+      showAttackBar(attacker, c);
+    }
+    render();
+  } else {
+    attackState = { attackerId: id, targetId: null };
+    attackerSelect.value = id;
+    targetSelect.value   = "";
+    syncAttackDmgGroup();
+    patchCardClasses();
+  }
+}
+
+function patchCardClasses() {
+  state.combatants.forEach(c => {
+    const card = listEl.querySelector(`.combatant-card[data-id="${c.id}"]`);
+    if (!card) return;
+    const isAttacker    = attackState.attackerId === c.id;
+    const isTarget      = attackState.targetId   === c.id;
+    const isAttackReady = isAttacker && attackMode;
+    card.classList.toggle("is-attacker",    isAttacker);
+    card.classList.toggle("is-target",      isTarget);
+    card.classList.toggle("is-attack-mode", isAttackReady);
+  });
+}
+
+function onCardDblClick(id) {
+  const c = state.combatants.find(x => x.id === id);
+  if (!c) return;
+  attackMode  = true;
+  attackState = { attackerId: id, targetId: null };
+  attackerSelect.value = id;
+  targetSelect.value   = "";
+  syncAttackDmgGroup();
+  render();
+}
+
+// ── Dropdown change handlers ──────────────────────────────────────────────────
+attackerSelect.addEventListener("change", () => {
+  attackState.attackerId = attackerSelect.value || null;
+  syncAttackDmgGroup();
+  patchCardClasses();
+});
+
+targetSelect.addEventListener("change", () => {
+  attackState.targetId = targetSelect.value || null;
+  syncAttackDmgGroup();
+  patchCardClasses();
+  if (attackState.targetId) {
+    showCombatantInfo(attackState.targetId);
+    attackDmgInput.value = "";
+    setTimeout(() => attackDmgInput.focus(), 50);
+  } else {
+    hideCombatantInfo();
+  }
+});
+
 document.getElementById("attack-deal-btn").addEventListener("click",  () => resolveAttack(true));
 document.getElementById("attack-heal-btn").addEventListener("click",  () => resolveAttack(false));
 document.getElementById("attack-cancel-btn").addEventListener("click", cancelAttack);
+document.getElementById("cip-close").addEventListener("click", hideCombatantInfo);
 attackDmgInput.addEventListener("keydown", e => {
   if (e.key === "Enter")  resolveAttack(true);
   if (e.key === "Escape") cancelAttack();
@@ -1155,7 +1228,6 @@ attackDmgInput.addEventListener("keydown", e => {
 // ── Enemy Templates ───────────────────────────────────────────────────────────
 let enemyTemplates     = [];
 let selectedTemplateId = null;
-let _hasSeededPresets  = false;
 // In-progress loot items for the currently open template
 let etLootItems = [];  // [{ id, name, price, rarity, chance, qty }]
 
@@ -1355,35 +1427,12 @@ function _buildSeedLootItems(entries) {
   }).filter(Boolean);
 }
 
-// Seed missing items + update all builtin templates with loot tables
+// Seed missing loot pool items (idempotent by ID)
 function _seedLootTables() {
-  // 1. Seed missing items (idempotent: only write items not yet in Firebase)
   if (window._saveItem) {
     const existingIds = new Set((window._combatItems || []).map(i => i.id));
     SEED_ITEMS.forEach(item => {
       if (!existingIds.has(item.id)) window._saveItem(item);
-    });
-  }
-  // 2. Update all builtin templates with loot data
-  if (window._saveEnemyTemplate) {
-    MONSTER_PRESETS.forEach(p => {
-      const id = "preset_" + p.name.toLowerCase().replace(/[^a-z0-9]+/g, "_");
-      const sl = SEED_LOOT[p.name];
-      const lootItems = sl ? _buildSeedLootItems(sl.items || []) : [];
-      const gpMin = sl ? sl.gp[0] : 0;
-      const gpMax = sl ? sl.gp[1] : 0;
-      window._saveEnemyTemplate({
-        id,
-        name:    p.name,
-        hp:      p.hp,
-        ac:      p.ac,
-        initMod: p.initMod,
-        cr:      p.cr,
-        notes:   null,
-        builtin: true,
-        loot:    { gpMin, gpMax, itemsMin: 0, itemsMax: 0 },
-        lootItems,
-      });
     });
   }
 }
@@ -1405,31 +1454,16 @@ window._onSystemFlagsLoaded = _checkAndSeedLoot;
 window._onEnemyTemplatesUpdate = () => {
   const firebaseList = window._enemyTemplates || [];
 
-  // First load: if the campaign DB is empty, seed it with every MONSTER_PRESET
-  if (!_hasSeededPresets && window._enemyTemplatesLoaded && firebaseList.length === 0) {
-    _hasSeededPresets = true;
-    _seedPresetsToFirebase();
-    return; // onValue will fire again once writes land
-  }
-
-  // Merge Firebase templates with hardcoded presets; Firebase takes priority (deduplicated by name)
-  const seen = new Set();
-  enemyTemplates = [
-    ...firebaseList,
-    ...MONSTER_PRESETS.map(p => ({
-      ...p,
-      builtin: true,
-      id: "preset_" + p.name.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
-    })),
-  ]
-    .filter(t => {
-      if (!t.name) return false;
-      const key = t.name.toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
+  enemyTemplates = firebaseList
+    .filter(t => !!t.name)
     .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+
+  // Show/hide import button based on whether dnd5e creatures are already imported
+  const _cmSession = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
+  if (_cmSession?.role === 'admin' && btnImportCreatures) {
+    const hasDnd5e = firebaseList.some(t => t.id?.startsWith("dnd5e_"));
+    btnImportCreatures.style.display = hasDnd5e ? "none" : "inline-flex";
+  }
 
   _checkAndSeedLoot(); // also check if loot version needs updating
   renderTemplateList();
@@ -1439,24 +1473,6 @@ window._onEnemyTemplatesUpdate = () => {
     if (updated) etLootItems = updated.lootItems ? updated.lootItems.map(x => ({ ...x })) : [];
   }
 };
-
-function _seedPresetsToFirebase() {
-  MONSTER_PRESETS.forEach(p => {
-    const id = "preset_" + p.name.toLowerCase().replace(/[^a-z0-9]+/g, "_");
-    window._saveEnemyTemplate({
-      id,
-      name:     p.name,
-      hp:       p.hp,
-      ac:       p.ac,
-      initMod:  p.initMod,
-      cr:       p.cr,
-      notes:    null,
-      builtin:  true,
-      loot:     { gpMin: 0, gpMax: 0, itemsMin: 0, itemsMax: 0 },
-      lootItems: [],
-    });
-  });
-}
 
 function saveTemplate(payload) {
   if (window._saveEnemyTemplate) {
@@ -1858,7 +1874,7 @@ etSpawnBtn.addEventListener("click", () => {
       notes:       tmpl.notes     || null,
       speed:       tmpl.speed     || null,
       stats:       tmpl.stats     || null,
-      attacks:     tmpl.attacks?.length ? tmpl.attacks : null,
+      attacks:     toArr(tmpl.attacks),
       saves:       tmpl.saves     || null,
       condImm:     tmpl.condImm   || null,
       languages:   tmpl.languages || null,
@@ -2120,4 +2136,132 @@ if (state.logEntries.length > 0) {
 renderLootPanel();
 
 // (battlefield removed — attack flow now uses initiative list cards)
+
+// ── D&D 5e Creature Import ────────────────────────────────────────────────────
+function _fmtCR(cr) {
+  if (cr === 0)     return "0";
+  if (cr === 0.125) return "1/8";
+  if (cr === 0.25)  return "1/4";
+  if (cr === 0.5)   return "1/2";
+  return String(cr);
+}
+
+const btnImportCreatures = document.getElementById("btn-import-dnd5e-creatures");
+const creatureImportProgress = document.getElementById("creature-import-progress");
+const creatureProgressFill   = document.getElementById("creature-progress-fill");
+const creatureProgressLabel  = document.getElementById("creature-progress-label");
+
+if (btnImportCreatures) {
+  btnImportCreatures.addEventListener("click", async () => {
+    if (!window._saveEnemyTemplate) {
+      alert("No campaign selected — open a campaign first.");
+      return;
+    }
+    if (!confirm(
+      "Import all 334 D&D 5e monsters as enemy templates?\n" +
+      "Custom templates you created will be preserved.\n\n" +
+      "Takes ~30 seconds. Continue?"
+    )) return;
+
+    btnImportCreatures.disabled = true;
+    creatureImportProgress.style.display = "block";
+    creatureProgressFill.style.width = "0%";
+    creatureProgressLabel.textContent = "Fetching monster list…";
+
+    try {
+      const listRes = await fetch("https://www.dnd5eapi.co/api/monsters").then(r => r.json());
+      const list    = listRes.results || [];
+      const total   = list.length;
+
+      // Preserve custom templates (builtin: false or undefined)
+      const customNames = new Set(
+        (window._enemyTemplates || [])
+          .filter(t => !t.builtin)
+          .map(t => t.name.toLowerCase())
+      );
+
+      // Remove old preset_ builtin templates to avoid duplicates
+      const oldBuiltins = (window._enemyTemplates || []).filter(t => t.builtin && t.id.startsWith("preset_"));
+      await Promise.all(oldBuiltins.map(t => window._deleteEnemyTemplate?.(t.id)));
+
+      const BATCH = 20;
+      let done = 0;
+
+      for (let i = 0; i < list.length; i += BATCH) {
+        const chunk   = list.slice(i, i + BATCH);
+        const monsters = await Promise.all(
+          chunk.map(m => fetch(`https://www.dnd5eapi.co${m.url}`).then(r => r.json()))
+        );
+
+        await Promise.all(monsters.map(m => {
+          if (customNames.has(m.name.toLowerCase())) return Promise.resolve();
+          const ac      = Array.isArray(m.armor_class) ? (m.armor_class[0]?.value ?? 10) : (m.armor_class || 10);
+          const initMod = Math.floor(((m.dexterity || 10) - 10) / 2);
+
+          // Full stat block
+          const stats = {
+            str: m.strength    || 10,
+            dex: m.dexterity   || 10,
+            con: m.constitution|| 10,
+            int: m.intelligence|| 10,
+            wis: m.wisdom      || 10,
+            cha: m.charisma    || 10,
+          };
+
+          // Attacks from actions that have an attack roll or damage
+          const attacks = (m.actions || [])
+            .filter(a => a.attack_bonus != null || (a.damage && a.damage.length))
+            .slice(0, 8)
+            .map(a => ({
+              name:   a.name,
+              hit:    a.attack_bonus != null ? `+${a.attack_bonus} to hit` : "",
+              damage: (a.damage || [])
+                .map(d => `${d.damage_dice || ""} ${d.damage_type?.name || ""}`.trim())
+                .filter(Boolean).join(" + "),
+            }));
+
+          // Speed
+          const speedParts = m.speed ? Object.entries(m.speed)
+            .map(([k, v]) => k === "walk" ? v : `${k} ${v}`) : [];
+          const speed = speedParts.join(", ") || null;
+
+          // Condition immunities
+          const condImm = (m.condition_immunities || []).map(c => c.name).join(", ") || null;
+
+          return window._saveEnemyTemplate({
+            id:        "dnd5e_" + m.index,
+            name:      m.name,
+            hp:        m.hit_points,
+            ac,
+            initMod,
+            cr:        _fmtCR(m.challenge_rating),
+            speed,
+            notes:     m.type ? `${m.type}${m.subtype ? ` (${m.subtype})` : ""}` : null,
+            stats,
+            attacks,
+            condImm,
+            languages: m.languages || null,
+            builtin:   true,
+            loot:      { gpMin: 0, gpMax: 0, itemsMin: 0, itemsMax: 0 },
+            lootItems: [],
+          });
+        }));
+
+        done += chunk.length;
+        const pct = Math.round(done / total * 100);
+        creatureProgressFill.style.width = pct + "%";
+        creatureProgressLabel.textContent = `Importing… ${done}/${total} (${pct}%)`;
+      }
+
+      creatureProgressLabel.textContent = `Done! Imported ${total} monsters.`;
+      btnImportCreatures.style.display = "none";
+      setTimeout(() => { creatureImportProgress.style.display = "none"; }, 3000);
+
+    } catch (err) {
+      creatureProgressLabel.textContent = "Error: " + err.message;
+      creatureProgressFill.style.background = "#c62828";
+      setTimeout(() => { creatureImportProgress.style.display = "none"; btnImportCreatures.disabled = false; }, 4000);
+    }
+  });
+}
 

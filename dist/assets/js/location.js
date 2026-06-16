@@ -1,7 +1,7 @@
 import { db }                          from "./firebase.js";
 import { ref, set, remove, onValue }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { NPC_NAMES, AGE_RANGES, DEFAULT_PROFESSIONS, RACE_PROFESSIONS, RACE_BASE_WEIGHTS, ELF_SUBTYPE_WEIGHTS, NPC_TRAITS } from "./npc-data.js";
-import { parseTags, formatGold, getDisplayTags } from "./item-utils.js";
+import { parseTags, formatGold, getDisplayTags, RARITY_KW } from "./item-utils.js";
 import { openGivePanel } from "./give-to-player.js";
 
 // ── Setup ─────────────────────────────────────────────────────────────────────
@@ -51,10 +51,13 @@ let isDraggingBuilding  = false;
 let dragSrcId           = null;
 let isDayTime           = true;
 let currentTavernMarker = null;
+let npcExpanded         = false;
 
 // ── DOM Refs ──────────────────────────────────────────────────────────────────
 const locTitle        = document.getElementById("loc-title");
 const locStats        = document.getElementById("loc-stats");
+const locHero         = document.querySelector(".loc-hero");
+const locHeroBg       = document.getElementById("loc-hero-bg");
 const locMapContainer = document.getElementById("loc-map-container");
 const locMapImg       = document.getElementById("loc-map-img");
 const locMapPlaceholder = document.getElementById("loc-map-placeholder");
@@ -65,9 +68,13 @@ const locNpcList      = document.getElementById("loc-npc-list");
 const locPlacingBanner = document.getElementById("loc-placing-banner");
 
 // ── Firebase Listeners ────────────────────────────────────────────────────────
+onValue(ref(db, 'npcNames'), snapshot => {
+  window._globalNpcNames = snapshot.val() || null;
+});
+
 onValue(markerDbRef, snapshot => {
   markerData = snapshot.val();
-  if (markerData) renderHero();
+  if (markerData) { renderHero(); renderQuickInfo(); }
   else locTitle.textContent = "Unknown Location";
 });
 
@@ -83,12 +90,15 @@ onValue(subMarkersRef, snapshot => {
   subMarkers = data ? Object.values(data) : [];
   renderSubMarkers();
   if (isAdmin && !isDraggingBuilding) renderBuildings();
+  renderQuickInfo();
 });
 
 onValue(npcsRef, snapshot => {
   const data = snapshot.val();
   npcs = data ? Object.values(data) : [];
-  renderNpcs();
+  _updateNpcChip();
+  if (npcExpanded) renderNpcs();
+  renderQuickInfo();
 });
 
 // Global items (for shop modal)
@@ -121,34 +131,66 @@ function renderHero() {
     parts.push(`<span class="stat-badge ${explored ? "explored-badge" : "unexplored-badge"}">${explored ? "Explored" : "Unexplored"}</span>`);
   }
   locStats.innerHTML = parts.join("");
+
+  const editBtn = document.getElementById("loc-edit-location-btn");
+  if (editBtn && isAdmin) editBtn.style.display = "inline-flex";
+}
+
+// ── Render Quick Info ─────────────────────────────────────────────────────────
+function renderQuickInfo() {
+  const sec = document.getElementById("sec-quick-info");
+  const tbl = document.getElementById("qi-table");
+  if (!sec || !tbl || !markerData) return;
+
+  const tavernCount = subMarkers.filter(m => m.type === "Tavern").length;
+  const buildingCount = subMarkers.length;
+  const npcCount = npcs.length;
+
+  const rows = [
+    markerData.type       ? ["Type",       markerData.type]       : null,
+    markerData.population ? ["Population", markerData.population] : null,
+    markerData.wealth     ? ["Wealth",     markerData.wealth]     : null,
+    markerData.mainRace   ? ["Main Race",  markerData.mainRace]   : null,
+    markerData.religion   ? ["Religion",   markerData.religion]   : null,
+    tavernCount > 0       ? ["Taverns",    tavernCount]           : null,
+    buildingCount > 0     ? ["Buildings",  buildingCount]         : null,
+    npcCount > 0          ? ["NPCs",       npcCount]              : null,
+  ].filter(Boolean);
+
+  if (rows.length === 0) { sec.style.display = "none"; return; }
+  sec.style.display = "block";
+  tbl.innerHTML = rows.map(([k, v]) =>
+    `<div class="qi-row"><span class="qi-label">${k}</span><span class="qi-value">${v}</span></div>`
+  ).join("");
 }
 
 // ── Render Description ────────────────────────────────────────────────────────
 function renderDescription() {
   const desc = locationInfo.description;
+  const heroAbout = document.getElementById("loc-hero-about");
   if (desc) {
     locDescText.textContent = desc;
     locDescText.style.display = "block";
     locDescEmpty.style.display = "none";
+    if (heroAbout) heroAbout.style.display = "";
   } else {
     locDescText.style.display = "none";
-    locDescEmpty.style.display = "block";
+    locDescEmpty.style.display = isAdmin ? "block" : "none";
+    if (heroAbout && !isAdmin) heroAbout.style.display = "none";
   }
 }
 
-// ── Render Feature Image (location banner) ────────────────────────────────────
-const locFeatureImg   = document.getElementById("loc-feature-img");
-const locFeatureImgPh = document.getElementById("loc-feature-img-ph");
-
+// ── Render Feature Image (hero background) ────────────────────────────────────
 function renderFeatureImage() {
   const url = locationInfo.featureImageUrl;
   if (url) {
-    locFeatureImg.src = url;
-    locFeatureImg.style.display = "block";
-    locFeatureImgPh.style.display = "none";
+    locHeroBg.style.backgroundImage = `url('${url}')`;
+    locHeroBg.classList.add("loaded");
+    locHero.classList.add("has-bg-image");
   } else {
-    locFeatureImg.style.display = "none";
-    locFeatureImgPh.style.display = "flex";
+    locHeroBg.style.backgroundImage = "";
+    locHeroBg.classList.remove("loaded");
+    locHero.classList.remove("has-bg-image");
   }
 }
 
@@ -178,6 +220,185 @@ const TYPE_COLORS = {
   Other:   "#BDBDBD"
 };
 
+const TYPE_ICONS = {
+  Forge:   "game-icons:anvil",
+  Shop:    "lucide:shopping-bag",
+  Tavern:  "game-icons:beer-stein",
+  House:   "lucide:home",
+  Temple:  "game-icons:cathedral",
+  Guard:   "lucide:shield",
+  Market:  "lucide:store",
+  Library: "game-icons:bookshelf",
+  Other:   "lucide:map-pin"
+};
+
+// ── Location map zoom / pan state ─────────────────────────────────────────────
+const locMapWrapper  = document.getElementById("loc-map-wrapper");
+let _locScale        = 1;
+let _locOriginX      = 0;
+let _locOriginY      = 0;
+let _locIsDragging   = false;
+let _locDidDrag      = false;
+let _locStartX       = 0;
+let _locStartY       = 0;
+let _locRafPending   = false;
+let _locWheelTimer   = 0;
+let _locIsPinching   = false;
+let _locInitDist     = 0;
+let _locInitScale    = 1;
+let _locTouchStartX  = 0;
+let _locTouchStartY  = 0;
+
+function _updateLocTransform() {
+  if (locMapWrapper)
+    locMapWrapper.style.transform = `translate3d(${_locOriginX}px,${_locOriginY}px,0) scale(${_locScale})`;
+}
+
+function _clampLocBounds() {
+  const cw = locMapContainer.offsetWidth;
+  const ch = locMapContainer.offsetHeight;
+  _locOriginX = Math.min(0, Math.max(cw  * (1 - _locScale), _locOriginX));
+  _locOriginY = Math.min(0, Math.max(ch  * (1 - _locScale), _locOriginY));
+}
+
+function _scheduleLocTransform() {
+  if (_locRafPending) return;
+  _locRafPending = true;
+  requestAnimationFrame(() => {
+    _clampLocBounds();
+    _updateLocTransform();
+    _locRafPending = false;
+  });
+}
+
+function _flushLocMarkerScale() {
+  const t = `translate3d(-50%,-50%,0) scale(${1 / _locScale})`;
+  locMarkerLayer.querySelectorAll(".loc-marker").forEach(el => { el.style.transform = t; });
+}
+
+function _scheduleMarkerScaleFlush() {
+  clearTimeout(_locWheelTimer);
+  _locWheelTimer = setTimeout(_flushLocMarkerScale, 120);
+}
+
+function resetLocZoom() {
+  _locScale = 1; _locOriginX = 0; _locOriginY = 0;
+  _updateLocTransform();
+  _flushLocMarkerScale();
+}
+
+function _zoomLocAt(cx, cy, newScale) {
+  newScale = Math.min(Math.max(newScale, 1), 5);
+  _locOriginX -= (cx - _locOriginX) * (newScale / _locScale - 1);
+  _locOriginY -= (cy - _locOriginY) * (newScale / _locScale - 1);
+  _locScale = newScale;
+  _clampLocBounds();
+  _updateLocTransform();
+  _flushLocMarkerScale();
+}
+
+// Wheel zoom
+locMapContainer.addEventListener("wheel", e => {
+  e.preventDefault();
+  const rect = locMapContainer.getBoundingClientRect();
+  _zoomLocAt(e.clientX - rect.left, e.clientY - rect.top,
+             _locScale * (1 - e.deltaY * 0.001));
+}, { passive: false });
+
+// Pointer drag (desktop pan)
+locMapContainer.addEventListener("pointerdown", e => {
+  if (e.button !== 0) return;
+  if (e.target.closest(".loc-marker") || e.target.closest(".loc-dm-toolbar") || e.target.closest(".loc-zoom-controls")) return;
+  _locIsDragging = true;
+  _locDidDrag    = false;
+  _locStartX = e.clientX;
+  _locStartY = e.clientY;
+  locMapContainer.setPointerCapture(e.pointerId);
+  if (!placingMode) locMapContainer.classList.add("loc-dragging");
+});
+
+locMapContainer.addEventListener("pointermove", e => {
+  if (!_locIsDragging) return;
+  const dx = e.clientX - _locStartX;
+  const dy = e.clientY - _locStartY;
+  if (Math.abs(dx) > 3 || Math.abs(dy) > 3) _locDidDrag = true;
+  _locStartX = e.clientX;
+  _locStartY = e.clientY;
+  _locOriginX += dx;
+  _locOriginY += dy;
+  _scheduleLocTransform();
+}, { passive: true });
+
+locMapContainer.addEventListener("pointerup", () => {
+  _locIsDragging = false;
+  locMapContainer.classList.remove("loc-dragging");
+});
+
+locMapContainer.addEventListener("pointercancel", () => {
+  _locIsDragging = false;
+  locMapContainer.classList.remove("loc-dragging");
+});
+
+// Zoom control buttons
+document.getElementById("loc-zoom-in")?.addEventListener("click", e => {
+  e.stopPropagation();
+  const cw = locMapContainer.offsetWidth, ch = locMapContainer.offsetHeight;
+  _zoomLocAt(cw / 2, ch / 2, _locScale * 1.35);
+});
+document.getElementById("loc-zoom-out")?.addEventListener("click", e => {
+  e.stopPropagation();
+  const cw = locMapContainer.offsetWidth, ch = locMapContainer.offsetHeight;
+  _zoomLocAt(cw / 2, ch / 2, _locScale / 1.35);
+});
+document.getElementById("loc-zoom-reset")?.addEventListener("click", e => {
+  e.stopPropagation();
+  resetLocZoom();
+});
+
+// Stop zoom-control pointer events from bleeding into the map
+document.getElementById("loc-zoom-controls")?.addEventListener("pointerdown", e => e.stopPropagation());
+
+// Touch pinch + pan
+function _locTouchDist(t1, t2) {
+  return Math.sqrt((t1.clientX - t2.clientX) ** 2 + (t1.clientY - t2.clientY) ** 2);
+}
+
+locMapContainer.addEventListener("touchstart", e => {
+  if (e.target.closest(".loc-marker") || e.target.closest(".loc-dm-toolbar") || e.target.closest(".loc-zoom-controls")) return;
+  if (e.touches.length === 2) {
+    _locIsPinching = true;
+    _locInitDist   = _locTouchDist(e.touches[0], e.touches[1]);
+    _locInitScale  = _locScale;
+    e.preventDefault();
+  } else {
+    _locTouchStartX = e.touches[0].clientX;
+    _locTouchStartY = e.touches[0].clientY;
+  }
+}, { passive: false });
+
+locMapContainer.addEventListener("touchmove", e => {
+  if (e.target.closest(".loc-marker") || e.target.closest(".loc-dm-toolbar")) return;
+  e.preventDefault();
+  if (_locIsPinching && e.touches.length === 2) {
+    const rect = locMapContainer.getBoundingClientRect();
+    const newDist  = _locTouchDist(e.touches[0], e.touches[1]);
+    const newScale = Math.min(Math.max(_locInitScale * (newDist / _locInitDist), 1), 5);
+    const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+    const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+    _locOriginX -= (midX - _locOriginX) * (newScale / _locScale - 1);
+    _locOriginY -= (midY - _locOriginY) * (newScale / _locScale - 1);
+    _locScale = newScale;
+    _scheduleLocTransform();
+    _scheduleMarkerScaleFlush();
+  } else if (!_locIsPinching && e.touches.length === 1) {
+    const cx = e.touches[0].clientX, cy = e.touches[0].clientY;
+    _locOriginX += cx - _locTouchStartX;
+    _locOriginY += cy - _locTouchStartY;
+    _locTouchStartX = cx; _locTouchStartY = cy;
+    _scheduleLocTransform();
+  }
+}, { passive: false });
+
 function markerDisplayType(marker) {
   return (marker.type === "Other" && marker.customType)
     ? marker.customType
@@ -186,21 +407,27 @@ function markerDisplayType(marker) {
 
 function renderSubMarkers() {
   locMarkerLayer.innerHTML = "";
+  const counterScale = `translate3d(-50%,-50%,0) scale(${1 / _locScale})`;
 
   subMarkers.forEach(marker => {
     // Players only see markers the DM has marked as discovered
     if (!isAdmin && !marker.discovered) return;
 
     const el = document.createElement("div");
-    el.className    = "loc-marker";
-    el.dataset.id   = marker.id;
-    el.style.left   = marker.x + "%";
-    el.style.top    = marker.y + "%";
+    el.className       = "loc-marker";
+    el.dataset.id      = marker.id;
+    el.style.left      = marker.x + "%";
+    el.style.top       = marker.y + "%";
+    el.style.transform = counterScale;
     el.addEventListener("pointerdown", e => e.stopPropagation());
 
+    const color = TYPE_COLORS[marker.type] || "#BDBDBD";
+    const icon  = TYPE_ICONS[marker.type]  || "lucide:map-pin";
+    el.style.setProperty("--mc", color);
+
     const pin = document.createElement("div");
-    pin.className  = "loc-marker-pin";
-    pin.style.background = TYPE_COLORS[marker.type] || "#BDBDBD";
+    pin.className = "loc-marker-pin";
+    pin.innerHTML = `<iconify-icon icon="${icon}"></iconify-icon>`;
 
     const ownerNpc = marker.ownerId ? npcs.find(n => n.id === marker.ownerId) : null;
 
@@ -278,31 +505,41 @@ if (locBtnPlace) {
   });
 }
 
-// Click on location map to place a sub-marker
+// Helper: convert screen coords (relative to container) → marker % coords
+function _screenToMarkerPct(sx, sy) {
+  const wrapperX = (sx - _locOriginX) / _locScale;
+  const wrapperY = (sy - _locOriginY) / _locScale;
+  const cw = locMapContainer.offsetWidth;
+  const ch = locMapContainer.offsetHeight;
+  return {
+    x: Math.max(0, Math.min(100, (wrapperX / cw) * 100)),
+    y: Math.max(0, Math.min(100, (wrapperY / ch) * 100))
+  };
+}
+
+// Click on location map to place a sub-marker (desktop)
 locMapContainer.addEventListener("click", e => {
   if (!placingMode || !isAdmin) return;
-  if (e.target.closest(".loc-marker") || e.target.closest(".loc-dm-toolbar")) return;
-
+  if (_locDidDrag) return; // was a pan, not a click
+  if (e.target.closest(".loc-marker") || e.target.closest(".loc-dm-toolbar") || e.target.closest(".loc-zoom-controls")) return;
   const rect = locMapContainer.getBoundingClientRect();
-  pendingCoords = {
-    x: Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width)  * 100)),
-    y: Math.max(0, Math.min(100, ((e.clientY - rect.top)  / rect.height) * 100))
-  };
+  pendingCoords = _screenToMarkerPct(e.clientX - rect.left, e.clientY - rect.top);
   openSubMarkerModal(null);
 });
 
-// Touch tap to place
+// Touch tap to place (mobile)
 locMapContainer.addEventListener("touchend", e => {
-  if (!placingMode || !isAdmin) return;
+  if (e.touches.length < 2) _locIsPinching = false;
+  if (e.touches.length === 0) _flushLocMarkerScale();
+
+  if (!placingMode || !isAdmin || _locIsPinching) return;
   if (e.changedTouches.length !== 1) return;
   const touch = e.changedTouches[0];
-  const rect  = locMapContainer.getBoundingClientRect();
-  const dx = Math.abs(touch.clientX - rect.left);
-  if (dx > rect.width) return; // outside
-  pendingCoords = {
-    x: Math.max(0, Math.min(100, ((touch.clientX - rect.left) / rect.width)  * 100)),
-    y: Math.max(0, Math.min(100, ((touch.clientY - rect.top)  / rect.height) * 100))
-  };
+  if (Math.abs(touch.clientX - _locTouchStartX) > 10 ||
+      Math.abs(touch.clientY - _locTouchStartY) > 10) return; // was a pan
+  if (e.target.closest(".loc-marker") || e.target.closest(".loc-dm-toolbar") || e.target.closest(".loc-zoom-controls")) return;
+  const rect = locMapContainer.getBoundingClientRect();
+  pendingCoords = _screenToMarkerPct(touch.clientX - rect.left, touch.clientY - rect.top);
   openSubMarkerModal(null);
 });
 
@@ -336,7 +573,7 @@ const lmCancel         = document.getElementById("lm-cancel");
 
 function getAllInventoryTags() {
   const tagSet = new Set();
-  globalItems.forEach(item => getDisplayTags(item.tags).forEach(t => tagSet.add(t)));
+  globalItems.forEach(item => parseTags(item.tags).filter(t => !RARITY_KW.has(t)).forEach(t => tagSet.add(t)));
   return [...tagSet].sort();
 }
 
@@ -605,17 +842,30 @@ function renderBuildings() {
 
     const color  = TYPE_COLORS[marker.type] || "#BDBDBD";
     const bOwner = marker.ownerId ? npcs.find(n => n.id === marker.ownerId) : null;
+    card.style.setProperty("--bc", color);
+
+    const TYPE_ICONS = {
+      Forge: "game-icons:anvil", Shop: "lucide:shopping-bag", Tavern: "game-icons:beer-stein",
+      House: "lucide:home", Temple: "game-icons:cathedral", Guard: "lucide:shield",
+      Market: "lucide:store", Library: "game-icons:bookshelf", Other: "lucide:map-pin"
+    };
+    const thumbIcon = TYPE_ICONS[marker.type] || "lucide:map-pin";
+    const thumbHtml = marker.picture
+      ? `<img src="${marker.picture}" alt="${marker.name}" />`
+      : `<iconify-icon icon="${thumbIcon}" style="color:${color}"></iconify-icon>`;
+
+    const typeLabel = `${markerDisplayType(marker)}${marker.shopSubtype ? ` · ${marker.shopSubtype}` : ""}${bOwner ? ` · ${bOwner.name}` : ""}`;
 
     card.innerHTML = `
       <iconify-icon icon="lucide:grip-vertical" class="building-drag-handle" title="Drag to reorder"></iconify-icon>
-      <div class="building-dot" style="background:${color}"></div>
+      <div class="building-thumb" style="background:${color}18;border-color:${color}35">${thumbHtml}</div>
       <div class="building-info">
         <div class="building-name">${marker.name}</div>
-        <div class="building-type">${markerDisplayType(marker)}${marker.shopSubtype ? ` · ${marker.shopSubtype}` : ""}${bOwner ? ` · ${bOwner.name}` : ""}</div>
+        <div class="building-type">${typeLabel}</div>
         ${marker.notes ? `<div class="building-notes">${marker.notes}</div>` : ""}
       </div>
       <div class="building-card-actions">
-        <button class="building-open-btn dm-btn dm-btn-sm" title="View shop">Open</button>
+        <button class="building-open-btn dm-btn dm-btn-sm" title="View">Open</button>
         <button class="building-vis-btn${marker.discovered ? " active" : ""}" title="${marker.discovered ? "Hide from players" : "Reveal to players"}"><iconify-icon icon="lucide:eye"></iconify-icon></button>
       </div>
     `;
@@ -723,29 +973,29 @@ function renderNpcs() {
     return;
   }
 
-  sorted.forEach((npc, index) => {
+  sorted.forEach((npc) => {
     const card = document.createElement("div");
     card.className = "npc-card" + (npc.talkedTo ? " npc-talked" : "");
 
-    const num      = String(index + 1).padStart(3, "0");
     const agePart  = npc.age ? `Age ${npc.age}` : null;
-    const subtitle = [npc.race, npc.role, agePart].filter(Boolean).join(" • ");
+    const subtitle = [npc.race, npc.role, agePart].filter(Boolean).join(" · ");
+    const initial  = (npc.name || "?").charAt(0).toUpperCase();
 
     card.innerHTML = `
-      <div class="npc-header">
-        <div class="npc-num">#${num}</div>
-        <div class="npc-main">
+      <div class="npc-avatar">${initial}</div>
+      <div class="npc-main">
+        <div class="npc-header">
           <div class="npc-name">${npc.name}</div>
-          ${subtitle ? `<div class="npc-subtitle">${subtitle}</div>` : ""}
+          <div class="npc-actions">
+            <button class="npc-talk-btn${npc.talkedTo ? " active" : ""}" title="${npc.talkedTo ? "Mark as not talked to" : "Mark as talked to"}"><iconify-icon icon="lucide:check"></iconify-icon></button>
+            <button class="marker-edit-btn dm-btn dm-btn-sm npc-edit-btn">Edit</button>
+            <button class="marker-delete-btn dm-btn dm-btn-sm npc-del-btn">Del</button>
+          </div>
         </div>
-        <div class="npc-actions">
-          <button class="npc-talk-btn${npc.talkedTo ? " active" : ""}" title="${npc.talkedTo ? "Mark as not talked to" : "Mark as talked to"}"><iconify-icon icon="lucide:check"></iconify-icon></button>
-          <button class="marker-edit-btn dm-btn dm-btn-sm npc-edit-btn">Edit</button>
-          <button class="marker-delete-btn dm-btn dm-btn-sm npc-del-btn">Del</button>
-        </div>
+        ${subtitle ? `<div class="npc-subtitle">${subtitle}</div>` : ""}
+        ${npc.description ? `<p class="npc-desc">${npc.description}</p>` : ""}
+        ${npc.notes ? `<div class="npc-notes">DM: ${npc.notes}</div>` : ""}
       </div>
-      ${npc.description ? `<p class="npc-desc">${npc.description}</p>` : ""}
-      ${npc.notes ? `<div class="npc-notes">DM: ${npc.notes}</div>` : ""}
     `;
 
     card.querySelector(".npc-talk-btn").addEventListener("click", () => {
@@ -826,13 +1076,37 @@ locNpcModal.addEventListener("click", e => { if (e.target === locNpcModal) close
 
 document.getElementById("loc-add-npc-btn").addEventListener("click", () => openNpcModal(null));
 
+// ── NPC expand / collapse ─────────────────────────────────────────────────────
+const npcSectionBody    = document.getElementById("npc-section-body");
+const npcExpandToggle   = document.getElementById("npc-expand-toggle");
+const npcToggleRow      = document.getElementById("npc-toggle-row");
+
+function _updateNpcChip() {
+  const chip = document.getElementById("npc-count-chip");
+  if (chip) chip.textContent = npcs.length > 0 ? `(${npcs.length})` : "";
+}
+
+function _toggleNpcs() {
+  npcExpanded = !npcExpanded;
+  if (npcSectionBody) npcSectionBody.style.display = npcExpanded ? "" : "none";
+  if (npcExpandToggle) {
+    const icon = npcExpandToggle.querySelector("iconify-icon");
+    if (icon) icon.setAttribute("icon", npcExpanded ? "lucide:chevron-up" : "lucide:chevron-down");
+  }
+  if (npcExpanded) renderNpcs();
+}
+
+npcExpandToggle?.addEventListener("click", e => { e.stopPropagation(); _toggleNpcs(); });
+npcToggleRow?.addEventListener("click", e => { if (!e.target.closest(".dm-btn")) _toggleNpcs(); });
+
 // ── NPC Generator Toggle ──────────────────────────────────────────────────────
 const npcGeneratorPanel = document.getElementById("npc-generator-panel");
 const toggleGenBtn      = document.getElementById("loc-toggle-gen-btn");
 let generatorOpen = false;
 
 if (toggleGenBtn && npcGeneratorPanel) {
-  toggleGenBtn.addEventListener("click", () => {
+  toggleGenBtn.addEventListener("click", e => {
+    e.stopPropagation();
     generatorOpen = !generatorOpen;
     npcGeneratorPanel.style.display = generatorOpen ? "" : "none";
     toggleGenBtn.innerHTML = generatorOpen ? 'Generator <iconify-icon icon="lucide:chevron-down"></iconify-icon>' : 'Generator <iconify-icon icon="lucide:chevron-right"></iconify-icon>';
@@ -845,7 +1119,7 @@ const npcSearchInput = document.getElementById("npc-search");
 if (npcSearchInput) {
   npcSearchInput.addEventListener("input", e => {
     npcSearchQuery = e.target.value;
-    renderNpcs();
+    if (npcExpanded) renderNpcs();
   });
 }
 
@@ -921,15 +1195,14 @@ if (locFeatureUpload) {
   locFeatureUpload.addEventListener("change", async () => {
     const file = locFeatureUpload.files[0];
     if (!file) return;
-    locFeatureImgPh.innerHTML = `<span style="color:#aaa;font-size:13px">Compressing…</span>`;
-    locFeatureImgPh.style.display = "flex";
-    locFeatureImg.style.display = "none";
+    locHero.classList.add("hero-uploading");
     try {
       const base64 = await compressImage(file, 1200, 0.85);
       await set(ref(db, `campaigns/${cid}/locations/${locationId}/info/featureImageUrl`), base64);
     } catch {
-      locFeatureImgPh.innerHTML = `<span style="color:#E57373;font-size:13px">Upload failed.</span>`;
+      // upload failed — image unchanged
     }
+    locHero.classList.remove("hero-uploading");
     locFeatureUpload.value = "";
   });
 }
@@ -1013,7 +1286,8 @@ function pickRace(mainRace, popNum) {
 }
 
 function pickName(race) {
-  const pool    = NPC_NAMES[race] || NPC_NAMES["Human"];
+  const source  = window._globalNpcNames || NPC_NAMES;
+  const pool    = source[race] || source["Human"] || NPC_NAMES[race] || NPC_NAMES["Human"];
   const isMale  = Math.random() < 0.5;
   const first   = isMale ? pool.male[Math.floor(Math.random() * pool.male.length)]
                          : pool.female[Math.floor(Math.random() * pool.female.length)];
@@ -1066,8 +1340,9 @@ if (genBtn) {
     genStatus.style.color = "#aaa";
     genStatus.textContent = `Generating ${count} NPCs…`;
 
-    // Build batch with deduplication — reroll if name already exists
-    const usedNames = new Set(npcs.map(n => n.name));
+    // Build batch — deduplicate full names AND first names to reduce repetition
+    const usedNames      = new Set(npcs.map(n => n.name));
+    const usedFirstNames = new Set(npcs.map(n => n.name.split(" ")[0]));
     const batch = [];
     const baseTime = Date.now();
     for (let i = 0; i < count; i++) {
@@ -1076,8 +1351,9 @@ if (genBtn) {
       do {
         npc = generateOneNpc();
         tries++;
-      } while (usedNames.has(npc.name) && tries < 25);
+      } while ((usedNames.has(npc.name) || usedFirstNames.has(npc.name.split(" ")[0])) && tries < 40);
       usedNames.add(npc.name);
+      usedFirstNames.add(npc.name.split(" ")[0]);
       npc.createdAt = baseTime + i;
       batch.push(npc);
     }
@@ -1118,6 +1394,7 @@ const shInventory         = document.getElementById("sh-inventory");
 const shInventorySection  = document.getElementById("sh-inventory-section");
 const shTypeDot           = document.getElementById("sh-type-dot");
 const shRarityFilter      = document.getElementById("sh-rarity-filter");
+const shTagFilter         = document.getElementById("sh-tag-filter");
 const shGenerateBtn       = document.getElementById("sh-generate-btn");
 const shTavernSection     = document.getElementById("sh-tavern-section");
 const shTavernMeta        = document.getElementById("sh-tavern-meta");
@@ -1133,16 +1410,17 @@ const shopModalBox        = shopModal.querySelector(".shop-modal-box");
 const INVENTORY_TYPES = new Set(["Shop", "Market", "Forge"]);
 
 let shopRarityFilter = "all";
+let shopTagFilter    = null;
 
-// Which item tags each shop type automatically carries
+// Which item tags each shop type automatically carries (canonical tags only)
 const SHOP_TYPE_TAGS = {
-  "Forge":   ["weapon", "melee", "armor", "shield", "ammunition", "tool", "forge"],
-  "Shop":    ["adventuring", "potion", "tool", "light"],
-  "Tavern":  ["food", "drink", "ale", "wine", "potion"],
-  "Temple":  ["potion", "healing", "protection", "holy"],
-  "Guard":   ["weapon", "melee", "ranged", "armor", "shield", "ammunition"],
-  "Market":  ["adventuring", "food", "tool", "light"],
-  "Library": ["book", "scroll", "map", "arcane", "lore"],
+  "Forge":   ["weapon", "armor", "shield", "ammunition", "tool"],
+  "Shop":    ["potion", "tool", "scroll", "magic"],
+  "Tavern":  ["potion"],
+  "Temple":  ["potion", "magic"],
+  "Guard":   ["weapon", "armor", "shield", "ammunition", "ranged"],
+  "Market":  ["weapon", "armor", "potion", "tool", "scroll"],
+  "Library": ["book", "scroll", "magic"],
   "House":   [],
   "Other":   []
 };
@@ -1459,7 +1737,7 @@ function getShopPool(marker) {
     ? parseTags(marker.inventoryTags)
     : (SHOP_TYPE_TAGS[marker.type] || []);
   if (typeTags.length === 0) return [];
-  return globalItems.filter(item => parseTags(item.tags).some(t => typeTags.includes(t)));
+  return globalItems.filter(item => getDisplayTags(item.tags).some(t => typeTags.includes(t)));
 }
 
 function getShopItems(marker) {
@@ -1485,6 +1763,34 @@ function getItemRarity(item) {
   return "common";
 }
 
+function renderShopTagFilter(marker) {
+  const tagSet = new Set();
+  globalItems.forEach(item => parseTags(item.tags).filter(t => !RARITY_KW.has(t)).forEach(t => tagSet.add(t)));
+  const tags = [...tagSet].sort();
+
+  if (tags.length === 0) {
+    shTagFilter.style.display = "none";
+    return;
+  }
+
+  shTagFilter.style.display = "flex";
+  shTagFilter.innerHTML = "";
+
+  const allBtn = document.createElement("button");
+  allBtn.className = "shop-tag-btn" + (shopTagFilter === null ? " active" : "");
+  allBtn.textContent = "All";
+  allBtn.onclick = () => { shopTagFilter = null; renderShopTagFilter(marker); renderShopInventory(marker); };
+  shTagFilter.appendChild(allBtn);
+
+  tags.forEach(tag => {
+    const btn = document.createElement("button");
+    btn.className = "shop-tag-btn" + (shopTagFilter === tag ? " active" : "");
+    btn.textContent = tag;
+    btn.onclick = () => { shopTagFilter = tag; renderShopTagFilter(marker); renderShopInventory(marker); };
+    shTagFilter.appendChild(btn);
+  });
+}
+
 function renderShopInventory(marker) {
   shInventory.innerHTML = "";
 
@@ -1493,6 +1799,11 @@ function renderShopInventory(marker) {
   // Apply rarity filter
   if (shopRarityFilter !== "all") {
     items = items.filter(i => parseTags(i.tags).includes(shopRarityFilter));
+  }
+
+  // Apply tag filter
+  if (shopTagFilter !== null) {
+    items = items.filter(i => parseTags(i.tags).includes(shopTagFilter));
   }
 
   if (items.length === 0) {
@@ -1513,7 +1824,7 @@ function renderShopInventory(marker) {
 
   items.forEach(item => {
     const price = shopPrice(item.price, marker.id, item.id);
-    const tags  = getDisplayTags(item.tags);
+    const tags  = parseTags(item.tags).filter(t => !RARITY_KW.has(t));
     const rarity = getItemRarity(item);
     const rarityColor = RARITY_COLORS[rarity] || "#9e9e9e";
 
@@ -2132,6 +2443,10 @@ function openShopModal(marker) {
       };
     });
 
+    // Tag filter
+    shopTagFilter = null;
+    renderShopTagFilter(marker);
+
     // Generate inventory button — disabled when pinned
     if (getShopPool(marker).length > 0) {
       shGenerateBtn.style.display = "inline-block";
@@ -2143,6 +2458,7 @@ function openShopModal(marker) {
         shGenerateBtn.textContent = "Generating…";
         await generateShopInventory(marker);
         const updated = subMarkers.find(m => m.id === marker.id) || marker;
+        renderShopTagFilter(updated);
         renderShopInventory(updated);
         shGenerateBtn.disabled = false;
         shGenerateBtn.innerHTML = '<iconify-icon icon="lucide:zap"></iconify-icon> Generate Inventory';

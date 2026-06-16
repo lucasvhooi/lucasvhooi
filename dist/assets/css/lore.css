@@ -1,65 +1,169 @@
 @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
 
-/* ── Hero ──────────────────────────────────────────────────────────────────── */
-.lore-hero {
-  background: linear-gradient(180deg, #3a1a05 0%, #2a1005 50%, #1a1a1a 100%);
+/* ── Header tabs row (search + type filter) ──────────────────────────────────── */
+.hdr-tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
+.hdr-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.hdr-search-icon {
+  position: absolute;
+  left: 9px;
+  font-size: 13px;
+  color: rgba(200,180,140,0.5);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.items-search {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(200,164,92,0.2);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 7px 12px 7px 30px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 200px;
+}
+.items-search:focus {
+  border-color: rgba(200,164,92,0.5);
+  box-shadow: 0 0 0 3px rgba(200,164,92,0.08);
+}
+.items-search::placeholder { color: rgba(200,180,150,0.4); }
+
+/* ── Type filter pills ──────────────────────────────────────────────────────── */
 .lore-filter-tabs {
   display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 16px;
+  gap: 5px;
+  flex-wrap: wrap;
 }
 
 .lore-tab {
   font-family: var(--font);
-  font-size: 13px;
-  padding: 6px 18px;
-  background: transparent;
-  border: 1px solid #554433;
+  font-size: 12px;
+  padding: 4px 12px;
   border-radius: 20px;
-  color: #aaa;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.45);
   cursor: pointer;
-  transition:
-    background 0.22s var(--ease-out-expo),
-    color 0.22s var(--ease-out-expo),
-    border-color 0.22s var(--ease-out-expo),
-    transform 0.2s var(--ease-out-expo),
-    box-shadow 0.24s var(--ease-out-expo);
-  transform: translateY(0);
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
+.lore-tab:hover  { border-color: var(--accent); color: var(--accent); background: rgba(200,164,92,0.08); }
+.lore-tab.active { background: rgba(200,164,92,0.15); border-color: rgba(200,164,92,0.5); color: var(--accent); }
 
-.lore-tab:hover {
-  background: rgba(255,204,102,0.06);
-  border-color: #7a5a38;
-  color: var(--text);
-  transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-}
-
-.lore-tab:active { transform: translateY(0) scale(0.96); }
-
-.lore-tab.active {
-  background: rgba(255,204,102,0.12);
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: bold;
-  box-shadow: 0 0 12px rgba(255,204,102,0.14);
-}
-
-/* ── Grid ──────────────────────────────────────────────────────────────────── */
+/* ── Main ───────────────────────────────────────────────────────────────────── */
 .lore-main {
-  width: 100vw;
-  margin: 0 auto;
-  padding: 5px;
+  padding: 22px 32px 60px;
 }
 
+/* ── Filter / sort bar ──────────────────────────────────────────────────────── */
+.items-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(200,164,92,0.08);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.filter-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #8a8070;
+  margin-right: 4px;
+}
+
+.items-sort-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sort-btn {
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(200,164,92,0.14);
+  background: transparent;
+  color: #8a8070;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.sort-btn:hover { color: var(--text); border-color: rgba(200,164,92,0.3); }
+.sort-btn.active {
+  background: rgba(200,164,92,0.1);
+  border-color: rgba(200,164,92,0.35);
+  color: var(--accent);
+}
+
+.lore-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lore-count {
+  font-size: 12px;
+  color: #7a6a58;
+  font-style: italic;
+}
+
+/* ── Add Lore button ────────────────────────────────────────────────────────── */
+.items-btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #8a6010 0%, #c8922a 40%, #e0b040 60%, #b07820 100%);
+  border: 1px solid rgba(220,170,60,0.6);
+  border-radius: 8px;
+  color: #1a1000;
+  font-family: var(--title);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: filter 0.22s, box-shadow 0.25s, transform 0.2s;
+  white-space: nowrap;
+}
+.items-btn-add:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 14px rgba(221,88,26,0.32), 0 4px 16px rgba(0,0,0,0.4);
+  transform: translateY(-1px);
+}
+.items-btn-add:active { transform: translateY(0) scale(0.98); }
+
+/* ── Grid ───────────────────────────────────────────────────────────────────── */
 .lore-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 24px;
-  justify-content: center;
+  justify-content: left;
 }
 
 .lore-empty {
@@ -70,7 +174,7 @@
   font-size: 16px;
 }
 
-/* ── Book Card ─────────────────────────────────────────────────────────────── */
+/* ── Book Card ──────────────────────────────────────────────────────────────── */
 .lore-card {
   position: relative;
   cursor: pointer;
@@ -170,7 +274,7 @@
   max-width: 120px;
 }
 
-/* ── Scroll Card ───────────────────────────────────────────────────────────── */
+/* ── Scroll Card ────────────────────────────────────────────────────────────── */
 .lore-card-scroll {
   width: 110px;
 }
@@ -234,7 +338,7 @@
   max-width: 110px;
 }
 
-/* ── DM overlay badge (visibility toggle) ──────────────────────────────────── */
+/* ── DM overlay badge (visibility toggle) ───────────────────────────────────── */
 .lore-card-dm-bar {
   position: absolute;
   bottom: 28px;
@@ -269,7 +373,7 @@
 
 .lore-visibility-btn:hover {
   background: var(--accent);
-  color: #1a0a00;
+  color: #140c05;
 }
 
 /* Dimmed = hidden from players */
@@ -284,7 +388,7 @@
   color: #555;
 }
 
-/* ── Edit / Delete buttons on card (DM hover) ──────────────────────────────── */
+/* ── Edit / Delete buttons on card (DM hover) ───────────────────────────────── */
 .lore-card-edit-btn,
 .lore-card-delete-btn {
   position: absolute;
@@ -328,7 +432,7 @@
   opacity: 1;
 }
 
-/* ── Modal — edit lore ─────────────────────────────────────────────────────── */
+/* ── Modal — edit lore ──────────────────────────────────────────────────────── */
 .lore-edit-box {
   width: min(1560px, 90vw) !important;
   max-width: 90vw !important;
@@ -336,7 +440,6 @@
   overflow-y: auto;
 }
 
-/* Inputs must fill their grid cell, not overflow it */
 .lore-edit-box .form-row input,
 .lore-edit-box .form-row textarea,
 .lore-edit-box .form-row select {
@@ -349,7 +452,7 @@
 .lore-edit-box::-webkit-scrollbar-thumb { background: #3a2510; border-radius: 3px; }
 .lore-edit-box::-webkit-scrollbar-thumb:hover { background: #5a3820; }
 
-/* Shared modal primitives (mirror location.css) */
+/* Shared modal primitives */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -404,7 +507,7 @@
 .form-row input,
 .form-row select,
 .form-row textarea {
-  background: #2a1810;
+  background: #3a1a05;
   border: 1px solid #554433;
   border-radius: 5px;
   color: var(--text);
@@ -480,11 +583,10 @@
   padding: 3px 10px;
 }
 
-/* Delete button (red) — must come after .dm-btn to override golden bg */
 .marker-delete-btn { background: #3b1515; color: #E57373; border: 1px solid #5a2020; }
 .marker-delete-btn:hover { background: #5a2020; }
 
-/* ── Type selector ─────────────────────────────────────────────────────────── */
+/* ── Type selector ──────────────────────────────────────────────────────────── */
 .lore-type-selector {
   display: flex;
   gap: 8px;
@@ -512,7 +614,7 @@
   font-weight: bold;
 }
 
-/* ── Color swatches ────────────────────────────────────────────────────────── */
+/* ── Color swatches ─────────────────────────────────────────────────────────── */
 .color-swatch-row {
   display: flex;
   gap: 8px;
@@ -536,7 +638,7 @@
   transform: scale(1.2);
 }
 
-/* ── Pages editor ──────────────────────────────────────────────────────────── */
+/* ── Pages editor ───────────────────────────────────────────────────────────── */
 .lm-pages-section {
   margin-bottom: 14px;
 }
@@ -567,8 +669,8 @@
 .lm-pages-list::-webkit-scrollbar-thumb { background: #3a2510; border-radius: 2px; }
 
 .page-editor {
-  background: #2a1810;
-  border: 1px solid #443322;
+  background: #3a1a05;
+  border: 1px solid #3a2510;
   border-radius: 6px;
   padding: 10px 12px;
   position: relative;
@@ -604,8 +706,8 @@
 .page-editor input,
 .page-editor textarea {
   width: 100%;
-  background: #1e1008;
-  border: 1px solid #443322;
+  background: #181008;
+  border: 1px solid #3a2510;
   border-radius: 4px;
   color: var(--text);
   font-family: var(--font);
@@ -625,7 +727,7 @@
   margin-top: 6px;
 }
 
-/* ── Reader modal — shared ─────────────────────────────────────────────────── */
+/* ── Reader modal — shared ──────────────────────────────────────────────────── */
 .reader-box {
   width: 700px;
   max-width: 95vw;
@@ -659,7 +761,7 @@
 
 .reader-close-btn:hover { color: var(--text); border-color: var(--accent); }
 
-/* ── Book reader ───────────────────────────────────────────────────────────── */
+/* ── Book reader ────────────────────────────────────────────────────────────── */
 #reader-book, #inv-reader-book {
   display: flex;
   gap: 0;
@@ -778,7 +880,7 @@
   font-style: italic;
 }
 
-/* ── Scroll reader ─────────────────────────────────────────────────────────── */
+/* ── Scroll reader ──────────────────────────────────────────────────────────── */
 #reader-scroll, #inv-reader-scroll {
   display: flex;
   align-items: center;
@@ -844,14 +946,14 @@
   font-family: 'Georgia', serif;
 }
 
-/* ── Available-in-library toggle row ──────────────────────────────────────── */
+/* ── Available-in-library toggle row ────────────────────────────────────────── */
 .lm-library-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: #1e1008;
-  border: 1px solid #443322;
+  background: #181008;
+  border: 1px solid #3a2510;
   border-radius: 7px;
   padding: 10px 14px;
 }
@@ -907,7 +1009,7 @@
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background: #3a2000;
+  background: #3a1a05;
   border-color: var(--accent);
 }
 
@@ -916,7 +1018,7 @@
   background: var(--accent);
 }
 
-/* ── Library badge on lore cards ───────────────────────────────────────────── */
+/* ── Library badge on lore cards ────────────────────────────────────────────── */
 .lore-library-badge {
   position: absolute;
   top: 4px;
@@ -928,18 +1030,14 @@
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
 }
 
-/* ── Mobile ────────────────────────────────────────────────────────────────── */
-@media (max-width: 600px) {
-  .lore-filter-tabs { gap: 6px; }
-  .lore-tab {
-    min-height: 44px;
-    padding: 10px 16px;
-    font-size: 14px;
-  }
-  .lore-grid {
-    gap: 16px;
-    justify-content: center;
-  }
+/* ── Mobile ─────────────────────────────────────────────────────────────────── */
+@media (max-width: 700px) {
+  .lore-main { padding: 16px 14px 48px; }
+  .hdr-tabs-row { gap: 6px; flex-wrap: wrap; }
+  .items-search { width: 130px; font-size: 14px; }
+  .items-filter-bar { flex-direction: column; align-items: flex-start; }
+  .lore-filter-tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+  .lore-grid { gap: 16px; justify-content: center; }
 
   .modal-overlay {
     align-items: flex-end;

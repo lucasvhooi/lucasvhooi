@@ -1,20 +1,55 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
 ---
-<Layout title="Lore — DnD Campaign" showCampaignTabs={true} activePage="lore" extraCSS={['/assets/css/lore.css']}>
+<Layout title="Lore — Essolis" activePage="lore" extraCSS={['/assets/css/lore.css']}>
 
-  <header class="lore-hero page-hero">
-    <button id="lore-add-btn" class="dm-btn lore-add-btn page-hero__add-btn" style="display:none">+ Add Lore</button>
-    <h1 class="lore-title page-hero__title">Lore</h1>
-    <p class="lore-subtitle page-hero__sub">Books and scrolls discovered on your journey</p>
-    <div class="lore-filter-tabs">
-      <button class="lore-tab active" data-filter="all">All</button>
-      <button class="lore-tab" data-filter="book">Books</button>
-      <button class="lore-tab" data-filter="scroll">Scrolls</button>
+  <Header
+    title="Lore"
+    description="Books and scrolls discovered on your journey"
+    icon="game-icons:open-book"
+    image={headerImg}
+  >
+    <div slot="tabs" class="hdr-tabs-row">
+      <div class="hdr-search-wrap">
+        <iconify-icon icon="lucide:search" class="hdr-search-icon"></iconify-icon>
+        <input type="text" id="lore-search" class="items-search" placeholder="Search lore…" />
+      </div>
+      <div class="lore-filter-tabs">
+        <button class="lore-tab active" data-filter="all">All</button>
+        <button class="lore-tab" data-filter="book">
+          <iconify-icon icon="game-icons:open-book"></iconify-icon> Books
+        </button>
+        <button class="lore-tab" data-filter="scroll">
+          <iconify-icon icon="game-icons:scroll-unfurled"></iconify-icon> Scrolls
+        </button>
+      </div>
     </div>
-  </header>
+  </Header>
 
   <main class="lore-main">
+
+    <!-- Sort & filter bar -->
+    <div class="items-filter-bar">
+      <div class="items-sort-group">
+        <span class="filter-label">Sort</span>
+        <button class="sort-btn active" data-sort="name" id="sort-name">
+          Name <iconify-icon icon="lucide:chevrons-up-down" style="font-size:13px;vertical-align:-2px"></iconify-icon>
+        </button>
+        <button class="sort-btn" data-sort="type" id="sort-type">
+          Type <iconify-icon icon="lucide:chevrons-up-down" style="font-size:13px;vertical-align:-2px"></iconify-icon>
+        </button>
+      </div>
+      <div class="lore-bar-right">
+        <span class="lore-count" id="lore-count"></span>
+        <button id="lore-add-btn" class="items-btn-add" style="display:none">
+          <iconify-icon icon="lucide:plus"></iconify-icon>
+          Add Lore
+        </button>
+      </div>
+    </div>
+
     <div id="lore-grid" class="lore-grid"></div>
     <p id="lore-empty" class="lore-empty" style="display:none">No lore discovered yet.</p>
   </main>

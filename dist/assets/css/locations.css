@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Garamond&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Garamond&display=swap');
 
 .continent {
   background: var(--panel-alt);
@@ -44,7 +44,7 @@
 }
 
 .location-list li:hover {
-  background: #4e2c14;
+  background: #3a2510;
   color: var(--text);
 }
 

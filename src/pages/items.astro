@@ -1,20 +1,100 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
 ---
-<Layout title="Items — DnD Campaign" showCampaignTabs={true} activePage="items" extraCSS={['/assets/css/items.css']}>
+<Layout title="Items — Essolis" activePage="items" extraCSS={['/assets/css/items.css']}>
 
-  <header class="items-hero page-hero">
-    <button id="add-item-btn" class="dm-btn items-add-btn page-hero__add-btn" style="display:none">+ Add Item</button>
-    <h1 class="items-title page-hero__title">Items</h1>
-    <p class="items-subtitle page-hero__sub">Global item database for shops &amp; merchants</p>
-  </header>
-
-  <main class="items-main">
-    <div class="items-toolbar">
-      <input type="text" id="items-search" class="items-search" placeholder="Search items…" />
+  <Header
+    title="Items"
+    description="Create and manage all items in your world."
+    icon="lucide:package"
+    image={headerImg}
+  >
+    <!-- Search, Add Item and tags all on one row at the bottom of the header -->
+    <div slot="tabs" class="hdr-tabs-row">
+      <div class="hdr-search-wrap">
+        <iconify-icon icon="lucide:search" class="hdr-search-icon"></iconify-icon>
+        <input type="text" id="items-search" class="items-search" placeholder="Search…" />
+      </div>
       <div id="tag-filter" class="tag-filter"></div>
     </div>
-    <div id="items-grid" class="items-grid"></div>
+  </Header>
+
+  <main class="items-main">
+
+    <!-- Sort & Rarity filter bar -->
+    <div class="items-filter-bar">
+      <div class="items-sort-group">
+        <span class="filter-label">Sort</span>
+        <button class="sort-btn" data-sort="name" id="sort-name">
+          Name <iconify-icon icon="lucide:chevrons-up-down" style="font-size:13px;vertical-align:-2px"></iconify-icon>
+        </button>
+        <button class="sort-btn" data-sort="rarity" id="sort-rarity">
+          Rarity <iconify-icon icon="lucide:chevrons-up-down" style="font-size:13px;vertical-align:-2px"></iconify-icon>
+        </button>
+        <button class="sort-btn" data-sort="price" id="sort-price">
+          Price <iconify-icon icon="lucide:chevrons-up-down" style="font-size:13px;vertical-align:-2px"></iconify-icon>
+        </button>
+      </div>
+      <div class="items-rarity-filter">
+        <span class="filter-label">Rarity</span>
+        <button class="rarity-filter-btn rfb-all active" data-rarity="">All</button>
+        <button class="rarity-filter-btn rfb-common"    data-rarity="common">Common</button>
+        <button class="rarity-filter-btn rfb-uncommon"  data-rarity="uncommon">Uncommon</button>
+        <button class="rarity-filter-btn rfb-rare"      data-rarity="rare">Rare</button>
+        <button class="rarity-filter-btn rfb-vrare"     data-rarity="very rare">Very Rare</button>
+        <button class="rarity-filter-btn rfb-legendary" data-rarity="legendary">Legendary</button>
+      </div>
+      <div class="items-filter-actions">
+        <button id="add-item-btn" class="items-btn-add" style="display:none">
+          <iconify-icon icon="lucide:plus"></iconify-icon>
+          Add Item
+        </button>
+        <button id="btn-import-dnd5e" class="items-btn-import" style="display:none" title="Replace base items with D&D 5e API data">
+          <iconify-icon icon="lucide:download"></iconify-icon>
+          Import D&D 5e
+        </button>
+      </div>
+    </div>
+
+    <!-- List + detail panel side by side -->
+    <div class="items-content">
+
+      <div class="items-list-section">
+        <!-- Column headers -->
+        <div class="items-col-header">
+          <span class="col-h-name">Name</span>
+          <span class="col-h-type">Type</span>
+          <span class="col-h-rarity">Rarity</span>
+          <span class="col-h-price">Price</span>
+          <span></span>
+        </div>
+
+        <!-- Items list -->
+        <div id="items-grid" class="items-list"></div>
+        <div id="items-pagination" class="items-pagination"></div>
+      </div>
+
+      <!-- Right: slide-out detail panel -->
+      <div id="item-detail-panel" class="item-detail-panel">
+        <div class="item-detail-inner">
+          <div class="idp-header">
+            <h2 id="idp-title" class="idp-title"></h2>
+            <button id="idp-close" class="idp-close" title="Close">&times;</button>
+          </div>
+          <div class="idp-body">
+            <div id="idp-meta" class="idp-meta"></div>
+            <div id="idp-stats"></div>
+            <hr class="idp-divider" />
+            <div id="idp-description"></div>
+            <div id="idp-abilities"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
   </main>
 
   <!-- Item modal -->
@@ -46,9 +126,12 @@ import Layout from '../layouts/Layout.astro';
             </div>
           </div>
           <div class="im-col-right">
-            <div class="form-row">
+            <div class="form-row two-col">
               <label>Base Price (gp) <span class="req">*</span>
                 <input type="number" id="im-price" placeholder="e.g. 50" min="0" step="0.01" />
+              </label>
+              <label>Weight (lb)
+                <input type="number" id="im-weight" placeholder="e.g. 1" min="0" step="0.1" />
               </label>
             </div>
             <div class="form-row">
@@ -94,9 +177,24 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </div>
 
+  <!-- D&D 5e Import Progress Overlay -->
+  <div id="dnd5e-import-overlay" class="dnd5e-import-overlay" style="display:none">
+    <div class="dnd5e-import-box">
+      <h3 class="dnd5e-import-title">
+        <iconify-icon icon="lucide:download"></iconify-icon>
+        Importing from D&D 5e API
+      </h3>
+      <div class="dnd5e-progress-track">
+        <div id="dnd5e-progress-bar" class="dnd5e-progress-fill"></div>
+      </div>
+      <div id="dnd5e-progress-text" class="dnd5e-progress-text">0 / 0 (0%)</div>
+      <div id="dnd5e-progress-status" class="dnd5e-progress-status">Starting…</div>
+    </div>
+  </div>
+
   <script is:inline type="module" src="/assets/js/items.js"></script>
 
-  <!-- Framer Motion: staggered card entry on filter/search rebuild -->
+  <!-- Framer Motion: staggered row entry on filter/search rebuild -->
   <script>
     import { animate } from 'framer-motion/dom';
 
@@ -115,11 +213,11 @@ import Layout from '../layouts/Layout.astro';
 
           for (const node of m.addedNodes) {
             const el = node as HTMLElement;
-            if (node.nodeType === 1 && el.classList?.contains('item-card')) {
+            if (node.nodeType === 1 && el.classList?.contains('item-row')) {
               if (rebuilding) {
                 el.style.animation = 'none';
                 el.style.opacity = '0';
-                el.style.transform = 'translateY(8px) scale(0.97)';
+                el.style.transform = 'translateY(6px)';
                 batch.push(el);
               }
             }
@@ -130,20 +228,20 @@ import Layout from '../layouts/Layout.astro';
 
         if (timer) clearTimeout(timer);
         timer = setTimeout(() => {
-          const cards = batch.splice(0);
+          const rows = batch.splice(0);
           rebuilding = false;
-          if (!cards.length) return;
+          if (!rows.length) return;
 
-          cards.forEach((card, i) => {
-            const delay = Math.min(i * 0.04, 0.4);
-            animate(card, { opacity: 1, y: 0, scale: 1 }, {
-              duration: 0.28,
+          rows.forEach((row, i) => {
+            const delay = Math.min(i * 0.035, 0.35);
+            animate(row, { opacity: 1, y: 0 }, {
+              duration: 0.24,
               delay,
               ease: [0.16, 1, 0.3, 1],
             });
             setTimeout(() => {
-              card.style.removeProperty('animation');
-            }, (0.28 + delay) * 1000 + 40);
+              row.style.removeProperty('animation');
+            }, (0.24 + delay) * 1000 + 40);
           });
         }, 20);
       });

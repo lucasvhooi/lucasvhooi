@@ -1,52 +1,151 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
 ---
-<Layout title="Spells — DnD Campaign" showCampaignTabs={true} activePage="spells" extraCSS={['/assets/css/spells.css']}>
+<Layout title="Spells — Essolis" activePage="spells" extraCSS={['/assets/css/spells.css']}>
 
-  <header class="spells-hero page-hero">
-    <h1 class="spells-title page-hero__title">Spells</h1>
-    <p class="spells-subtitle page-hero__sub">Complete D&amp;D spell compendium with condition tooltips</p>
-  </header>
+  <Header
+    title="Spells"
+    description="Complete D&D spell compendium with condition tooltips"
+    icon="lucide:sparkles"
+    image={headerImg}
+  >
+    <div slot="tabs" class="hdr-tabs-row">
+      <div class="hdr-search-wrap">
+        <iconify-icon icon="lucide:search" class="hdr-search-icon"></iconify-icon>
+        <input type="text" id="spells-search" class="items-search" placeholder="Search spells…" />
+      </div>
+      <div id="level-filter" class="level-filter"></div>
+    </div>
+  </Header>
 
   <main class="spells-main">
     <div id="seed-status" class="seed-status" style="display:none"></div>
 
-    <div class="spells-toolbar">
-      <input type="text" id="spells-search" class="spells-search" placeholder="Search spells…" />
-      <div id="level-filter" class="level-filter"></div>
-    </div>
-    <div class="spells-toolbar spells-toolbar-row2">
-      <select id="school-filter" class="spells-select">
-        <option value="">All Schools</option>
-      </select>
-      <select id="class-filter" class="spells-select">
-        <option value="">All Classes</option>
-      </select>
+    <!-- Sort & filter bar -->
+    <div class="items-filter-bar">
+      <div class="items-sort-group">
+        <span class="filter-label">Sort</span>
+        <button class="sort-btn" data-sort="name" id="sort-name">
+          Name <iconify-icon icon="lucide:chevrons-up-down" style="font-size:13px;vertical-align:-2px"></iconify-icon>
+        </button>
+        <button class="sort-btn" data-sort="level" id="sort-level">
+          Level <iconify-icon icon="lucide:chevrons-up-down" style="font-size:13px;vertical-align:-2px"></iconify-icon>
+        </button>
+        <button class="sort-btn" data-sort="school" id="sort-school">
+          School <iconify-icon icon="lucide:chevrons-up-down" style="font-size:13px;vertical-align:-2px"></iconify-icon>
+        </button>
+      </div>
+      <div class="spells-filter-group">
+        <span class="filter-label">School</span>
+        <select id="school-filter" class="spells-select-sm">
+          <option value="">All</option>
+        </select>
+      </div>
+      <div class="spells-filter-group">
+        <span class="filter-label">Class</span>
+        <select id="class-filter" class="spells-select-sm">
+          <option value="">All</option>
+        </select>
+      </div>
       <span class="spells-count" id="spell-count"></span>
     </div>
 
-    <div id="spells-grid" class="spells-grid"></div>
-  </main>
+    <!-- List + detail panel side by side -->
+    <div class="spells-content">
 
-  <!-- Spell detail modal -->
-  <div id="spell-modal" class="modal-overlay">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h2 id="sm-title"></h2>
-        <button class="modal-close-x" id="sm-close-btn">&times;</button>
+      <!-- Left: list section -->
+      <div class="spells-list-section">
+        <div class="spells-col-header">
+          <span class="col-h-name">Name</span>
+          <span>Level</span>
+          <span>School</span>
+          <span>Cast Time</span>
+          <span>Duration</span>
+          <span></span>
+        </div>
+        <div id="spells-grid" class="spells-list"></div>
       </div>
-      <div class="modal-body">
-        <div class="sm-meta" id="sm-meta"></div>
-        <div class="sm-stats" id="sm-stats"></div>
-        <div class="sm-components" id="sm-components"></div>
-        <hr class="sm-divider" />
-        <div class="sm-description" id="sm-description"></div>
+
+      <!-- Right: slide-out detail panel -->
+      <div id="spell-detail-panel" class="spell-detail-panel">
+        <div class="spell-detail-inner">
+          <div class="sdp-header">
+            <h2 id="sdp-title" class="sdp-title"></h2>
+            <button id="sdp-close" class="sdp-close" title="Close">&times;</button>
+          </div>
+          <div class="sdp-body">
+            <div id="sdp-meta" class="sm-meta"></div>
+            <div id="sdp-stats"></div>
+            <div id="sdp-components"></div>
+            <hr class="sm-divider" />
+            <div id="sdp-description" class="sm-description"></div>
+          </div>
+        </div>
       </div>
+
     </div>
-  </div>
+  </main>
 
   <!-- Condition tooltip -->
   <div id="condition-tooltip" class="condition-tooltip-box" style="display:none"></div>
 
   <script is:inline type="module" src="/assets/js/spells.js"></script>
+
+  <!-- Framer Motion: staggered row entry on filter/search rebuild -->
+  <script>
+    import { animate } from 'framer-motion/dom';
+
+    const grid = document.getElementById('spells-grid');
+    if (grid) {
+      let batch: HTMLElement[] = [];
+      let rebuilding = false;
+      let timer: ReturnType<typeof setTimeout> | null = null;
+
+      const observer = new MutationObserver(mutations => {
+        for (const m of mutations) {
+          if (m.removedNodes.length > 2) {
+            rebuilding = true;
+            batch = [];
+          }
+
+          for (const node of m.addedNodes) {
+            const el = node as HTMLElement;
+            if (node.nodeType === 1 && el.classList?.contains('spell-row')) {
+              if (rebuilding) {
+                el.style.animation = 'none';
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(6px)';
+                batch.push(el);
+              }
+            }
+          }
+        }
+
+        if (!rebuilding) return;
+
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          const rows = batch.splice(0);
+          rebuilding = false;
+          if (!rows.length) return;
+
+          rows.forEach((row, i) => {
+            const delay = Math.min(i * 0.035, 0.35);
+            animate(row, { opacity: 1, y: 0 }, {
+              duration: 0.24,
+              delay,
+              ease: [0.16, 1, 0.3, 1],
+            });
+            setTimeout(() => {
+              row.style.removeProperty('animation');
+            }, (0.24 + delay) * 1000 + 40);
+          });
+        }, 20);
+      });
+
+      observer.observe(grid, { childList: true });
+    }
+  </script>
 </Layout>

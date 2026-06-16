@@ -1,148 +1,406 @@
 'use strict';
-import { db }                              from "./firebase.js";
+import { db } from "./firebase.js";
 import { ref, set, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
-const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
+const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
+const isAdmin = _session?.role === 'admin';
+const cid = _session?.campaignId;
+if (!cid) { window.location.href = '/campaigns'; throw new Error('No campaign selected'); }
 
-const charactersRef = ref(db, "characters");
+const charactersRef = ref(db, `campaigns/${cid}/characters`);
 
 // ── State ─────────────────────────────────────────────────────────────────────
+const ROLE_CONFIG = {
+  villain: { icon: 'lucide:skull',      color: '#c04040', label: 'Villain' },
+  ally:    { icon: 'lucide:handshake',  color: '#40a070', label: 'Ally'    },
+  deity:   { icon: 'lucide:sun',        color: '#c8a440', label: 'Deity'   },
+  npc:     { icon: 'lucide:user-round', color: '#5080b0', label: 'NPC'     },
+  creature:{ icon: 'lucide:paw-print', color: '#a06030', label: 'Creature'},
+};
+
 let characters  = [];
 let editingId   = null;
 let searchQuery = "";
+let sortField   = null;
+let sortDir     = 'asc';
+let filterRace  = "";
+let filterRole  = "";
+let selectedRole = "";
+let currentPage = 1;
+const CHARS_PER_PAGE = 30;
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
-const charGrid       = document.getElementById("char-grid");
-const charEmpty      = document.getElementById("char-empty");
-const charSearch     = document.getElementById("char-search");
-const charAddBtn     = document.getElementById("char-add-btn");
-const charModal      = document.getElementById("char-modal");
-const charModalTitle = document.getElementById("char-modal-title");
-const charViewModal  = document.getElementById("char-view-modal");
-const charViewContent = document.getElementById("char-view-content");
+const charsGrid       = document.getElementById("chars-grid");
+const charsPagination = document.getElementById("chars-pagination");
+const charsSearch     = document.getElementById("chars-search");
+const charAddBtn      = document.getElementById("char-add-btn");
+const charCount       = document.getElementById("char-count");
+const raceFilterEl    = document.getElementById("race-filter");
+const charsContent    = document.querySelector(".chars-content");
+const charDetailPanel   = document.getElementById("char-detail-panel");
+const cdpTitle          = document.getElementById("cdp-title");
+const cdpHeroImg        = document.getElementById("cdp-hero-img");
+const cdpHeroPlaceholder = document.getElementById("cdp-hero-placeholder");
+const cdpMeta           = document.getElementById("cdp-meta");
+const cdpDescription    = document.getElementById("cdp-description");
+const cdpNotes          = document.getElementById("cdp-notes");
+const cdpActions        = document.getElementById("cdp-actions");
+let   _activeCharRow  = null;
 
-// Editor fields
-const charPicPreview   = document.getElementById("char-pic-preview");
-const charPicFile      = document.getElementById("char-pic-file");
-const charUploadBtn    = document.getElementById("char-upload-btn");
+const charModal       = document.getElementById("char-modal");
+const charModalTitle  = document.getElementById("char-modal-title");
+const charPicPreview  = document.getElementById("char-pic-preview");
+const charPicFile     = document.getElementById("char-pic-file");
+const charUploadBtn   = document.getElementById("char-upload-btn");
 const charUploadStatus = document.getElementById("char-upload-status");
-const charPicture      = document.getElementById("char-picture");
+const charPicture     = document.getElementById("char-picture");
 const charName        = document.getElementById("char-name");
 const charProfession  = document.getElementById("char-profession");
 const charRace        = document.getElementById("char-race");
 const charAge         = document.getElementById("char-age");
 const charDescription = document.getElementById("char-description");
 const charNotes       = document.getElementById("char-notes");
+const charEncountered = document.getElementById("char-encountered");
 const charError       = document.getElementById("char-error");
 const charSave        = document.getElementById("char-save");
 const charCancel      = document.getElementById("char-cancel");
 const charModalClose  = document.getElementById("char-modal-close");
-const charViewClose   = document.getElementById("char-view-close");
+
+// ── Stat bar / role filter ────────────────────────────────────────────────────
+document.querySelectorAll(".chars-stat-card").forEach(card => {
+  card.addEventListener("click", () => {
+    filterRole = card.dataset.role;
+    currentPage = 1;
+    _updateStatUI();
+    renderChars();
+  });
+});
+
+function _updateStatUI() {
+  document.querySelectorAll(".chars-stat-card").forEach(card => {
+    card.classList.toggle("active", card.dataset.role === filterRole);
+  });
+}
+
+function updateStatCounts() {
+  const all = isAdmin ? characters : characters.filter(c => c.encountered);
+  document.getElementById("stat-total").textContent   = all.length;
+  document.getElementById("stat-villains").textContent = all.filter(c => c.role === "villain").length;
+  document.getElementById("stat-allies").textContent   = all.filter(c => c.role === "ally").length;
+  document.getElementById("stat-deities").textContent  = all.filter(c => c.role === "deity").length;
+  document.getElementById("stat-npcs").textContent      = all.filter(c => c.role === "npc").length;
+  document.getElementById("stat-creatures").textContent = all.filter(c => c.role === "creature").length;
+}
+
+// ── Role selector (modal) ─────────────────────────────────────────────────────
+document.querySelectorAll(".role-sel-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    selectedRole = btn.dataset.role;
+    _syncRoleButtons();
+  });
+});
+
+function _syncRoleButtons() {
+  document.querySelectorAll(".role-sel-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.role === selectedRole);
+  });
+}
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+if (isAdmin) {
+  charAddBtn.style.display = "inline-flex";
+  charAddBtn.addEventListener("click", () => openEditModal());
+}
+
+// ── Sort controls ─────────────────────────────────────────────────────────────
+document.querySelectorAll(".sort-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const field = btn.dataset.sort;
+    if (sortField === field) {
+      if (sortDir === 'asc') { sortDir = 'desc'; }
+      else { sortField = null; sortDir = 'asc'; }
+    } else {
+      sortField = field;
+      sortDir = 'asc';
+    }
+    currentPage = 1;
+    _updateSortUI();
+    renderChars();
+  });
+});
+
+function _updateSortUI() {
+  document.querySelectorAll(".sort-btn").forEach(btn => {
+    const field = btn.dataset.sort;
+    const icon  = btn.querySelector("iconify-icon");
+    btn.classList.toggle("active", sortField === field);
+    if (icon) {
+      icon.setAttribute("icon", sortField === field
+        ? (sortDir === 'asc' ? "lucide:chevron-up" : "lucide:chevron-down")
+        : "lucide:chevrons-up-down");
+    }
+  });
+}
+
+// ── Race filter ───────────────────────────────────────────────────────────────
+if (raceFilterEl) {
+  raceFilterEl.addEventListener("change", () => {
+    filterRace = raceFilterEl.value;
+    currentPage = 1;
+    renderChars();
+  });
+}
+
+function updateRaceFilter() {
+  if (!raceFilterEl) return;
+  const races = [...new Set(characters.map(c => c.race).filter(Boolean))].sort();
+  const current = raceFilterEl.value;
+  raceFilterEl.innerHTML = '<option value="">All</option>' +
+    races.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  if (races.includes(current)) raceFilterEl.value = current;
+}
 
 // ── Firebase listener ─────────────────────────────────────────────────────────
 onValue(charactersRef, snap => {
   const data = snap.val();
   characters = data ? Object.values(data) : [];
-  renderGrid();
+  updateRaceFilter();
+  updateStatCounts();
+  renderChars();
 });
 
 // ── Render ────────────────────────────────────────────────────────────────────
-function renderGrid() {
-  charGrid.innerHTML = "";
-  const q = searchQuery.toLowerCase();
+function renderChars() {
+  charsGrid.innerHTML = "";
 
-  const visible = characters.filter(c => {
-    if (!isAdmin && !c.encountered) return false;
-    if (q) {
-      const haystack = [c.name, c.profession, c.race, c.description].join(" ").toLowerCase();
-      if (!haystack.includes(q)) return false;
-    }
-    return true;
-  });
+  let filtered = [...characters];
 
-  charEmpty.style.display = visible.length === 0 ? "block" : "none";
-  visible.forEach(c => charGrid.appendChild(buildCard(c)));
-}
-
-function buildCard(c) {
-  const card = document.createElement("div");
-  card.className = `char-card${!c.encountered ? " char-not-encountered" : ""}`;
-
-  const picHtml = c.picture
-    ? `<img class="char-card-pic" src="${esc(c.picture)}" alt="${esc(c.name)}" />`
-    : `<div class="char-card-pic char-card-pic-ph"><iconify-icon icon="lucide:user"></iconify-icon></div>`;
-
-  card.innerHTML = `
-    ${picHtml}
-    <div class="char-card-body">
-      <div class="char-card-name">${esc(c.name || "")}</div>
-      ${c.profession ? `<div class="char-card-meta">${esc(c.profession)}</div>` : ""}
-      ${(c.race || c.age) ? `<div class="char-card-sub">${[c.race ? esc(c.race) : "", c.age ? `Age ${esc(String(c.age))}` : ""].filter(Boolean).join(" · ")}</div>` : ""}
-    </div>
-    ${isAdmin ? `
-      <div class="char-card-dm">
-        <button class="char-encounter-btn${c.encountered ? " encountered" : ""}" title="${c.encountered ? "Mark not encountered" : "Mark encountered"}"><iconify-icon icon="lucide:eye"></iconify-icon></button>
-        <button class="char-edit-btn" title="Edit"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
-        <button class="char-del-btn" title="Delete"><iconify-icon icon="lucide:x"></iconify-icon></button>
-      </div>` : ""}
-  `;
-
-  // Click card body to open detail view
-  card.querySelector(".char-card-body").addEventListener("click", () => openViewModal(c));
-  card.querySelector(".char-card-pic")?.addEventListener("click", () => openViewModal(c));
-
-  if (isAdmin) {
-    card.querySelector(".char-encounter-btn").addEventListener("click", e => {
-      e.stopPropagation();
-      set(ref(db, `characters/${c.id}/encountered`), !c.encountered);
-    });
-    card.querySelector(".char-edit-btn").addEventListener("click", e => {
-      e.stopPropagation();
-      openEditModal(c);
-    });
-    card.querySelector(".char-del-btn").addEventListener("click", e => {
-      e.stopPropagation();
-      if (confirm(`Delete "${c.name}"?`)) remove(ref(db, `characters/${c.id}`));
-    });
+  if (!isAdmin) {
+    filtered = filtered.filter(c => c.encountered);
   }
 
-  return card;
-}
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(c =>
+      [c.name, c.profession, c.race, c.description].join(" ").toLowerCase().includes(q)
+    );
+  }
 
-// ── Detail view modal ─────────────────────────────────────────────────────────
-function openViewModal(c) {
-  charViewContent.innerHTML = `
-    <div class="char-view-inner">
-      <div class="char-view-pic-wrap">
-        ${c.picture
-          ? `<img class="char-view-pic" src="${esc(c.picture)}" alt="${esc(c.name)}" />`
-          : `<div class="char-view-pic char-view-pic-ph"><iconify-icon icon="lucide:user"></iconify-icon></div>`}
-      </div>
-      <div class="char-view-details">
-        <h2 class="char-view-name">${esc(c.name || "")}</h2>
-        <div class="char-view-tags">
-          ${c.profession ? `<span class="char-view-tag">${esc(c.profession)}</span>` : ""}
-          ${c.race ? `<span class="char-view-tag">${esc(c.race)}</span>` : ""}
-          ${c.age ? `<span class="char-view-tag">Age ${esc(String(c.age))}</span>` : ""}
+  if (filterRace) {
+    filtered = filtered.filter(c => c.race === filterRace);
+  }
+
+  if (filterRole) {
+    filtered = filtered.filter(c => c.role === filterRole);
+  }
+
+  if (sortField === 'name') {
+    filtered.sort((a, b) => sortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
+  } else if (sortField === 'profession') {
+    filtered.sort((a, b) => {
+      const ap = a.profession || '', bp = b.profession || '';
+      return sortDir === 'asc' ? ap.localeCompare(bp) : bp.localeCompare(ap);
+    });
+  } else if (sortField === 'race') {
+    filtered.sort((a, b) => {
+      const ar = a.race || '', br = b.race || '';
+      return sortDir === 'asc' ? ar.localeCompare(br) : br.localeCompare(ar);
+    });
+  } else {
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  if (charCount) {
+    charCount.textContent = filtered.length === characters.length
+      ? `${filtered.length} character${filtered.length !== 1 ? 's' : ''}`
+      : `${filtered.length} of ${characters.length}`;
+  }
+
+  if (filtered.length === 0) {
+    charsGrid.innerHTML = `<p class="chars-empty">${characters.length === 0 ? "No characters added yet." : "No characters match your search."}</p>`;
+    renderPagination(0);
+    return;
+  }
+
+  const totalPages = Math.ceil(filtered.length / CHARS_PER_PAGE);
+  if (currentPage > totalPages) currentPage = totalPages;
+  const pageChars = filtered.slice((currentPage - 1) * CHARS_PER_PAGE, currentPage * CHARS_PER_PAGE);
+
+  pageChars.forEach(c => {
+    const row = document.createElement("div");
+    row.className = "char-row" + (!c.encountered ? " char-not-encountered" : "");
+
+    const picHtml = c.picture
+      ? `<img class="char-row-avatar" src="${esc(c.picture)}" alt="${esc(c.name)}" />`
+      : `<div class="char-row-avatar char-row-avatar-ph"><iconify-icon icon="lucide:user" style="font-size:15px"></iconify-icon></div>`;
+
+    const roleCfg = c.role ? ROLE_CONFIG[c.role] : null;
+    const roleBadgeHtml = roleCfg
+      ? `<span class="char-row-role-badge" style="--rc:${roleCfg.color}"><iconify-icon icon="${roleCfg.icon}" style="font-size:9px;vertical-align:-1px"></iconify-icon> ${roleCfg.label}</span>`
+      : '';
+
+    row.innerHTML = `
+      <div class="char-row-main">
+        <div class="char-row-name-wrap">
+          ${picHtml}
+          <div>
+            <div class="char-row-name">${esc(c.name || "")}</div>
+            ${roleBadgeHtml}
+            ${!c.encountered ? '<span class="char-row-unenc">Not Encountered</span>' : ''}
+          </div>
         </div>
-        ${c.description ? `<p class="char-view-desc">${escBr(c.description)}</p>` : ""}
-        ${isAdmin && c.notes ? `
-          <div class="char-view-notes">
-            <div class="char-view-notes-label"><iconify-icon icon="lucide:eye"></iconify-icon> DM Notes</div>
-            <p class="char-view-notes-body">${escBr(c.notes)}</p>
-          </div>` : ""}
       </div>
-    </div>
-  `;
-  charViewModal.classList.add("open");
+      <div class="char-row-profession">${c.profession ? esc(c.profession) : '<span class="char-row-empty">—</span>'}</div>
+      <div class="char-row-race">${c.race ? esc(c.race) : '<span class="char-row-empty">—</span>'}</div>
+      <div class="char-row-age">${c.age ? esc(String(c.age)) : '<span class="char-row-empty">—</span>'}</div>
+      <div class="char-row-actions">
+        ${isAdmin ? `
+          <button class="row-action-btn char-encounter-btn${c.encountered ? ' encountered' : ''}" title="${c.encountered ? 'Mark not encountered' : 'Mark encountered'}">
+            <iconify-icon icon="${c.encountered ? 'lucide:eye' : 'lucide:eye-off'}"></iconify-icon>
+          </button>
+          <button class="row-action-btn char-edit-btn" title="Edit"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+          <button class="row-action-btn danger char-del-btn" title="Delete"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
+        ` : ''}
+      </div>
+    `;
+
+    row.addEventListener("click", e => {
+      if (e.target.closest(".char-row-actions")) return;
+      openCharPanel(c, row);
+    });
+
+    if (isAdmin) {
+      row.querySelector(".char-encounter-btn").addEventListener("click", e => {
+        e.stopPropagation();
+        set(ref(db, `campaigns/${cid}/characters/${c.id}/encountered`), !c.encountered);
+      });
+      row.querySelector(".char-edit-btn").addEventListener("click", e => {
+        e.stopPropagation();
+        openEditModal(c);
+      });
+      row.querySelector(".char-del-btn").addEventListener("click", e => {
+        e.stopPropagation();
+        if (confirm(`Delete "${c.name}"?`)) {
+          remove(ref(db, `campaigns/${cid}/characters/${c.id}`));
+          if (_activeCharRow === row) closeCharPanel();
+        }
+      });
+    }
+
+    charsGrid.appendChild(row);
+  });
+
+  renderPagination(totalPages);
 }
 
-charViewClose.addEventListener("click", () => charViewModal.classList.remove("open"));
-charViewModal.addEventListener("click", e => { if (e.target === charViewModal) charViewModal.classList.remove("open"); });
+// ── Pagination ────────────────────────────────────────────────────────────────
+function renderPagination(totalPages) {
+  if (!charsPagination) return;
+  if (totalPages <= 1) { charsPagination.innerHTML = ''; return; }
+
+  const range = _getPageRange(currentPage, totalPages);
+  charsPagination.innerHTML = `
+    <button class="page-nav-btn" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>
+      <iconify-icon icon="lucide:chevron-left"></iconify-icon>
+    </button>
+    ${range.map(p => p === '…'
+      ? `<span class="page-ellipsis">…</span>`
+      : `<button class="page-num-btn ${p === currentPage ? 'active' : ''}" data-page="${p}">${p}</button>`
+    ).join('')}
+    <button class="page-nav-btn" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>
+      <iconify-icon icon="lucide:chevron-right"></iconify-icon>
+    </button>
+  `;
+
+  charsPagination.querySelectorAll('[data-page]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = Number(btn.dataset.page);
+      if (p >= 1 && p <= totalPages) { currentPage = p; renderChars(); }
+    });
+  });
+}
+
+function _getPageRange(current, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages = [1];
+  const lo = Math.max(2, current - 2);
+  const hi = Math.min(total - 1, current + 2);
+  if (lo > 2) pages.push('…');
+  for (let i = lo; i <= hi; i++) pages.push(i);
+  if (hi < total - 1) pages.push('…');
+  pages.push(total);
+  return pages;
+}
+
+// ── Detail panel ──────────────────────────────────────────────────────────────
+function openCharPanel(c, rowEl) {
+  if (_activeCharRow) _activeCharRow.classList.remove('active');
+  _activeCharRow = rowEl;
+  rowEl.classList.add('active');
+
+  cdpTitle.textContent = c.name || "";
+
+  if (c.picture) {
+    cdpHeroImg.src = esc(c.picture);
+    cdpHeroImg.alt = esc(c.name);
+    cdpHeroImg.style.display = "";
+    cdpHeroPlaceholder.style.display = "none";
+  } else {
+    cdpHeroImg.style.display = "none";
+    cdpHeroImg.src = "";
+    cdpHeroPlaceholder.style.display = "";
+  }
+
+  const panelRoleCfg = c.role ? ROLE_CONFIG[c.role] : null;
+  cdpMeta.innerHTML = [
+    panelRoleCfg ? `<span class="cdp-badge cdp-badge-role" style="--rc:${panelRoleCfg.color}"><iconify-icon icon="${panelRoleCfg.icon}" style="font-size:10px;vertical-align:-1px;margin-right:3px"></iconify-icon>${panelRoleCfg.label}</span>` : '',
+    c.profession ? `<span class="cdp-badge"><iconify-icon icon="lucide:briefcase" style="font-size:10px;vertical-align:-1px;margin-right:3px"></iconify-icon>${esc(c.profession)}</span>` : '',
+    c.race       ? `<span class="cdp-badge"><iconify-icon icon="lucide:dna" style="font-size:10px;vertical-align:-1px;margin-right:3px"></iconify-icon>${esc(c.race)}</span>` : '',
+    c.age        ? `<span class="cdp-badge"><iconify-icon icon="lucide:hourglass" style="font-size:10px;vertical-align:-1px;margin-right:3px"></iconify-icon>Age ${esc(String(c.age))}</span>` : '',
+    !c.encountered ? '<span class="cdp-badge cdp-badge-unenc">Not Encountered</span>' : '',
+  ].join('');
+
+  cdpDescription.innerHTML = c.description
+    ? `<p class="cdp-section-label">Description</p><div class="cdp-desc-text">${escBr(c.description)}</div>`
+    : '';
+
+  cdpNotes.innerHTML = (isAdmin && c.notes)
+    ? `<p class="cdp-section-label" style="margin-top:14px"><iconify-icon icon="lucide:eye" style="font-size:11px;vertical-align:-1px;margin-right:4px"></iconify-icon>DM Notes</p><div class="cdp-desc-text cdp-notes-text">${escBr(c.notes)}</div>`
+    : '';
+
+  cdpActions.innerHTML = isAdmin ? `
+    <div class="cdp-action-row">
+      <button class="dm-btn dm-btn-sm cdp-edit-btn">
+        <iconify-icon icon="lucide:pencil" style="font-size:12px;vertical-align:-1px;margin-right:4px"></iconify-icon>Edit
+      </button>
+    </div>
+  ` : '';
+
+  if (isAdmin) {
+    const editBtn = cdpActions.querySelector('.cdp-edit-btn');
+    if (editBtn) editBtn.addEventListener('click', () => openEditModal(c));
+  }
+
+  charDetailPanel.classList.add('open');
+  charsContent?.classList.add('panel-open');
+
+  const body = charDetailPanel.querySelector('.cdp-body');
+  if (body) body.scrollTop = 0;
+}
+
+function closeCharPanel() {
+  if (_activeCharRow) { _activeCharRow.classList.remove('active'); _activeCharRow = null; }
+  charDetailPanel.classList.remove('open');
+  charsContent?.classList.remove('panel-open');
+}
+
+document.getElementById("cdp-close").addEventListener("click", closeCharPanel);
+// On mobile the panel is a centered modal — clicking the backdrop closes it
+charDetailPanel.addEventListener("click", e => { if (e.target === charDetailPanel) closeCharPanel(); });
 
 // ── Edit modal ────────────────────────────────────────────────────────────────
 function openEditModal(c = null) {
-  editingId = c ? c.id : null;
+  editingId             = c ? c.id : null;
   charModalTitle.textContent = c ? "Edit Character" : "New Character";
   charPicture.value     = c ? (c.picture     || "") : "";
   charName.value        = c ? (c.name        || "") : "";
@@ -151,6 +409,9 @@ function openEditModal(c = null) {
   charAge.value         = c ? (c.age != null ? String(c.age) : "") : "";
   charDescription.value = c ? (c.description || "") : "";
   charNotes.value       = c ? (c.notes       || "") : "";
+  charEncountered.checked = c ? (c.encountered ?? false) : false;
+  selectedRole = c ? (c.role || "") : "";
+  _syncRoleButtons();
   charError.textContent = "";
   updatePicPreview();
   charModal.classList.add("open");
@@ -164,16 +425,14 @@ function closeEditModal() {
 
 function updatePicPreview() {
   const url = charPicture.value.trim();
-  if (url) {
-    charPicPreview.innerHTML = `<img src="${esc(url)}" alt="Preview" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
-  } else {
-    charPicPreview.innerHTML = '<iconify-icon icon="lucide:user"></iconify-icon>';
-  }
+  charPicPreview.innerHTML = url
+    ? `<img src="${esc(url)}" alt="Preview" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
+    : '<iconify-icon icon="lucide:user"></iconify-icon>';
 }
 
 charPicture.addEventListener("input", updatePicPreview);
 
-// ── Image upload (canvas resize → base64, no Firebase Storage needed) ────────
+// ── Image upload ──────────────────────────────────────────────────────────────
 function resizeToBase64(file, maxPx = 400, quality = 0.85) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -198,12 +457,11 @@ async function uploadImage(file) {
   charUploadStatus.className = "char-upload-status uploading";
   charPicPreview.classList.add("uploading");
   charUploadBtn.disabled = true;
-
   try {
     const dataUrl = await resizeToBase64(file);
     charPicture.value = dataUrl;
     updatePicPreview();
-    charUploadStatus.innerHTML = 'Image ready <iconify-icon icon="lucide:check"></iconify-icon>';
+    charUploadStatus.innerHTML = 'Ready <iconify-icon icon="lucide:check"></iconify-icon>';
     charUploadStatus.className = "char-upload-status done";
     setTimeout(() => { charUploadStatus.textContent = ""; }, 3000);
   } catch (err) {
@@ -215,15 +473,12 @@ async function uploadImage(file) {
   }
 }
 
-// Clicking the preview circle or the upload button triggers file picker
 charPicPreview.addEventListener("click", () => charPicFile.click());
 charUploadBtn.addEventListener("click", () => charPicFile.click());
 charPicFile.addEventListener("change", () => {
   const file = charPicFile.files[0];
   if (file) { uploadImage(file); charPicFile.value = ""; }
 });
-
-// Drag-and-drop onto the preview circle
 charPicPreview.addEventListener("dragover", e => { e.preventDefault(); charPicPreview.classList.add("drag-over"); });
 charPicPreview.addEventListener("dragleave", () => charPicPreview.classList.remove("drag-over"));
 charPicPreview.addEventListener("drop", e => {
@@ -233,6 +488,7 @@ charPicPreview.addEventListener("drop", e => {
   if (file && file.type.startsWith("image/")) uploadImage(file);
 });
 
+// ── Modal controls ────────────────────────────────────────────────────────────
 charModalClose.addEventListener("click", closeEditModal);
 charCancel.addEventListener("click", closeEditModal);
 charModal.addEventListener("click", e => { if (e.target === charModal) closeEditModal(); });
@@ -242,40 +498,36 @@ charSave.addEventListener("click", async () => {
   if (!name) { charError.textContent = "Name is required."; return; }
   charError.textContent = "";
 
-  const existing = editingId ? characters.find(c => c.id === editingId) : null;
+  const id = editingId || push(charactersRef).key;
   const payload = {
-    id:          editingId || push(charactersRef).key,
+    id,
     name,
     profession:  charProfession.value.trim() || null,
-    race:        charRace.value.trim() || null,
-    age:         charAge.value.trim() || null,
+    race:        charRace.value.trim()       || null,
+    age:         charAge.value.trim()        || null,
     description: charDescription.value.trim() || null,
-    notes:       charNotes.value.trim() || null,
-    picture:     charPicture.value.trim() || null,
-    encountered: existing ? (existing.encountered ?? false) : false,
+    notes:       charNotes.value.trim()      || null,
+    picture:     charPicture.value.trim()    || null,
+    encountered: charEncountered.checked,
+    role:        selectedRole                || null,
   };
 
-  await set(ref(db, `characters/${payload.id}`), payload);
+  await set(ref(db, `campaigns/${cid}/characters/${id}`), payload);
   closeEditModal();
 });
 
 // ── Search ────────────────────────────────────────────────────────────────────
-charSearch.addEventListener("input", () => {
-  searchQuery = charSearch.value.trim();
-  renderGrid();
+charsSearch.addEventListener("input", () => {
+  searchQuery = charsSearch.value.trim();
+  currentPage = 1;
+  renderChars();
 });
-
-// ── DM: show add button ───────────────────────────────────────────────────────
-if (isAdmin) {
-  charAddBtn.style.display = "inline-flex";
-  charAddBtn.addEventListener("click", () => openEditModal());
-}
 
 // ── Keyboard ──────────────────────────────────────────────────────────────────
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
-    charModal.classList.remove("open");
-    charViewModal.classList.remove("open");
+    if (charModal.classList.contains("open")) closeEditModal();
+    else if (charDetailPanel.classList.contains("open")) closeCharPanel();
   }
 });
 

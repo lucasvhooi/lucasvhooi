@@ -379,9 +379,10 @@
     .migrate-status.done    { background: rgba(50,180,80,0.1);  border: 1px solid rgba(50,180,80,0.3);  color: #6dbf7a; display: block; }
     .migrate-status.error   { background: rgba(200,50,50,0.12); border: 1px solid rgba(200,50,50,0.3);  color: #e07070; display: block; }
   </style> <h1 class="admin-title">User Management</h1> <p class="admin-sub">Create and remove player accounts. Only the DM can access this page.</p> <p class="section-label">Invite Code</p> <div class="invite-card"> <div class="invite-label-block"> <div class="invite-card-title">Current code</div> <span class="invite-code-display" id="invite-current">Loading…</span> </div> <div> <div class="invite-input-row"> <input class="invite-input" id="invite-new" type="text" placeholder="New code…" maxlength="40"> <button class="btn-invite" id="btn-invite-save">Save</button> <button class="btn-invite" id="btn-invite-gen" title="Generate random code">↺</button> </div> <div class="invite-msg" id="invite-msg"></div> </div> </div> <p class="section-label">Add New User</p> <div class="create-card"> <div class="form-grid"> <div class="field full"> <label for="f-email">Email <span style="color:#666;font-size:10px;text-transform:none;letter-spacing:0">(leave blank to auto-generate placeholder)</span></label> <input id="f-email" type="email" placeholder="player@example.com  —  optional" autocomplete="off"> </div> <div class="field"> <label for="f-username">Display Name</label> <input id="f-username" type="text" placeholder="Aragorn" autocomplete="off"> </div> <div class="field"> <label for="f-password">Temporary Password <span style="color:#666;font-size:10px;text-transform:none;letter-spacing:0">(auto-generated if blank)</span></label> <input id="f-password" type="password" placeholder="optional" autocomplete="new-password"> </div> <div class="field"> <label for="f-role">Role</label> <select id="f-role"> <option value="player">Player</option> <option value="admin">DM / Admin</option> </select> </div> <div class="field"> <label>Player Colour</label> <div class="color-row"> <input id="f-color-pick" type="color" value="#c8a45c"> <input id="f-color-text" type="text" value="#c8a45c" maxlength="7" placeholder="#c8a45c"> </div> </div> </div> <button class="btn-create" id="btn-create"> <iconify-icon icon="lucide:user-plus"></iconify-icon> Create Account
-</button> <div class="form-msg" id="form-msg"></div> <div class="cred-box" id="cred-box"> <p class="cred-box-title">Share these login details with the player</p> <div class="cred-row"> <span class="cred-label">Email</span> <span class="cred-val" id="cred-email"></span> <button class="btn-copy" data-target="cred-email">Copy</button> </div> <div class="cred-row"> <span class="cred-label">Password</span> <span class="cred-val" id="cred-pw"></span> <button class="btn-copy" data-target="cred-pw">Copy</button> </div> </div> </div> <p class="section-label">Existing Users</p> <div class="user-list" id="user-list"> <p class="loading">Loading…</p> </div> <p class="section-label" style="margin-top:40px">Migrate Legacy Data</p> <div class="migrate-card"> <p class="migrate-card-title">Copy root data into a campaign</p> <p class="migrate-card-sub">Copies top-level Firebase nodes (lore, spells, items, etc.) into the selected campaign. Run this once after creating your first campaign to preserve existing data.</p> <div class="migrate-row"> <div class="field"> <label for="mg-campaign">Target Campaign</label> <select id="mg-campaign"> <option value="">— select campaign —</option> </select> </div> </div> <p style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#666;margin:0 0 8px">Nodes to copy</p> <div class="migrate-nodes" id="mg-nodes"> <label class="migrate-node-check"><input type="checkbox" value="quests" checked> quests</label> <label class="migrate-node-check"><input type="checkbox" value="markers" checked> markers</label> <label class="migrate-node-check"><input type="checkbox" value="countries" checked> countries</label> <label class="migrate-node-check"><input type="checkbox" value="items" checked> items</label> <label class="migrate-node-check"><input type="checkbox" value="inventory" checked> inventory</label> <label class="migrate-node-check"><input type="checkbox" value="lore" checked> lore</label> <label class="migrate-node-check"><input type="checkbox" value="spells" disabled style="opacity:0.4"> spells (global — not migrated)</label> <label class="migrate-node-check"><input type="checkbox" value="spellbook" checked> spellbook</label> <label class="migrate-node-check"><input type="checkbox" value="characters" checked> characters</label> <label class="migrate-node-check"><input type="checkbox" value="enemyTemplates" checked> enemyTemplates</label> <label class="migrate-node-check"><input type="checkbox" value="attunements" checked> attunements</label> <label class="migrate-node-check"><input type="checkbox" value="locations" checked> locations</label> </div> <div class="migrate-options"> <input type="checkbox" id="mg-delete-after"> <label for="mg-delete-after" style="cursor:pointer">Delete originals from root after copying</label> </div> <button class="btn-migrate" id="btn-migrate">Run Migration</button> <div class="migrate-status" id="mg-status"></div> </div> <script type="module">
+</button> <div class="form-msg" id="form-msg"></div> <div class="cred-box" id="cred-box"> <p class="cred-box-title">Share these login details with the player</p> <div class="cred-row"> <span class="cred-label">Email</span> <span class="cred-val" id="cred-email"></span> <button class="btn-copy" data-target="cred-email">Copy</button> </div> <div class="cred-row"> <span class="cred-label">Password</span> <span class="cred-val" id="cred-pw"></span> <button class="btn-copy" data-target="cred-pw">Copy</button> </div> </div> </div> <p class="section-label">Existing Users</p> <div class="user-list" id="user-list"> <p class="loading">Loading…</p> </div> <p class="section-label" style="margin-top:40px">Migrate Legacy Data</p> <div class="migrate-card"> <p class="migrate-card-title">Copy root data into a campaign</p> <p class="migrate-card-sub">Copies top-level Firebase nodes (lore, spells, items, etc.) into the selected campaign. Run this once after creating your first campaign to preserve existing data.</p> <div class="migrate-row"> <div class="field"> <label for="mg-campaign">Target Campaign</label> <select id="mg-campaign"> <option value="">— select campaign —</option> </select> </div> </div> <p style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#666;margin:0 0 8px">Nodes to copy</p> <div class="migrate-nodes" id="mg-nodes"> <label class="migrate-node-check"><input type="checkbox" value="quests" checked> quests</label> <label class="migrate-node-check"><input type="checkbox" value="markers" checked> markers</label> <label class="migrate-node-check"><input type="checkbox" value="countries" checked> countries</label> <label class="migrate-node-check"><input type="checkbox" value="items" checked> items</label> <label class="migrate-node-check"><input type="checkbox" value="inventory" checked> inventory</label> <label class="migrate-node-check"><input type="checkbox" value="lore" checked> lore</label> <label class="migrate-node-check"><input type="checkbox" value="spells" disabled style="opacity:0.4"> spells (global — not migrated)</label> <label class="migrate-node-check"><input type="checkbox" value="spellbook" checked> spellbook</label> <label class="migrate-node-check"><input type="checkbox" value="characters" checked> characters</label> <label class="migrate-node-check"><input type="checkbox" value="enemyTemplates" checked> enemyTemplates</label> <label class="migrate-node-check"><input type="checkbox" value="attunements" checked> attunements</label> <label class="migrate-node-check"><input type="checkbox" value="locations" checked> locations</label> </div> <div class="migrate-options"> <input type="checkbox" id="mg-delete-after"> <label for="mg-delete-after" style="cursor:pointer">Delete originals from root after copying</label> </div> <button class="btn-migrate" id="btn-migrate">Run Migration</button> <div class="migrate-status" id="mg-status"></div> </div> <p class="section-label" style="margin-top:40px">NPC Name Tables</p> <div class="migrate-card"> <p class="migrate-card-title">Global NPC name pool</p> <p class="migrate-card-sub">Writes the base name tables to <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px">npcNames</code> in Firebase — global, shared across all campaigns. The location tab reads from this when generating NPCs, falling back to the built-in names if empty.</p> <div style="display:flex;gap:8px;flex-wrap:wrap"> <button class="btn-migrate" id="btn-export-names">Seed NPC Names</button> <button class="btn-migrate" id="btn-clear-names" style="background:rgba(180,50,50,0.18);border-color:rgba(220,80,80,0.35);color:#e57373">Clear NPC Names</button> </div> <div class="migrate-status" id="npc-export-status"></div> </div> <script type="module">
     import { firebaseApp, auth, db }               from "/assets/js/firebase.js";
     import { getSession }                          from "/assets/js/auth.js";
+    import { NPC_NAMES }                           from "/assets/js/npc-data.js";
     import { initializeApp, getApp }               from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
              updateEmail, updatePassword, signOut as secondarySignOut }
@@ -389,8 +390,13 @@
     import { ref, get, set, remove }               from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     const session = getSession();
-    if (!session || session.role !== 'admin') {
-      window.location.href = 'inventory';
+    if (!session) { window.location.href = 'campaigns'; throw new Error(); }
+
+    // Verify admin role against Firebase, not just localStorage
+    const roleSnap = await get(ref(db, `users/${session.id}/role`));
+    if (roleSnap.val() !== 'admin') {
+      window.location.href = 'campaigns';
+      throw new Error();
     }
 
     // ── Invite code management ─────────────────────────────────────────────
@@ -849,4 +855,46 @@
     });
 
     loadUsers();
+
+    // ── NPC names seed / clear (global) ───────────────────────────────────
+    const btnExportNames  = document.getElementById('btn-export-names');
+    const btnClearNames   = document.getElementById('btn-clear-names');
+    const npcExportStatus = document.getElementById('npc-export-status');
+
+    btnExportNames.addEventListener('click', async () => {
+      btnExportNames.disabled = true;
+      btnClearNames.disabled  = true;
+      npcExportStatus.textContent = 'Seeding…';
+      npcExportStatus.className = 'migrate-status running';
+      try {
+        await set(ref(db, 'npcNames'), NPC_NAMES);
+        npcExportStatus.textContent = '✓ Global NPC name tables seeded.';
+        npcExportStatus.className = 'migrate-status done';
+      } catch (e) {
+        npcExportStatus.textContent = 'Error: ' + e.message;
+        npcExportStatus.className = 'migrate-status error';
+      } finally {
+        btnExportNames.disabled = false;
+        btnClearNames.disabled  = false;
+      }
+    });
+
+    btnClearNames.addEventListener('click', async () => {
+      if (!confirm('Clear the global NPC name tables? The built-in names will be used as fallback. This cannot be undone.')) return;
+      btnExportNames.disabled = true;
+      btnClearNames.disabled  = true;
+      npcExportStatus.textContent = 'Clearing…';
+      npcExportStatus.className = 'migrate-status running';
+      try {
+        await remove(ref(db, 'npcNames'));
+        npcExportStatus.textContent = '✓ Global NPC name tables cleared.';
+        npcExportStatus.className = 'migrate-status done';
+      } catch (e) {
+        npcExportStatus.textContent = 'Error: ' + e.message;
+        npcExportStatus.className = 'migrate-status error';
+      } finally {
+        btnExportNames.disabled = false;
+        btnClearNames.disabled  = false;
+      }
+    });
   </script>   </body> </html>

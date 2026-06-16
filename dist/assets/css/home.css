@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Garamond&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Garamond&display=swap');
 
 .hero {
-  background: linear-gradient(180deg, #3a1a05 0%, #2a1005 50%, #1a1a1a 100%);
+  background: linear-gradient(180deg, #3a1a05 0%, #2a1505 50%, #1a1a1a 100%);
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
@@ -85,7 +85,7 @@
 
 #download-json-container {
   margin-top: 10px;
-  background: #1f1208;
+  background: #1e1208;
   padding: 12px;
   border-radius: 8px;
 }

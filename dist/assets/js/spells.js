@@ -119,7 +119,9 @@ if (spellbookRef) {
     document.querySelectorAll('.spell-save-btn').forEach(btn => {
       const saved = savedSpellIds.has(btn.dataset.spellId);
       btn.classList.toggle('saved', saved);
-      btn.innerHTML = saved ? '<iconify-icon icon="lucide:star"></iconify-icon>' : '<iconify-icon icon="lucide:star" style="opacity:0.45"></iconify-icon>';
+      btn.innerHTML = saved
+        ? '<iconify-icon icon="lucide:star"></iconify-icon>'
+        : '<iconify-icon icon="lucide:star" style="opacity:0.45"></iconify-icon>';
       btn.title = saved ? 'Remove from spellbook' : 'Save to My Spells';
     });
   });
@@ -127,10 +129,14 @@ if (spellbookRef) {
 
 async function toggleSaveSpell(spellId) {
   if (!_userId) return;
-  if (savedSpellIds.has(spellId)) {
-    await remove(ref(db, `campaigns/${cid}/spellbook/${_userId}/${spellId}`));
-  } else {
-    await set(ref(db, `campaigns/${cid}/spellbook/${_userId}/${spellId}`), { savedAt: Date.now() });
+  try {
+    if (savedSpellIds.has(spellId)) {
+      await remove(ref(db, `campaigns/${cid}/spellbook/${_userId}/${spellId}`));
+    } else {
+      await set(ref(db, `campaigns/${cid}/spellbook/${_userId}/${spellId}`), { savedAt: Date.now() });
+    }
+  } catch (e) {
+    console.error("Spellbook save failed:", e);
   }
 }
 
@@ -141,17 +147,58 @@ let activeSchool = "";
 let activeClass  = "";
 let searchQuery  = "";
 let activeSaved  = false;
+let sortField    = null;   // 'name' | 'level' | 'school' | null
+let sortDir      = 'asc';  // 'asc' | 'desc'
+
+// ── Sort controls ─────────────────────────────────────────────────────────────
+function _updateSortUI() {
+  document.querySelectorAll(".sort-btn").forEach(btn => {
+    const field = btn.dataset.sort;
+    const icon  = btn.querySelector("iconify-icon");
+    btn.classList.toggle("active", sortField === field);
+    if (icon) {
+      if (sortField === field) {
+        icon.setAttribute("icon", sortDir === 'asc' ? "lucide:chevron-up" : "lucide:chevron-down");
+      } else {
+        icon.setAttribute("icon", "lucide:chevrons-up-down");
+      }
+    }
+  });
+}
+
+document.querySelectorAll(".sort-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const field = btn.dataset.sort;
+    if (sortField === field) {
+      if (sortDir === 'asc') { sortDir = 'desc'; }
+      else { sortField = null; sortDir = 'asc'; }
+    } else {
+      sortField = field;
+      sortDir   = 'asc';
+    }
+    _updateSortUI();
+    renderSpells();
+  });
+});
 
 // ── DOM refs ───────────────────────────────────────────────────────────────────
-const spellsGrid   = document.getElementById("spells-grid");
-const searchInput  = document.getElementById("spells-search");
-const levelFilter  = document.getElementById("level-filter");
-const schoolFilter = document.getElementById("school-filter");
-const classFilter  = document.getElementById("class-filter");
-const spellCount   = document.getElementById("spell-count");
-const seedStatus   = document.getElementById("seed-status");
-const spellModal   = document.getElementById("spell-modal");
-const condTooltip  = document.getElementById("condition-tooltip");
+const spellsGrid      = document.getElementById("spells-grid");
+const spellsContent   = document.querySelector(".spells-content");
+const searchInput     = document.getElementById("spells-search");
+const levelFilter     = document.getElementById("level-filter");
+const schoolFilter    = document.getElementById("school-filter");
+const classFilter     = document.getElementById("class-filter");
+const spellCount      = document.getElementById("spell-count");
+const seedStatus      = document.getElementById("seed-status");
+const condTooltip     = document.getElementById("condition-tooltip");
+const detailPanel     = document.getElementById("spell-detail-panel");
+const detailInner     = detailPanel?.querySelector(".spell-detail-inner");
+const sdpTitle        = document.getElementById("sdp-title");
+const sdpMeta         = document.getElementById("sdp-meta");
+const sdpStats        = document.getElementById("sdp-stats");
+const sdpComponents   = document.getElementById("sdp-components");
+const sdpDescription  = document.getElementById("sdp-description");
+let   _activeRow      = null;
 
 // ── CSV parser ─────────────────────────────────────────────────────────────────
 function parseCSV(text) {
@@ -320,9 +367,7 @@ function makeBtn(text, className, onClick) {
   return btn;
 }
 
-// ── Render spells grid ────────────────────────────────────────────────────────
-const _isMobile = () => window.matchMedia('(max-width: 768px)').matches;
-
+// ── Render spells list ────────────────────────────────────────────────────────
 function renderSpells() {
   spellsGrid.innerHTML = "";
 
@@ -346,6 +391,21 @@ function renderSpells() {
     }
   }
 
+  // Apply sort
+  if (sortField === 'name') {
+    filtered.sort((a, b) => sortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
+  } else if (sortField === 'level') {
+    filtered.sort((a, b) => sortDir === 'asc'
+      ? a.level - b.level || a.name.localeCompare(b.name)
+      : b.level - a.level || a.name.localeCompare(b.name));
+  } else if (sortField === 'school') {
+    filtered.sort((a, b) => sortDir === 'asc'
+      ? (a.school || '').localeCompare(b.school || '')
+      : (b.school || '').localeCompare(a.school || ''));
+  } else {
+    filtered.sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
+  }
+
   const total = filtered.length;
   spellCount.textContent = activeSaved
     ? `${total} saved spell${total !== 1 ? 's' : ''}`
@@ -359,7 +419,7 @@ function renderSpells() {
         <div class="spells-empty-inner">
           <iconify-icon icon="lucide:star" class="spells-empty-star" style="opacity:0.4"></iconify-icon>
           <p class="spells-empty-title">No saved spells</p>
-          <p class="spells-empty-hint">Tap the star on any spell in the Spells page to save it here.</p>
+          <p class="spells-empty-hint">Click the star on any spell to save it here.</p>
         </div>`;
     } else {
       emptyEl.textContent = spells.length === 0 ? "Loading spells…" : "No spells match.";
@@ -371,86 +431,80 @@ function renderSpells() {
   const fragment = document.createDocumentFragment();
 
   filtered.forEach(spell => {
-    const card = document.createElement("div");
-    card.className = "spell-card";
+    const row = document.createElement("div");
+    row.className = "spell-row";
     const sc = getSchoolColor(spell.school);
-    card.style.setProperty("--sc", sc);
+    row.style.setProperty("--sc", sc);
 
     const isConc = (spell.duration || "").includes("Concentration");
     const durText = isConc
       ? spell.duration.replace(/^Concentration,\s*/i, "")
       : spell.duration;
 
-    const rawDesc = (spell.description || "").replace(/\n/g, ' ');
-    const shortDesc = rawDesc.length > 160 ? rawDesc.slice(0, 160) + '…' : rawDesc;
-
-    card.innerHTML = `
-      <div class="spell-card-header">
-        <div class="spell-name">${escHtml(spell.name)}</div>
-        <div class="spell-school-badge">${escHtml(spell.school)}</div>
+    row.innerHTML = `
+      <div class="spell-row-main">
+        <div class="spell-row-name">${escHtml(spell.name)}</div>
+        <div class="spell-row-classes">${escHtml((spell.classes || []).join(", "))}</div>
       </div>
-      <div class="spell-card-meta">
+      <div class="spell-row-level">
         <span class="spell-level-badge">${levelShort(spell.level)}</span>
-        <span class="spell-classes">${escHtml((spell.classes || []).join(", "))}</span>
       </div>
-      <div class="spell-card-stats">
-        <span class="spell-stat"><span class="spell-stat-label">Cast</span>${escHtml(spell.castTime)}</span>
-        <span class="spell-stat"><span class="spell-stat-label">Range</span>${escHtml(spell.range)}</span>
+      <div class="spell-row-school">
+        <span class="spell-row-school-badge">${escHtml(spell.school)}</span>
       </div>
-      ${spell.duration ? `<div class="spell-duration">${isConc ? '<span class="conc-tag">C</span>' : ''}${escHtml(durText)}</div>` : ''}
-      <div class="spell-expand-body">
-        <div class="spell-expand-desc">${escHtml(shortDesc)}</div>
-        <button class="spell-modal-btn">Full Details <iconify-icon icon="lucide:arrow-right"></iconify-icon></button>
+      <div class="spell-row-cast">${escHtml(spell.castTime || "—")}</div>
+      <div class="spell-row-duration">
+        ${isConc ? '<span class="conc-tag">C</span>' : ''}${escHtml(durText || "—")}
       </div>
+      <div class="spell-row-actions"></div>
     `;
 
-    card.querySelector('.spell-modal-btn').addEventListener('click', e => {
-      e.stopPropagation();
-      openSpellModal(spell);
-    });
-
-    card.addEventListener("click", e => {
-      if (e.target.closest('.spell-save-btn, .spell-modal-btn')) return;
-      if (_isMobile()) {
-        const wasExpanded = card.classList.contains('expanded');
-        document.querySelectorAll('.spell-card.expanded').forEach(c => c.classList.remove('expanded'));
-        if (!wasExpanded) card.classList.add('expanded');
-      } else {
-        openSpellModal(spell);
-      }
+    row.addEventListener("click", e => {
+      if (e.target.closest('.spell-save-btn')) return;
+      openSpellPanel(spell, row);
     });
 
     if (_userId) {
       const saveBtn = document.createElement('button');
       saveBtn.className = 'spell-save-btn' + (savedSpellIds.has(spell.id) ? ' saved' : '');
       saveBtn.dataset.spellId = spell.id;
-      saveBtn.innerHTML = savedSpellIds.has(spell.id) ? '<iconify-icon icon="lucide:star"></iconify-icon>' : '<iconify-icon icon="lucide:star" style="opacity:0.45"></iconify-icon>';
+      saveBtn.innerHTML = savedSpellIds.has(spell.id)
+        ? '<iconify-icon icon="lucide:star"></iconify-icon>'
+        : '<iconify-icon icon="lucide:star" style="opacity:0.45"></iconify-icon>';
       saveBtn.title = savedSpellIds.has(spell.id) ? 'Remove from spellbook' : 'Save to My Spells';
       saveBtn.addEventListener('click', e => { e.stopPropagation(); toggleSaveSpell(spell.id); });
-      card.appendChild(saveBtn);
+      row.querySelector('.spell-row-actions').appendChild(saveBtn);
     }
 
-    fragment.appendChild(card);
+    fragment.appendChild(row);
   });
 
   spellsGrid.appendChild(fragment);
 }
 
-// ── Spell detail modal ────────────────────────────────────────────────────────
-function openSpellModal(spell) {
-  document.getElementById("sm-title").textContent = spell.name;
+// ── Spell detail side panel ───────────────────────────────────────────────────
+function openSpellPanel(spell, rowEl) {
+  // Highlight active row
+  if (_activeRow) _activeRow.classList.remove('active');
+  _activeRow = rowEl;
+  rowEl.classList.add('active');
 
   const sc = getSchoolColor(spell.school);
   const isConc = (spell.duration || "").includes("Concentration");
 
-  document.getElementById("sm-meta").innerHTML = `
+  // Tint the panel left border to match the spell's school color
+  if (detailInner) detailInner.style.setProperty('--sdp-sc', sc);
+
+  sdpTitle.textContent = spell.name;
+
+  sdpMeta.innerHTML = `
     <span class="sm-badge sm-level-badge">${levelLabel(spell.level)}</span>
     <span class="sm-badge sm-school-badge" style="background:color-mix(in srgb,${sc} 18%,transparent);border-color:color-mix(in srgb,${sc} 55%,transparent);color:${sc}">${escHtml(spell.school)}</span>
     ${isConc ? '<span class="sm-badge sm-conc-badge">Concentration</span>' : ''}
     <div class="sm-classes">${escHtml((spell.classes || []).join(", "))}</div>
   `;
 
-  document.getElementById("sm-stats").innerHTML = `
+  sdpStats.innerHTML = `
     <div class="sm-stat-row">
       <div class="sm-stat-item">
         <span class="sm-stat-label">Casting Time</span>
@@ -476,7 +530,7 @@ function openSpellModal(spell) {
     ? `<span class="comp-material">(${escHtml(spell.materialCost)})</span>`
     : '';
 
-  document.getElementById("sm-components").innerHTML = `
+  sdpComponents.innerHTML = `
     <div class="sm-comp-row">
       <span class="sm-stat-label">Components</span>
       ${compParts.length ? compParts.join('') : '<span style="color:#445;font-size:12px">None</span>'}
@@ -484,16 +538,21 @@ function openSpellModal(spell) {
     </div>
   `;
 
-  document.getElementById("sm-description").innerHTML = renderDescription(spell.description || "");
+  sdpDescription.innerHTML = renderDescription(spell.description || "");
 
-  spellModal.classList.add("open");
+  // Open panel + collapse extra list columns
+  detailPanel.classList.add('open');
+  spellsContent?.classList.add('panel-open');
 
-  // Scroll modal body to top
-  spellModal.querySelector(".modal-body").scrollTop = 0;
+  // Scroll body to top
+  const body = detailPanel.querySelector('.sdp-body');
+  if (body) body.scrollTop = 0;
 }
 
-function closeSpellModal() {
-  spellModal.classList.remove("open");
+function closeSpellPanel() {
+  if (_activeRow) { _activeRow.classList.remove('active'); _activeRow = null; }
+  detailPanel.classList.remove('open');
+  spellsContent?.classList.remove('panel-open');
   condTooltip.style.display = 'none';
 }
 
@@ -582,11 +641,10 @@ searchInput.addEventListener("input",  e => { searchQuery  = e.target.value; ren
 schoolFilter.addEventListener("change", e => { activeSchool = e.target.value; renderSpells(); });
 classFilter.addEventListener("change",  e => { activeClass  = e.target.value; renderSpells(); });
 
-document.getElementById("sm-close-btn").addEventListener("click", closeSpellModal);
-spellModal.addEventListener("click", e => { if (e.target === spellModal) closeSpellModal(); });
+document.getElementById("sdp-close").addEventListener("click", closeSpellPanel);
 
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape" && spellModal.classList.contains("open")) closeSpellModal();
+  if (e.key === "Escape" && detailPanel.classList.contains("open")) closeSpellPanel();
 });
 
 // ── Init ───────────────────────────────────────────────────────────────────────

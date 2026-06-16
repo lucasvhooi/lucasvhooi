@@ -1,12 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
 ---
-<Layout title="Location — DnD Campaign" showCampaignTabs={true} activePage="location" extraCSS={['/assets/css/location.css', '/assets/css/lore.css']}>
+<Layout title="Location — DnD Campaign" activePage="location" extraCSS={['/assets/css/location.css', '/assets/css/lore.css']}>
 
   <!-- Hero -->
   <header class="loc-hero">
     <div class="loc-hero-bg" id="loc-hero-bg"></div>
     <a href="/map" class="back-link" id="back-to-map"><iconify-icon icon="lucide:arrow-left"></iconify-icon> Back to Map</a>
+    <button id="loc-edit-location-btn" class="loc-edit-location-btn" style="display:none"><iconify-icon icon="lucide:pencil"></iconify-icon> Edit Location</button>
     <h1 class="loc-title" id="loc-title">Loading&hellip;</h1>
     <div class="loc-stats" id="loc-stats"></div>
     <label for="loc-feature-upload" id="loc-feature-upload-btn" class="loc-hero-upload-btn" style="display:none" title="Upload location image"><iconify-icon icon="lucide:camera"></iconify-icon></label>
@@ -15,44 +16,57 @@ import Layout from '../layouts/Layout.astro';
 
   <main class="loc-main">
 
-    <div class="loc-feature-row anim-1" id="loc-feature-row">
-      <div class="loc-feature-desc-wrap">
-        <div class="sec-header-row">
-          <h2 class="sec-heading">About</h2>
+    <!-- Map section (70% column) -->
+    <section class="loc-section anim-1" id="sec-map">
+      <div class="sec-header-row">
+        <h2 class="sec-heading">Location Map</h2>
+        <div id="loc-dm-toolbar" class="loc-dm-toolbar" style="display:none">
+          <label for="loc-map-upload" class="dm-btn dm-btn-sm">Upload Map</label>
+          <input type="file" id="loc-map-upload" accept="image/*" style="display:none" />
+          <button id="loc-btn-place" class="dm-btn dm-btn-sm">Place Marker</button>
+        </div>
+      </div>
+      <div class="loc-map-outer">
+        <div id="loc-map-container" class="loc-map-container">
+          <div id="loc-map-wrapper">
+            <img id="loc-map-img" alt="Location map" style="display:none" />
+            <div id="loc-marker-layer"></div>
+          </div>
+          <div id="loc-map-placeholder" class="map-placeholder">
+            <iconify-icon icon="lucide:map" class="placeholder-icon"></iconify-icon>
+            <span>No map uploaded yet</span>
+            <span class="placeholder-hint" id="loc-upload-hint" style="display:none">Upload one using the button above</span>
+          </div>
+          <div id="loc-placing-banner" class="loc-placing-banner">Click anywhere on the map to place a marker</div>
+          <div class="loc-zoom-controls" id="loc-zoom-controls">
+            <button id="loc-zoom-in"    class="loc-zoom-btn" title="Zoom in">+</button>
+            <button id="loc-zoom-reset" class="loc-zoom-btn loc-zoom-reset-btn" title="Reset view">⊙</button>
+            <button id="loc-zoom-out"   class="loc-zoom-btn" title="Zoom out">−</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right column: About + Quick Info + Buildings (30%) -->
+    <div class="loc-col loc-col-buildings">
+      <!-- About card -->
+      <div class="loc-section loc-about-card anim-1" id="loc-hero-about" style="display:none">
+        <div class="loc-hero-about-hdr">
+          <span class="loc-hero-about-label">About</span>
           <button id="loc-edit-desc-btn" class="dm-btn dm-btn-sm" style="display:none">Edit</button>
         </div>
         <p id="loc-desc-text" class="loc-description" style="display:none"></p>
-        <p id="loc-desc-empty" class="loc-desc-empty">No description added yet.</p>
+        <p id="loc-desc-empty" class="loc-desc-empty" style="display:none">No description added yet.</p>
       </div>
-    </div>
-
-    <div class="loc-col loc-col-map">
-      <section class="loc-section anim-2" id="sec-map">
-        <div class="sec-header-row">
-          <h2 class="sec-heading">Location Map</h2>
-          <div id="loc-dm-toolbar" class="loc-dm-toolbar" style="display:none">
-            <label for="loc-map-upload" class="dm-btn dm-btn-sm">Upload Map</label>
-            <input type="file" id="loc-map-upload" accept="image/*" style="display:none" />
-            <button id="loc-btn-place" class="dm-btn dm-btn-sm">Place Marker</button>
-          </div>
+      <!-- Quick Info card -->
+      <div class="loc-section loc-qi-card anim-1" id="sec-quick-info" style="display:none">
+        <div class="loc-qi-hdr">
+          <span class="loc-hero-about-label">Quick Info</span>
         </div>
-        <div class="loc-map-outer">
-          <div id="loc-map-container" class="loc-map-container">
-            <img id="loc-map-img" alt="Location map" style="display:none" />
-            <div id="loc-map-placeholder" class="map-placeholder">
-              <iconify-icon icon="lucide:map" class="placeholder-icon"></iconify-icon>
-              <span>No map uploaded yet</span>
-              <span class="placeholder-hint" id="loc-upload-hint" style="display:none">Upload one using the button above</span>
-            </div>
-            <div id="loc-marker-layer"></div>
-            <div id="loc-placing-banner" class="loc-placing-banner">Click anywhere on the map to place a marker</div>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <div class="loc-col loc-col-buildings">
-      <section class="loc-section anim-3" id="sec-buildings" style="display:none">
+        <div class="qi-table" id="qi-table"></div>
+      </div>
+      <!-- Buildings section -->
+      <section class="loc-section anim-1" id="sec-buildings" style="display:none">
         <div class="sec-header-row">
           <h2 class="sec-heading">Buildings <span class="dm-badge">DM Only</span></h2>
         </div>
@@ -60,32 +74,37 @@ import Layout from '../layouts/Layout.astro';
       </section>
     </div>
 
+    <!-- NPCs (spans full width below the map+buildings row) -->
     <div class="loc-col loc-col-npcs">
-      <section class="loc-section anim-4" id="sec-npcs" style="display:none">
-        <div class="sec-header-row">
-          <h2 class="sec-heading">NPCs <span class="dm-badge">DM Only</span></h2>
+      <section class="loc-section anim-2" id="sec-npcs" style="display:none">
+        <div class="sec-header-row npc-toggle-row" id="npc-toggle-row">
+          <h2 class="sec-heading">
+            NPCs <span class="dm-badge">DM Only</span>
+            <span class="npc-count-chip" id="npc-count-chip"></span>
+          </h2>
           <div style="display:flex;gap:6px;align-items:center;">
             <button id="loc-toggle-gen-btn" class="dm-btn dm-btn-sm dm-btn-secondary">Generator <iconify-icon icon="lucide:chevron-right"></iconify-icon></button>
             <button id="loc-add-npc-btn" class="dm-btn dm-btn-sm">+ Add NPC</button>
+            <button class="npc-expand-toggle" id="npc-expand-toggle" title="Show NPCs"><iconify-icon icon="lucide:chevron-down"></iconify-icon></button>
           </div>
         </div>
-
-        <div class="npc-generator-panel" id="npc-generator-panel" style="display:none">
-          <div class="generator-controls">
-            <span class="generator-label">Generate</span>
-            <input type="number" id="gen-count" value="20" min="1" max="500" class="gen-count-input" />
-            <span class="generator-label">NPCs</span>
-            <button id="gen-btn" class="dm-btn dm-btn-sm"><iconify-icon icon="lucide:zap"></iconify-icon> Generate</button>
-            <button id="gen-clear-btn" class="dm-btn dm-btn-sm dm-btn-secondary">Clear All</button>
+        <div id="npc-section-body" style="display:none">
+          <div class="npc-generator-panel" id="npc-generator-panel" style="display:none">
+            <div class="generator-controls">
+              <span class="generator-label">Generate</span>
+              <input type="number" id="gen-count" value="20" min="1" max="500" class="gen-count-input" />
+              <span class="generator-label">NPCs</span>
+              <button id="gen-btn" class="dm-btn dm-btn-sm"><iconify-icon icon="lucide:zap"></iconify-icon> Generate</button>
+              <button id="gen-clear-btn" class="dm-btn dm-btn-sm dm-btn-secondary">Clear All</button>
+            </div>
+            <p id="gen-hint" class="gen-hint">Uses this location's Main Race &amp; population for weighted generation.</p>
+            <p id="gen-status" class="gen-status"></p>
           </div>
-          <p id="gen-hint" class="gen-hint">Uses this location's Main Race &amp; population for weighted generation.</p>
-          <p id="gen-status" class="gen-status"></p>
+          <div class="npc-search-row">
+            <input type="text" id="npc-search" class="npc-search-input" placeholder="Search NPCs…" />
+          </div>
+          <div id="loc-npc-list" class="npc-list"></div>
         </div>
-
-        <div class="npc-search-row">
-          <input type="text" id="npc-search" class="npc-search-input" placeholder="Search NPCs…" />
-        </div>
-        <div id="loc-npc-list" class="npc-list"></div>
       </section>
     </div>
 
@@ -293,6 +312,7 @@ import Layout from '../layouts/Layout.astro';
           <button class="rarity-btn" data-rarity="very rare">Very Rare</button>
           <button class="rarity-btn" data-rarity="legendary">Legendary</button>
         </div>
+        <div id="sh-tag-filter" class="shop-tag-filter" style="display:none"></div>
         <div id="sh-inventory" class="shop-inventory"></div>
       </div>
     </div>
