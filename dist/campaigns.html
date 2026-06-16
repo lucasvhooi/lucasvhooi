@@ -50,7 +50,7 @@ Campaigns
     /* ── Hero ───────────────────────────────────────────────────── */
     .hero {
       position: relative;
-      padding: 110px 40px 96px;
+      padding: 52px 40px 40px;
       text-align: center;
       flex-shrink: 0;
       background-size: cover;
@@ -59,10 +59,10 @@ Campaigns
 
     .hero-title {
       font-family: var(--title);
-      font-size: clamp(2.6rem, 5vw, 3.6rem);
+      font-size: clamp(1.9rem, 4vw, 2.6rem);
       color: #ffffff;
       letter-spacing: 0.06em;
-      margin: 0 0 22px;
+      margin: 0 0 14px;
       text-shadow: 0 2px 24px rgba(0,0,0,0.7), 0 4px 60px rgba(200,164,92,0.18);
     }
 
@@ -71,11 +71,11 @@ Campaigns
       align-items: center;
       justify-content: center;
       gap: 16px;
-      margin-bottom: 18px;
+      margin-bottom: 12px;
     }
 
     .hero-ornament-line {
-      width: 200px;
+      width: 160px;
       height: 1px;
       background: linear-gradient(to right, transparent, rgba(200,164,92,0.9));
     }
@@ -687,11 +687,82 @@ Campaigns
     .img-upload-label.has-image { border-style: solid; border-color: rgba(200,164,92,0.3); }
     .img-upload-label span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+    /* ── Campaign settings toggles ──────────────────────────────── */
+    .settings-group { display: flex; flex-direction: column; gap: 8px; }
+    .setting-toggle {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 11px 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(200,164,92,0.1);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .setting-toggle:hover { border-color: rgba(200,164,92,0.25); background: rgba(200,164,92,0.03); }
+    .setting-toggle input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+    .setting-switch {
+      flex-shrink: 0;
+      width: 38px; height: 22px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.12);
+      position: relative;
+      transition: background 0.2s, border-color 0.2s;
+      margin-top: 1px;
+    }
+    .setting-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #b8b0a0;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .setting-toggle input:checked + .setting-switch {
+      background: rgba(200,164,92,0.3);
+      border-color: rgba(200,164,92,0.5);
+    }
+    .setting-toggle input:checked + .setting-switch::after {
+      transform: translateX(16px);
+      background: var(--accent);
+    }
+    .setting-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .setting-title { font-size: 13.5px; color: var(--text); font-family: var(--font); }
+    .setting-desc { font-size: 11.5px; color: #7a7468; line-height: 1.4; }
+
     @media (max-width: 700px) {
-      .hero { padding: 40px 20px 32px; }
+      .hero { padding: 26px 20px 22px; }
       .main { padding: 24px 16px 48px; }
       .campaign-grid { grid-template-columns: 1fr; }
-      .campaign-card-img { width: 90px; }
+
+      /* Image becomes the full card background with a dark gradient so the
+         text + buttons stay readable */
+      .campaign-card { height: 188px; }
+      .campaign-card-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        border-right: none;
+      }
+      .campaign-card-img::before {
+        background: linear-gradient(to top,
+          rgba(0,0,0,0.92) 0%,
+          rgba(0,0,0,0.78) 30%,
+          rgba(0,0,0,0.45) 65%,
+          rgba(0,0,0,0.35) 100%);
+      }
+      .campaign-card-body {
+        position: relative;
+        z-index: 2;
+        justify-content: flex-end;
+      }
+      .campaign-name { text-shadow: 0 1px 8px rgba(0,0,0,0.9); }
+      .campaign-desc { color: #cfcabf; }
 
       /* Toolbar: let the label sit on its own line and the two actions
          share a full-width row so neither button runs off-screen */
@@ -707,11 +778,11 @@ Join by Code
 New Campaign
 </button> </div> </div> <!-- Loading --> <div id="state-loading"> <div class="loading-spinner"></div> <span>Loading campaigns…</span> </div> <!-- Empty --> <div id="state-empty"> <div class="empty-icon">📜</div> <h2 class="empty-title">No campaigns yet</h2> <p class="empty-sub">You haven't joined or created any campaigns. Start your first adventure or ask your DM for an invite code.</p> <button class="btn-add" id="btn-add-empty"> <iconify-icon icon="lucide:plus"></iconify-icon>
 New Campaign
-</button> </div> <!-- Campaigns --> <div id="state-campaigns"> <div class="campaign-grid" id="campaign-grid"></div> <button class="create-new-row" id="btn-create-new-row"> <div class="create-new-icon"> <iconify-icon icon="lucide:plus"></iconify-icon> </div> <div class="create-new-text"> <span class="create-new-title">Create a new campaign</span> <span class="create-new-sub">Start a new adventure and invite your players</span> </div> </button> </div> </main>  <div class="modal-overlay" id="modal-add"> <div class="modal-box"> <div class="modal-header"> <h2 class="modal-title">New Campaign</h2> <button class="modal-close" id="modal-close">✕</button> </div> <div class="modal-error" id="modal-error"></div> <div class="modal-field"> <label class="modal-label" for="c-name">Campaign Name <span style="color:#e07070">*</span></label> <input class="modal-input" id="c-name" type="text" placeholder="The Lost Mines of Phandelver" maxlength="60" autocomplete="off"> </div> <div class="modal-field"> <label class="modal-label" for="c-world">World / Setting</label> <input class="modal-input" id="c-world" type="text" placeholder="Faerûn, Eberron, homebrew…" maxlength="60" autocomplete="off"> </div> <div class="modal-field"> <label class="modal-label" for="c-desc">Description</label> <textarea class="modal-textarea" id="c-desc" placeholder="A short description of the campaign…" maxlength="300"></textarea> </div> <div class="modal-field"> <label class="modal-label">Cover Image</label> <label class="img-upload-label" id="c-img-label" for="c-img"> <iconify-icon icon="lucide:image-plus" style="font-size:20px;opacity:0.5"></iconify-icon> <span id="c-img-hint">Click to upload an image</span> </label> <input type="file" id="c-img" accept="image/*" style="display:none"> </div> <div class="modal-footer"> <button class="btn-cancel" id="btn-cancel">Cancel</button> <button class="btn-add" id="btn-create-campaign"> <iconify-icon icon="lucide:plus"></iconify-icon>
+</button> </div> <!-- Campaigns --> <div id="state-campaigns"> <div class="campaign-grid" id="campaign-grid"></div> <button class="create-new-row" id="btn-create-new-row"> <div class="create-new-icon"> <iconify-icon icon="lucide:plus"></iconify-icon> </div> <div class="create-new-text"> <span class="create-new-title">Create a new campaign</span> <span class="create-new-sub">Start a new adventure and invite your players</span> </div> </button> </div> </main>  <div class="modal-overlay" id="modal-add"> <div class="modal-box"> <div class="modal-header"> <h2 class="modal-title">New Campaign</h2> <button class="modal-close" id="modal-close">✕</button> </div> <div class="modal-error" id="modal-error"></div> <div class="modal-field"> <label class="modal-label" for="c-name">Campaign Name <span style="color:#e07070">*</span></label> <input class="modal-input" id="c-name" type="text" placeholder="The Lost Mines of Phandelver" maxlength="60" autocomplete="off"> </div> <div class="modal-field"> <label class="modal-label" for="c-world">World / Setting</label> <input class="modal-input" id="c-world" type="text" placeholder="Faerûn, Eberron, homebrew…" maxlength="60" autocomplete="off"> </div> <div class="modal-field"> <label class="modal-label" for="c-desc">Description</label> <textarea class="modal-textarea" id="c-desc" placeholder="A short description of the campaign…" maxlength="300"></textarea> </div> <div class="modal-field"> <label class="modal-label">Cover Image</label> <label class="img-upload-label" id="c-img-label" for="c-img"> <iconify-icon icon="lucide:image-plus" style="font-size:20px;opacity:0.5"></iconify-icon> <span id="c-img-hint">Click to upload an image</span> </label> <input type="file" id="c-img" accept="image/*" style="display:none"> </div> <div class="modal-field"> <label class="modal-label">Campaign Settings</label> <div class="settings-group"> <label class="setting-toggle"> <input type="checkbox" id="c-set-attunement" checked> <span class="setting-switch"></span> <span class="setting-text"> <span class="setting-title">Attunement</span> <span class="setting-desc">Players can attune to magic items, with limited attunement slots shown in their inventory.</span> </span> </label> <label class="setting-toggle"> <input type="checkbox" id="c-set-weight"> <span class="setting-switch"></span> <span class="setting-text"> <span class="setting-title">Encumbrance (weight)</span> <span class="setting-desc">Each player gets a carry-capacity bar in their inventory based on item weight.</span> </span> </label> </div> </div> <div class="modal-footer"> <button class="btn-cancel" id="btn-cancel">Cancel</button> <button class="btn-add" id="btn-create-campaign"> <iconify-icon icon="lucide:plus"></iconify-icon>
 Create
 </button> </div> </div> </div>  <div class="modal-overlay" id="modal-invite"> <div class="modal-box"> <div class="modal-header"> <h2 class="modal-title">Invite Players</h2> <button class="modal-close" id="invite-modal-close">✕</button> </div> <div class="modal-tabs"> <button class="modal-tab active" data-tab="username">By Username</button> <button class="modal-tab" data-tab="code">Invite Code</button> </div> <div class="modal-tab-content active" id="tab-username"> <div class="modal-field"> <label class="modal-label">Player Username <span style="color:#55554e;font-size:10px;text-transform:none;letter-spacing:0">— include their tag, e.g. adventurer#1234</span></label> <div class="invite-row"> <input class="modal-input" id="invite-username" type="text" placeholder="adventurer_of_doom#1234" autocomplete="off"> <button class="btn-send" id="btn-send-invite">Send</button> </div> </div> <div class="invite-feedback" id="invite-feedback"></div> </div> <div class="modal-tab-content" id="tab-code"> <div id="code-display-area"></div> </div> </div> </div>  <div class="modal-overlay" id="modal-join"> <div class="modal-box" style="max-width:380px"> <div class="modal-header"> <h2 class="modal-title">Join Campaign</h2> <button class="modal-close" id="join-modal-close">✕</button> </div> <div class="modal-error" id="join-error"></div> <div class="modal-field"> <label class="modal-label">Invite Code</label> <input class="modal-input" id="join-code-input" type="text" placeholder="XXXX-XXXX" autocomplete="off" style="text-transform:uppercase;letter-spacing:0.1em"> </div> <div class="modal-footer"> <button class="btn-cancel" id="join-cancel">Cancel</button> <button class="btn-add" id="btn-join-submit" style="justify-content:center;flex:1"> <iconify-icon icon="lucide:log-in"></iconify-icon>
 Join
-</button> </div> </div> </div>  <div class="modal-overlay" id="modal-edit"> <div class="modal-box"> <div class="modal-header"> <h2 class="modal-title">Edit Campaign</h2> <button class="modal-close" id="edit-modal-close">✕</button> </div> <div class="modal-error" id="edit-modal-error"></div> <div class="modal-field"> <label class="modal-label" for="e-name">Campaign Name <span style="color:#e07070">*</span></label> <input class="modal-input" id="e-name" type="text" maxlength="60" autocomplete="off"> </div> <div class="modal-field"> <label class="modal-label" for="e-world">World / Setting</label> <input class="modal-input" id="e-world" type="text" placeholder="Faerûn, Eberron, homebrew…" maxlength="60" autocomplete="off"> </div> <div class="modal-field"> <label class="modal-label" for="e-desc">Description</label> <textarea class="modal-textarea" id="e-desc" maxlength="300"></textarea> </div> <div class="modal-field"> <label class="modal-label">Cover Image</label> <label class="img-upload-label" id="e-img-label" for="e-img"> <iconify-icon icon="lucide:image-plus" style="font-size:20px;opacity:0.5"></iconify-icon> <span id="e-img-hint">Click to replace image</span> </label> <input type="file" id="e-img" accept="image/*" style="display:none"> </div> <div class="modal-footer"> <button class="btn-cancel" id="edit-cancel">Cancel</button> <button class="btn-add" id="btn-save-edit" style="justify-content:center;flex:1"> <iconify-icon icon="lucide:save"></iconify-icon>
+</button> </div> </div> </div>  <div class="modal-overlay" id="modal-edit"> <div class="modal-box"> <div class="modal-header"> <h2 class="modal-title">Edit Campaign</h2> <button class="modal-close" id="edit-modal-close">✕</button> </div> <div class="modal-error" id="edit-modal-error"></div> <div class="modal-field"> <label class="modal-label" for="e-name">Campaign Name <span style="color:#e07070">*</span></label> <input class="modal-input" id="e-name" type="text" maxlength="60" autocomplete="off"> </div> <div class="modal-field"> <label class="modal-label" for="e-world">World / Setting</label> <input class="modal-input" id="e-world" type="text" placeholder="Faerûn, Eberron, homebrew…" maxlength="60" autocomplete="off"> </div> <div class="modal-field"> <label class="modal-label" for="e-desc">Description</label> <textarea class="modal-textarea" id="e-desc" maxlength="300"></textarea> </div> <div class="modal-field"> <label class="modal-label">Cover Image</label> <label class="img-upload-label" id="e-img-label" for="e-img"> <iconify-icon icon="lucide:image-plus" style="font-size:20px;opacity:0.5"></iconify-icon> <span id="e-img-hint">Click to replace image</span> </label> <input type="file" id="e-img" accept="image/*" style="display:none"> </div> <div class="modal-field"> <label class="modal-label">Campaign Settings</label> <div class="settings-group"> <label class="setting-toggle"> <input type="checkbox" id="e-set-attunement"> <span class="setting-switch"></span> <span class="setting-text"> <span class="setting-title">Attunement</span> <span class="setting-desc">Players can attune to magic items, with limited attunement slots shown in their inventory.</span> </span> </label> <label class="setting-toggle"> <input type="checkbox" id="e-set-weight"> <span class="setting-switch"></span> <span class="setting-text"> <span class="setting-title">Encumbrance (weight)</span> <span class="setting-desc">Each player gets a carry-capacity bar in their inventory based on item weight.</span> </span> </label> </div> </div> <div class="modal-footer"> <button class="btn-cancel" id="edit-cancel">Cancel</button> <button class="btn-add" id="btn-save-edit" style="justify-content:center;flex:1"> <iconify-icon icon="lucide:save"></iconify-icon>
 Save
 </button> </div> </div> </div>  <div class="modal-overlay" id="modal-delete"> <div class="modal-box" style="max-width:400px"> <div class="modal-header"> <h2 class="modal-title" style="color:#e07070">Delete Campaign</h2> <button class="modal-close" id="delete-modal-close">✕</button> </div> <p style="font-size:14px;color:#888880;line-height:1.65;margin-bottom:22px">
 This will permanently delete <strong id="delete-campaign-name" style="color:var(--accent)"></strong> and all its data. This action cannot be undone.
@@ -830,6 +901,7 @@ This will permanently delete <strong id="delete-campaign-name" style="color:var(
       card.dataset.campaignWorld = c.world       || '';
       card.dataset.campaignDesc  = c.description || '';
       card.dataset.campaignImage = c.imageUrl    || '';
+      card.dataset.campaignSettings = JSON.stringify(c.settings || {});
 
       const imgStyle = c.imageUrl
         ? `background-image:url('${escAttr(c.imageUrl)}')`
@@ -915,6 +987,8 @@ This will permanently delete <strong id="delete-campaign-name" style="color:var(
       document.getElementById('c-img').value   = '';
       document.getElementById('c-img-label').classList.remove('has-image');
       document.getElementById('c-img-hint').textContent = 'Click to upload an image';
+      document.getElementById('c-set-attunement').checked = true;
+      document.getElementById('c-set-weight').checked     = false;
       pendingAddImage = null;
       modalError.classList.remove('show');
       modalOverlay.classList.add('open');
@@ -946,6 +1020,10 @@ This will permanently delete <strong id="delete-campaign-name" style="color:var(
         if (world)           data.world       = world;
         if (desc)            data.description = desc;
         if (pendingAddImage) data.imageUrl    = pendingAddImage;
+        data.settings = {
+          useAttunement: document.getElementById('c-set-attunement').checked,
+          useWeight:     document.getElementById('c-set-weight').checked,
+        };
 
         await set(newRef, data);
         closeAddModal();
@@ -1193,6 +1271,10 @@ This will permanently delete <strong id="delete-campaign-name" style="color:var(
       document.getElementById('e-world').value = card.dataset.campaignWorld || '';
       document.getElementById('e-desc').value  = card.dataset.campaignDesc  || '';
       document.getElementById('e-img').value   = '';
+      let st = {};
+      try { st = JSON.parse(card.dataset.campaignSettings || '{}'); } catch (_) {}
+      document.getElementById('e-set-attunement').checked = st.useAttunement !== false; // default on
+      document.getElementById('e-set-weight').checked     = st.useWeight === true;       // default off
       pendingEditImage = null;
       const eImgLabel = document.getElementById('e-img-label');
       const eImgHint  = document.getElementById('e-img-hint');
@@ -1225,7 +1307,12 @@ This will permanently delete <strong id="delete-campaign-name" style="color:var(
       try {
         const updates = { name, world: world || null, description: desc || null };
         if (pendingEditImage) updates.imageUrl = pendingEditImage;
+        updates.settings = {
+          useAttunement: document.getElementById('e-set-attunement').checked,
+          useWeight:     document.getElementById('e-set-weight').checked,
+        };
         await update(ref(db, `campaigns/${editTargetId}`), updates);
+        if (editTargetCard) editTargetCard.dataset.campaignSettings = JSON.stringify(updates.settings);
         if (editTargetCard) {
           editTargetCard.querySelector('.campaign-name').textContent = name;
           editTargetCard.dataset.campaignName  = name;

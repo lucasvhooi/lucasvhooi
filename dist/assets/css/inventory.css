@@ -1,5 +1,56 @@
 @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap');
 
+/* ── Carry capacity bar (encumbrance) ──────────────────────────────────────── */
+.inv-carry {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(200,164,92,0.12);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+.inv-carry-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+.inv-carry-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8a8070;
+}
+.inv-carry-val { font-size: 13px; font-family: monospace; color: var(--text); }
+.inv-carry-cap { color: var(--accent); }
+.inv-carry-cap.editable { cursor: pointer; border-bottom: 1px dashed rgba(200,164,92,0.45); }
+.inv-carry-cap.editable:hover { color: #fff; }
+.inv-carry-cap-input {
+  width: 56px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(200,164,92,0.45);
+  border-radius: 4px;
+  color: var(--accent);
+  font-family: monospace;
+  font-size: 13px;
+  padding: 0 4px;
+  outline: none;
+}
+.inv-carry-track {
+  height: 7px;
+  background: rgba(0,0,0,0.35);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.inv-carry-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #6b8e4e, #c8a45c);
+  border-radius: 4px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+.inv-carry.over .inv-carry-fill { background: linear-gradient(90deg, #c87a2a, #e05050); }
+.inv-carry.over .inv-carry-val  { color: #e57373; }
+
 /* ── Atmospheric ambient keyframes ─────────────────────────────────────────── */
 @keyframes inv-uncommon-breath {
   0%, 100% { opacity: 0.05; }

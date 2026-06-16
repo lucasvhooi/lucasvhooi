@@ -7,7 +7,7 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
     /* ── Hero ───────────────────────────────────────────────────── */
     .hero {
       position: relative;
-      padding: 110px 40px 96px;
+      padding: 52px 40px 40px;
       text-align: center;
       flex-shrink: 0;
       background-size: cover;
@@ -16,10 +16,10 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
 
     .hero-title {
       font-family: var(--title);
-      font-size: clamp(2.6rem, 5vw, 3.6rem);
+      font-size: clamp(1.9rem, 4vw, 2.6rem);
       color: #ffffff;
       letter-spacing: 0.06em;
-      margin: 0 0 22px;
+      margin: 0 0 14px;
       text-shadow: 0 2px 24px rgba(0,0,0,0.7), 0 4px 60px rgba(200,164,92,0.18);
     }
 
@@ -28,11 +28,11 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
       align-items: center;
       justify-content: center;
       gap: 16px;
-      margin-bottom: 18px;
+      margin-bottom: 12px;
     }
 
     .hero-ornament-line {
-      width: 200px;
+      width: 160px;
       height: 1px;
       background: linear-gradient(to right, transparent, rgba(200,164,92,0.9));
     }
@@ -644,11 +644,82 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
     .img-upload-label.has-image { border-style: solid; border-color: rgba(200,164,92,0.3); }
     .img-upload-label span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+    /* ── Campaign settings toggles ──────────────────────────────── */
+    .settings-group { display: flex; flex-direction: column; gap: 8px; }
+    .setting-toggle {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 11px 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(200,164,92,0.1);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .setting-toggle:hover { border-color: rgba(200,164,92,0.25); background: rgba(200,164,92,0.03); }
+    .setting-toggle input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+    .setting-switch {
+      flex-shrink: 0;
+      width: 38px; height: 22px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.12);
+      position: relative;
+      transition: background 0.2s, border-color 0.2s;
+      margin-top: 1px;
+    }
+    .setting-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #b8b0a0;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .setting-toggle input:checked + .setting-switch {
+      background: rgba(200,164,92,0.3);
+      border-color: rgba(200,164,92,0.5);
+    }
+    .setting-toggle input:checked + .setting-switch::after {
+      transform: translateX(16px);
+      background: var(--accent);
+    }
+    .setting-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .setting-title { font-size: 13.5px; color: var(--text); font-family: var(--font); }
+    .setting-desc { font-size: 11.5px; color: #7a7468; line-height: 1.4; }
+
     @media (max-width: 700px) {
-      .hero { padding: 40px 20px 32px; }
+      .hero { padding: 26px 20px 22px; }
       .main { padding: 24px 16px 48px; }
       .campaign-grid { grid-template-columns: 1fr; }
-      .campaign-card-img { width: 90px; }
+
+      /* Image becomes the full card background with a dark gradient so the
+         text + buttons stay readable */
+      .campaign-card { height: 188px; }
+      .campaign-card-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        border-right: none;
+      }
+      .campaign-card-img::before {
+        background: linear-gradient(to top,
+          rgba(0,0,0,0.92) 0%,
+          rgba(0,0,0,0.78) 30%,
+          rgba(0,0,0,0.45) 65%,
+          rgba(0,0,0,0.35) 100%);
+      }
+      .campaign-card-body {
+        position: relative;
+        z-index: 2;
+        justify-content: flex-end;
+      }
+      .campaign-name { text-shadow: 0 1px 8px rgba(0,0,0,0.9); }
+      .campaign-desc { color: #cfcabf; }
 
       /* Toolbar: let the label sit on its own line and the two actions
          share a full-width row so neither button runs off-screen */
@@ -759,6 +830,27 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
         </label>
         <input type="file" id="c-img" accept="image/*" style="display:none" />
       </div>
+      <div class="modal-field">
+        <label class="modal-label">Campaign Settings</label>
+        <div class="settings-group">
+          <label class="setting-toggle">
+            <input type="checkbox" id="c-set-attunement" checked />
+            <span class="setting-switch"></span>
+            <span class="setting-text">
+              <span class="setting-title">Attunement</span>
+              <span class="setting-desc">Players can attune to magic items, with limited attunement slots shown in their inventory.</span>
+            </span>
+          </label>
+          <label class="setting-toggle">
+            <input type="checkbox" id="c-set-weight" />
+            <span class="setting-switch"></span>
+            <span class="setting-text">
+              <span class="setting-title">Encumbrance (weight)</span>
+              <span class="setting-desc">Each player gets a carry-capacity bar in their inventory based on item weight.</span>
+            </span>
+          </label>
+        </div>
+      </div>
       <div class="modal-footer">
         <button class="btn-cancel" id="btn-cancel">Cancel</button>
         <button class="btn-add" id="btn-create-campaign">
@@ -845,6 +937,27 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
           <span id="e-img-hint">Click to replace image</span>
         </label>
         <input type="file" id="e-img" accept="image/*" style="display:none" />
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Campaign Settings</label>
+        <div class="settings-group">
+          <label class="setting-toggle">
+            <input type="checkbox" id="e-set-attunement" />
+            <span class="setting-switch"></span>
+            <span class="setting-text">
+              <span class="setting-title">Attunement</span>
+              <span class="setting-desc">Players can attune to magic items, with limited attunement slots shown in their inventory.</span>
+            </span>
+          </label>
+          <label class="setting-toggle">
+            <input type="checkbox" id="e-set-weight" />
+            <span class="setting-switch"></span>
+            <span class="setting-text">
+              <span class="setting-title">Encumbrance (weight)</span>
+              <span class="setting-desc">Each player gets a carry-capacity bar in their inventory based on item weight.</span>
+            </span>
+          </label>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn-cancel" id="edit-cancel">Cancel</button>
@@ -988,6 +1101,7 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
       card.dataset.campaignWorld = c.world       || '';
       card.dataset.campaignDesc  = c.description || '';
       card.dataset.campaignImage = c.imageUrl    || '';
+      card.dataset.campaignSettings = JSON.stringify(c.settings || {});
 
       const imgStyle = c.imageUrl
         ? `background-image:url('${escAttr(c.imageUrl)}')`
@@ -1073,6 +1187,8 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
       document.getElementById('c-img').value   = '';
       document.getElementById('c-img-label').classList.remove('has-image');
       document.getElementById('c-img-hint').textContent = 'Click to upload an image';
+      document.getElementById('c-set-attunement').checked = true;
+      document.getElementById('c-set-weight').checked     = false;
       pendingAddImage = null;
       modalError.classList.remove('show');
       modalOverlay.classList.add('open');
@@ -1104,6 +1220,10 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
         if (world)           data.world       = world;
         if (desc)            data.description = desc;
         if (pendingAddImage) data.imageUrl    = pendingAddImage;
+        data.settings = {
+          useAttunement: document.getElementById('c-set-attunement').checked,
+          useWeight:     document.getElementById('c-set-weight').checked,
+        };
 
         await set(newRef, data);
         closeAddModal();
@@ -1351,6 +1471,10 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
       document.getElementById('e-world').value = card.dataset.campaignWorld || '';
       document.getElementById('e-desc').value  = card.dataset.campaignDesc  || '';
       document.getElementById('e-img').value   = '';
+      let st = {};
+      try { st = JSON.parse(card.dataset.campaignSettings || '{}'); } catch (_) {}
+      document.getElementById('e-set-attunement').checked = st.useAttunement !== false; // default on
+      document.getElementById('e-set-weight').checked     = st.useWeight === true;       // default off
       pendingEditImage = null;
       const eImgLabel = document.getElementById('e-img-label');
       const eImgHint  = document.getElementById('e-img-hint');
@@ -1383,7 +1507,12 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
       try {
         const updates = { name, world: world || null, description: desc || null };
         if (pendingEditImage) updates.imageUrl = pendingEditImage;
+        updates.settings = {
+          useAttunement: document.getElementById('e-set-attunement').checked,
+          useWeight:     document.getElementById('e-set-weight').checked,
+        };
         await update(ref(db, `campaigns/${editTargetId}`), updates);
+        if (editTargetCard) editTargetCard.dataset.campaignSettings = JSON.stringify(updates.settings);
         if (editTargetCard) {
           editTargetCard.querySelector('.campaign-name').textContent = name;
           editTargetCard.dataset.campaignName  = name;

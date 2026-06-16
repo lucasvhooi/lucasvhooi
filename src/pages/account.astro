@@ -284,10 +284,19 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
     .confirm-cancel:hover { background: rgba(255,255,255,0.08); color: var(--text); }
 
     @media (max-width: 700px) {
-      .main { padding: 24px 16px 48px; }
+      .main { padding: 16px 12px 40px; }
       .acct-card { width: 100%; height: auto; max-height: none; }
-      .acct-sub { padding: 24px 20px; }
-      .acct-cols, .acct-cols-3 { grid-template-columns: 1fr; }
+      .acct-sub { padding: 16px 16px; }
+      .acct-cols, .acct-cols-3 { grid-template-columns: 1fr; gap: 12px; }
+
+      /* Tighter type + spacing so less scrolling is needed */
+      .acct-section-title { font-size: 1rem; margin: 0 0 12px; padding-bottom: 10px; }
+      .acct-field { margin-bottom: 12px; }
+      .acct-label { font-size: 10.5px; margin-bottom: 5px; }
+      .acct-input { padding: 9px 12px; font-size: 14px; border-radius: 8px; }
+      .acct-hint { font-size: 11px; margin-top: 4px; }
+      .acct-btn, .acct-btn-danger { font-size: 14px; padding: 10px 18px; margin-top: 14px; }
+      .color-row input[type="color"] { width: 40px; height: 38px; }
     }
   </style>
 

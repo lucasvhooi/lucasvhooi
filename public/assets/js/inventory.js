@@ -16,7 +16,7 @@ const usersRef     = ref(db, "users");
 const inventoryRef = ref(db, `campaigns/${cid}/inventory`);
 
 let allItemsDb = [];
-onValue(ref(db, `campaigns/${cid}/items`), snap => { allItemsDb = snap.val() ? Object.values(snap.val()) : []; });
+onValue(ref(db, `campaigns/${cid}/items`), snap => { allItemsDb = snap.val() ? Object.values(snap.val()) : []; renderCarryBar(); });
 
 let selectedItemDb = null;
 
@@ -27,7 +27,7 @@ let allAttunements = {};
 let allSpells      = {};
 let allSpellbooks  = {};
 let viewingId      = session.id;
-let activeFilter   = sessionStorage.getItem("inv-filter") || "all";
+let activeFilter   = "all";
 let sendItemId     = null;
 let sendItemOwner  = null;
 let selectedSendTarget = null;
@@ -37,6 +37,11 @@ let searchQuery    = "";
 let sortField      = null;
 let sortDir        = 'asc';
 let _activeInvRow  = null;
+
+// ── Campaign feature settings ───────────────────────────────────────────────────
+let campaignSettings = { useAttunement: true, useWeight: false };
+let allCarryCaps     = {};
+const DEFAULT_CAPACITY = 150;
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 const playerSelector  = document.getElementById("player-selector");
@@ -66,6 +71,98 @@ onValue(ref(db, "spells"), snap => { allSpells = snap.val() || {}; if (activeFil
 onValue(ref(db, `campaigns/${cid}/spellbook`), snap => { allSpellbooks = snap.val() || {}; if (activeFilter === "spells") renderList(); });
 onValue(ref(db, `campaigns/${cid}/members`), snap => { allMembers = snap.val() || {}; renderPlayerSelector(); });
 onValue(ref(db, `campaigns/${cid}/displayNames`), snap => { allDisplayNames = snap.val() || {}; renderPlayerSelector(); renderList(); });
+onValue(ref(db, `campaigns/${cid}/settings`), snap => {
+  const s = snap.val() || {};
+  campaignSettings = { useAttunement: s.useAttunement !== false, useWeight: s.useWeight === true };
+  applyFeatureToggles();
+  renderList();
+});
+onValue(ref(db, `campaigns/${cid}/carryCapacity`), snap => { allCarryCaps = snap.val() || {}; renderCarryBar(); });
+
+// Show/hide the attunement section based on the campaign setting
+function applyFeatureToggles() {
+  const attSection = document.getElementById("inv-attune-section");
+  if (attSection) attSection.style.display = campaignSettings.useAttunement ? "" : "none";
+  renderCarryBar();
+}
+
+// Weight of an inventory entry: its own stored weight, else the live weight from
+// the master item catalog (so editing weight on the Items page updates the bar)
+function itemWeight(it) {
+  if (it.weight != null && it.weight !== "") return parseFloat(it.weight) || 0;
+  let master = null;
+  if (it.sourceItemId) master = allItemsDb.find(m => m.id === it.sourceItemId);
+  if (!master && it.name) {
+    const n = String(it.name).toLowerCase();
+    master = allItemsDb.find(m => String(m.name || "").toLowerCase() === n);
+  }
+  return master && master.weight != null ? (parseFloat(master.weight) || 0) : 0;
+}
+
+// ── Carry capacity bar (encumbrance) ────────────────────────────────────────────
+function renderCarryBar() {
+  const el = document.getElementById("inv-carry");
+  if (!el) return;
+  if (!campaignSettings.useWeight) { el.style.display = "none"; return; }
+  el.style.display = "block";
+
+  const inv = allInventory[viewingId] ? Object.values(allInventory[viewingId]) : [];
+  let total = 0;
+  inv.forEach(it => {
+    const w = itemWeight(it);
+    const q = parseInt(it.quantity, 10) || 1;
+    total += w * q;
+  });
+  total = Math.round(total * 10) / 10;
+
+  const cap = Number(allCarryCaps[viewingId]) > 0 ? Number(allCarryCaps[viewingId]) : DEFAULT_CAPACITY;
+  const pct = cap > 0 ? Math.min(100, (total / cap) * 100) : 0;
+
+  const curEl = document.getElementById("inv-carry-current");
+  const capEl = document.getElementById("inv-carry-cap");
+  const fill  = document.getElementById("inv-carry-fill");
+  if (curEl) curEl.textContent = total;
+  if (capEl && capEl.tagName !== "INPUT") {
+    capEl.textContent = cap;
+    capEl.classList.toggle("editable", isAdmin);
+    capEl.title = isAdmin ? "Click to set carry capacity" : "";
+  }
+  if (fill) fill.style.width = pct + "%";
+  el.classList.toggle("over", total > cap);
+}
+
+// DM can click the capacity number to edit it (per-player)
+function startCapEdit(spanEl) {
+  const input = document.createElement("input");
+  input.type = "number"; input.min = "1"; input.max = "9999";
+  input.value = String(Number(allCarryCaps[viewingId]) > 0 ? Number(allCarryCaps[viewingId]) : DEFAULT_CAPACITY);
+  input.className = "inv-carry-cap-input";
+  input.id = "inv-carry-cap";
+  spanEl.replaceWith(input);
+  input.focus(); input.select();
+  let done = false;
+  const finish = async (save) => {
+    if (done) return; done = true;
+    if (save) {
+      const v = Math.max(1, Math.round(Number(input.value) || DEFAULT_CAPACITY));
+      try { await set(ref(db, `campaigns/${cid}/carryCapacity/${viewingId}`), v); } catch (_) {}
+    }
+    const span = document.createElement("span");
+    span.id = "inv-carry-cap"; span.className = "inv-carry-cap";
+    input.replaceWith(span);
+    renderCarryBar();
+  };
+  input.addEventListener("blur", () => finish(true));
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); finish(true); }
+    else if (e.key === "Escape") finish(false);
+  });
+}
+document.getElementById("inv-carry")?.addEventListener("click", e => {
+  if (!isAdmin) return;
+  const el = e.target.closest(".inv-carry-cap");
+  if (el && el.tagName !== "INPUT") startCapEdit(el);
+});
 
 function getDisplayName(uid) {
   return allDisplayNames[uid] || allUsers[uid]?.username || null;
@@ -199,15 +296,10 @@ function _updateSortUI() {
 
 // ── Filter tabs ───────────────────────────────────────────────────────────────
 document.querySelectorAll(".inv-tab").forEach(tab => {
-  if (tab.dataset.filter === activeFilter) {
-    document.querySelectorAll(".inv-tab").forEach(t => t.classList.remove("active"));
-    tab.classList.add("active");
-  }
   tab.addEventListener("click", () => {
     document.querySelectorAll(".inv-tab").forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
     activeFilter = tab.dataset.filter;
-    sessionStorage.setItem("inv-filter", activeFilter);
     closeItemPanel();
     renderList();
   });
@@ -228,13 +320,16 @@ function renderList() {
   const attunedCount = Object.keys(userAttunes).length;
   const attBar   = document.getElementById("inv-attunement-bar");
   const attSlots = document.getElementById("inv-attunement-slots");
-  if (attBar) {
+  if (attBar && campaignSettings.useAttunement) {
     attBar.style.display = "inline-flex";
     attSlots.textContent = `${attunedCount} / 3`;
     attSlots.style.color = attunedCount === 3 ? "#e57373" : attunedCount >= 2 ? "#ff9800" : "var(--accent)";
+  } else if (attBar) {
+    attBar.style.display = "none";
   }
 
-  renderAttunementSlots();
+  if (campaignSettings.useAttunement) renderAttunementSlots();
+  renderCarryBar();
 
   invList.innerHTML = "";
 
@@ -335,9 +430,9 @@ function buildItemRow(item) {
   const isAttuned   = attk in userAttunes;
   const qty         = item._stackQty || item.quantity || 1;
   const isLore      = effectiveType === "book" || effectiveType === "scroll";
-  const canAttune   = (item.requiresAttunement === true || isAttuned) && (isAdmin || viewingId === session.id);
+  const canAttune   = campaignSettings.useAttunement && (item.requiresAttunement === true || isAttuned) && (isAdmin || viewingId === session.id);
 
-  row.className = isAttuned ? "inv-row inv-row-is-attuned" : "inv-row";
+  row.className = (campaignSettings.useAttunement && isAttuned) ? "inv-row inv-row-is-attuned" : "inv-row";
   row.style.setProperty("--cc", cc);
 
   row.innerHTML = `
@@ -346,7 +441,7 @@ function buildItemRow(item) {
         <iconify-icon icon="${TYPE_ICON[effectiveType] || 'lucide:gem'}" class="inv-row-type-icon"></iconify-icon>
         <div>
           <div class="inv-row-name">${esc(item.name || "Unknown")}${qty > 1 ? `<span class="inv-row-qty">×${qty}</span>` : ""}</div>
-          ${isAttuned ? `<span class="inv-row-attuned"><iconify-icon icon="lucide:sparkles" style="font-size:9px;vertical-align:-1px"></iconify-icon> Attuned</span>` : ""}
+          ${campaignSettings.useAttunement && isAttuned ? `<span class="inv-row-attuned"><iconify-icon icon="lucide:sparkles" style="font-size:9px;vertical-align:-1px"></iconify-icon> Attuned</span>` : ""}
         </div>
       </div>
     </div>
@@ -407,7 +502,7 @@ function openItemPanel(item, rowEl) {
   const needsAtt       = item.requiresAttunement === true;
   const abilities      = Array.isArray(item.abilities) ? item.abilities : (item.abilities ? Object.values(item.abilities) : []);
   const giverName      = item.givenBy && allUsers[item.givenBy] ? getDisplayName(item.givenBy) : (item.givenBy === "admin" ? "DM" : null);
-  const canAttune      = needsAtt && (isAdmin || viewingId === session.id);
+  const canAttune      = campaignSettings.useAttunement && needsAtt && (isAdmin || viewingId === session.id);
   const canRemove      = isAdmin || viewingId === session.id;
   const isLore         = effectiveType === "book" || effectiveType === "scroll";
   const iconColor      = rarityColor || TYPE_COLORS[effectiveType] || "#888";
@@ -421,8 +516,8 @@ function openItemPanel(item, rowEl) {
   document.getElementById("idp-meta").innerHTML = [
     `<span class="inv-type-badge inv-badge-${effectiveType}">${TYPE_LABEL[effectiveType] || "Misc"}</span>`,
     rarity ? `<span class="idp-rarity-badge" style="color:${rarityColor};text-transform:capitalize">${esc(rarity)}</span>` : '',
-    isAttuned ? `<span class="inv-attuned-badge"><iconify-icon icon="lucide:sparkles" style="font-size:10px;vertical-align:-1px;margin-right:3px"></iconify-icon>Attuned</span>` : '',
-    needsAtt && !isAttuned ? `<span class="inv-attunement-required-badge"><iconify-icon icon="lucide:link" style="font-size:9px;margin-right:3px"></iconify-icon>Req. Attunement</span>` : '',
+    campaignSettings.useAttunement && isAttuned ? `<span class="inv-attuned-badge"><iconify-icon icon="lucide:sparkles" style="font-size:10px;vertical-align:-1px;margin-right:3px"></iconify-icon>Attuned</span>` : '',
+    campaignSettings.useAttunement && needsAtt && !isAttuned ? `<span class="inv-attunement-required-badge"><iconify-icon icon="lucide:link" style="font-size:9px;margin-right:3px"></iconify-icon>Req. Attunement</span>` : '',
     giverName ? `<span class="idp-giver">from ${esc(giverName)}</span>` : '',
   ].join('');
 

@@ -21,12 +21,23 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
       </button>
     </div>
 
-    <!-- Attunement slots -->
-    <div class="inv-section-label-row">
-      <p class="inv-section-label"><iconify-icon icon="lucide:sparkles" style="font-size:11px;vertical-align:-1px;margin-right:5px;opacity:0.7"></iconify-icon>Equipped &amp; Attuned</p>
-      <span id="inv-attunement-bar" class="inv-att-count-badge" style="display:none"><span id="inv-attunement-slots">0 / 3</span></span>
+    <!-- Carry capacity (encumbrance — shown when the campaign uses weight) -->
+    <div class="inv-carry" id="inv-carry" style="display:none">
+      <div class="inv-carry-head">
+        <span class="inv-carry-label"><iconify-icon icon="lucide:weight" style="font-size:13px;vertical-align:-2px;margin-right:5px;opacity:0.8"></iconify-icon>Carrying</span>
+        <span class="inv-carry-val"><span id="inv-carry-current">0</span> / <span id="inv-carry-cap" class="inv-carry-cap">150</span> lb</span>
+      </div>
+      <div class="inv-carry-track"><div class="inv-carry-fill" id="inv-carry-fill"></div></div>
     </div>
-    <div class="inv-att-slots-row" id="att-slots-row"></div>
+
+    <!-- Attunement slots (shown when the campaign uses attunement) -->
+    <div id="inv-attune-section">
+      <div class="inv-section-label-row">
+        <p class="inv-section-label"><iconify-icon icon="lucide:sparkles" style="font-size:11px;vertical-align:-1px;margin-right:5px;opacity:0.7"></iconify-icon>Equipped &amp; Attuned</p>
+        <span id="inv-attunement-bar" class="inv-att-count-badge" style="display:none"><span id="inv-attunement-slots">0 / 3</span></span>
+      </div>
+      <div class="inv-att-slots-row" id="att-slots-row"></div>
+    </div>
 
     <!-- Search + Add Item + category tabs — all one row -->
     <div class="inv-actions-row">
