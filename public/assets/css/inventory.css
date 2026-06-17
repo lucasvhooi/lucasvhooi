@@ -1493,6 +1493,7 @@
   .inv-col-header { display: none; }
   .spells-count { display: none; }
   .inv-top-bar { gap: 12px; }
+  .inv-manage-btn { display: none !important; }
 
   /* ── Liquid-glass search dock pinned to the bottom of the screen ── */
   .inv-actions-row {
@@ -1535,7 +1536,7 @@
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     color: #fff;
-    font-size: 15px;
+    font-size: 16px; /* ≥16px prevents iOS Safari auto-zoom on focus */
     padding: 6px 12px 6px 34px;
   }
   .inv-actions-row .items-search:focus { border: none; box-shadow: none; }
