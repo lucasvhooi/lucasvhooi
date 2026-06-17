@@ -28,6 +28,7 @@ let allSpells      = {};
 let allSpellbooks  = {};
 let viewingId      = session.id;
 let activeFilter   = "all";
+let activeRarity   = "all";
 let sendItemId     = null;
 let sendItemOwner  = null;
 let selectedSendTarget = null;
@@ -295,15 +296,30 @@ function _updateSortUI() {
 }
 
 // ── Filter tabs ───────────────────────────────────────────────────────────────
+function _setTypeFilter(filter) {
+  activeFilter = filter;
+  document.querySelectorAll(".inv-tab").forEach(t => t.classList.toggle("active", t.dataset.filter === filter));
+  if (typeFilterSelect) typeFilterSelect.value = filter;
+  closeItemPanel();
+  renderList();
+}
+
 document.querySelectorAll(".inv-tab").forEach(tab => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".inv-tab").forEach(t => t.classList.remove("active"));
-    tab.classList.add("active");
-    activeFilter = tab.dataset.filter;
-    closeItemPanel();
+  tab.addEventListener("click", () => _setTypeFilter(tab.dataset.filter));
+});
+
+// ── Mobile filter dropdowns ─────────────────────────────────────────────────────
+const typeFilterSelect   = document.getElementById("inv-type-filter");
+const rarityFilterSelect = document.getElementById("inv-rarity-filter");
+if (typeFilterSelect) {
+  typeFilterSelect.addEventListener("change", () => _setTypeFilter(typeFilterSelect.value));
+}
+if (rarityFilterSelect) {
+  rarityFilterSelect.addEventListener("change", () => {
+    activeRarity = rarityFilterSelect.value;
     renderList();
   });
-});
+}
 
 // ── Render list ───────────────────────────────────────────────────────────────
 function renderList() {
@@ -368,6 +384,10 @@ function renderList() {
     filtered = filtered.filter(it =>
       [it.name, it.description, it.type, it.rarity].join(" ").toLowerCase().includes(q)
     );
+  }
+
+  if (activeRarity !== "all") {
+    filtered = filtered.filter(it => (it.rarity || "").toLowerCase() === activeRarity);
   }
 
   // Stack identical items
