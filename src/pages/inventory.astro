@@ -44,6 +44,9 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
       <div class="hdr-search-wrap">
         <iconify-icon icon="lucide:search" class="hdr-search-icon"></iconify-icon>
         <input type="text" id="inv-search" class="items-search" placeholder="Search items…" />
+        <button type="button" id="inv-search-clear" class="inv-search-clear" aria-label="Clear search">
+          <iconify-icon icon="lucide:x"></iconify-icon>
+        </button>
       </div>
       <button id="add-btn" class="items-btn-add" style="display:none">
         <iconify-icon icon="lucide:plus"></iconify-icon>
@@ -109,6 +112,7 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
           <span></span>
         </div>
         <div id="inv-list" class="inv-list"></div>
+        <div id="inv-pagination" class="inv-pagination"></div>
       </div>
 
       <div id="inv-detail-panel" class="inv-detail-panel">
@@ -118,12 +122,12 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
             <button id="idp-close" class="idp-close" title="Close">&times;</button>
           </div>
           <div class="idp-body">
+            <div id="idp-actions"></div>
             <div id="idp-icon" class="idp-icon-wrap"></div>
             <div id="idp-meta" class="idp-meta"></div>
             <hr class="idp-divider" />
             <div id="idp-description"></div>
             <div id="idp-abilities"></div>
-            <div id="idp-actions"></div>
           </div>
         </div>
       </div>

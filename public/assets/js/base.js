@@ -14,7 +14,13 @@
     ls.src = 'https://cdn.jsdelivr.net/npm/lenis@1.3.23/dist/lenis.min.js';
     ls.onload = function () {
       const MODAL_SEL = '.inv-overlay, .modal-overlay, .char-modal-overlay, .give-panel, .ai-drop, .shop-modal-overlay';
+      // The app shell scrolls inside `.page-content` (body is overflow:hidden), so Lenis
+      // must wrap that element rather than the window — otherwise it hijacks the wheel and
+      // scrolls the (non-scrollable) window, breaking mouse-wheel scrolling.
+      const scrollWrapper = document.querySelector('.page-content');
       const lenis = new window.Lenis({
+        wrapper: scrollWrapper || window,
+        content: scrollWrapper || document.documentElement,
         lerp: 0.085,
         smoothWheel: true,
         touchMultiplier: 1.6,

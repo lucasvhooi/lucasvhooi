@@ -637,7 +637,16 @@ function positionTooltipAtCursor(cx, cy) {
 }
 
 // ── Event listeners ────────────────────────────────────────────────────────────
-searchInput.addEventListener("input",  e => { searchQuery  = e.target.value; renderSpells(); });
+const spellsSearchClear = document.getElementById("spells-search-clear");
+function _updateSpellsSearchClear() {
+  if (spellsSearchClear) spellsSearchClear.classList.toggle("visible", searchInput.value.length > 0);
+}
+searchInput.addEventListener("input",  e => { searchQuery  = e.target.value; _updateSpellsSearchClear(); renderSpells(); });
+if (spellsSearchClear) {
+  spellsSearchClear.addEventListener("click", () => {
+    searchInput.value = ""; searchQuery = ""; _updateSpellsSearchClear(); renderSpells(); searchInput.focus();
+  });
+}
 schoolFilter.addEventListener("change", e => { activeSchool = e.target.value; renderSpells(); });
 classFilter.addEventListener("change",  e => { activeClass  = e.target.value; renderSpells(); });
 

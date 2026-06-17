@@ -669,7 +669,17 @@ document.addEventListener("keydown", e => {
 });
 
 // ── Search ────────────────────────────────────────────────────────────────────
-itemsSearch.addEventListener("input", e => { searchQuery = e.target.value; currentPage = 1; renderItems(); });
+const itemsSearchClear = document.getElementById("items-search-clear");
+function _updateItemsSearchClear() {
+  if (itemsSearchClear) itemsSearchClear.classList.toggle("visible", itemsSearch.value.length > 0);
+}
+itemsSearch.addEventListener("input", e => { searchQuery = e.target.value; currentPage = 1; _updateItemsSearchClear(); renderItems(); });
+if (itemsSearchClear) {
+  itemsSearchClear.addEventListener("click", () => {
+    itemsSearch.value = ""; searchQuery = ""; currentPage = 1;
+    _updateItemsSearchClear(); renderItems(); itemsSearch.focus();
+  });
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function generateId() {

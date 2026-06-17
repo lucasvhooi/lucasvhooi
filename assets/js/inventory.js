@@ -1,6 +1,6 @@
 'use strict';
 import { db }                                     from "./firebase.js";
-import { ref, set, remove, onValue, push }        from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+import { ref, set, remove, onValue, push, get }   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { getSession }                             from "./auth.js";
 import { parseTags, formatGold, getDisplayTags }  from "./item-utils.js";
 
@@ -13,7 +13,6 @@ const cid     = session.campaignId;
 if (!cid) { window.location.href = "campaigns"; throw new Error('No campaign selected'); }
 
 const usersRef     = ref(db, "users");
-const inventoryRef = ref(db, `campaigns/${cid}/inventory`);
 
 let allItemsDb = [];
 onValue(ref(db, `campaigns/${cid}/items`), snap => { allItemsDb = snap.val() ? Object.values(snap.val()) : []; renderCarryBar(); });
@@ -38,6 +37,14 @@ let searchQuery    = "";
 let sortField      = null;
 let sortDir        = 'asc';
 let _activeInvRow  = null;
+let currentPage    = 1;
+const PAGE_SIZE    = 25;
+
+// Attuned-items cache — seed from localStorage so the slots paint instantly on load,
+// then reconcile when live Firebase data arrives.
+const ATTUNE_CACHE_KEY = `inv-attune-cache:${cid}`;
+try { allAttunements = JSON.parse(localStorage.getItem(ATTUNE_CACHE_KEY)) || {}; }
+catch (_) { allAttunements = {}; }
 
 // ── Campaign feature settings ───────────────────────────────────────────────────
 let campaignSettings = { useAttunement: true, useWeight: false };
@@ -66,8 +73,23 @@ const RARITY_ORDER  = { legendary: 0, "very rare": 1, rare: 2, uncommon: 3, comm
 
 // ── Firebase listeners ────────────────────────────────────────────────────────
 onValue(usersRef, snap => { allUsers = snap.val() || {}; renderPlayerSelector(); renderList(); });
-onValue(inventoryRef, snap => { allInventory = snap.val() || {}; renderList(); });
-onValue(ref(db, `campaigns/${cid}/attunements`), snap => { allAttunements = snap.val() || {}; renderList(); });
+
+// Only subscribe to the *viewed* player's inventory — re-subscribe on player switch.
+let _invUnsub = null;
+function subscribeInventory(uid) {
+  if (_invUnsub) _invUnsub();
+  _invUnsub = onValue(ref(db, `campaigns/${cid}/inventory/${uid}`), snap => {
+    allInventory = { [uid]: snap.val() || {} };   // keep the keyed-by-uid shape
+    renderList();
+  });
+}
+subscribeInventory(viewingId);
+
+onValue(ref(db, `campaigns/${cid}/attunements`), snap => {
+  allAttunements = snap.val() || {};
+  try { localStorage.setItem(ATTUNE_CACHE_KEY, JSON.stringify(allAttunements)); } catch (_) {}
+  renderList();
+});
 onValue(ref(db, "spells"), snap => { allSpells = snap.val() || {}; if (activeFilter === "spells") renderList(); });
 onValue(ref(db, `campaigns/${cid}/spellbook`), snap => { allSpellbooks = snap.val() || {}; if (activeFilter === "spells") renderList(); });
 onValue(ref(db, `campaigns/${cid}/members`), snap => { allMembers = snap.val() || {}; renderPlayerSelector(); });
@@ -248,6 +270,8 @@ function openRenameModal() {
 
 playerSelect.addEventListener("change", () => {
   viewingId = playerSelect.value;
+  currentPage = 1;
+  subscribeInventory(viewingId);
   closeItemPanel();
   renderList();
 });
@@ -259,10 +283,26 @@ if (isAdmin) {
 }
 
 // ── Search ────────────────────────────────────────────────────────────────────
+const invSearchClear = document.getElementById("inv-search-clear");
+function _updateSearchClear() {
+  if (invSearchClear) invSearchClear.classList.toggle("visible", invSearch.value.length > 0);
+}
 if (invSearch) {
   invSearch.addEventListener("input", () => {
     searchQuery = invSearch.value.trim();
+    currentPage = 1;
+    _updateSearchClear();
     renderList();
+  });
+}
+if (invSearchClear) {
+  invSearchClear.addEventListener("click", () => {
+    invSearch.value = "";
+    searchQuery = "";
+    currentPage = 1;
+    _updateSearchClear();
+    renderList();
+    invSearch.focus();
   });
 }
 
@@ -277,6 +317,7 @@ document.querySelectorAll(".sort-btn").forEach(btn => {
       sortField = field;
       sortDir   = 'asc';
     }
+    currentPage = 1;
     _updateSortUI();
     renderList();
   });
@@ -298,6 +339,7 @@ function _updateSortUI() {
 // ── Filter tabs ───────────────────────────────────────────────────────────────
 function _setTypeFilter(filter) {
   activeFilter = filter;
+  currentPage = 1;
   document.querySelectorAll(".inv-tab").forEach(t => t.classList.toggle("active", t.dataset.filter === filter));
   if (typeFilterSelect) typeFilterSelect.value = filter;
   closeItemPanel();
@@ -317,6 +359,7 @@ if (typeFilterSelect) {
 if (rarityFilterSelect) {
   rarityFilterSelect.addEventListener("change", () => {
     activeRarity = rarityFilterSelect.value;
+    currentPage = 1;
     renderList();
   });
 }
@@ -339,7 +382,7 @@ function renderList() {
   if (attBar && campaignSettings.useAttunement) {
     attBar.style.display = "inline-flex";
     attSlots.textContent = `${attunedCount} / 3`;
-    attSlots.style.color = attunedCount === 3 ? "#e57373" : attunedCount >= 2 ? "#ff9800" : "var(--accent)";
+    attSlots.style.color = "#9a9088";
   } else if (attBar) {
     attBar.style.display = "none";
   }
@@ -430,10 +473,41 @@ function renderList() {
     if (activeFilter === "attuned")                                      msg = "No attuned items.";
     if (searchQuery)                                                     msg = "No items match your search.";
     invList.innerHTML = `<p class="inv-empty">${msg}</p>`;
+    renderPagination(1);
     return;
   }
 
-  visible.forEach(item => invList.appendChild(buildItemRow(item)));
+  const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;   // clamp on live updates, don't jump
+  const start = (currentPage - 1) * PAGE_SIZE;
+  visible.slice(start, start + PAGE_SIZE).forEach(item => invList.appendChild(buildItemRow(item)));
+  renderPagination(totalPages);
+}
+
+// ── Pagination controls ───────────────────────────────────────────────────────
+const invPagination = document.getElementById("inv-pagination");
+function renderPagination(totalPages) {
+  if (!invPagination) return;
+  if (totalPages <= 1) { invPagination.innerHTML = ""; return; }
+
+  invPagination.innerHTML = `
+    <button class="inv-page-btn" id="inv-page-prev" ${currentPage <= 1 ? "disabled" : ""}>
+      <iconify-icon icon="lucide:chevron-left"></iconify-icon> Prev
+    </button>
+    <span class="inv-page-info">Page ${currentPage} of ${totalPages}</span>
+    <button class="inv-page-btn" id="inv-page-next" ${currentPage >= totalPages ? "disabled" : ""}>
+      Next <iconify-icon icon="lucide:chevron-right"></iconify-icon>
+    </button>`;
+
+  invPagination.querySelector("#inv-page-prev")?.addEventListener("click", () => _goToPage(currentPage - 1, totalPages));
+  invPagination.querySelector("#inv-page-next")?.addEventListener("click", () => _goToPage(currentPage + 1, totalPages));
+}
+function _goToPage(page, totalPages) {
+  currentPage = Math.min(Math.max(1, page), totalPages);
+  renderList();
+  // Scroll the app-shell container to the top (works with Lenis, which wraps .page-content)
+  if (window.__lenis) window.__lenis.scrollTo(0);
+  else document.querySelector(".page-content")?.scrollTo({ top: 0 });
 }
 
 // ── Item row ──────────────────────────────────────────────────────────────────
@@ -600,6 +674,13 @@ function closeItemPanel() {
 
 document.getElementById("idp-close").addEventListener("click", closeItemPanel);
 
+// On mobile the detail panel is a centered popup — tap the backdrop to close.
+invDetailPanel.addEventListener("click", e => {
+  if (e.target === invDetailPanel && window.matchMedia("(max-width: 700px)").matches) {
+    closeItemPanel();
+  }
+});
+
 // ── Attunement slots display ──────────────────────────────────────────────────
 function renderAttunementSlots() {
   const el = document.getElementById("att-slots-row");
@@ -706,6 +787,7 @@ function renderSpellsList() {
 
   if (savedIds.length === 0) {
     invList.innerHTML = `<p class="inv-empty">No saved spells. Star spells on the Spells page to save them here.</p>`;
+    renderPagination(1);
     return;
   }
 
@@ -730,10 +812,15 @@ function renderSpellsList() {
 
   if (list.length === 0) {
     invList.innerHTML = `<p class="inv-empty">No spells match your search.</p>`;
+    renderPagination(1);
     return;
   }
 
-  list.forEach(spell => invList.appendChild(buildSpellRow(spell, canUnsave)));
+  const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * PAGE_SIZE;
+  list.slice(start, start + PAGE_SIZE).forEach(spell => invList.appendChild(buildSpellRow(spell, canUnsave)));
+  renderPagination(totalPages);
 }
 
 function buildSpellRow(spell, canUnsave) {
@@ -1308,7 +1395,11 @@ document.getElementById("qe-save").addEventListener("click", async () => {
       ...(master || {}), name, description, price, rarity: _qeRarity, tags: cleanTags,
       shopAvailable, requiresAttunement, abilities,
     });
-    for (const [uid, userInv] of Object.entries(allInventory)) {
+    // Propagate the edit to every player's matching copies. We only keep the viewed
+    // player's inventory subscribed, so read the full tree once here.
+    const fullInvSnap = await get(ref(db, `campaigns/${cid}/inventory`));
+    const fullInv = fullInvSnap.val() || {};
+    for (const [uid, userInv] of Object.entries(fullInv)) {
       for (const [key, invItem] of Object.entries(userInv || {})) {
         if (invItem.sourceItemId === _qeSourceId || (!invItem.sourceItemId && master && invItem.name === master.name)) {
           await set(ref(db, `campaigns/${cid}/inventory/${uid}/${key}`), {

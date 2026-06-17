@@ -408,8 +408,7 @@ nav.nav-open .nav-hamburger span:nth-child(3) { transform: translateY(-7px) rota
 /* ── Shared dm-btn (ghost/outlined) ─────────────────────────────────────── */
 .dm-btn {
   font-family: var(--font);
-  font-size: 13px;
-  font-weight: bold;
+  font-size: 11px;
   letter-spacing: 0.03em;
   padding: 8px 18px;
   background: rgba(255,204,102,0.12);
