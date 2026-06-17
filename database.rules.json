@@ -1,0 +1,102 @@
+{
+  "rules": {
+    "markers":        { ".read": "auth != null", ".write": "auth != null" },
+    "locations":      { ".read": "auth != null", ".write": "auth != null" },
+    "items":          { ".read": "auth != null", ".write": "auth != null" },
+    "lore":           { ".read": "auth != null", ".write": "auth != null" },
+    "enemyTemplates": { ".read": "auth != null", ".write": "auth != null" },
+    "system":         { ".read": "auth != null", ".write": "auth != null" },
+    "countries":      { ".read": "auth != null", ".write": "auth != null" },
+    "quests":         { ".read": "auth != null", ".write": "auth != null" },
+    "tags":           { ".read": "auth != null", ".write": "auth != null" },
+    "spells":         { ".read": "auth != null", ".write": "auth != null" },
+
+    "npcNames": {
+      ".read":  "auth != null",
+      ".write": "root.child('users').child(auth.uid).child('role').val() === 'admin'"
+    },
+
+    "users": {
+      ".indexOn": ["username"],
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      "$uid": {
+        ".read":  "auth != null && auth.uid === $uid",
+        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".validate": "newData.hasChildren(['username', 'color', 'role']) && (newData.child('role').val() === 'player' || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "invites": {
+          ".read":  "auth != null && auth.uid === $uid",
+          ".write": "auth != null"
+        }
+      }
+    },
+
+    "inventory": {
+      ".read":  "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      "$uid": {
+        ".read":  "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+
+    "characters": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      "$uid": {
+        ".read":  "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+
+    "spellbook": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      "$uid": {
+        ".read":  "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+
+    "attunements": {
+      ".read":  "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      "$uid": {
+        ".read":  "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+
+    "campaigns": {
+      ".read": "auth != null",
+      ".indexOn": ["inviteCode"],
+      "$campaignId": {
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || !data.exists() || data.child('createdBy').val() === auth.uid || data.child('members').child(auth.uid).val() === 'dm')",
+        "members": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid"
+          }
+        },
+        "spellbook": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid"
+          }
+        }
+      }
+    },
+
+    "maps": {
+      ".read":  "auth != null",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+    },
+
+    "setup_complete": {
+      ".read": true,
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+    },
+
+    "settings": {
+      "invite_code": {
+        ".read":  true,
+        ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+      }
+    }
+  }
+}
