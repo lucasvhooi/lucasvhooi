@@ -1355,6 +1355,7 @@ function openQuickEdit(item, ownerId) {
   qeNameEl.value  = src.name        || "";
   qeDescEl.value  = src.description || "";
   qePriceEl.value = src.price       ?? "";
+  document.getElementById("qe-weight").value = src.weight ?? "";
   document.getElementById("qe-shop-available").checked      = src.shopAvailable !== false;
   document.getElementById("qe-requires-attunement").checked = src.requiresAttunement === true;
   qeErrEl.textContent = "";
@@ -1379,6 +1380,7 @@ document.getElementById("qe-save").addEventListener("click", async () => {
   qeErrEl.textContent = "";
 
   const description        = qeDescEl.value.trim() || null;
+  const weight             = parseFloat(document.getElementById("qe-weight").value) || null;
   const shopAvailable      = document.getElementById("qe-shop-available").checked;
   const requiresAttunement = document.getElementById("qe-requires-attunement").checked || false;
   const cleanTags          = Array.from(_qeSelectedTags).filter(t => !QE_RARITY_KEYWORDS.has(t)).join(", ") || null;
@@ -1388,7 +1390,7 @@ document.getElementById("qe-save").addEventListener("click", async () => {
   if (_qeSourceId) {
     const master = allItemsDb.find(i => i.id === _qeSourceId);
     await set(ref(db, `campaigns/${cid}/items/${_qeSourceId}`), {
-      ...(master || {}), name, description, price, rarity: _qeRarity, tags: cleanTags,
+      ...(master || {}), name, description, price, weight, rarity: _qeRarity, tags: cleanTags,
       shopAvailable, requiresAttunement, abilities,
     });
     // Propagate the edit to every player's matching copies. We only keep the viewed
@@ -1410,7 +1412,7 @@ document.getElementById("qe-save").addEventListener("click", async () => {
     const invItem = (allInventory[_qeOwnerId] || {})[_qeInvItemId];
     if (invItem) {
       await set(ref(db, `campaigns/${cid}/inventory/${_qeOwnerId}/${_qeInvItemId}`), {
-        ...invItem, name, description, rarity: _qeRarity, tags: cleanTags,
+        ...invItem, name, description, weight, rarity: _qeRarity, tags: cleanTags,
         requiresAttunement, abilities, value: price ? formatGold(price) : null,
       });
     }

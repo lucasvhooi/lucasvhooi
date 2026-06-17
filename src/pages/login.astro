@@ -1,27 +1,67 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import bgImg from '../../Images/Headers/AccountPageBackground.png';
 ---
 <Layout title="Login — DnD Campaign" showNav={false} extraCSS={['/assets/css/base.css']}>
   <style is:inline>
-    body { display: flex; flex-direction: column; min-height: 100vh; }
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: var(--bg);
+    }
 
     .login-wrap {
+      position: relative;
       flex: 1;
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 24px 16px;
+      background-position: center;
+      background-size: cover;
+      background-attachment: fixed;
     }
+    /* Darkening + amber wash overlay so the card stays legible over the art */
+    .login-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255,204,102,0.08), transparent 55%),
+        linear-gradient(rgba(16,14,11,0.72), rgba(12,10,8,0.9));
+      pointer-events: none;
+    }
+    .login-wrap > * { position: relative; z-index: 1; }
 
     .login-card {
-      background: linear-gradient(160deg, #221508 0%, #181008 100%);
-      border: 1px solid #3a2510;
-      border-radius: 16px;
+      position: relative;
+      background: linear-gradient(135deg, rgba(28,28,26,0.94) 0%, rgba(20,20,19,0.94) 100%);
+      border: 1px solid rgba(200,164,92,0.22);
+      border-radius: var(--rounded-xl);
       padding: 40px 36px 32px;
       width: 100%;
       max-width: 380px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.7);
-      animation: cardIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+      backdrop-filter: blur(10px);
+      box-shadow:
+        var(--shadow-modal),
+        0 0 40px rgba(255,204,102,0.08),
+        inset 0 1px 0 rgba(255,204,102,0.08);
+      animation: cardIn 0.55s var(--ease-out-expo) both;
+    }
+    /* Soft amber rim glow */
+    .login-card::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(160deg, rgba(255,204,102,0.35), transparent 40%, transparent 70%, rgba(255,204,102,0.18));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      pointer-events: none;
     }
     @keyframes cardIn {
       from { opacity: 0; transform: translateY(24px) scale(0.96); }
@@ -33,21 +73,23 @@ import Layout from '../layouts/Layout.astro';
       width: 64px;
       height: 64px;
       margin: 0 auto 18px;
-      filter: brightness(0) saturate(100%) invert(84%) sepia(63%) saturate(600%) hue-rotate(315deg) brightness(108%);
+      filter: brightness(0) saturate(100%) invert(86%) sepia(38%) saturate(900%) hue-rotate(330deg) brightness(103%)
+              drop-shadow(0 0 14px rgba(255,204,102,0.4));
     }
 
     .login-title {
-      font-family: 'IM Fell English', 'Garamond', serif;
+      font-family: var(--title);
       font-size: 1.7rem;
       color: var(--accent);
       text-align: center;
       margin: 0 0 6px;
       letter-spacing: 0.05em;
+      text-shadow: 0 0 22px rgba(255,204,102,0.3);
     }
 
     .login-sub {
       text-align: center;
-      color: #888;
+      color: var(--smoke);
       font-size: 13px;
       font-style: italic;
       margin: 0 0 28px;
@@ -60,58 +102,64 @@ import Layout from '../layouts/Layout.astro';
       font-size: 11px;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: #888;
+      color: var(--smoke);
       margin-bottom: 6px;
     }
 
     .login-input {
       width: 100%;
       background: rgba(255,255,255,0.04);
-      border: 1px solid #3a2510;
-      border-radius: 8px;
+      border: 1px solid rgba(200,164,92,0.14);
+      border-radius: var(--rounded-md);
       padding: 11px 14px;
       color: var(--text);
       font-size: 15px;
       font-family: var(--font);
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
       box-sizing: border-box;
     }
-    .login-input:focus { border-color: var(--accent); }
+    .login-input:focus {
+      border-color: rgba(255,204,102,0.55);
+      box-shadow: 0 0 0 3px rgba(255,204,102,0.1);
+    }
 
+    /* Golden textured primary button */
     .login-btn {
       width: 100%;
       margin-top: 8px;
-      background: linear-gradient(135deg, #4a2c0a 0%, #6b3e10 100%);
-      border: 1px solid #c8a45c;
-      border-radius: 8px;
-      color: var(--accent);
-      font-family: 'IM Fell English', 'Garamond', serif;
+      background: linear-gradient(135deg, #8a6010 0%, #c8922a 40%, #e0b040 60%, #b07820 100%);
+      border: 1px solid rgba(220,170,60,0.6);
+      border-radius: var(--rounded-md);
+      color: #1a1000;
+      font-family: var(--title);
       font-size: 16px;
+      font-weight: 600;
       letter-spacing: 0.08em;
       padding: 13px;
       cursor: pointer;
-      transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+      transition: filter 0.22s, box-shadow 0.25s, transform 0.2s;
     }
     .login-btn:hover {
-      background: linear-gradient(135deg, #5a380f 0%, #7a4a18 100%);
-      box-shadow: 0 0 16px rgba(200,164,92,0.25);
+      filter: brightness(1.1);
+      box-shadow: 0 0 20px rgba(255,204,102,0.4), 0 4px 16px rgba(0,0,0,0.4);
       transform: translateY(-1px);
     }
-    .login-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .login-btn:active { transform: translateY(0) scale(0.98); }
+    .login-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; filter: none; }
 
     .divider {
       display: flex;
       align-items: center;
       gap: 10px;
       margin: 20px 0;
-      color: #444;
+      color: var(--deep-smoke);
       font-size: 12px;
     }
     .divider::before, .divider::after {
       content: '';
       flex: 1;
-      border-top: 1px solid #2e1c0a;
+      border-top: 1px solid rgba(200,164,92,0.14);
     }
 
     .btn-google {
@@ -121,8 +169,8 @@ import Layout from '../layouts/Layout.astro';
       justify-content: center;
       gap: 10px;
       background: rgba(255,255,255,0.05);
-      border: 1px solid #3a2510;
-      border-radius: 8px;
+      border: 1px solid rgba(200,164,92,0.16);
+      border-radius: var(--rounded-md);
       color: #ccc;
       font-size: 14px;
       font-family: var(--font);
@@ -130,15 +178,15 @@ import Layout from '../layouts/Layout.astro';
       cursor: pointer;
       transition: background 0.2s, border-color 0.2s;
     }
-    .btn-google:hover { background: rgba(255,255,255,0.09); border-color: #555; }
+    .btn-google:hover { background: rgba(255,255,255,0.09); border-color: rgba(200,164,92,0.4); }
     .btn-google:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-google svg { flex-shrink: 0; }
 
     .login-error {
-      background: rgba(200,50,50,0.12);
-      border: 1px solid rgba(200,50,50,0.3);
-      border-radius: 6px;
-      color: #e07070;
+      background: rgba(224,80,80,0.12);
+      border: 1px solid rgba(224,80,80,0.3);
+      border-radius: var(--rounded-sm);
+      color: var(--hazard-red);
       font-size: 13px;
       padding: 9px 12px;
       margin-top: 14px;
@@ -150,16 +198,16 @@ import Layout from '../layouts/Layout.astro';
       text-align: center;
       margin-top: 22px;
       font-size: 13px;
-      color: #555;
+      color: var(--deep-smoke);
     }
-    .login-footer a { color: #c8a45c; text-decoration: none; }
+    .login-footer a { color: var(--accent); text-decoration: none; }
     .login-footer a:hover { text-decoration: underline; }
   </style>
 
-  <div class="login-wrap">
+  <div class="login-wrap" style={`background-image:url('${bgImg.src}')`}>
     <div class="login-card">
       <img src="/Images/EssolisLogo.webp" alt="Essolis" class="login-logo">
-      <h1 class="login-title">Enter the Realm</h1>
+      <h1 class="login-title">Enter Essolis</h1>
       <p class="login-sub">Sign in to your account</p>
 
       <div class="login-field">
@@ -172,7 +220,7 @@ import Layout from '../layouts/Layout.astro';
       </div>
 
       <button class="login-btn" id="login-btn">
-        <iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Enter the Realm
+        <iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Enter Essolis
       </button>
 
       <div class="divider">or</div>
@@ -267,7 +315,7 @@ import Layout from '../layouts/Layout.astro';
       btn.disabled = on;
       btn.innerHTML = on
         ? "Checking…"
-        : '<iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Enter the Realm';
+        : '<iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Enter Essolis';
     }
 
     function showErr(msg) { err.textContent = msg; err.classList.add("show"); }
