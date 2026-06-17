@@ -21,6 +21,10 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
           <iconify-icon icon="lucide:x"></iconify-icon>
         </button>
       </div>
+      <button id="add-item-btn" class="items-btn-add" style="display:none">
+        <iconify-icon icon="lucide:plus"></iconify-icon>
+        Add Item
+      </button>
       <div id="tag-filter" class="tag-filter"></div>
     </div>
   </Header>
@@ -51,10 +55,6 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
         <button class="rarity-filter-btn rfb-legendary" data-rarity="legendary">Legendary</button>
       </div>
       <div class="items-filter-actions">
-        <button id="add-item-btn" class="items-btn-add" style="display:none">
-          <iconify-icon icon="lucide:plus"></iconify-icon>
-          Add Item
-        </button>
         <button id="btn-import-dnd5e" class="items-btn-import" style="display:none" title="Replace base items with D&D 5e API data">
           <iconify-icon icon="lucide:download"></iconify-icon>
           Import D&D 5e

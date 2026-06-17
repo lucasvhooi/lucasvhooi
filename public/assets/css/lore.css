@@ -11,6 +11,12 @@
 
 /* Header search bar styles centralized in base.css */
 
+/* Search + Add button group — transparent on desktop, becomes the
+   liquid-glass dock on mobile (see the ≤700px block below). */
+.lore-search-dock {
+  display: contents;
+}
+
 /* ── Type filter pills ──────────────────────────────────────────────────────── */
 .lore-filter-tabs {
   display: flex;
@@ -967,9 +973,67 @@
 
 /* ── Mobile ─────────────────────────────────────────────────────────────────── */
 @media (max-width: 700px) {
-  .lore-main { padding: 16px 14px 48px; }
+  .lore-main { padding: 16px 14px 92px; }   /* clear the floating dock */
   .hdr-tabs-row { gap: 6px; flex-wrap: wrap; }
-  .items-search { width: 130px; font-size: 14px; }
+
+  /* ── Liquid-glass search dock pinned to the bottom — search + Add button ── */
+  .lore-search-dock {
+    display: flex;
+    align-items: center;
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    z-index: 120;
+    gap: 2px;
+    padding: 5px;
+    border-radius: 999px;
+    background: rgba(28, 20, 11, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    box-shadow:
+      0 10px 34px rgba(0, 0, 0, 0.5),
+      0 2px 10px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.25);
+  }
+  .lore-search-dock::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 55%);
+  }
+  .lore-search-dock .hdr-search-wrap { flex: 1; min-width: 0; }
+  .hdr-tabs-row .items-search {
+    width: 100%;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    color: #fff;
+    font-size: 12px; /* matches the items/spells dock */
+    padding: 6px 14px 6px 34px;
+  }
+  .hdr-tabs-row .items-search:focus { border: none; box-shadow: none; }
+  .hdr-tabs-row .hdr-search-icon { color: rgba(255,255,255,0.55); left: 11px; }
+
+  /* Compact circular gold + button inside the dock */
+  .lore-search-dock .items-btn-add {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    gap: 0;
+    border-radius: 50%;
+    justify-content: center;
+    font-size: 0;
+  }
+  .lore-search-dock .items-btn-add iconify-icon { font-size: 18px; }
+
   .items-filter-bar { flex-direction: column; align-items: flex-start; }
   .lore-filter-tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
   .lore-grid { gap: 16px; justify-content: center; }

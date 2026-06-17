@@ -150,6 +150,11 @@ let activeSaved  = false;
 let sortField    = null;   // 'name' | 'level' | 'school' | null
 let sortDir      = 'asc';  // 'asc' | 'desc'
 
+// Pagination
+const PAGE_SIZE  = 50;
+let filteredSpells = [];
+let currentPage  = 1;
+
 // ── Sort controls ─────────────────────────────────────────────────────────────
 function _updateSortUI() {
   document.querySelectorAll(".sort-btn").forEach(btn => {
@@ -189,6 +194,7 @@ const levelFilter     = document.getElementById("level-filter");
 const schoolFilter    = document.getElementById("school-filter");
 const classFilter     = document.getElementById("class-filter");
 const spellCount      = document.getElementById("spell-count");
+const spellsPagination = document.getElementById("spells-pagination");
 const seedStatus      = document.getElementById("seed-status");
 const condTooltip     = document.getElementById("condition-tooltip");
 const detailPanel     = document.getElementById("spell-detail-panel");
@@ -367,10 +373,8 @@ function makeBtn(text, className, onClick) {
   return btn;
 }
 
-// ── Render spells list ────────────────────────────────────────────────────────
+// ── Filter + sort (recomputes the full match set, resets to page 1) ──────────
 function renderSpells() {
-  spellsGrid.innerHTML = "";
-
   let filtered = [...spells];
 
   if (activeSaved) {
@@ -406,12 +410,22 @@ function renderSpells() {
     filtered.sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
   }
 
-  const total = filtered.length;
+  filteredSpells = filtered;
+  currentPage = 1;
+  renderPage();
+}
+
+// ── Render the current page of the filtered list ─────────────────────────────
+function renderPage() {
+  spellsGrid.innerHTML = "";
+
+  const total = filteredSpells.length;
   spellCount.textContent = activeSaved
     ? `${total} saved spell${total !== 1 ? 's' : ''}`
     : (total === spells.length ? `${total} spells` : `${total} of ${spells.length} spells`);
 
   if (total === 0) {
+    if (spellsPagination) spellsPagination.innerHTML = "";
     const emptyEl = document.createElement('div');
     emptyEl.className = 'spells-empty';
     if (activeSaved) {
@@ -428,9 +442,14 @@ function renderSpells() {
     return;
   }
 
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = filteredSpells.slice(start, start + PAGE_SIZE);
+
   const fragment = document.createDocumentFragment();
 
-  filtered.forEach(spell => {
+  pageItems.forEach(spell => {
     const row = document.createElement("div");
     row.className = "spell-row";
     const sc = getSchoolColor(spell.school);
@@ -480,6 +499,34 @@ function renderSpells() {
   });
 
   spellsGrid.appendChild(fragment);
+  renderPagination(totalPages);
+}
+
+// ── Pagination controls ───────────────────────────────────────────────────────
+function renderPagination(totalPages) {
+  if (!spellsPagination) return;
+  if (totalPages <= 1) { spellsPagination.innerHTML = ""; return; }
+
+  spellsPagination.innerHTML = `
+    <button class="page-btn" data-dir="prev" ${currentPage === 1 ? 'disabled' : ''}>
+      <iconify-icon icon="lucide:chevron-left"></iconify-icon> Prev
+    </button>
+    <span class="page-info">Page ${currentPage} of ${totalPages}</span>
+    <button class="page-btn" data-dir="next" ${currentPage === totalPages ? 'disabled' : ''}>
+      Next <iconify-icon icon="lucide:chevron-right"></iconify-icon>
+    </button>
+  `;
+  spellsPagination.querySelector('[data-dir="prev"]')?.addEventListener('click', () => goToPage(currentPage - 1));
+  spellsPagination.querySelector('[data-dir="next"]')?.addEventListener('click', () => goToPage(currentPage + 1));
+}
+
+function goToPage(p) {
+  const totalPages = Math.max(1, Math.ceil(filteredSpells.length / PAGE_SIZE));
+  const next = Math.min(Math.max(1, p), totalPages);
+  if (next === currentPage) return;
+  currentPage = next;
+  renderPage();
+  document.querySelector('.spells-list-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // ── Spell detail side panel ───────────────────────────────────────────────────
@@ -543,6 +590,7 @@ function openSpellPanel(spell, rowEl) {
   // Open panel + collapse extra list columns
   detailPanel.classList.add('open');
   spellsContent?.classList.add('panel-open');
+  _lockBodyScroll();
 
   // Scroll body to top
   const body = detailPanel.querySelector('.sdp-body');
@@ -554,7 +602,18 @@ function closeSpellPanel() {
   detailPanel.classList.remove('open');
   spellsContent?.classList.remove('panel-open');
   condTooltip.style.display = 'none';
+  _unlockBodyScroll();
 }
+
+// On mobile the panel is a centered popup — lock background scroll while open
+// and let taps on the backdrop dismiss it.
+const _mqMobile = window.matchMedia('(max-width: 700px)');
+function _lockBodyScroll()   { if (_mqMobile.matches) document.body.style.overflow = 'hidden'; }
+function _unlockBodyScroll() { document.body.style.overflow = ''; }
+
+detailPanel?.addEventListener('click', e => {
+  if (e.target === detailPanel) closeSpellPanel();
+});
 
 // ── Description rendering with condition tags ─────────────────────────────────
 function renderDescription(text) {
@@ -652,8 +711,79 @@ classFilter.addEventListener("change",  e => { activeClass  = e.target.value; re
 
 document.getElementById("sdp-close").addEventListener("click", closeSpellPanel);
 
+// ── Add Spell modal (admin only) ───────────────────────────────────────────────
+const spellAddBtn = document.getElementById("spell-add-btn");
+const spellModal  = document.getElementById("spell-modal");
+const sfName      = document.getElementById("sf-name");
+const sfLevel     = document.getElementById("sf-level");
+const sfSchool    = document.getElementById("sf-school");
+const sfClasses   = document.getElementById("sf-classes");
+const sfCastTime  = document.getElementById("sf-casttime");
+const sfRange     = document.getElementById("sf-range");
+const sfDuration  = document.getElementById("sf-duration");
+const sfVerbal    = document.getElementById("sf-verbal");
+const sfSomatic   = document.getElementById("sf-somatic");
+const sfMaterial  = document.getElementById("sf-material");
+const sfMatCost   = document.getElementById("sf-materialcost");
+const sfDesc      = document.getElementById("sf-desc");
+const sfError     = document.getElementById("sf-error");
+
+if (isAdmin && spellAddBtn) spellAddBtn.style.display = "inline-flex";
+
+function openSpellModal()  { if (spellModal) { if (sfError) sfError.textContent = ""; spellModal.classList.add("open"); sfName?.focus(); } }
+function closeSpellModal() { spellModal?.classList.remove("open"); }
+function resetSpellForm() {
+  [sfName, sfClasses, sfCastTime, sfRange, sfDuration, sfMatCost, sfDesc].forEach(el => { if (el) el.value = ""; });
+  if (sfLevel)  sfLevel.value  = "0";
+  if (sfSchool) sfSchool.value = "";
+  [sfVerbal, sfSomatic, sfMaterial].forEach(el => { if (el) el.checked = false; });
+}
+
+spellAddBtn?.addEventListener("click", () => { resetSpellForm(); openSpellModal(); });
+document.getElementById("spell-modal-close")?.addEventListener("click", closeSpellModal);
+document.getElementById("sf-cancel")?.addEventListener("click", closeSpellModal);
+spellModal?.addEventListener("click", e => { if (e.target === spellModal) closeSpellModal(); });
+
+document.getElementById("sf-save")?.addEventListener("click", async () => {
+  if (!isAdmin) return;
+  const name = (sfName?.value || "").trim();
+  if (!name) { if (sfError) sfError.textContent = "Name is required."; return; }
+  const id = slugify(name);
+  if (!id) { if (sfError) sfError.textContent = "Enter a valid name."; return; }
+  if (spells.some(s => s.id === id)) {
+    if (sfError) sfError.textContent = "A spell with this name already exists.";
+    return;
+  }
+
+  const spell = {
+    id,
+    name,
+    classes:      (sfClasses?.value || "").split(",").map(c => c.trim()).filter(Boolean),
+    level:        parseInt(sfLevel?.value) || 0,
+    school:       (sfSchool?.value || "").trim(),
+    castTime:     (sfCastTime?.value || "").trim(),
+    range:        (sfRange?.value || "").trim(),
+    duration:     (sfDuration?.value || "").trim(),
+    verbal:       !!sfVerbal?.checked,
+    somatic:      !!sfSomatic?.checked,
+    material:     !!sfMaterial?.checked,
+    materialCost: (sfMatCost?.value || "").trim() || null,
+    description:  (sfDesc?.value || "").trim()
+  };
+
+  try {
+    await set(ref(db, "spells/" + id), spell);
+    closeSpellModal();
+  } catch (e) {
+    console.error("Save spell failed:", e);
+    if (sfError) sfError.textContent = "Save failed: " + e.message;
+  }
+});
+
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape" && detailPanel.classList.contains("open")) closeSpellPanel();
+  if (e.key !== "Escape") return;
+  if (spellModal?.classList.contains("open")) { closeSpellModal(); return; }
+  if (detailPanel.classList.contains("open")) closeSpellPanel();
 });
 
 // ── Init ───────────────────────────────────────────────────────────────────────

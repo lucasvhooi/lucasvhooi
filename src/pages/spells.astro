@@ -12,11 +12,17 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
     image={headerImg}
   >
     <div slot="tabs" class="hdr-tabs-row">
-      <div class="hdr-search-wrap">
-        <iconify-icon icon="lucide:search" class="hdr-search-icon"></iconify-icon>
-        <input type="text" id="spells-search" class="items-search" placeholder="Search spells…" />
-        <button type="button" id="spells-search-clear" class="search-clear-btn" aria-label="Clear search">
-          <iconify-icon icon="lucide:x"></iconify-icon>
+      <div class="spell-search-dock">
+        <div class="hdr-search-wrap">
+          <iconify-icon icon="lucide:search" class="hdr-search-icon"></iconify-icon>
+          <input type="text" id="spells-search" class="items-search" placeholder="Search spells…" />
+          <button type="button" id="spells-search-clear" class="search-clear-btn" aria-label="Clear search">
+            <iconify-icon icon="lucide:x"></iconify-icon>
+          </button>
+        </div>
+        <button id="spell-add-btn" class="items-btn-add" style="display:none">
+          <iconify-icon icon="lucide:plus"></iconify-icon>
+          Add Spell
         </button>
       </div>
       <div id="level-filter" class="level-filter"></div>
@@ -69,6 +75,7 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
           <span></span>
         </div>
         <div id="spells-grid" class="spells-list"></div>
+        <div id="spells-pagination" class="spells-pagination"></div>
       </div>
 
       <!-- Right: slide-out detail panel -->
@@ -90,6 +97,93 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
 
     </div>
   </main>
+
+  <!-- Add / create spell modal (admin only) -->
+  <div id="spell-modal" class="modal-overlay">
+    <div class="modal-box spell-modal-box">
+      <div class="modal-header">
+        <h2 id="spell-modal-title">Add Spell</h2>
+        <button class="modal-close-x" id="spell-modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label>Name <span class="req">*</span>
+            <input type="text" id="sf-name" placeholder="e.g. Fireball" />
+          </label>
+        </div>
+        <div class="form-row two-col">
+          <label>Level
+            <select id="sf-level">
+              <option value="0">Cantrip</option>
+              <option value="1">1st</option>
+              <option value="2">2nd</option>
+              <option value="3">3rd</option>
+              <option value="4">4th</option>
+              <option value="5">5th</option>
+              <option value="6">6th</option>
+              <option value="7">7th</option>
+              <option value="8">8th</option>
+              <option value="9">9th</option>
+            </select>
+          </label>
+          <label>School
+            <select id="sf-school">
+              <option value="">—</option>
+              <option value="Abjuration">Abjuration</option>
+              <option value="Conjuration">Conjuration</option>
+              <option value="Divination">Divination</option>
+              <option value="Enchantment">Enchantment</option>
+              <option value="Evocation">Evocation</option>
+              <option value="Illusion">Illusion</option>
+              <option value="Necromancy">Necromancy</option>
+              <option value="Transmutation">Transmutation</option>
+            </select>
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Classes
+            <input type="text" id="sf-classes" placeholder="Wizard, Sorcerer (comma-separated)" />
+          </label>
+        </div>
+        <div class="form-row two-col">
+          <label>Casting Time
+            <input type="text" id="sf-casttime" placeholder="e.g. 1 Action" />
+          </label>
+          <label>Range
+            <input type="text" id="sf-range" placeholder="e.g. 150 feet" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Duration
+            <input type="text" id="sf-duration" placeholder="e.g. Instantaneous / Concentration, up to 1 minute" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Components</label>
+          <div class="sf-comp-row">
+            <label class="checkbox-label"><input type="checkbox" id="sf-verbal" /><span class="checkbox-box"></span>Verbal</label>
+            <label class="checkbox-label"><input type="checkbox" id="sf-somatic" /><span class="checkbox-box"></span>Somatic</label>
+            <label class="checkbox-label"><input type="checkbox" id="sf-material" /><span class="checkbox-box"></span>Material</label>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Material Cost
+            <input type="text" id="sf-materialcost" placeholder="e.g. a tiny ball of bat guano and sulfur" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Description
+            <textarea id="sf-desc" rows="6" placeholder="What does the spell do?"></textarea>
+          </label>
+        </div>
+        <div id="sf-error" class="modal-error"></div>
+      </div>
+      <div class="modal-actions">
+        <button id="sf-save" class="dm-btn">Save Spell</button>
+        <button id="sf-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Condition tooltip -->
   <div id="condition-tooltip" class="condition-tooltip-box" style="display:none"></div>

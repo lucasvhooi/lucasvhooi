@@ -21,6 +21,12 @@
 
 /* Header search bar styles centralized in base.css */
 
+/* Search + Add button group — transparent on desktop, becomes the
+   liquid-glass dock on mobile (see the ≤700px block below). */
+.chars-search-dock {
+  display: contents;
+}
+
 /* ── Add button ── */
 .items-btn-add {
   display: inline-flex;
@@ -277,8 +283,9 @@
 
 .char-row > * { position: relative; z-index: 1; }
 
-.char-not-encountered { --cc: #8a3a3a; opacity: 0.70; }
-.char-not-encountered:hover { opacity: 0.88; }
+/* Not-encountered characters read as a slightly desaturated, dimmer card */
+.char-not-encountered { filter: saturate(0.42) brightness(0.96); opacity: 0.88; }
+.char-not-encountered:hover { filter: saturate(0.7) brightness(1); opacity: 1; }
 
 /* ── Name column ── */
 .char-row-main { min-width: 0; width: 100%; }
@@ -322,11 +329,17 @@
   margin-bottom: 2px;
 }
 
-.char-row-unenc {
-  font-size: 10px;
-  color: #6a5a48;
-  font-style: italic;
-  letter-spacing: 0.04em;
+.char-row-name-block { min-width: 0; }
+
+/* Race shown directly under the name — mobile only; desktop keeps the Race column */
+.char-row-subrace {
+  display: none;
+  font-size: 12px;
+  color: #9a8a78;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
 }
 
 /* ── Other columns ── */
@@ -377,6 +390,10 @@
 
 .row-action-btn.danger { background: rgba(200,50,50,0.07); border-color: rgba(200,50,50,0.18); color: #c28a8a; }
 .row-action-btn.danger:hover { background: rgba(200,50,50,0.13); color: #e07070; border-color: rgba(200,50,50,0.35); }
+
+/* ── Swipe-to-delete wrapper (desktop = invisible passthrough) ── */
+.char-swipe { display: contents; }
+.char-swipe-delete { display: none; }
 
 /* ── Side detail panel ── */
 .char-detail-panel {
@@ -1002,19 +1019,119 @@
 }
 
 @media (max-width: 700px) {
-  .chars-main { padding: 16px 14px 48px; }
+  .chars-main { padding: 16px 14px 92px; }   /* clear the floating dock */
   .hdr-tabs-row { gap: 6px; flex-wrap: wrap; }
-  .items-search { width: 130px; font-size: 14px; }
-  .items-filter-bar { flex-direction: column; align-items: flex-start; }
+
+  /* ── Liquid-glass search dock pinned to the bottom — search + Add button ── */
+  .chars-search-dock {
+    display: flex;
+    align-items: center;
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    z-index: 120;
+    gap: 2px;
+    padding: 5px;
+    border-radius: 999px;
+    background: rgba(28, 20, 11, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    box-shadow:
+      0 10px 34px rgba(0, 0, 0, 0.5),
+      0 2px 10px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.25);
+  }
+  .chars-search-dock::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 55%);
+  }
+  .chars-search-dock .hdr-search-wrap { flex: 1; min-width: 0; }
+  .hdr-tabs-row .items-search {
+    width: 100%;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    color: #fff;
+    font-size: 12px; /* matches the items/spells/lore dock */
+    padding: 6px 14px 6px 34px;
+  }
+  .hdr-tabs-row .items-search:focus { border: none; box-shadow: none; }
+  .hdr-tabs-row .hdr-search-icon { color: rgba(255,255,255,0.55); left: 11px; }
+
+  /* Compact circular gold + button inside the dock */
+  .chars-search-dock .items-btn-add {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    gap: 0;
+    border-radius: 50%;
+    justify-content: center;
+    font-size: 0;
+  }
+  .chars-search-dock .items-btn-add iconify-icon { font-size: 18px; }
+
+  /* Drop the sort/filter bar entirely on mobile for a cleaner page */
+  .items-filter-bar { display: none; }
   .chars-col-header { display: none; }
   .spells-count { display: none; }
 
+  /* Compact role stat cards — 3 per row, tighter padding/type */
+  .chars-stats-bar { gap: 6px; margin-bottom: 10px; }
+  .chars-stat-card {
+    flex: 1 1 calc(33.333% - 4px);
+    min-width: 0;
+    padding: 6px 4px;
+    gap: 1px;
+    border-radius: 8px;
+  }
+  .chars-stat-icon  { font-size: 12px; }
+  .chars-stat-count { font-size: 15px; }
+  .chars-stat-label { font-size: 8px; letter-spacing: 0.05em; }
+
+  /* Swipe-to-delete wrapper becomes a real, clipping container on mobile */
+  .char-swipe {
+    display: block;
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .char-swipe-delete {
+    display: flex;
+    position: absolute;
+    inset: 0;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 26px;
+    font-size: 22px;
+    color: #f0c4c4;
+    background: linear-gradient(90deg, #3e1010 0%, #7a1d1d 100%);
+    border-radius: 10px;
+  }
+  .char-swipe .char-row {
+    position: relative;
+    z-index: 1;
+    touch-action: pan-y;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  }
+
   .char-row {
-    grid-template-columns: minmax(0, 1fr) 80px 120px;
-    padding-left: 16px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 10px 16px;
   }
   .char-row-profession { display: none; }
-  .char-row-race { grid-column: 2; }
+  .char-row-race { display: none; }            /* shown under the name instead */
   .char-row-age  { display: none; }
-  .char-row-actions { grid-column: 3; justify-content: flex-end; }
+  .char-row-subrace { display: block; }
+  .char-row-actions { grid-column: 2; justify-content: flex-end; }
+  .char-del-btn { display: none; }             /* replaced by swipe-to-delete */
 }

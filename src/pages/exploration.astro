@@ -11,7 +11,18 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
     icon="lucide:users"
     image={headerImg}
   >
-    <div slot="tabs" class="hdr-tabs-row"></div>
+    <div slot="tabs" class="hdr-tabs-row">
+      <div class="chars-search-dock">
+        <div class="hdr-search-wrap">
+          <iconify-icon icon="lucide:search" class="hdr-search-icon"></iconify-icon>
+          <input type="text" id="chars-search" class="items-search" placeholder="Search characters…" />
+        </div>
+        <button id="char-add-btn" class="items-btn-add" style="display:none">
+          <iconify-icon icon="lucide:plus"></iconify-icon>
+          New Character
+        </button>
+      </div>
+    </div>
   </Header>
 
   <main class="chars-main">
@@ -72,14 +83,6 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
       </div>
       <div class="chars-filter-actions">
         <span class="spells-count" id="char-count"></span>
-        <div class="hdr-search-wrap">
-          <iconify-icon icon="lucide:search" class="hdr-search-icon"></iconify-icon>
-          <input type="text" id="chars-search" class="items-search" placeholder="Search characters…" />
-        </div>
-        <button id="char-add-btn" class="items-btn-add" style="display:none">
-          <iconify-icon icon="lucide:plus"></iconify-icon>
-          New Character
-        </button>
       </div>
     </div>
 

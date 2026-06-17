@@ -12,9 +12,15 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
     image={headerImg}
   >
     <div slot="tabs" class="hdr-tabs-row">
-      <div class="hdr-search-wrap">
-        <iconify-icon icon="lucide:search" class="hdr-search-icon"></iconify-icon>
-        <input type="text" id="lore-search" class="items-search" placeholder="Search lore…" />
+      <div class="lore-search-dock">
+        <div class="hdr-search-wrap">
+          <iconify-icon icon="lucide:search" class="hdr-search-icon"></iconify-icon>
+          <input type="text" id="lore-search" class="items-search" placeholder="Search lore…" />
+        </div>
+        <button id="lore-add-btn" class="items-btn-add" style="display:none">
+          <iconify-icon icon="lucide:plus"></iconify-icon>
+          Add Lore
+        </button>
       </div>
       <div class="lore-filter-tabs">
         <button class="lore-tab active" data-filter="all">All</button>
@@ -43,10 +49,6 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
       </div>
       <div class="lore-bar-right">
         <span class="lore-count" id="lore-count"></span>
-        <button id="lore-add-btn" class="items-btn-add" style="display:none">
-          <iconify-icon icon="lucide:plus"></iconify-icon>
-          Add Lore
-        </button>
       </div>
     </div>
 

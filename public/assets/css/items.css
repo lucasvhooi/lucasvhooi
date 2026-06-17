@@ -52,17 +52,20 @@
 /* Header search bar styles centralized in base.css.
    Items keeps only its page-specific mobile "liquid-glass dock" below. */
 
-/* ── Mobile: liquid-glass search dock pinned to the bottom of the screen ── */
+/* ── Mobile: liquid-glass search dock pinned to the bottom of the screen ──
+   The whole row is the glass pill (search + Add button), matching inventory. */
 @media (max-width: 700px) {
   .items-main { padding-bottom: 92px; }   /* clear the floating dock */
 
-  .hdr-tabs-row .hdr-search-wrap {
+  .hdr-tabs-row {
     position: fixed;
     left: 12px;
     right: 12px;
-    width: auto;
     bottom: calc(14px + env(safe-area-inset-bottom, 0px));
     z-index: 120;
+    margin: 0;
+    flex-wrap: nowrap;
+    gap: 2px;
     padding: 5px;
     border-radius: 999px;
     background: rgba(28, 20, 11, 0.5);
@@ -75,7 +78,7 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.22),
       inset 0 -1px 1px rgba(0, 0, 0, 0.25);
   }
-  .hdr-tabs-row .hdr-search-wrap::before {
+  .hdr-tabs-row::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -83,6 +86,7 @@
     pointer-events: none;
     background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 55%);
   }
+  .hdr-tabs-row .hdr-search-wrap { flex: 1; min-width: 0; }
   .hdr-tabs-row .items-search {
     width: 100%;
     background: transparent;
@@ -95,7 +99,20 @@
     padding: 6px 34px 6px 34px;
   }
   .hdr-tabs-row .items-search:focus { border: none; box-shadow: none; }
-  .hdr-tabs-row .hdr-search-icon { color: rgba(255,255,255,0.55); left: 14px; }
+  .hdr-tabs-row .hdr-search-icon { color: rgba(255,255,255,0.55); left: 11px; }
+
+  /* Compact circular gold + button inside the dock */
+  .hdr-tabs-row .items-btn-add {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    gap: 0;
+    border-radius: 50%;
+    justify-content: center;
+    font-size: 0;
+  }
+  .hdr-tabs-row .items-btn-add iconify-icon { font-size: 18px; }
 }
 
 /* ── Add Item button ── */
@@ -1224,11 +1241,6 @@
 @media (max-width: 700px) {
   .items-main { padding: 16px 14px 48px; }
 
-  /* Search takes its own full-width line */
-  .hdr-tabs-row { gap: 8px; flex-wrap: wrap; }
-  .hdr-search-wrap { width: 100%; }
-  .items-search { width: 100%; font-size: 14px; }
-
   /* Simplified mobile filter bar: drop the tag + rarity filters
      (rarity is still available through the Sort group) */
   #tag-filter.tag-filter { display: none; }
@@ -1238,11 +1250,9 @@
   .items-sort-group { flex: 1; flex-wrap: wrap; gap: 6px; }
   .items-filter-actions { margin-left: auto; gap: 6px; }
 
-  /* Add Item / Import collapse to compact icon-only buttons that sit
-     at the end of the sort row */
-  .items-btn-add,
+  /* Import collapses to a compact icon-only button at the end of the sort row
+     (Add Item now lives in the bottom search dock) */
   .items-btn-import { font-size: 0; gap: 0; padding: 7px 9px; }
-  .items-btn-add iconify-icon,
   .items-btn-import iconify-icon { font-size: 16px; }
 
   .items-col-header { display: none; }

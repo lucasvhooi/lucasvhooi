@@ -243,10 +243,10 @@ function renderChars() {
       <div class="char-row-main">
         <div class="char-row-name-wrap">
           ${picHtml}
-          <div>
+          <div class="char-row-name-block">
             <div class="char-row-name">${esc(c.name || "")}</div>
+            ${c.race ? `<div class="char-row-subrace">${esc(c.race)}</div>` : ''}
             ${roleBadgeHtml}
-            ${!c.encountered ? '<span class="char-row-unenc">Not Encountered</span>' : ''}
           </div>
         </div>
       </div>
@@ -265,9 +265,14 @@ function renderChars() {
     `;
 
     row.addEventListener("click", e => {
+      if (row._swiped) return;
       if (e.target.closest(".char-row-actions")) return;
       openCharPanel(c, row);
     });
+
+    // Swipe-to-delete wrapper (admin only; the red layer is revealed as the row slides left)
+    const swipe = document.createElement("div");
+    swipe.className = "char-swipe";
 
     if (isAdmin) {
       row.querySelector(".char-encounter-btn").addEventListener("click", e => {
@@ -285,12 +290,69 @@ function renderChars() {
           if (_activeCharRow === row) closeCharPanel();
         }
       });
+
+      const delLayer = document.createElement("div");
+      delLayer.className = "char-swipe-delete";
+      delLayer.innerHTML = '<iconify-icon icon="lucide:trash-2"></iconify-icon>';
+      swipe.appendChild(delLayer);
+      attachSwipeToDelete(swipe, row, c);
     }
 
-    charsGrid.appendChild(row);
+    swipe.appendChild(row);
+    charsGrid.appendChild(swipe);
   });
 
   renderPagination(totalPages);
+}
+
+// ── Swipe-to-delete (mobile, Spotify-style) ────────────────────────────────────
+// Drag a card left past the threshold to delete it; a short drag snaps back.
+// Touch-only, so desktop pointer interaction is unaffected.
+function attachSwipeToDelete(swipe, row, c) {
+  let startX = 0, startY = 0, dx = 0, dragging = false, decided = false, horizontal = false;
+
+  row.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    dx = 0; dragging = true; decided = false; horizontal = false;
+    row.style.transition = "none";
+  }, { passive: true });
+
+  row.addEventListener("touchmove", e => {
+    if (!dragging) return;
+    const ddx = e.touches[0].clientX - startX;
+    const ddy = e.touches[0].clientY - startY;
+    if (!decided && (Math.abs(ddx) > 8 || Math.abs(ddy) > 8)) {
+      decided = true;
+      horizontal = Math.abs(ddx) > Math.abs(ddy);
+    }
+    if (!horizontal) return;        // vertical gesture → let the page scroll
+    e.preventDefault();             // we own the horizontal gesture
+    dx = Math.max(-row.offsetWidth, Math.min(0, ddx));
+    row.style.transform = `translateX(${dx}px)`;
+  }, { passive: false });
+
+  const finish = () => {
+    if (!dragging) return;
+    dragging = false;
+    row.style.transition = "";
+    const threshold = Math.min(120, row.offsetWidth * 0.4);
+    if (dx < -threshold) {
+      row.style.transform = "translateX(-100%)";
+      row.style.opacity = "0";
+      row._swiped = true;
+      setTimeout(() => {
+        remove(ref(db, `campaigns/${cid}/characters/${c.id}`));
+        if (_activeCharRow === row) closeCharPanel();
+      }, 180);
+    } else {
+      row.style.transform = "";
+      if (Math.abs(dx) > 8) { row._swiped = true; setTimeout(() => { row._swiped = false; }, 60); }
+    }
+  };
+  row.addEventListener("touchend", finish);
+  row.addEventListener("touchcancel", finish);
 }
 
 // ── Pagination ────────────────────────────────────────────────────────────────

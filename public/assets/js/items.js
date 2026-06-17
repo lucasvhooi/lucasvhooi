@@ -385,7 +385,7 @@ function renderItems() {
         openGivePanel(e.currentTarget, {
           id:                  item.id,
           name:                item.name,
-          type:                inferTypeFromTags(item.tags),
+          type:                inferTypeFromTags(item.tags, item.name),
           description:         item.description || null,
           quantity:            1,
           value:               item.price ? formatGold(item.price) : null,
@@ -693,12 +693,14 @@ function getSnippet(desc) {
   return desc.length > 90 ? desc.slice(0, 90).trim() + '…' : desc.trim();
 }
 
-function inferTypeFromTags(tags) {
-  if (!tags) return "misc";
-  const list = tags.toLowerCase().split(",").map(t => t.trim());
+const POTION_TAGS = new Set(["potion", "potions", "healing", "medicine", "elixir", "draught", "vial", "tonic"]);
+const POTION_NAME = /\b(potion|vial|elixir|draught|philtre|philter|tonic)\b|\boil of\b/i;
+
+function inferTypeFromTags(tags, name = "") {
+  const list = (tags || "").toLowerCase().split(",").map(t => t.trim());
   if (list.includes("weapon"))           return "weapon";
   if (list.includes("armor"))            return "armor";
-  if (list.includes("potion"))           return "potion";
+  if (list.some(t => POTION_TAGS.has(t)) || POTION_NAME.test(name)) return "potion";
   if (list.includes("book"))             return "book";
   if (list.includes("scroll"))           return "scroll";
   return "misc";

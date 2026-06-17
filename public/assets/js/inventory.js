@@ -64,7 +64,7 @@ const invContent      = document.querySelector(".inv-content");
 const invReader       = document.getElementById("inv-reader");
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const TYPE_ICON  = { weapon: "game-icons:crossed-swords", armor: "game-icons:shield", potion: "game-icons:potion", book: "game-icons:open-book", scroll: "game-icons:scroll-unfurled", misc: "lucide:gem" };
+const TYPE_ICON  = { weapon: "game-icons:crossed-swords", armor: "game-icons:shield", potion: "game-icons:round-potion", book: "game-icons:open-book", scroll: "game-icons:scroll-unfurled", misc: "lucide:gem" };
 const TYPE_LABEL = { weapon: "Weapon", armor: "Armor", potion: "Potion", book: "Book", scroll: "Scroll", misc: "Misc" };
 const TYPE_COLORS = { weapon: "#c04040", armor: "#4060b0", potion: "#40a060", book: "#8040c0", scroll: "#b08020", misc: "#6a6060" };
 const RARITY_COLORS = { "common": "#9e9e9e", "uncommon": "#4caf50", "rare": "#2196f3", "very rare": "#9c27b0", "legendary": "#ff9800" };
@@ -404,7 +404,7 @@ function renderList() {
         if (raw === "book" || raw === "scroll") {
           return (it.pages != null || it.writer != null || it.content != null) ? raw : "misc";
         }
-        if (raw === "misc" && it.tags) return inferTypeFromTags(it.tags);
+        if (raw === "misc") return inferTypeFromTags(it.tags, it.name);
         return raw;
       })(),
     }));
@@ -1535,11 +1535,13 @@ function esc(str) {
 }
 function escBr(str) { return esc(str).replace(/\n/g, "<br>"); }
 
-function inferTypeFromTags(tags) {
-  if (!tags) return "misc";
-  const list = tags.toLowerCase().split(",").map(t => t.trim());
+const POTION_TAGS = new Set(["potion", "potions", "healing", "medicine", "elixir", "draught", "vial", "tonic"]);
+const POTION_NAME = /\b(potion|vial|elixir|draught|philtre|philter|tonic)\b|\boil of\b/i;
+
+function inferTypeFromTags(tags, name = "") {
+  const list = (tags || "").toLowerCase().split(",").map(t => t.trim());
   if (list.includes("weapon")) return "weapon";
   if (list.includes("armor"))  return "armor";
-  if (list.includes("potion")) return "potion";
+  if (list.some(t => POTION_TAGS.has(t)) || POTION_NAME.test(name)) return "potion";
   return "misc";
 }
