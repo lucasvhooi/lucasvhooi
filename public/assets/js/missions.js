@@ -826,6 +826,162 @@ function buildBlockROContent(b) {
   }
 }
 
+// Quest editing + the free-flow canvas need room and a precise pointer, so
+// they're reserved for tablet/desktop. Phones get the read-only vertical flow.
+const QUEST_WIDE_MIN = 768;
+const isWideViewport = () => window.matchMedia(`(min-width:${QUEST_WIDE_MIN}px)`).matches;
+
+// Short, human label for a block — used for branch links in the mobile flow.
+function blockHeadline(b) {
+  return b.blockTitle || b.title || b.name
+    || b.characters?.[0]?.name || b.enemies?.[0]?.name || b.items?.[0]?.name
+    || BLOCK_TYPE_LABEL[b.type] || b.type;
+}
+
+// Flatten spatially-placed blocks into a single reading order: top-to-bottom,
+// grouping blocks whose top edges sit on roughly the same row, then left-to-right.
+function orderBlocksForReading(blocks) {
+  const ROW_GAP = 70;
+  const items = blocks
+    .map(b => ({ b, x: b.worldX || 0, y: b.worldY || 0 }))
+    .sort((p, q) => p.y - q.y || p.x - q.x);
+  const ordered = [];
+  let row = [], rowTop = null;
+  const flush = () => { row.sort((p, q) => p.x - q.x); ordered.push(...row.map(i => i.b)); row = []; };
+  items.forEach(it => {
+    if (rowTop === null) rowTop = it.y;
+    else if (it.y - rowTop > ROW_GAP) { flush(); rowTop = it.y; }
+    row.push(it);
+  });
+  flush();
+  return ordered;
+}
+
+// Mobile read-only view: a single-column vertical flow of cards with a connector
+// spine. Phase blocks read as section headers; explicit non-sequential
+// connections surface as "leads to" branch links.
+function buildQuestFlowDOM(q) {
+  const blocks = q.blocks ? q.blocks.map(b => migrateBlock({ ...b })) : [];
+  const { conns: connections, grps: groups } = migrateRefsToIds(blocks, q.connections, q.groups);
+
+  const container = document.createElement("div");
+  container.className = "qc-ro-flow";
+
+  const visible = blocks.filter(b => !(b.type === "note" && !isAdmin));
+  if (!visible.length) {
+    container.innerHTML = `<div class="qc-ro-empty">No blocks yet.</div>`;
+    return container;
+  }
+
+  const ordered = orderBlocksForReading(visible);
+  const byId = id => blocks.find(b => b.id === id);
+
+  const groupById = {};
+  groups.forEach(g => (g.blockIds || []).forEach(id => { if (!(id in groupById)) groupById[id] = g; }));
+
+  const outConns = {};
+  connections.forEach(c => { (outConns[c.from] = outConns[c.from] || []).push(c.to); });
+
+  // One read-only card for a single block (incl. "leads to" links for any
+  // outgoing connections the DM drew).
+  const makeCard = (b) => {
+    const card = document.createElement("div");
+    card.className = "qflow-block qc-block-ro qflow-" + b.type;
+    card.dataset.session = b.sessionMarker || "";
+    card.dataset.blockId = b.id;
+    if (b.bgColor) { card.style.setProperty("--blk-cc", b.bgColor); card.classList.add("blk-colored"); }
+
+    const sessionPill = b.sessionMarker
+      ? `<span class="qcro-session-pill ${sessionColorClass(b.sessionMarker)}">${esc(b.sessionMarker)}</span>` : "";
+    const branchTos = (outConns[b.id] || []).filter(to => {
+      const t = byId(to); return t && !(t.type === "note" && !isAdmin);
+    });
+    const branchHtml = branchTos.length
+      ? `<div class="qflow-branch">${branchTos.map(to =>
+          `<span class="qflow-branch-link"><iconify-icon icon="lucide:corner-down-right"></iconify-icon> ${esc(blockHeadline(byId(to)))}</span>`).join("")}</div>` : "";
+
+    card.innerHTML = `
+      <div class="blk-header qcro-header qflow-header">
+        <span class="blk-type-icon">${BLOCK_TYPE_ICON[b.type] || ""}</span>
+        <span class="blk-type-label">${BLOCK_TYPE_LABEL[b.type] || b.type}</span>
+        ${sessionPill}
+      </div>
+      <div class="blk-body">${buildBlockROContent(b)}</div>
+      ${branchHtml}`;
+    return card;
+  };
+
+  // A collapsible <details> container for a phase or a group, holding its cards.
+  const makeSection = (kind, info, children) => {
+    const det = document.createElement("details");
+    det.className = `qflow-section qflow-section-${kind}`;
+    det.open = true;
+    if (kind === "group" && info.color) det.style.setProperty("--gc", info.color);
+    const n = children.length;
+    det.innerHTML = `
+      <summary class="qflow-section-head">
+        <span class="qflow-section-icon">${info.icon}</span>
+        <span class="qflow-section-title">${esc(info.title)}</span>
+        <span class="qflow-section-count">${n} ${n === 1 ? "item" : "items"}</span>
+        <iconify-icon icon="lucide:chevron-right" class="qflow-section-chevron"></iconify-icon>
+      </summary>`;
+    const body = document.createElement("div");
+    body.className = "qflow-section-body";
+    if (info.desc) {
+      const d = document.createElement("div");
+      d.className = "qflow-section-desc qcro-text";
+      d.innerHTML = contentToHtml(info.desc);
+      body.appendChild(d);
+    }
+    children.forEach(c => body.appendChild(makeCard(c)));
+    det.appendChild(body);
+    return det;
+  };
+
+  // Partition the reading order into render items. Explicit groups win; phase
+  // blocks otherwise open a sequential container for the cards that follow.
+  const items = [];
+  const groupEntry = {};
+  let currentPhase = null;
+  ordered.forEach(b => {
+    const g = groupById[b.id];
+    if (g) {
+      let e = groupEntry[g.id];
+      if (!e) { e = { kind: "group", group: g, children: [] }; groupEntry[g.id] = e; items.push(e); }
+      e.children.push(b);
+      return;
+    }
+    if (b.type === "phase") {
+      currentPhase = { kind: "phase", header: b, children: [] };
+      items.push(currentPhase);
+      return;
+    }
+    if (currentPhase) currentPhase.children.push(b);
+    else items.push({ kind: "card", block: b });
+  });
+
+  items.forEach(item => {
+    if (item.kind === "card") {
+      container.appendChild(makeCard(item.block));
+    } else if (item.kind === "phase") {
+      const h = item.header;
+      container.appendChild(makeSection("phase", {
+        icon: '<iconify-icon icon="lucide:chevron-right"></iconify-icon>',
+        title: h.title || h.blockTitle || "Phase",
+        desc: h.description || "",
+      }, item.children));
+    } else {
+      container.appendChild(makeSection("group", {
+        icon: '<iconify-icon icon="lucide:layers"></iconify-icon>',
+        title: item.group.title || "Group",
+        color: item.group.color || "#ffcc66",
+      }, item.children));
+    }
+  });
+
+  return container;
+}
+
 function buildQuestCanvasDOM(q) {
   const blocks = q.blocks ? q.blocks.map(b => migrateBlock({...b})) : [];
   const { conns: connections, grps: groups } = migrateRefsToIds(blocks, q.connections, q.groups);
@@ -1303,14 +1459,20 @@ function openQuestView(q) {
     sessionBar.innerHTML = "";
   }
 
-  // Canvas + navigation sidebar (mirrors the editor's Outline)
+  // Tablet/desktop: the pan/zoom canvas + outline nav. Phones: vertical flow.
   canvasWrap.innerHTML = "";
-  const canvasDom = buildQuestCanvasDOM(q);
-  const navAside = document.createElement("aside");
-  navAside.className = "qview-nav";
-  renderViewOutline(navAside, canvasDom);
-  canvasWrap.appendChild(navAside);
-  canvasWrap.appendChild(canvasDom);
+  if (isWideViewport()) {
+    canvasWrap.classList.remove("qview-flow-mode");
+    const canvasDom = buildQuestCanvasDOM(q);
+    const navAside = document.createElement("aside");
+    navAside.className = "qview-nav";
+    renderViewOutline(navAside, canvasDom);
+    canvasWrap.appendChild(navAside);
+    canvasWrap.appendChild(canvasDom);
+  } else {
+    canvasWrap.classList.add("qview-flow-mode");
+    canvasWrap.appendChild(buildQuestFlowDOM(q));
+  }
 
   // Encounter "Start Encounter" buttons
   canvasWrap.addEventListener("click", e => {
@@ -1403,6 +1565,10 @@ function reorderQuests(srcId, targetId) {
 
 // ── Modal open/close ──────────────────────────────────────────────────────────
 function openModal(q) {
+  if (!isWideViewport()) {
+    alert("Quest creation and editing is available on tablet and desktop screens.");
+    return;
+  }
   editingId    = q ? q.id : null;
   selectedType = q ? (q.type || "main") : "main";
   currentCellColors = q?.cellColors ? { ...q.cellColors } : {};

@@ -487,8 +487,12 @@ nav.nav-open .nav-hamburger span:nth-child(3) { transform: translateY(-7px) rota
 }
 .items-search:focus {
   border-color: rgba(200,164,92,0.5);
-  box-shadow: 0 0 0 3px rgba(200,164,92,0.08);
+  box-shadow: 0 0 0 3px rgba(200,164,92,0.12);
 }
+/* Keyboard focus: rely on the field's own rounded ring (which follows its
+   border-radius) instead of the generic offset outline below — that outline
+   draws a rectangle that doesn't match the pill-shaped mobile search docks. */
+.items-search:focus-visible { outline: none; }
 .items-search::placeholder { color: rgba(200,180,150,0.4); }
 
 /* Clear (×) button inside the search field */

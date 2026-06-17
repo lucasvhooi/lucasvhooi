@@ -1044,6 +1044,7 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.22),
       inset 0 -1px 1px rgba(0, 0, 0, 0.25);
   }
+  .chars-search-dock:focus-within { border-color: rgba(200,164,92,0.7); }
   .chars-search-dock::before {
     content: "";
     position: absolute;
@@ -1104,25 +1105,39 @@
     position: relative;
     border-radius: 10px;
     overflow: hidden;
+    /* The entry animation lives on the wrapper so the row's own transform
+       stays free for the swipe drag (a filled animation on the row would
+       otherwise keep ownership of transform and block translateX). */
+    animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
   .char-swipe-delete {
     display: flex;
     position: absolute;
     inset: 0;
     align-items: center;
-    justify-content: flex-end;
-    padding-right: 26px;
+    justify-content: flex-start;
+    padding-left: 26px;
     font-size: 22px;
     color: #f0c4c4;
-    background: linear-gradient(90deg, #3e1010 0%, #7a1d1d 100%);
+    background: linear-gradient(90deg, #7a1d1d 0%, #3e1010 100%);
     border-radius: 10px;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  /* Past the delete threshold: brighten so it reads as "release to delete" */
+  .char-swipe.swipe-ready .char-swipe-delete {
+    color: #fff;
+    background: linear-gradient(90deg, #c62828 0%, #8a1d1d 100%);
   }
   .char-swipe .char-row {
     position: relative;
     z-index: 1;
     touch-action: pan-y;
+    animation: none;   /* freed for the swipe drag; entry anim is on the wrapper */
     transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
   }
+  /* Unexplored rows stay fully opaque so the red delete card never bleeds
+     through at rest; dimming is done with brightness instead of opacity. */
+  .char-swipe .char-not-encountered { opacity: 1; filter: saturate(0.42) brightness(0.74); }
 
   .char-row {
     grid-template-columns: minmax(0, 1fr) auto;

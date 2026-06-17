@@ -2864,6 +2864,136 @@
   border-top: none;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE QUEST VIEW — read-only vertical flow (phones < 768px)
+   Editing/free-flow canvas is tablet+desktop only; phones render this instead.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Editor entry points are hidden on phones (creation is tablet/desktop only) */
+@media (max-width: 767px) {
+  #quest-add-btn,
+  .qc-edit-btn,
+  .qview-edit-btn { display: none !important; }
+}
+
+.qview-canvas-wrap.qview-flow-mode {
+  display: block;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.qc-ro-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 14px 48px;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* ── Individual block card ── */
+.qflow-block {
+  position: relative;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #15171b 0%, #111317 100%);
+  border: 1px solid rgba(200,164,92,0.14);
+  border-radius: 12px;
+}
+.qflow-block.blk-colored { border-left: 3px solid var(--blk-cc, #c8a45c); }
+
+/* Light connector between consecutive sibling cards (top-level or in a section) */
+.qflow-block + .qflow-block::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  width: 2px;
+  height: 12px;
+  background: rgba(255,204,102,0.22);
+  transform: translateX(-50%);
+}
+
+.qflow-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* ── Collapsible section (phase / group) ── */
+.qflow-section {
+  border: 1px solid rgba(200,164,92,0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.015);
+}
+.qflow-section-head {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 14px;
+  user-select: none;
+}
+.qflow-section-head::-webkit-details-marker { display: none; }
+.qflow-section-icon { font-size: 15px; display: inline-flex; }
+.qflow-section-title {
+  font-family: var(--title);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--ivory);
+}
+.qflow-section-count {
+  font-size: 11px;
+  color: rgba(200,180,140,0.55);
+}
+.qflow-section-chevron {
+  margin-left: auto;
+  font-size: 16px;
+  color: rgba(200,180,140,0.6);
+  transition: transform 0.2s ease;
+}
+.qflow-section[open] > .qflow-section-head .qflow-section-chevron { transform: rotate(90deg); }
+.qflow-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 12px 12px;
+}
+.qflow-section-desc { font-size: 13px; color: rgba(220,210,190,0.85); }
+
+/* Phase = accented section header */
+.qflow-section-phase { border-color: rgba(200,164,92,0.34); }
+.qflow-section-phase > .qflow-section-head {
+  background: linear-gradient(135deg, rgba(200,164,92,0.16) 0%, rgba(200,164,92,0.04) 100%);
+}
+.qflow-section-phase .qflow-section-icon,
+.qflow-section-phase .qflow-section-title { color: var(--accent); }
+
+/* Group = colored left rail keyed to the group's own color */
+.qflow-section-group { border-left: 3px solid var(--gc, #ffcc66); }
+.qflow-section-group .qflow-section-icon { color: var(--gc, #ffcc66); }
+
+/* "Leads to" branch links for explicit connections */
+.qflow-branch {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.qflow-branch-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: rgba(255,204,102,0.85);
+  background: rgba(255,204,102,0.08);
+  border: 1px solid rgba(255,204,102,0.2);
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
 /* Cards are now tap-to-open buttons */
 .quest-card { cursor: pointer; }
 .quest-card:active { transform: scale(0.995); }

@@ -306,10 +306,12 @@ function renderChars() {
 }
 
 // ── Swipe-to-delete (mobile, Spotify-style) ────────────────────────────────────
-// Drag a card left past the threshold to delete it; a short drag snaps back.
-// Touch-only, so desktop pointer interaction is unaffected.
+// Drag a card right to reveal a red "Delete" card behind it; release past the
+// threshold to delete, or let go early to snap back. Touch-only, so desktop
+// pointer interaction is unaffected.
 function attachSwipeToDelete(swipe, row, c) {
   let startX = 0, startY = 0, dx = 0, dragging = false, decided = false, horizontal = false;
+  const thresholdFor = () => Math.min(120, row.offsetWidth * 0.4);
 
   row.addEventListener("touchstart", e => {
     if (e.touches.length !== 1) return;
@@ -329,17 +331,17 @@ function attachSwipeToDelete(swipe, row, c) {
     }
     if (!horizontal) return;        // vertical gesture → let the page scroll
     e.preventDefault();             // we own the horizontal gesture
-    dx = Math.max(-row.offsetWidth, Math.min(0, ddx));
+    dx = Math.min(row.offsetWidth, Math.max(0, ddx));   // slide right only
     row.style.transform = `translateX(${dx}px)`;
+    swipe.classList.toggle("swipe-ready", dx > thresholdFor());
   }, { passive: false });
 
   const finish = () => {
     if (!dragging) return;
     dragging = false;
     row.style.transition = "";
-    const threshold = Math.min(120, row.offsetWidth * 0.4);
-    if (dx < -threshold) {
-      row.style.transform = "translateX(-100%)";
+    if (dx > thresholdFor()) {
+      row.style.transform = "translateX(100%)";
       row.style.opacity = "0";
       row._swiped = true;
       setTimeout(() => {
@@ -348,6 +350,7 @@ function attachSwipeToDelete(swipe, row, c) {
       }, 180);
     } else {
       row.style.transform = "";
+      swipe.classList.remove("swipe-ready");
       if (Math.abs(dx) > 8) { row._swiped = true; setTimeout(() => { row._swiped = false; }, 60); }
     }
   };
