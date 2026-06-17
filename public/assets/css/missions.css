@@ -1707,25 +1707,7 @@
   flex-shrink: 0;
 }
 
-/* DM button */
-.dm-btn {
-  background: rgba(255,204,102,0.12);
-  border: 1px solid rgba(255,204,102,0.4);
-  color: var(--accent);
-  padding: 8px 18px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: var(--font);
-  font-size: 13px;
-  font-weight: bold;
-  letter-spacing: 0.03em;
-  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
-}
-.dm-btn:hover {
-  background: rgba(255,204,102,0.22);
-  border-color: var(--accent);
-  box-shadow: 0 0 12px rgba(255,204,102,0.2);
-}
+/* DM button styles centralized in base.css */
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PUZZLE BLOCK

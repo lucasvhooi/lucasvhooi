@@ -59,7 +59,6 @@ const invSearch       = document.getElementById("inv-search");
 const invCount        = document.getElementById("inv-count");
 const invViewerName   = document.getElementById("inv-viewer-name");
 const addBtn          = document.getElementById("add-btn");
-const manageBtn       = document.getElementById("manage-btn");
 const invDetailPanel  = document.getElementById("inv-detail-panel");
 const invContent      = document.querySelector(".inv-content");
 const invReader       = document.getElementById("inv-reader");
@@ -279,7 +278,6 @@ playerSelect.addEventListener("change", () => {
 // ── Admin buttons ─────────────────────────────────────────────────────────────
 if (isAdmin) {
   addBtn.style.display = "inline-flex";
-  manageBtn.style.display = "inline-flex";
 }
 
 // ── Search ────────────────────────────────────────────────────────────────────
@@ -1217,8 +1215,6 @@ document.getElementById("ai-save").addEventListener("click", async () => {
 });
 
 // ── Manage Players modal ──────────────────────────────────────────────────────
-manageBtn.addEventListener("click", () => { renderPlayerList(); openModal("manage-modal"); });
-
 function renderPlayerList() {
   const el = document.getElementById("player-list-el");
   const players = Object.entries(allUsers)

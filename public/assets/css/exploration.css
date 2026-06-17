@@ -19,38 +19,7 @@
   white-space: nowrap;
 }
 
-.hdr-search-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.hdr-search-icon {
-  position: absolute;
-  left: 9px;
-  font-size: 13px;
-  color: rgba(200,180,140,0.5);
-  pointer-events: none;
-  z-index: 1;
-}
-
-.items-search {
-  background: rgba(0,0,0,0.3);
-  border: 1px solid rgba(200,164,92,0.2);
-  border-radius: 8px;
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 13px;
-  padding: 7px 12px 7px 30px;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  width: 200px;
-}
-.items-search:focus {
-  border-color: rgba(200,164,92,0.5);
-  box-shadow: 0 0 0 3px rgba(200,164,92,0.08);
-}
-.items-search::placeholder { color: rgba(200,180,150,0.4); }
+/* Header search bar styles centralized in base.css */
 
 /* ── Add button ── */
 .items-btn-add {
@@ -594,38 +563,7 @@
   gap: 8px;
 }
 
-/* ── DM Buttons ── */
-.dm-btn {
-  font-family: var(--font);
-  font-size: 13px;
-  font-weight: bold;
-  letter-spacing: 0.03em;
-  padding: 8px 18px;
-  background: rgba(255,204,102,0.12);
-  border: 1px solid rgba(255,204,102,0.4);
-  color: var(--accent);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.22s, border-color 0.22s, box-shadow 0.28s, transform 0.22s;
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-  transform: translateY(0);
-}
-.dm-btn:hover {
-  background: rgba(255,204,102,0.2);
-  border-color: var(--accent);
-  box-shadow: 0 6px 20px rgba(255,204,102,0.2), 0 2px 8px rgba(0,0,0,0.4);
-  transform: translateY(-2px);
-}
-.dm-btn:active { transform: translateY(0) scale(0.96); }
-.dm-btn-sm { font-size: 12px; padding: 4px 12px; }
-.dm-btn-secondary {
-  background: #3e2b1b;
-  color: var(--text);
-  border: 1px solid #555;
-}
-.dm-btn-secondary:hover { background: #5a3e28; }
+/* DM button styles (.dm-btn, -sm, -secondary) centralized in base.css */
 
 /* ── Modal ── */
 .modal-overlay {
