@@ -60,6 +60,27 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
       </div>
     </div>
 
+    <!-- Mobile-only filter dropdowns (replace category tabs on small screens) -->
+    <div class="inv-mobile-filters">
+      <select class="inv-filter-select" id="inv-type-filter" aria-label="Filter by type">
+        <option value="all">All Types</option>
+        <option value="weapon">Weapons</option>
+        <option value="armor">Armor</option>
+        <option value="potion">Potions</option>
+        <option value="misc">Misc</option>
+        <option value="books-scrolls">Books &amp; Scrolls</option>
+        <option value="spells">Spells</option>
+      </select>
+      <select class="inv-filter-select" id="inv-rarity-filter" aria-label="Filter by rarity">
+        <option value="all">All Rarities</option>
+        <option value="common">Common</option>
+        <option value="uncommon">Uncommon</option>
+        <option value="rare">Rare</option>
+        <option value="very rare">Very Rare</option>
+        <option value="legendary">Legendary</option>
+      </select>
+    </div>
+
     <!-- Sort bar -->
     <div class="items-filter-bar">
       <div class="items-sort-group">

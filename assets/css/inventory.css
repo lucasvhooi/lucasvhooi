@@ -391,6 +391,23 @@
 }
 
 
+/* ── Mobile filter dropdowns (hidden on desktop, shown ≤700px) ────────────────── */
+.inv-mobile-filters { display: none; }
+.inv-filter-select {
+  flex: 1;
+  min-width: 0;
+  background: #1e1208;
+  border: 1px solid rgba(200,164,92,0.3);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 7px 12px;
+  cursor: pointer;
+  outline: none;
+}
+.inv-filter-select:focus { border-color: var(--accent); }
+
 /* ── Attunement bar ──────────────────────────────────────────────────────────── */
 
 .btn-unattuned {
@@ -1471,14 +1488,77 @@
 }
 
 @media (max-width: 700px) {
-  .inv-main { padding: 16px 14px 48px; }
-  .items-filter-bar { flex-direction: column; align-items: flex-start; }
+  /* Extra bottom space so the list clears the floating search dock */
+  .inv-main { padding: 16px 14px 104px; }
   .inv-col-header { display: none; }
   .spells-count { display: none; }
   .inv-top-bar { gap: 12px; }
-  .inv-actions-row { flex-wrap: wrap; }
-  .inv-actions-row .items-search { width: 100%; }
-  .inv-filter-tabs { gap: 5px; }
+
+  /* ── Liquid-glass search dock pinned to the bottom of the screen ── */
+  .inv-actions-row {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    z-index: 120;
+    margin: 0;
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding: 5px;
+    border-radius: 999px;
+    background: rgba(28, 20, 11, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    box-shadow:
+      0 10px 34px rgba(0, 0, 0, 0.5),
+      0 2px 10px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.25);
+  }
+  /* Soft specular sheen across the top of the glass */
+  .inv-actions-row::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 55%);
+  }
+
+  .inv-actions-row .hdr-search-wrap { flex: 1; min-width: 0; }
+  .inv-actions-row .items-search {
+    width: 100%;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    color: #fff;
+    font-size: 15px;
+    padding: 6px 12px 6px 34px;
+  }
+  .inv-actions-row .items-search:focus { border: none; box-shadow: none; }
+  .inv-actions-row .hdr-search-icon { color: rgba(255,255,255,0.55); left: 11px; }
+
+  /* Compact circular gold + button (label hidden via font-size:0) */
+  .inv-actions-row .items-btn-add {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 50%;
+    justify-content: center;
+    font-size: 0;
+  }
+  .inv-actions-row .items-btn-add iconify-icon { font-size: 18px; }
+
+  /* Remove category filter tabs; show the type + rarity filter dropdowns */
+  .inv-filter-tabs { display: none; }
+  .inv-mobile-filters { display: flex; gap: 8px; margin-bottom: 14px; }
+
+  /* Sort bar not needed on mobile */
+  .items-filter-bar { display: none; }
 
   .inv-att-slots-row { gap: 7px; }
   .inv-att-slot { min-height: 58px; padding: 10px 12px; gap: 9px; }
