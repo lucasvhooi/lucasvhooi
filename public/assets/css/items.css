@@ -49,65 +49,8 @@
   white-space: nowrap;
 }
 
-/* Search wrapper with inset icon */
-.hdr-search-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.hdr-search-icon {
-  position: absolute;
-  left: 9px;
-  font-size: 13px;
-  color: rgba(255,255,255,0.32);
-  pointer-events: none;
-  z-index: 1;
-}
-
-.items-search {
-  background: rgba(0,0,0,0.28);
-  border: 1px solid rgba(255,255,255,0.13);
-  border-radius: 8px;
-  color: #fff;
-  font-family: var(--font);
-  font-size: 12px;
-  padding: 6px 12px 6px 28px;
-  outline: none;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: border-color 0.2s, box-shadow 0.2s;
-  width: 170px;
-}
-.items-search:focus {
-  border-color: rgba(200,164,92,0.55);
-  box-shadow: 0 0 0 3px rgba(200,164,92,0.09);
-}
-.items-search::placeholder { color: rgba(255,255,255,0.25); }
-
-/* ── Search clear (×) button ── */
-.hdr-search-wrap .items-search { padding-right: 30px; }
-.search-clear-btn {
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.65);
-  cursor: pointer;
-  transition: background 0.18s, color 0.18s;
-}
-.search-clear-btn.visible { display: inline-flex; }
-.search-clear-btn:hover { background: rgba(255,255,255,0.22); color: #fff; }
-.search-clear-btn iconify-icon { font-size: 13px; }
+/* Header search bar styles centralized in base.css.
+   Items keeps only its page-specific mobile "liquid-glass dock" below. */
 
 /* ── Mobile: liquid-glass search dock pinned to the bottom of the screen ── */
 @media (max-width: 700px) {
