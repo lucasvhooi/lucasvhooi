@@ -1066,27 +1066,7 @@ body {
   justify-content: flex-end;
 }
 
-.dm-btn {
-  font-family: var(--font);
-  font-size: 13px;
-  padding: 7px 18px;
-  background: rgba(200,164,92,0.1);
-  border: 1px solid rgba(200,164,92,0.35);
-  color: var(--accent);
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.1s;
-}
-.dm-btn:hover  { background: rgba(200,164,92,0.18); border-color: var(--accent); box-shadow: 0 0 12px rgba(200,164,92,0.18); }
-.dm-btn:active { transform: scale(0.97); }
-
-.dm-btn-secondary {
-  background: rgba(255,255,255,0.05);
-  color: var(--text);
-  border: 1px solid rgba(255,255,255,0.1);
-}
-.dm-btn-secondary:hover { background: rgba(255,255,255,0.09); }
+/* DM button styles (.dm-btn, -secondary) centralized in base.css */
 
 /* ── HP Adjust overlay ───────────────────────────────────────────────────── */
 .hp-adjust-overlay {

@@ -423,6 +423,8 @@ nav.nav-open .nav-hamburger span:nth-child(3) { transform: translateY(-7px) rota
               transform 0.22s var(--ease-out-expo);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  text-decoration: none;
   white-space: nowrap;
   transform: translateY(0);
 }
@@ -434,6 +436,27 @@ nav.nav-open .nav-hamburger span:nth-child(3) { transform: translateY(-7px) rota
 }
 .dm-btn:active { transform: translateY(0) scale(0.96); }
 .dm-btn-sm { font-size: 12px; padding: 4px 12px; }
+
+/* Secondary (filled) variant */
+.dm-btn-secondary {
+  background: #3e2b1b;
+  color: var(--text);
+  border: 1px solid #555;
+}
+.dm-btn-secondary:hover { background: #5a3e28; }
+
+/* Active/toggled state (red outline) */
+.dm-btn.active {
+  background: rgba(229,115,115,0.15);
+  border-color: #e57373;
+  color: #e57373;
+  box-shadow: none;
+}
+.dm-btn.active:hover {
+  background: rgba(229,115,115,0.25);
+  border-color: #ef9a9a;
+  color: #ef9a9a;
+}
 
 /* ── Shared header search bar ───────────────────────────────────────────
    Canonical search component. Page CSS should NOT redefine these selectors;

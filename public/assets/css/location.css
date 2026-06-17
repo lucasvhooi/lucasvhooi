@@ -308,31 +308,8 @@
   vertical-align: middle;
 }
 
-/* ── DM Buttons ── */
-.dm-btn {
-  font-family: var(--font);
-  font-size: 12px;
-  padding: 5px 13px;
-  background: rgba(255,204,102,0.12);
-  border: 1px solid rgba(255,204,102,0.4);
-  color: var(--accent);
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.1s;
-  white-space: nowrap;
-}
-.dm-btn:hover    { background: rgba(255,204,102,0.22); border-color: var(--accent); box-shadow: 0 0 12px rgba(255,204,102,0.18); }
-.dm-btn:active   { transform: scale(0.97); }
-
-.dm-btn-sm { font-size: 11px; padding: 3px 10px; }
-
-.dm-btn-secondary {
-  background: #252523;
-  color: var(--text);
-  border: 1px solid #555;
-}
-.dm-btn-secondary:hover { background: rgba(255,255,255,0.15); }
+/* DM button styles centralized in base.css.
+   Location keeps only its solid-red .dm-btn.active toggle override below. */
 
 /* ── DM Toolbar (map) ── */
 .loc-dm-toolbar {

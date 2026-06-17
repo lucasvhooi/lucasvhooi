@@ -378,42 +378,7 @@
 }
 .tag-delete-btn:hover { background: rgba(200,60,60,0.15); color: #e06060; border-color: #993333; }
 
-/* ── DM Buttons (shared with location) ── */
-.dm-btn {
-  font-family: var(--font);
-  font-size: 13px;
-  font-weight: bold;
-  letter-spacing: 0.03em;
-  padding: 8px 18px;
-  background: rgba(255,204,102,0.12);
-  border: 1px solid rgba(255,204,102,0.4);
-  color: var(--accent);
-  border-radius: 6px;
-  cursor: pointer;
-  transition:
-    background 0.22s var(--ease-out-expo),
-    border-color 0.22s var(--ease-out-expo),
-    box-shadow 0.28s var(--ease-out-expo),
-    transform 0.22s var(--ease-out-expo);
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-  transform: translateY(0);
-}
-.dm-btn:hover {
-  background: rgba(255,204,102,0.2);
-  border-color: var(--accent);
-  box-shadow: 0 6px 20px rgba(255,204,102,0.2), 0 2px 8px rgba(0,0,0,0.4);
-  transform: translateY(-2px);
-}
-.dm-btn:active { transform: translateY(0) scale(0.96); }
-.dm-btn-sm     { font-size: 12px; padding: 4px 12px; }
-.dm-btn-secondary {
-  background: #3e2b1b;
-  color: var(--text);
-  border: 1px solid #555;
-}
-.dm-btn-secondary:hover { background: #5a3e28; }
+/* DM button styles (.dm-btn, -sm, -secondary) centralized in base.css */
 
 .marker-delete-btn { background: #3b1515; color: #E57373; border: 1px solid #5a2020; }
 .marker-delete-btn:hover { background: #5a2020; }
