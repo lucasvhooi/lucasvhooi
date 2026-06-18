@@ -12,6 +12,13 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
     image={headerImg}
   >
     <div slot="tabs" class="hdr-tabs-row">
+      <div class="hdr-search-wrap">
+        <iconify-icon icon="lucide:search" class="hdr-search-icon"></iconify-icon>
+        <input type="text" id="quest-search" class="items-search" placeholder="Search quests, NPCs, items, places…" />
+        <button type="button" id="quest-search-clear" class="search-clear-btn" aria-label="Clear search">
+          <iconify-icon icon="lucide:x"></iconify-icon>
+        </button>
+      </div>
       <div class="quest-filter-tabs">
         <button class="quest-tab active" data-filter="all">All</button>
         <button class="quest-tab" data-filter="main">
@@ -23,6 +30,10 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
         <button class="quest-tab" data-filter="active">Active</button>
         <button class="quest-tab" data-filter="completed">Completed</button>
       </div>
+      <button id="quest-add-btn" class="items-btn-add" style="display:none">
+        <iconify-icon icon="lucide:plus"></iconify-icon>
+        New Quest
+      </button>
     </div>
   </Header>
 
@@ -36,18 +47,21 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
         <div class="quest-stat-divider"></div>
         <div class="quest-stat-item">
           <span id="qs-main" class="quest-stat-count">0</span>
-          <span class="quest-stat-label">Main Quests</span>
+          <span class="quest-stat-label">Main<span class="qs-suffix"> Quests</span></span>
         </div>
         <div class="quest-stat-divider"></div>
         <div class="quest-stat-item">
           <span id="qs-side" class="quest-stat-count">0</span>
-          <span class="quest-stat-label">Side Quests</span>
+          <span class="quest-stat-label">Side<span class="qs-suffix"> Quests</span></span>
         </div>
       </div>
-      <button id="quest-add-btn" class="items-btn-add" style="display:none">
-        <iconify-icon icon="lucide:plus"></iconify-icon>
-        New Quest
-      </button>
+      <select id="quest-filter-select" class="quest-filter-select" aria-label="Filter quests">
+        <option value="all">All Quests</option>
+        <option value="main">Main</option>
+        <option value="side">Side</option>
+        <option value="active">Active</option>
+        <option value="completed">Completed</option>
+      </select>
     </div>
     <div id="quest-grid" class="quest-grid"></div>
     <p id="quest-empty" class="quest-empty" style="display:none">No quests found.</p>

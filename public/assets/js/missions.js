@@ -97,6 +97,7 @@ const MONSTER_PRESETS = [
 let quests          = [];
 let markerNames     = [];
 let activeFilter    = "all";
+let searchQuery     = "";
 let editingId         = null;
 let currentBlocks     = [];
 let currentCellColors = {};   // legacy — retained only for old-draft compatibility
@@ -472,11 +473,9 @@ qmBlockCanvas.addEventListener("mousedown", e => { if (e.button === 1) e.prevent
 qmBlockCanvas.addEventListener("pointerdown", e => {
   if (e.pointerType === 'touch') return; // touch handled separately below
   if (blockDragState) return;
-  const t = e.target;
-  if (t !== qmBlockCanvas && t !== canvasWorld) return;
 
   if (e.button === 1) {
-    // Middle mouse → pan
+    // Middle mouse → pan (from anywhere on the canvas)
     canvasPanState = { startX: e.clientX, startY: e.clientY, startPanX: canvasPanX, startPanY: canvasPanY };
     qmBlockCanvas.setPointerCapture(e.pointerId);
     qmBlockCanvas.style.cursor = "grabbing";
@@ -485,7 +484,10 @@ qmBlockCanvas.addEventListener("pointerdown", e => {
   }
 
   if (e.button === 0) {
-    // Left mouse → start marquee selection
+    // Left mouse → marquee select. Start it over empty canvas, the world, or a
+    // group's background — but not on a block, a group header, a connection, or
+    // any interactive control (those have their own handlers).
+    if (e.target.closest(".qm-block, .blk-group-header, svg, button, input, select, label, a, textarea, [contenteditable]")) return;
     if (!e.shiftKey) { selectedBlockSet.clear(); refreshSelectionClasses(); }
     const rect = _getCanvasRect();
     marqueeState = { startCX: e.clientX - rect.left, startCY: e.clientY - rect.top };
@@ -691,14 +693,28 @@ qmLocationInp.addEventListener("blur", () => setTimeout(() => hideDrop(qmLocatio
 
 function hideDrop(el) { if (el) el.style.display = "none"; }
 
-// ── Filter tabs ───────────────────────────────────────────────────────────────
+// ── Filter tabs (desktop) + dropdown (mobile) ─────────────────────────────────
+const questFilterSelect = document.getElementById("quest-filter-select");
+function setQuestFilter(filter) {
+  activeFilter = filter;
+  document.querySelectorAll(".quest-tab").forEach(t => t.classList.toggle("active", t.dataset.filter === filter));
+  if (questFilterSelect) questFilterSelect.value = filter;
+  renderGrid();
+}
 document.querySelectorAll(".quest-tab").forEach(tab => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".quest-tab").forEach(t => t.classList.remove("active"));
-    tab.classList.add("active");
-    activeFilter = tab.dataset.filter;
-    renderGrid();
-  });
+  tab.addEventListener("click", () => setQuestFilter(tab.dataset.filter));
+});
+questFilterSelect?.addEventListener("change", () => setQuestFilter(questFilterSelect.value));
+
+// ── Search (matches quest title + deep content: NPCs, items, places, lore…) ───
+const questSearch      = document.getElementById("quest-search");
+const questSearchClear = document.getElementById("quest-search-clear");
+function _updateQuestSearchClear() {
+  if (questSearchClear && questSearch) questSearchClear.classList.toggle("visible", questSearch.value.length > 0);
+}
+questSearch?.addEventListener("input", e => { searchQuery = e.target.value; _updateQuestSearchClear(); renderGrid(); });
+questSearchClear?.addEventListener("click", () => {
+  questSearch.value = ""; searchQuery = ""; _updateQuestSearchClear(); renderGrid(); questSearch.focus();
 });
 
 // ── Add Quest button ──────────────────────────────────────────────────────────
@@ -741,7 +757,7 @@ function updateQuestStats() {
 function renderGrid() {
   questGrid.innerHTML = "";
   updateQuestStats();
-  const visible = quests.filter(q => {
+  let visible = quests.filter(q => {
     if (!isAdmin && !q.discovered) return false;
     if (activeFilter === "all")       return true;
     if (activeFilter === "main")      return q.type === "main";
@@ -750,6 +766,19 @@ function renderGrid() {
     if (activeFilter === "completed") return q.status === "completed";
     return true;
   });
+
+  // Search: keep quests whose title matches or that contain the query somewhere
+  // in their content; stash the matches on the quest for the card to display.
+  const ql = searchQuery.trim().toLowerCase();
+  visible.forEach(q => { q._searchMatches = null; });
+  if (ql) {
+    visible = visible.filter(q => {
+      const titleHit = (q.title || "").toLowerCase().includes(ql);
+      const ms = questSearchMatches(q, ql);
+      q._searchMatches = ms;
+      return titleHit || ms.length > 0;
+    });
+  }
   const statusOrder = { active: 0, not_started: 1, completed: 2 };
   // Sort by explicit order first; fall back to status then title for unordered quests
   visible.sort((a, b) => {
@@ -857,15 +886,32 @@ function orderBlocksForReading(blocks) {
   return ordered;
 }
 
-// Mobile read-only view: a single-column vertical flow of cards with a connector
-// spine. Phase blocks read as section headers; explicit non-sequential
-// connections surface as "leads to" branch links.
+// Persist which flow sections/cards the DM expanded, per quest, in localStorage
+// so leaving for another tab and coming back restores the same open/closed view.
+const QFLOW_EXPAND_KEY = "qflowExpandState2";
+function _loadFlowExpand() {
+  try { return JSON.parse(localStorage.getItem(QFLOW_EXPAND_KEY) || "{}"); } catch (_) { return {}; }
+}
+function flowExpandGet(questId, key, dflt) {
+  const q = _loadFlowExpand()[questId];
+  return q && key in q ? q[key] : dflt;
+}
+function flowExpandSet(questId, key, open) {
+  const s = _loadFlowExpand();
+  (s[questId] = s[questId] || {})[key] = open;
+  try { localStorage.setItem(QFLOW_EXPAND_KEY, JSON.stringify(s)); } catch (_) {}
+}
+
+// Mobile read-only view: a single-column vertical flow. Phase blocks and groups
+// become collapsible sections; each item card is collapsible too. Explicit
+// non-sequential connections surface as "leads to" branch links.
 function buildQuestFlowDOM(q) {
   const blocks = q.blocks ? q.blocks.map(b => migrateBlock({ ...b })) : [];
   const { conns: connections, grps: groups } = migrateRefsToIds(blocks, q.connections, q.groups);
 
   const container = document.createElement("div");
   container.className = "qc-ro-flow";
+  const qid = q.id || "_";
 
   const visible = blocks.filter(b => !(b.type === "note" && !isAdmin));
   if (!visible.length) {
@@ -882,15 +928,9 @@ function buildQuestFlowDOM(q) {
   const outConns = {};
   connections.forEach(c => { (outConns[c.from] = outConns[c.from] || []).push(c.to); });
 
-  // One read-only card for a single block (incl. "leads to" links for any
-  // outgoing connections the DM drew).
+  // One read-only card for a single block. Cards are individually collapsible
+  // (state persisted) so the DM can reveal exactly what they want on screen.
   const makeCard = (b) => {
-    const card = document.createElement("div");
-    card.className = "qflow-block qc-block-ro qflow-" + b.type;
-    card.dataset.session = b.sessionMarker || "";
-    card.dataset.blockId = b.id;
-    if (b.bgColor) { card.style.setProperty("--blk-cc", b.bgColor); card.classList.add("blk-colored"); }
-
     const sessionPill = b.sessionMarker
       ? `<span class="qcro-session-pill ${sessionColorClass(b.sessionMarker)}">${esc(b.sessionMarker)}</span>` : "";
     const branchTos = (outConns[b.id] || []).filter(to => {
@@ -900,23 +940,49 @@ function buildQuestFlowDOM(q) {
       ? `<div class="qflow-branch">${branchTos.map(to =>
           `<span class="qflow-branch-link"><iconify-icon icon="lucide:corner-down-right"></iconify-icon> ${esc(blockHeadline(byId(to)))}</span>`).join("")}</div>` : "";
 
-    card.innerHTML = `
-      <div class="blk-header qcro-header qflow-header">
+    // Dividers are pure separators — render plain, not collapsible.
+    if (b.type === "divider") {
+      const div = document.createElement("div");
+      div.className = "qflow-block qflow-divider qc-block-ro";
+      div.dataset.session = b.sessionMarker || "";
+      div.dataset.blockId = b.id;
+      div.innerHTML = `<div class="blk-body">${buildBlockROContent(b)}</div>`;
+      return div;
+    }
+
+    const det = document.createElement("details");
+    det.className = "qflow-block qc-block-ro qflow-" + b.type;
+    det.dataset.session = b.sessionMarker || "";
+    det.dataset.blockId = b.id;
+    if (b.bgColor) { det.style.setProperty("--blk-cc", b.bgColor); det.classList.add("blk-colored"); }
+
+    const key = "card:" + b.id;
+    det.open = flowExpandGet(qid, key, false);
+    det.addEventListener("toggle", () => flowExpandSet(qid, key, det.open));
+
+    const headline = blockHeadline(b);
+    const showHeadline = headline && headline !== (BLOCK_TYPE_LABEL[b.type] || b.type);
+
+    det.innerHTML = `
+      <summary class="qflow-card-head">
         <span class="blk-type-icon">${BLOCK_TYPE_ICON[b.type] || ""}</span>
         <span class="blk-type-label">${BLOCK_TYPE_LABEL[b.type] || b.type}</span>
+        ${showHeadline ? `<span class="qflow-card-headline">${esc(headline)}</span>` : ""}
         ${sessionPill}
-      </div>
+        <iconify-icon icon="lucide:chevron-right" class="qflow-card-chevron"></iconify-icon>
+      </summary>
       <div class="blk-body">${buildBlockROContent(b)}</div>
       ${branchHtml}`;
-    return card;
+    return det;
   };
 
   // A collapsible <details> container for a phase or a group, holding its cards.
-  const makeSection = (kind, info, children) => {
+  const makeSection = (kind, key, info, children) => {
     const det = document.createElement("details");
     det.className = `qflow-section qflow-section-${kind}`;
-    det.open = true;
     if (kind === "group" && info.color) det.style.setProperty("--gc", info.color);
+    det.open = flowExpandGet(qid, key, false);
+    det.addEventListener("toggle", () => flowExpandSet(qid, key, det.open));
     const n = children.length;
     det.innerHTML = `
       <summary class="qflow-section-head">
@@ -965,13 +1031,13 @@ function buildQuestFlowDOM(q) {
       container.appendChild(makeCard(item.block));
     } else if (item.kind === "phase") {
       const h = item.header;
-      container.appendChild(makeSection("phase", {
+      container.appendChild(makeSection("phase", "phase:" + h.id, {
         icon: '<iconify-icon icon="lucide:chevron-right"></iconify-icon>',
         title: h.title || h.blockTitle || "Phase",
         desc: h.description || "",
       }, item.children));
     } else {
-      container.appendChild(makeSection("group", {
+      container.appendChild(makeSection("group", "group:" + item.group.id, {
         icon: '<iconify-icon icon="lucide:layers"></iconify-icon>',
         title: item.group.title || "Group",
         color: item.group.color || "#ffcc66",
@@ -1127,7 +1193,7 @@ function buildQuestCanvasDOM(q) {
 
   container.addEventListener("mousedown", e => { if (e.button === 1) e.preventDefault(); });
   container.addEventListener("pointerdown", e => {
-    if (e.button !== 0 && e.button !== 1) return;
+    if (e.button !== 1) return;   // middle-mouse pans; left is free for text selection
     e.preventDefault();
     container.setPointerCapture(e.pointerId);
     roPanState = { startX: e.clientX, startY: e.clientY, startPanX: roPanX, startPanY: roPanY };
@@ -1176,6 +1242,65 @@ function buildQuestCanvasDOM(q) {
 }
 
 // Build at-a-glance content summary chips (phase/enemy/loot counts) for a quest card
+// Deep content search: find where a query appears inside a quest (NPC names,
+// items, places, lore, phases, text…). Returns [{icon, text, where}] so the
+// card can show not just which quests match but where the match lives.
+function _plainText(html) {
+  return String(html || "").replace(/<[^>]*>/g, " ").replace(/&[a-z#0-9]+;/gi, " ");
+}
+function questSearchMatches(q, ql) {
+  const matches = [];
+  const seen = new Set();
+  const push = (icon, text, where) => {
+    const t = (text || "").trim(); if (!t) return;
+    const k = icon + "|" + t.toLowerCase() + "|" + where;
+    if (seen.has(k)) return; seen.add(k);
+    matches.push({ icon, text: t, where });
+  };
+  const hit = s => s != null && String(s).toLowerCase().includes(ql);
+
+  if (hit(q.location))        push("lucide:map-pin", q.location, "Location");
+  if (q.giver && hit(q.giver.name)) push("lucide:user-round", q.giver.name, "Quest giver");
+  (q.objectives || []).forEach(o => { if (hit(o.text)) push("lucide:check-square", o.text, "Objective"); });
+
+  const blocks = (q.blocks || []).map(b => migrateBlock({ ...b })).filter(b => !(b.type === "note" && !isAdmin));
+
+  // Work out which phase each block sits under, for "where it appears" context.
+  const phaseOf = {};
+  let cur = "";
+  orderBlocksForReading(blocks).forEach(b => {
+    if (b.type === "phase") cur = b.title || b.blockTitle || "Phase";
+    else phaseOf[b.id] = cur;
+  });
+  const ctx = (b, fallback) => phaseOf[b.id] ? `in ${phaseOf[b.id]}` : fallback;
+
+  blocks.forEach(b => {
+    switch (b.type) {
+      case "character":
+        (b.characters || []).forEach(c => {
+          if (hit(c.name) || hit(c.profession)) push("lucide:user", c.name || c.profession, ctx(b, "Character"));
+        }); break;
+      case "loot":
+        (b.items || []).forEach(it => { if (hit(it.name)) push("game-icons:open-treasure-chest", it.name, ctx(b, "Loot")); }); break;
+      case "boss":
+      case "encounter":
+        (b.enemies || []).forEach(en => { if (hit(en.name)) push("game-icons:death-skull", en.name, ctx(b, "Enemy")); }); break;
+      case "loreref":
+        (b.items || []).forEach(it => { if (hit(it.title)) push("game-icons:bookshelf", it.title, ctx(b, "Lore")); }); break;
+      case "phase":
+        if (hit(b.title) || hit(b.blockTitle)) push("lucide:chevron-right", b.title || b.blockTitle, "Phase"); break;
+      case "puzzle":
+        if (hit(b.title) || hit(b.description) || hit(b.hint) || (isAdmin && hit(b.solution)))
+          push("game-icons:puzzle", b.title || "Puzzle", ctx(b, "Puzzle")); break;
+      case "text":
+        if (hit(b.blockTitle) || hit(_plainText(b.content))) push("lucide:type", b.blockTitle || "Text", ctx(b, "Text")); break;
+      case "note":
+        if (isAdmin && hit(_plainText(b.content))) push("lucide:file-text", "DM note", ctx(b, "Note")); break;
+    }
+  });
+  return matches;
+}
+
 function buildSummaryChips(blocks) {
   if (!blocks || !blocks.length) return "";
   let phases = 0, enemies = 0, loot = 0, puzzles = 0, chars = 0, lore = 0;
@@ -1232,6 +1357,11 @@ function buildCard(q) {
   const prereqNames = questPrereqList(q);
   const requiresHtml = prereqNames.length ? `<div class="qc-requires"><iconify-icon icon="lucide:lock"></iconify-icon> Requires: ${prereqNames.map(p => esc(p.title || "?")).join(", ")}</div>` : "";
 
+  const matchHtml = (searchQuery && q._searchMatches && q._searchMatches.length)
+    ? `<div class="qc-search-matches">${q._searchMatches.slice(0, 8).map(m =>
+        `<span class="qc-match"><iconify-icon icon="${m.icon}" class="qc-match-icon"></iconify-icon><span class="qc-match-text">${esc(m.text)}</span>${m.where ? `<span class="qc-match-where">${esc(m.where)}</span>` : ""}</span>`).join("")}${q._searchMatches.length > 8 ? `<span class="qc-match qc-match-more">+${q._searchMatches.length - 8} more</span>` : ""}</div>`
+    : "";
+
   const emblemIcon = q.status === "completed" ? "lucide:check"
     : q.type === "side" ? "lucide:sparkles"
     : "game-icons:crossed-swords";
@@ -1239,7 +1369,15 @@ function buildCard(q) {
   card.innerHTML = `
     <div class="qc-accent-bar"></div>
     <div class="qc-body">
-      <div class="qc-emblem"><iconify-icon icon="${emblemIcon}"></iconify-icon></div>
+      <div class="qc-emblem-col">
+        <div class="qc-emblem"><iconify-icon icon="${emblemIcon}"></iconify-icon></div>
+        <div class="qc-top-row">
+          <span class="qc-type-badge">${q.type === "main" ? "Main Quest" : "Side Quest"}</span>
+          <span class="qc-status ${STATUS_CLASS[q.status] || ""}">${STATUS_LABEL[q.status] || "Unknown"}</span>
+          ${q.recommendedLevel ? `<span class="qc-level-badge"><iconify-icon icon="lucide:shield"></iconify-icon> Lv ${esc(q.recommendedLevel)}</span>` : ""}
+          ${isAdmin && !q.discovered ? `<span class="qc-hidden-badge"><iconify-icon icon="lucide:eye"></iconify-icon> DM Only</span>` : ""}
+        </div>
+      </div>
       <div class="qc-header-row">
         ${isAdmin ? `<iconify-icon icon="lucide:grip-vertical" class="qc-drag-handle" title="Drag to reorder quests"></iconify-icon>` : ""}
         <div class="qc-title-row">
@@ -1247,16 +1385,11 @@ function buildCard(q) {
           ${q.location ? `<div class="qc-location"><iconify-icon icon="lucide:map-pin"></iconify-icon> ${esc(q.location)}</div>` : ""}
           ${giverHtml}
         </div>
-        <div class="qc-top-row">
-          <span class="qc-type-badge">${q.type === "main" ? "Main Quest" : "Side Quest"}</span>
-          <span class="qc-status ${STATUS_CLASS[q.status] || ""}">${STATUS_LABEL[q.status] || "Unknown"}</span>
-          ${q.recommendedLevel ? `<span class="qc-level-badge"><iconify-icon icon="lucide:shield"></iconify-icon> Lv ${esc(q.recommendedLevel)}</span>` : ""}
-          ${isAdmin && !q.discovered ? `<span class="qc-hidden-badge"><iconify-icon icon="lucide:eye"></iconify-icon> DM Only</span>` : ""}
-        </div>
         ${buildSummaryChips(blocks)}
         ${objPill ? `<div class="qc-obj-row">${objPill}</div>` : ""}
         ${questRewardsSummary(q)}
         ${requiresHtml}
+        ${matchHtml}
       </div>
     </div>
     ${locked ? `<div class="qc-lock-overlay"><iconify-icon icon="lucide:lock"></iconify-icon></div>` : ""}
@@ -3360,11 +3493,18 @@ document.addEventListener("keydown", e => {
   if (key === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
   else if ((key === "y") || (key === "z" && e.shiftKey)) { e.preventDefault(); redo(); }
   else if (key === "s") { e.preventDefault(); qmSave.click(); }
-  else if (key === "g" && selectedBlockSet.size > 0 && !e.target.closest("input, textarea, [contenteditable]")) {
+  else if (key === "g") {
+    // Always swallow Ctrl/Cmd+G while the editor is open so the browser's
+    // Find-Next bar never opens. Group the current selection regardless of
+    // which element has focus — starting a marquee calls preventDefault(), so
+    // focus can still be sitting in a block's text field, and Ctrl+G is never a
+    // text-editing shortcut anyway.
     e.preventDefault();
-    currentGroups.push({ id: newId(), title: "", color: "#ffcc66", blockIds: [...selectedBlockSet] });
-    onEditTick();
-    buildBlocksEditor();
+    if (selectedBlockSet.size > 0) {
+      currentGroups.push({ id: newId(), title: "", color: "#ffcc66", blockIds: [...selectedBlockSet] });
+      onEditTick();
+      buildBlocksEditor();
+    }
   }
   else if (key === "c" && selectedBlockSet.size > 0 && !e.target.closest("input, textarea, [contenteditable]")) {
     e.preventDefault();

@@ -33,6 +33,14 @@
 .modal-overlay.open { display: flex; }
 
 /* ── Filter tabs ── */
+/* Header row: search sits inline before the filter tabs (matches other tabs) */
+.hdr-tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .quest-filter-tabs {
   display: flex;
   gap: 5px;
@@ -56,6 +64,29 @@
 }
 .quest-tab:hover  { border-color: var(--accent); color: var(--accent); background: rgba(200,164,92,0.08); }
 .quest-tab.active { background: rgba(200,164,92,0.15); border-color: rgba(200,164,92,0.5); color: var(--accent); }
+
+/* Filter dropdown — replaces the tab row on mobile (hidden on desktop) */
+.quest-filter-select {
+  display: none;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 8px 32px 8px 13px;
+  border-radius: 8px;
+  border: 1px solid rgba(200,164,92,0.3);
+  background-color: rgba(28,20,11,0.6);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffcc66' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.quest-filter-select:focus { outline: none; border-color: rgba(200,164,92,0.6); }
+.quest-filter-select option { background: #1c140b; color: var(--text); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    MAIN GRID
@@ -213,7 +244,23 @@
   padding: 10px 16px 10px 18px;
   min-width: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* Emblem with the status badges in a compact block beneath it (badges sit
+   next to each other and wrap), so they don't crowd the title */
+.qc-emblem-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  flex-shrink: 0;
+  max-width: 190px;
+}
+.qc-emblem-col .qc-top-row {
+  flex-wrap: wrap;
+  gap: 5px;
 }
 
 /* Card header — single flex row */
@@ -371,6 +418,32 @@
 .qc-chip-puzzle { border-color: rgba(156,95,255,0.3);  color: #b28dfd;  background: rgba(156,95,255,0.05); }
 .qc-chip-char   { border-color: rgba(160,196,255,0.3); color: #a0c4ff;  background: rgba(160,196,255,0.05); }
 .qc-chip-lore   { border-color: rgba(212,165,116,0.3); color: #d4a574;  background: rgba(212,165,116,0.05); }
+
+/* Search results — where the query was found inside the quest */
+.qc-search-matches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(200,164,92,0.18);
+}
+.qc-match {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: rgba(245,222,179,0.88);
+  background: rgba(255,204,102,0.06);
+  border: 1px solid rgba(255,204,102,0.2);
+  border-radius: 6px;
+  padding: 2px 8px;
+  max-width: 100%;
+}
+.qc-match-icon { font-size: 12px; color: var(--accent); flex-shrink: 0; }
+.qc-match-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qc-match-where { color: #8a7a60; font-style: italic; font-size: 10px; flex-shrink: 0; }
+.qc-match-more { color: #8a7a60; background: none; border-style: dashed; }
 
 /* Folded — hide content section, keep header visible */
 .qc-folded .qc-content { display: none; }
@@ -1968,6 +2041,92 @@
   .qm-sidebar-help { display: none; }
 }
 
+/* ── Mobile: search → bottom liquid-glass dock, filter → dropdown, stats →
+   one line, cards show only type + status (matches the other tabs' dock) ── */
+@media (max-width: 700px) {
+  .quest-page-main { padding: 16px 14px 96px; }   /* clear the floating dock */
+
+  .hdr-tabs-row {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    z-index: 120;
+    margin: 0;
+    flex-wrap: nowrap;
+    gap: 2px;
+    padding: 5px;
+    border-radius: 999px;
+    background: rgba(28, 20, 11, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    box-shadow:
+      0 10px 34px rgba(0, 0, 0, 0.5),
+      0 2px 10px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.25);
+  }
+  .hdr-tabs-row:focus-within { border-color: rgba(200,164,92,0.7); }
+  .hdr-tabs-row::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 55%);
+  }
+  .hdr-tabs-row .quest-filter-tabs { display: none; }   /* replaced by dropdown */
+  .hdr-tabs-row .hdr-search-wrap { flex: 1; min-width: 0; }
+
+  /* Compact circular gold + button inside the dock (matches other menus) */
+  .hdr-tabs-row .items-btn-add {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    gap: 0;
+    border-radius: 50%;
+    justify-content: center;
+    font-size: 0;
+  }
+  .hdr-tabs-row .items-btn-add iconify-icon { font-size: 18px; }
+  .hdr-tabs-row .items-search {
+    width: 100%;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    color: #fff;
+    font-size: 12px;
+    padding: 6px 34px 6px 34px;
+  }
+  .hdr-tabs-row .items-search:focus { border: none; box-shadow: none; }
+  .hdr-tabs-row .hdr-search-icon { color: rgba(255,255,255,0.55); left: 11px; }
+
+  /* Filter dropdown + one-line stats */
+  .quest-filter-select { display: block; }
+  .quest-filter-bar {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+  .quest-stats-row { flex: 1; min-width: 0; gap: 0; flex-wrap: nowrap; overflow: hidden; }
+  .quest-stat-item { padding: 0 9px; gap: 4px; }
+  .quest-stat-count { font-size: 14px; }
+  .quest-stat-label { font-size: 8px; letter-spacing: 0.04em; }
+  .quest-stat-divider { height: 16px; }
+  .qs-suffix { display: none; }   /* "Main Quests" → "Main", "Side Quests" → "Side" */
+
+  /* Cards: keep only the quest type + started state; drop the count chips
+     (incl. the NPC chip) and the level badge so nothing overflows */
+  .qc-summary { display: none; }
+  .qc-level-badge { display: none; }
+  .qc-top-row { flex-wrap: nowrap; }
+}
+
 @media (max-width: 760px) {
   .quest-tab {
     min-height: 44px;
@@ -1994,12 +2153,8 @@
 }
 
 @media (max-width: 600px) {
-  /* Stack the stat counters above a full-width "New Quest" button so it
-     doesn't overflow off the right edge */
-  .quest-filter-bar { flex-direction: column; align-items: stretch; }
-  .quest-stats-row { flex-wrap: wrap; justify-content: space-around; }
-  .quest-filter-bar .items-btn-add { width: 100%; justify-content: center; }
-
+  /* Filter bar stays a single compact row on mobile (see the 700px dock block);
+     the New Quest button is hidden on phones, so no stacking needed. */
   .qm-block-canvas { min-height: 380px; }
   .qm-canvas-wrap { padding: 14px 14px 20px; }
   .qm-details-card { padding: 6px 10px 6px 14px; }
@@ -2774,7 +2929,10 @@
   display: none;
   position: fixed;
   inset: 0;
-  z-index: 99;
+  /* Above the mobile top bar (z-index 150, a flex item that stacks despite
+     being position:static) and the off-canvas sidebar drawer (z-index 200),
+     so the viewer's header / Back button stays reachable on phones. */
+  z-index: 250;
   flex-direction: column;
   background: #120a02;
 }
@@ -2869,9 +3027,9 @@
    Editing/free-flow canvas is tablet+desktop only; phones render this instead.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Editor entry points are hidden on phones (creation is tablet/desktop only) */
+/* Edit affordances are hidden on phones (editing is tablet/desktop only); the
+   New Quest + button stays in the dock for parity and explains itself on tap. */
 @media (max-width: 767px) {
-  #quest-add-btn,
   .qc-edit-btn,
   .qview-edit-btn { display: none !important; }
 }
@@ -2890,16 +3048,54 @@
   max-width: 680px;
   margin: 0 auto;
 }
+/* Flow cards are an interactive list (not the pan canvas), so re-enable taps —
+   .qc-block-ro otherwise sets pointer-events:none and the <summary> can't be
+   clicked to expand/collapse a card. */
+.qc-ro-flow .qflow-block { pointer-events: auto; }
 
-/* ── Individual block card ── */
+/* ── Individual block card (collapsible <details>) ── */
 .qflow-block {
   position: relative;
-  padding: 12px 14px;
   background: linear-gradient(135deg, #15171b 0%, #111317 100%);
   border: 1px solid rgba(200,164,92,0.14);
   border-radius: 12px;
 }
 .qflow-block.blk-colored { border-left: 3px solid var(--blk-cc, #c8a45c); }
+
+.qflow-card-head {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  user-select: none;
+}
+.qflow-card-head::-webkit-details-marker { display: none; }
+.qflow-card-headline {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  color: rgba(220,210,190,0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qflow-card-chevron {
+  margin-left: auto;
+  font-size: 15px;
+  color: rgba(200,180,140,0.5);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+.qflow-block[open] > .qflow-card-head .qflow-card-chevron { transform: rotate(90deg); }
+.qflow-block > .blk-body,
+.qflow-block > .qflow-branch { padding: 0 12px 11px; }
+.qflow-block > .qflow-branch { margin-top: 0; }
+
+/* Dividers render as a plain separator, not a collapsible card */
+.qflow-block.qflow-divider { background: none; border: none; }
+.qflow-block.qflow-divider > .blk-body { padding: 6px 12px; }
 
 /* Light connector between consecutive sibling cards (top-level or in a section) */
 .qflow-block + .qflow-block::before {
@@ -2974,6 +3170,11 @@
 /* Group = colored left rail keyed to the group's own color */
 .qflow-section-group { border-left: 3px solid var(--gc, #ffcc66); }
 .qflow-section-group .qflow-section-icon { color: var(--gc, #ffcc66); }
+/* Group titles are uppercased in the editor — match that here */
+.qflow-section-group .qflow-section-title {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
 /* "Leads to" branch links for explicit connections */
 .qflow-branch {
@@ -2986,13 +3187,43 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: 10px;
   color: rgba(255,204,102,0.85);
   background: rgba(255,204,102,0.08);
   border: 1px solid rgba(255,204,102,0.2);
   border-radius: 6px;
   padding: 3px 8px;
 }
+
+/* ── Compact type scale so more of a quest fits on a phone ── */
+.qc-ro-flow { gap: 9px; padding: 12px 12px 40px; }
+.qc-ro-flow .qflow-card-head { padding: 8px 10px; }
+.qc-ro-flow .qflow-block > .blk-body,
+.qc-ro-flow .qflow-block > .qflow-branch { padding: 0 10px 9px; }
+.qc-ro-flow .blk-type-label { font-size: 9px; }
+.qc-ro-flow .blk-type-icon { font-size: 12px; }
+.qc-ro-flow .qcro-block-title { font-size: 10px; }
+.qc-ro-flow .qcro-text,
+.qc-ro-flow .qcro-loot-row,
+.qc-ro-flow .qcro-boss-row,
+.qc-ro-flow .qcro-lore-row,
+.qc-ro-flow .qcro-char-row,
+.qc-ro-flow .qcro-note { font-size: 11px; }
+.qc-ro-flow .qcro-phase-title { font-size: 11px; }
+.qc-ro-flow .qcro-hint,
+.qc-ro-flow .qcro-solution { font-size: 10px; }
+.qc-ro-flow .qcb-boss-name { font-size: 11px; }
+.qc-ro-flow .qcb-boss-stat { font-size: 9px; }
+.qc-ro-flow .char-item-name { font-size: 11px; }
+.qc-ro-flow .char-item-meta { font-size: 10px; }
+.qc-ro-flow .char-item-pic { width: 26px; height: 26px; }
+
+/* Section headers a touch tighter too */
+.qc-ro-flow .qflow-section-head { padding: 9px 12px; }
+.qc-ro-flow .qflow-section-title { font-size: 13px; }
+.qc-ro-flow .qflow-section-count { font-size: 10px; }
+.qc-ro-flow .qflow-section-body { gap: 9px; padding: 0 10px 10px; }
+.qc-ro-flow .qflow-section-desc { font-size: 12px; }
 
 /* Cards are now tap-to-open buttons */
 .quest-card { cursor: pointer; }
@@ -3482,7 +3713,7 @@
 }
 .qm-ol-group-focus:hover { color: var(--accent); }
 .qm-ol-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 6px rgba(255,204,102,0.3); }
-.qm-ol-group-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0.03em; }
+.qm-ol-group-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0.05em; text-transform: uppercase; }
 .qm-ol-ungrouped-name { color: var(--q-text-dim); text-transform: uppercase; font-size: 10px; letter-spacing: 0.1em; }
 .qm-ol-count { font-size: 10px; color: var(--q-text-dim); background: rgba(0,0,0,0.3); border-radius: 8px; padding: 1px 7px; flex-shrink: 0; }
 .qm-ol-group-body { display: flex; flex-direction: column; gap: 2px; padding: 4px; }
