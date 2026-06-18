@@ -239,29 +239,35 @@
   animation: quest-active-aura 2.8s ease-in-out 0.3s infinite;
 }
 
+/* Card body is a grid so the emblem / title / badges / meta can rearrange
+   between desktop (emblem rail on the left) and mobile (emblem top-right). */
 .qc-body {
   flex: 1;
   padding: 10px 16px 10px 18px;
   min-width: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "emblem title"
+    "badges meta";
+  column-gap: 12px;
+  row-gap: 6px;
+  align-items: start;
 }
-
-/* Emblem with the status badges in a compact block beneath it (badges sit
-   next to each other and wrap), so they don't crowd the title */
-.qc-emblem-col {
+.qc-emblem    { grid-area: emblem; }
+.qc-title-row { grid-area: title; align-self: center; }
+.qc-top-row   { grid-area: badges; }
+.qc-meta {
+  grid-area: meta;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 7px;
-  flex-shrink: 0;
-  max-width: 190px;
+  gap: 6px;
 }
-.qc-emblem-col .qc-top-row {
-  flex-wrap: wrap;
-  gap: 5px;
-}
+
+/* Swipe-to-delete wrapper — an invisible passthrough on desktop */
+.quest-swipe { display: contents; }
+.quest-swipe-delete { display: none; }
 
 /* Card header — single flex row */
 .qc-header-row {
@@ -2120,11 +2126,58 @@
   .quest-stat-divider { height: 16px; }
   .qs-suffix { display: none; }   /* "Main Quests" → "Main", "Side Quests" → "Side" */
 
-  /* Cards: keep only the quest type + started state; drop the count chips
-     (incl. the NPC chip) and the level badge so nothing overflows */
+  /* Cards: emblem moves to the top-right (where the buttons were), title sits
+     above the badges; count chips + level badge dropped so nothing overflows */
+  .qc-body {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "title emblem"
+      "badges badges"
+      "meta meta";
+    column-gap: 10px;
+    row-gap: 7px;
+  }
+  .qc-title-row { align-self: start; }
+  .qc-emblem { align-self: start; }
+  .qc-actions { display: none; }       /* deletion is via swipe on mobile */
+  .qc-drag-handle { display: none; }
   .qc-summary { display: none; }
   .qc-level-badge { display: none; }
-  .qc-top-row { flex-wrap: nowrap; }
+  .qc-top-row { flex-wrap: wrap; }
+
+  /* Swipe-to-delete: wrapper clips, a red delete card sits behind, the card
+     slides right to reveal it (mirrors the character tab) */
+  .quest-swipe {
+    display: block;
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    animation: fadeInUp 0.4s var(--ease-out-expo) both;
+  }
+  .quest-swipe-delete {
+    display: flex;
+    position: absolute;
+    inset: 0;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 26px;
+    font-size: 22px;
+    color: #f0c4c4;
+    background: linear-gradient(90deg, #7a1d1d 0%, #3e1010 100%);
+    border-radius: 14px;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .quest-swipe.swipe-ready .quest-swipe-delete {
+    color: #fff;
+    background: linear-gradient(90deg, #c62828 0%, #8a1d1d 100%);
+  }
+  .quest-swipe .quest-card {
+    position: relative;
+    z-index: 1;
+    touch-action: pan-y;
+    animation: none;   /* freed for the swipe drag; entry anim lives on the wrapper */
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  }
 }
 
 @media (max-width: 760px) {

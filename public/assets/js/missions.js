@@ -789,7 +789,22 @@ function renderGrid() {
   });
 
   questEmpty.style.display = visible.length === 0 ? "block" : "none";
-  visible.forEach(q => questGrid.appendChild(buildCard(q)));
+  visible.forEach(q => {
+    const card = buildCard(q);
+    // Wrap every card so it can be swiped to delete on mobile (admin only).
+    // On desktop the wrapper is display:contents, so layout is unchanged.
+    const swipe = document.createElement("div");
+    swipe.className = "quest-swipe";
+    if (isAdmin) {
+      const del = document.createElement("div");
+      del.className = "quest-swipe-delete";
+      del.innerHTML = '<iconify-icon icon="lucide:trash-2"></iconify-icon>';
+      swipe.appendChild(del);
+      attachQuestSwipeToDelete(swipe, card, q);
+    }
+    swipe.appendChild(card);
+    questGrid.appendChild(swipe);
+  });
 
   // Restore scroll position after DOM settles
   const state = loadPageState();
@@ -1345,6 +1360,55 @@ function questPrereqList(q) {
   return (q.prerequisites || []).map(qid => quests.find(x => x.id === qid)).filter(Boolean);
 }
 
+// Swipe-to-delete for quest cards (mobile, Spotify-style): drag the card right
+// to reveal a red delete card; release past the threshold to delete. Touch-only,
+// so desktop pointer interaction (click to open, drag handle to reorder) is unaffected.
+function attachQuestSwipeToDelete(swipe, card, q) {
+  let startX = 0, startY = 0, dx = 0, dragging = false, decided = false, horizontal = false;
+  const thresholdFor = () => Math.min(140, card.offsetWidth * 0.4);
+
+  card.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    dx = 0; dragging = true; decided = false; horizontal = false;
+    card.style.transition = "none";
+  }, { passive: true });
+
+  card.addEventListener("touchmove", e => {
+    if (!dragging) return;
+    const ddx = e.touches[0].clientX - startX;
+    const ddy = e.touches[0].clientY - startY;
+    if (!decided && (Math.abs(ddx) > 8 || Math.abs(ddy) > 8)) {
+      decided = true;
+      horizontal = Math.abs(ddx) > Math.abs(ddy);
+    }
+    if (!horizontal) return;        // vertical gesture → let the page scroll
+    e.preventDefault();             // we own the horizontal gesture
+    dx = Math.min(card.offsetWidth, Math.max(0, ddx));   // slide right only
+    card.style.transform = `translateX(${dx}px)`;
+    swipe.classList.toggle("swipe-ready", dx > thresholdFor());
+  }, { passive: false });
+
+  const finish = () => {
+    if (!dragging) return;
+    dragging = false;
+    card.style.transition = "";
+    if (dx > thresholdFor()) {
+      card.style.transform = "translateX(100%)";
+      card.style.opacity = "0";
+      card._swiped = true;
+      setTimeout(() => remove(ref(db, `campaigns/${cid}/quests/${q.id}`)), 180);
+    } else {
+      card.style.transform = "";
+      swipe.classList.remove("swipe-ready");
+      if (Math.abs(dx) > 8) { card._swiped = true; setTimeout(() => { card._swiped = false; }, 60); }
+    }
+  };
+  card.addEventListener("touchend", finish);
+  card.addEventListener("touchcancel", finish);
+}
+
 function buildCard(q) {
   const card = document.createElement("div");
   const locked = !isAdmin && !prereqsMet(q);
@@ -1369,22 +1433,20 @@ function buildCard(q) {
   card.innerHTML = `
     <div class="qc-accent-bar"></div>
     <div class="qc-body">
-      <div class="qc-emblem-col">
-        <div class="qc-emblem"><iconify-icon icon="${emblemIcon}"></iconify-icon></div>
-        <div class="qc-top-row">
-          <span class="qc-type-badge">${q.type === "main" ? "Main Quest" : "Side Quest"}</span>
-          <span class="qc-status ${STATUS_CLASS[q.status] || ""}">${STATUS_LABEL[q.status] || "Unknown"}</span>
-          ${q.recommendedLevel ? `<span class="qc-level-badge"><iconify-icon icon="lucide:shield"></iconify-icon> Lv ${esc(q.recommendedLevel)}</span>` : ""}
-          ${isAdmin && !q.discovered ? `<span class="qc-hidden-badge"><iconify-icon icon="lucide:eye"></iconify-icon> DM Only</span>` : ""}
-        </div>
-      </div>
-      <div class="qc-header-row">
+      <div class="qc-emblem"><iconify-icon icon="${emblemIcon}"></iconify-icon></div>
+      <div class="qc-title-row">
         ${isAdmin ? `<iconify-icon icon="lucide:grip-vertical" class="qc-drag-handle" title="Drag to reorder quests"></iconify-icon>` : ""}
-        <div class="qc-title-row">
-          <h3 class="qc-title">${esc(q.title || "")}</h3>
-          ${q.location ? `<div class="qc-location"><iconify-icon icon="lucide:map-pin"></iconify-icon> ${esc(q.location)}</div>` : ""}
-          ${giverHtml}
-        </div>
+        <h3 class="qc-title">${esc(q.title || "")}</h3>
+        ${q.location ? `<div class="qc-location"><iconify-icon icon="lucide:map-pin"></iconify-icon> ${esc(q.location)}</div>` : ""}
+        ${giverHtml}
+      </div>
+      <div class="qc-top-row">
+        <span class="qc-type-badge">${q.type === "main" ? "Main Quest" : "Side Quest"}</span>
+        <span class="qc-status ${STATUS_CLASS[q.status] || ""}">${STATUS_LABEL[q.status] || "Unknown"}</span>
+        ${q.recommendedLevel ? `<span class="qc-level-badge"><iconify-icon icon="lucide:shield"></iconify-icon> Lv ${esc(q.recommendedLevel)}</span>` : ""}
+        ${isAdmin && !q.discovered ? `<span class="qc-hidden-badge"><iconify-icon icon="lucide:eye"></iconify-icon> DM Only</span>` : ""}
+      </div>
+      <div class="qc-meta">
         ${buildSummaryChips(blocks)}
         ${objPill ? `<div class="qc-obj-row">${objPill}</div>` : ""}
         ${questRewardsSummary(q)}
@@ -1402,6 +1464,7 @@ function buildCard(q) {
 
   // Click card body → open full-screen quest view (or explain the lock for players)
   card.querySelector(".qc-body").addEventListener("click", () => {
+    if (card._swiped) return;   // ignore the click that follows a swipe-to-delete
     if (locked) { alert(`Complete first: ${prereqNames.map(p => p.title || "?").join(", ")}`); return; }
     openQuestView(q);
   });
