@@ -288,6 +288,22 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
     </header>
     <div id="qview-session-bar" class="qview-session-bar" style="display:none"></div>
     <div id="qview-canvas-wrap" class="qview-canvas-wrap"></div>
+
+    <!-- Mobile editor toolbar (admins only) — liquid-glass dock of content blocks -->
+    <div id="qview-toolbar" class="qview-toolbar" style="display:none">
+      <div class="qview-toolbar-scroll">
+        <button class="qvt-btn" data-block-type="text"      title="Text"><iconify-icon icon="lucide:type"></iconify-icon></button>
+        <button class="qvt-btn" data-block-type="phase"     title="Phase"><iconify-icon icon="lucide:chevron-right"></iconify-icon></button>
+        <button class="qvt-btn" data-block-type="encounter" title="Encounter"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon></button>
+        <button class="qvt-btn" data-block-type="boss"      title="Enemy"><iconify-icon icon="game-icons:death-skull"></iconify-icon></button>
+        <button class="qvt-btn" data-block-type="loot"      title="Loot"><iconify-icon icon="game-icons:open-treasure-chest"></iconify-icon></button>
+        <button class="qvt-btn" data-block-type="puzzle"    title="Puzzle"><iconify-icon icon="game-icons:puzzle"></iconify-icon></button>
+        <button class="qvt-btn" data-block-type="character" title="Character"><iconify-icon icon="lucide:user"></iconify-icon></button>
+        <button class="qvt-btn" data-block-type="loreref"   title="Lore"><iconify-icon icon="game-icons:bookshelf"></iconify-icon></button>
+        <button class="qvt-btn" data-block-type="note"      title="DM Note"><iconify-icon icon="lucide:file-text"></iconify-icon></button>
+        <button class="qvt-btn" data-block-type="divider"   title="Divider"><iconify-icon icon="lucide:minus"></iconify-icon></button>
+      </div>
+    </div>
   </div>
 
   <script is:inline type="module" src="/assets/js/missions.js"></script>

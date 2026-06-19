@@ -98,6 +98,8 @@ let quests          = [];
 let markerNames     = [];
 let activeFilter    = "all";
 let searchQuery     = "";
+let _viewQuestId    = null;   // quest currently open in the viewer/mobile editor
+let _scrollFlowToBottom = false;
 let editingId         = null;
 let currentBlocks     = [];
 let currentCellColors = {};   // legacy — retained only for old-draft compatibility
@@ -644,6 +646,7 @@ onValue(questsRef, snapshot => {
   const data = snapshot.val();
   quests = data ? Object.values(data) : [];
   renderGrid();
+  refreshOpenQuestViewFlow();
   if (!_questRestoredOnLoad) {
     _questRestoredOnLoad = true;
     const savedId = loadPageState().openQuestId;
@@ -721,7 +724,7 @@ questSearchClear?.addEventListener("click", () => {
 const questAddBtn = document.getElementById("quest-add-btn");
 if (isAdmin) {
   questAddBtn.style.display = "inline-flex";
-  questAddBtn.addEventListener("click", () => openModal(null));
+  questAddBtn.addEventListener("click", () => isWideViewport() ? openModal(null) : createQuestMobile());
 }
 
 // ── Page state memory (scroll + open quests) ─────────────────────────────────
@@ -1369,6 +1372,10 @@ function attachQuestSwipeToDelete(swipe, card, q) {
 
   card.addEventListener("touchstart", e => {
     if (e.touches.length !== 1) return;
+    // Only engage where the mobile swipe styling is active (≤700px); above that
+    // the card doesn't visually slide and the delete card is hidden, so the
+    // delete/edit buttons are used instead.
+    if (!window.matchMedia("(max-width: 700px)").matches) return;
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
     dx = 0; dragging = true; decided = false; horizontal = false;
@@ -1385,17 +1392,17 @@ function attachQuestSwipeToDelete(swipe, card, q) {
     }
     if (!horizontal) return;        // vertical gesture → let the page scroll
     e.preventDefault();             // we own the horizontal gesture
-    dx = Math.min(card.offsetWidth, Math.max(0, ddx));   // slide right only
+    dx = Math.max(-card.offsetWidth, Math.min(0, ddx));   // slide left only
     card.style.transform = `translateX(${dx}px)`;
-    swipe.classList.toggle("swipe-ready", dx > thresholdFor());
+    swipe.classList.toggle("swipe-ready", -dx > thresholdFor());
   }, { passive: false });
 
   const finish = () => {
     if (!dragging) return;
     dragging = false;
     card.style.transition = "";
-    if (dx > thresholdFor()) {
-      card.style.transform = "translateX(100%)";
+    if (-dx > thresholdFor()) {
+      card.style.transform = "translateX(-100%)";
       card.style.opacity = "0";
       card._swiped = true;
       setTimeout(() => remove(ref(db, `campaigns/${cid}/quests/${q.id}`)), 180);
@@ -1670,6 +1677,16 @@ function openQuestView(q) {
     canvasWrap.appendChild(buildQuestFlowDOM(q));
   }
 
+  // Mobile editor toolbar (admins, phone view only)
+  const toolbar = document.getElementById("qview-toolbar");
+  if (!isWideViewport() && isAdmin) {
+    toolbar.style.display = "block";
+    canvasWrap.classList.add("has-toolbar");
+  } else {
+    toolbar.style.display = "none";
+    canvasWrap.classList.remove("has-toolbar");
+  }
+
   // Encounter "Start Encounter" buttons
   canvasWrap.addEventListener("click", e => {
     const btn = e.target.closest(".qcb-start-encounter-btn");
@@ -1680,17 +1697,91 @@ function openQuestView(q) {
     } catch (_) {}
   });
 
+  _viewQuestId = q.id;
   savePageState({ openQuestId: q.id });
   overlay.classList.add("open");
   document.body.style.overflow = "hidden";
 }
 
 function closeQuestView() {
+  _viewQuestId = null;
   savePageState({ openQuestId: null });
   document.getElementById("quest-view").classList.remove("open");
   document.getElementById("qview-canvas-wrap").innerHTML = "";
+  document.getElementById("qview-toolbar").style.display = "none";
   document.body.style.overflow = "";
 }
+
+// Re-render the open mobile flow when its quest changes (e.g. a block added),
+// so mobile edits show immediately and stay in sync with the desktop version.
+function refreshOpenQuestViewFlow() {
+  const overlay = document.getElementById("quest-view");
+  if (!overlay.classList.contains("open") || !_viewQuestId || isWideViewport()) return;
+  const q = quests.find(x => x.id === _viewQuestId);
+  if (!q) { closeQuestView(); return; }
+  const canvasWrap = document.getElementById("qview-canvas-wrap");
+  const st = canvasWrap.scrollTop;
+  canvasWrap.innerHTML = "";
+  canvasWrap.classList.add("qview-flow-mode");
+  canvasWrap.appendChild(buildQuestFlowDOM(q));
+  if (_scrollFlowToBottom) { _scrollFlowToBottom = false; canvasWrap.scrollTop = canvasWrap.scrollHeight; }
+  else canvasWrap.scrollTop = st;
+}
+
+// Append a content block to the open quest and save it (affects desktop too).
+function addBlockToCurrentQuest(type) {
+  const q = quests.find(x => x.id === _viewQuestId);
+  if (!q || !BLOCK_DEFAULTS[type]) return;
+  const blocks = (q.blocks || []).map(b => ({ ...b }));
+  let maxBottom = 0;
+  blocks.forEach(b => { maxBottom = Math.max(maxBottom, (b.worldY || 0) + (b.height || BLOCK_DEFAULT_H)); });
+  const worldY = blocks.length ? maxBottom + 24 : 20;
+  const block = { ...BLOCK_DEFAULTS[type], id: newId(), worldX: 20, worldY, width: BLOCK_DEFAULT_W, height: BLOCK_DEFAULT_H };
+
+  // Seed text-based blocks with a quick prompt so they're useful right away.
+  if (type === "text" || type === "note") {
+    const v = prompt(type === "note" ? "DM note:" : "Text:");
+    if (v === null) return;
+    block.content = v;
+  } else if (type === "phase") {
+    const v = prompt("Phase name:");
+    if (v === null) return;
+    block.title = v || "";
+  } else if (type === "puzzle") {
+    const v = prompt("Puzzle title:");
+    if (v === null) return;
+    block.title = v || "";
+  } else if (type === "divider") {
+    const v = prompt("Divider label (optional):");
+    if (v === null) return;
+    block.title = v || "";
+  }
+
+  blocks.push(block);
+  _scrollFlowToBottom = true;
+  set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+}
+
+// New quest from the mobile + button → create, then open the mobile editor.
+function createQuestMobile() {
+  const title = prompt("New quest name:");
+  if (title === null || !title.trim()) return;
+  const id = newId();
+  const payload = {
+    id,
+    title: title.trim(),
+    type: "main",
+    status: "not_started",
+    discovered: false,
+    blocks: [],
+    order: quests.length,
+  };
+  set(ref(db, `campaigns/${cid}/quests/${id}`), payload).then(() => openQuestView(payload));
+}
+
+document.querySelectorAll(".qvt-btn").forEach(btn => {
+  btn.addEventListener("click", () => addBlockToCurrentQuest(btn.dataset.blockType));
+});
 
 document.getElementById("qview-back").addEventListener("click", closeQuestView);
 document.addEventListener("keydown", e => {
