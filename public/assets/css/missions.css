@@ -2160,17 +2160,17 @@
     position: absolute;
     inset: 0;
     align-items: center;
-    justify-content: flex-end;
-    padding-right: 26px;
+    justify-content: flex-start;
+    padding-left: 26px;
     font-size: 22px;
     color: #f0c4c4;
-    background: linear-gradient(90deg, #3e1010 0%, #7a1d1d 100%);
+    background: linear-gradient(90deg, #7a1d1d 0%, #3e1010 100%);
     border-radius: 14px;
     transition: background 0.2s ease, color 0.2s ease;
   }
   .quest-swipe.swipe-ready .quest-swipe-delete {
     color: #fff;
-    background: linear-gradient(90deg, #8a1d1d 0%, #c62828 100%);
+    background: linear-gradient(90deg, #c62828 0%, #8a1d1d 100%);
   }
   .quest-swipe .quest-card {
     position: relative;
@@ -3139,9 +3139,15 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  border: 1px solid rgba(220,170,60,0.55);
-  background: linear-gradient(135deg, #8a6010 0%, #c8922a 40%, #e0b040 60%, #b07820 100%);
-  color: #1a1000;
+  border: 1px solid color-mix(in srgb, var(--qvt, #c8922a) 72%, #ffce6a 28%);
+  /* Metallic gold sheen, hue driven by the per-type --qvt gold */
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--qvt, #c8922a) 64%, #000 36%) 0%,
+    var(--qvt, #c8922a) 38%,
+    color-mix(in srgb, var(--qvt, #c8922a) 70%, #fff 30%) 60%,
+    color-mix(in srgb, var(--qvt, #c8922a) 70%, #000 30%) 100%);
+  color: #2a1a04;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.22);
   font-size: 19px;
   display: flex;
   align-items: center;
@@ -3151,7 +3157,53 @@
   -webkit-tap-highlight-color: transparent;
 }
 .qvt-btn:active { transform: scale(0.9); filter: brightness(1.12); }
-.qvt-btn.qvt-dragging { opacity: 0.5; }
+.qvt-btn.qvt-dragging { opacity: 0.4; }
+
+/* Per-type colour — shared by the toolbar button and its matching flow card so
+   block types are instantly recognisable at a glance. */
+.qvt-btn[data-block-type="text"],      .qflow-text      { --qvt: #5891d6; }
+.qvt-btn[data-block-type="phase"],     .qflow-phase     { --qvt: #d2a02e; }
+.qvt-btn[data-block-type="encounter"], .qflow-encounter { --qvt: #e0853a; }
+.qvt-btn[data-block-type="boss"],      .qflow-boss      { --qvt: #d8544a; }
+.qvt-btn[data-block-type="loot"],      .qflow-loot      { --qvt: #e6b630; }
+.qvt-btn[data-block-type="puzzle"],    .qflow-puzzle    { --qvt: #a86fd0; }
+.qvt-btn[data-block-type="character"], .qflow-character { --qvt: #34b394; }
+.qvt-btn[data-block-type="loreref"],   .qflow-loreref   { --qvt: #6f93da; }
+.qvt-btn[data-block-type="note"],      .qflow-note      { --qvt: #b89a3a; }
+.qvt-btn[data-block-type="divider"],   .qflow-divider   { --qvt: #8a8a92; }
+
+/* Floating button that follows the finger while dragging a block into the flow */
+.qvt-drag-ghost {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2000;
+  opacity: 0.95;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.55);
+}
+/* Insertion line showing where the dragged block will drop */
+.qflow-drop-indicator {
+  position: fixed;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #ffd66b, #e0a020);
+  box-shadow: 0 0 10px rgba(255,200,80,0.7);
+  pointer-events: none;
+  z-index: 1999;
+  display: none;
+}
+.qflow-drop-indicator::before {
+  content: "";
+  position: absolute;
+  left: -3px;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ffd66b;
+  transform: translateY(-50%);
+  box-shadow: 0 0 8px rgba(255,200,80,0.85);
+}
 
 /* Flow leaves room for the toolbar */
 .qview-canvas-wrap.has-toolbar .qc-ro-flow { padding-bottom: 104px; }
@@ -3172,11 +3224,24 @@
 /* ── Individual block card (collapsible <details>) ── */
 .qflow-block {
   position: relative;
-  background: linear-gradient(135deg, #15171b 0%, #111317 100%);
-  border: 1px solid rgba(200,164,92,0.14);
+  /* Wash of the block-type colour so each card clearly echoes its toolbar button */
+  background:
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--qvt, #c8a45c) 17%, #15171b) 0%,
+      color-mix(in srgb, var(--qvt, #c8a45c) 9%, #111317) 100%);
+  border: 1px solid color-mix(in srgb, var(--qvt, #c8a45c) 34%, transparent);
+  border-left: 4px solid color-mix(in srgb, var(--qvt, #c8a45c) 85%, transparent);
   border-radius: 12px;
 }
-.qflow-block.blk-colored { border-left: 3px solid var(--blk-cc, #c8a45c); }
+/* Colour the type icon + label so the card identity reads at a glance */
+.qflow-block > .qflow-card-head .blk-type-icon {
+  color: color-mix(in srgb, var(--qvt, #c8a45c) 88%, #fff 12%);
+}
+.qflow-block > .qflow-card-head .blk-type-label {
+  color: color-mix(in srgb, var(--qvt, #c8a45c) 62%, #e8ddc8 38%);
+}
+/* A user-set custom block colour still wins over the type tint */
+.qflow-block.blk-colored { border-left: 4px solid var(--blk-cc, #c8a45c); }
 
 .qflow-card-head {
   list-style: none;
@@ -3205,13 +3270,80 @@
   flex-shrink: 0;
 }
 .qflow-block[open] > .qflow-card-head .qflow-card-chevron { transform: rotate(90deg); }
+/* A clear rule between the title row and the content once the card is open */
+.qflow-block[open] > .qflow-card-head {
+  border-bottom: 1px solid rgba(200,164,92,0.22);
+  margin-bottom: 10px;
+}
+.qflow-block.blk-colored[open] > .qflow-card-head {
+  border-bottom-color: color-mix(in srgb, var(--blk-cc, #c8a45c) 38%, transparent);
+}
+.qflow-section[open] > .qflow-section-head {
+  border-bottom: 1px solid rgba(200,164,92,0.18);
+}
 .qflow-block > .blk-body,
 .qflow-block > .qflow-branch { padding: 0 12px 11px; }
 .qflow-block > .qflow-branch { margin-top: 0; }
 
 /* Dividers render as a plain separator, not a collapsible card */
-.qflow-block.qflow-divider { background: none; border: none; }
-.qflow-block.qflow-divider > .blk-body { padding: 6px 12px; }
+.qflow-block.qflow-divider { background: none; border: none; display: flex; align-items: center; gap: 6px; }
+.qflow-block.qflow-divider > .blk-body { padding: 6px 12px; flex: 1; min-width: 0; }
+
+/* ── Drag-to-reorder grip (admin, phone flow) ── */
+.qflow-drag-handle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 32px;
+  margin: -4px 0 -4px -2px;
+  color: rgba(200,180,140,0.42);
+  font-size: 17px;
+  cursor: grab;
+  touch-action: none;              /* the grip owns the vertical gesture */
+  -webkit-tap-highlight-color: transparent;
+}
+.qflow-drag-handle:active { cursor: grabbing; color: rgba(230,210,160,0.85); }
+.qflow-divider > .qflow-drag-handle { margin-left: 6px; }
+/* The lifted card while it's being dragged */
+.qflow-block.qflow-dragging {
+  z-index: 40;
+  box-shadow: 0 14px 34px rgba(0,0,0,0.6);
+  opacity: 0.97;
+  cursor: grabbing;
+}
+
+/* ── Inline block controls (admin, phone flow): edit · delete ── */
+.qflow-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.qflow-divider > .qflow-admin { padding-right: 8px; }
+.qflow-admin-btn {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 7px;
+  background: rgba(255,255,255,0.05);
+  color: rgba(220,210,190,0.7);
+  font-size: 15px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+.qflow-admin-btn:active { transform: scale(0.88); background: rgba(255,255,255,0.12); }
+.qflow-admin-del:active { background: rgba(198,40,40,0.3); color: #f0c4c4; }
+/* Keep the chevron tight against the controls rather than floating away */
+.qflow-admin + .qflow-card-chevron,
+.qflow-admin + .qflow-section-chevron { margin-left: 4px; }
 
 /* Light connector between consecutive sibling cards (top-level or in a section) */
 .qflow-block + .qflow-block::before {

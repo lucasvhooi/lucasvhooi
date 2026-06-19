@@ -1,6 +1,6 @@
 'use strict';
 import { db }                              from "./firebase.js";
-import { ref, set, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+import { ref, set, remove, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { formatGold }                      from "./item-utils.js";
 
 const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
@@ -929,7 +929,39 @@ function buildQuestFlowDOM(q) {
 
   const container = document.createElement("div");
   container.className = "qc-ro-flow";
+  if (isAdmin) container.classList.add("qflow-editable");
   const qid = q.id || "_";
+
+  // Admin-only edit/delete controls injected into each card on mobile.
+  const adminCtrls = (id) => isAdmin ? `
+    <span class="qflow-admin" data-block-id="${id}">
+      <button class="qflow-admin-btn" data-act="edit" title="Edit"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+      <button class="qflow-admin-btn qflow-admin-del" data-act="del" title="Delete"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
+    </span>` : "";
+  // Grip at the front of each card — drag it up/down to reorder the quest.
+  const dragHandle = () => isAdmin ? `<span class="qflow-drag-handle" title="Drag to reorder"><iconify-icon icon="lucide:menu"></iconify-icon></span>` : "";
+  // Wire the touch reorder behaviour to a freshly-built card's grip.
+  const wireHandle = (el, id) => {
+    if (!isAdmin) return;
+    const h = el.querySelector(".qflow-drag-handle");
+    if (h) initFlowReorderDrag(h, el, id);
+  };
+
+  // Delegated edit/delete handler. preventDefault stops the click from toggling
+  // the parent <details> when a control sits in a summary.
+  if (isAdmin) {
+    container.addEventListener("click", e => {
+      const btn = e.target.closest(".qflow-admin-btn");
+      if (!btn || !container.contains(btn)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const id = btn.closest(".qflow-admin")?.dataset.blockId;
+      if (!id) return;
+      const live = quests.find(x => x.id === q.id) || q;   // freshest copy
+      if (btn.dataset.act === "edit") editFlowBlock(live, id);
+      else                            deleteFlowBlock(live, id);
+    });
+  }
 
   const visible = blocks.filter(b => !(b.type === "note" && !isAdmin));
   if (!visible.length) {
@@ -964,7 +996,8 @@ function buildQuestFlowDOM(q) {
       div.className = "qflow-block qflow-divider qc-block-ro";
       div.dataset.session = b.sessionMarker || "";
       div.dataset.blockId = b.id;
-      div.innerHTML = `<div class="blk-body">${buildBlockROContent(b)}</div>`;
+      div.innerHTML = `${dragHandle()}<div class="blk-body">${buildBlockROContent(b)}</div>${adminCtrls(b.id)}`;
+      wireHandle(div, b.id);
       return div;
     }
 
@@ -983,14 +1016,17 @@ function buildQuestFlowDOM(q) {
 
     det.innerHTML = `
       <summary class="qflow-card-head">
+        ${dragHandle()}
         <span class="blk-type-icon">${BLOCK_TYPE_ICON[b.type] || ""}</span>
         <span class="blk-type-label">${BLOCK_TYPE_LABEL[b.type] || b.type}</span>
         ${showHeadline ? `<span class="qflow-card-headline">${esc(headline)}</span>` : ""}
         ${sessionPill}
+        ${adminCtrls(b.id)}
         <iconify-icon icon="lucide:chevron-right" class="qflow-card-chevron"></iconify-icon>
       </summary>
       <div class="blk-body">${buildBlockROContent(b)}</div>
       ${branchHtml}`;
+    wireHandle(det, b.id);
     return det;
   };
 
@@ -1004,11 +1040,14 @@ function buildQuestFlowDOM(q) {
     const n = children.length;
     det.innerHTML = `
       <summary class="qflow-section-head">
+        ${info.blockId ? dragHandle() : ""}
         <span class="qflow-section-icon">${info.icon}</span>
         <span class="qflow-section-title">${esc(info.title)}</span>
         <span class="qflow-section-count">${n} ${n === 1 ? "item" : "items"}</span>
+        ${info.blockId ? adminCtrls(info.blockId) : ""}
         <iconify-icon icon="lucide:chevron-right" class="qflow-section-chevron"></iconify-icon>
       </summary>`;
+    if (info.blockId) wireHandle(det, info.blockId);
     const body = document.createElement("div");
     body.className = "qflow-section-body";
     if (info.desc) {
@@ -1053,6 +1092,7 @@ function buildQuestFlowDOM(q) {
         icon: '<iconify-icon icon="lucide:chevron-right"></iconify-icon>',
         title: h.title || h.blockTitle || "Phase",
         desc: h.description || "",
+        blockId: h.id,
       }, item.children));
     } else {
       container.appendChild(makeSection("group", "group:" + item.group.id, {
@@ -1064,6 +1104,165 @@ function buildQuestFlowDOM(q) {
   });
 
   return container;
+}
+
+// ── Mobile flow block editing (admin) ──────────────────────────────────────────
+// The phone flow has no canvas, so blocks are managed inline: edit the content,
+// reorder by swapping canvas positions, or delete (with graph cleanup). All
+// write straight to Firebase; refreshOpenQuestViewFlow re-renders.
+
+// Structured blocks (enemy/encounter/loot/character/lore) hold a list of rows.
+// On mobile we edit them as pipe-separated lines in a single prompt — one row per
+// line — which covers add, edit, reorder and remove without a bespoke form.
+function structuredSpec(type) {
+  switch (type) {
+    case "boss":      return { key: "enemies",    fields: ["name","ac","hp","cr","notes"], label: "enemies",      hint: "Name | AC | HP | CR | Notes" };
+    case "encounter": return { key: "enemies",    fields: ["name","count","ac","hp","cr"], label: "enemies",      hint: "Name | Count | AC | HP | CR" };
+    case "loot":      return { key: "items",      fields: ["name","value","description"],  label: "loot items",    hint: "Name | Value | Description" };
+    case "character": return { key: "characters", fields: ["name","profession"],           label: "characters",    hint: "Name | Profession" };
+    case "loreref":   return { key: "items",      fields: ["title","type"],                label: "lore entries",  hint: "Title | book or scroll" };
+    default:          return null;
+  }
+}
+function serializeRows(list, fields) {
+  return (list || []).map(it => fields.map(f => it[f] ?? "").join(" | ").replace(/[ |]+$/, "")).join("\n");
+}
+function parseRows(text, fields) {
+  return text.split("\n").map(l => l.trim()).filter(Boolean).map(line => {
+    const parts = line.split("|").map(s => s.trim());
+    const obj = {};
+    // `count` is used arithmetically (summary chips, ×N) so keep it numeric.
+    fields.forEach((f, i) => { obj[f] = f === "count" ? (parseInt(parts[i]) || 1) : (parts[i] || ""); });
+    return obj;
+  }).filter(it => it[fields[0]]);   // drop rows with no name/title
+}
+// Prompt to edit a structured block's rows in place. Returns false if cancelled.
+function promptStructuredRows(block) {
+  const spec = structuredSpec(block.type);
+  if (!spec) return true;
+  const v = prompt(`${spec.label} — one per line:\n${spec.hint}`, serializeRows(block[spec.key], spec.fields));
+  if (v === null) return false;
+  block[spec.key] = parseRows(v, spec.fields);
+  return true;
+}
+
+function editFlowBlock(q, id) {
+  const blocks = (q.blocks || []).map(b => ({ ...b }));
+  const b = blocks.find(x => x.id === id);
+  if (!b) return;
+  if (b.type === "text" || b.type === "note") {
+    const v = prompt(b.type === "note" ? "DM note:" : "Text:", b.content || "");
+    if (v === null) return; b.content = v;
+  } else if (b.type === "phase") {
+    const v = prompt("Phase name:", b.title || "");
+    if (v === null) return; b.title = v;
+  } else if (b.type === "puzzle") {
+    const v = prompt("Puzzle title:", b.title || "");
+    if (v === null) return; b.title = v;
+  } else if (b.type === "divider") {
+    const v = prompt("Divider label (optional):", b.title || "");
+    if (v === null) return; b.title = v;
+  } else {
+    // Structured blocks: edit their row list (the desktop canvas has a richer form).
+    if (!promptStructuredRows(b)) return;
+  }
+  set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+}
+
+function deleteFlowBlock(q, id) {
+  const b = (q.blocks || []).find(x => x.id === id);
+  if (!confirm(`Delete "${b ? blockHeadline(b) : "this block"}"?`)) return;
+  const blocks = (q.blocks || []).filter(x => x.id !== id);
+  const conns  = (q.connections || []).filter(c => c.from !== id && c.to !== id);
+  const groups = (q.groups || [])
+    .map(g => ({ ...g, blockIds: (g.blockIds || []).filter(x => x !== id) }))
+    .filter(g => (g.blockIds || []).length > 0);
+  // One atomic write; empty arrays are cleared to null so they don't linger.
+  update(ref(db, `campaigns/${cid}/quests/${q.id}`), {
+    blocks:      blocks.length ? blocks : null,
+    connections: conns.length  ? conns  : null,
+    groups:      groups.length ? groups : null,
+  });
+}
+
+// Commit a reorder: give the block a worldY that sorts it into the dropped gap.
+function commitReorderBlock(blockId, worldY) {
+  const q = quests.find(x => x.id === _viewQuestId);
+  if (!q) return;
+  const blocks = (q.blocks || []).map(b => ({ ...b }));
+  const b = blocks.find(x => x.id === blockId);
+  if (!b) return;
+  if (b.worldY === worldY) return;   // dropped where it already was
+  b.worldY = worldY;
+  set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+}
+
+// Drag a flow card by its grip to reorder it. The card lifts and follows the
+// finger, a drop line shows where it lands, and on release the block's worldY is
+// set between its new neighbours so the reading order (and the card) update.
+function initFlowReorderDrag(handle, card, blockId) {
+  let sy = 0, sx = 0, decided = false, dragging = false, dropY = null, startScroll = 0;
+  const indicatorEl = () => document.getElementById("qvt-drop-indicator");
+  const wrapEl = () => document.getElementById("qview-canvas-wrap");
+
+  handle.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); });
+
+  handle.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1) return;
+    e.stopPropagation();                       // never toggle the <details>
+    sy = e.touches[0].clientY; sx = e.touches[0].clientX;
+    decided = false; dragging = false;
+  }, { passive: true });
+
+  handle.addEventListener("touchmove", e => {
+    const t = e.touches[0];
+    const dy = t.clientY - sy, dx = t.clientX - sx;
+    if (!decided) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      decided = true; dragging = true;         // the grip is for dragging only
+      startDrag();
+    }
+    if (!dragging) return;
+    e.preventDefault();
+    const wrap = wrapEl();
+    const scrollDelta = wrap ? wrap.scrollTop - startScroll : 0;   // keep card under finger while auto-scrolling
+    card.style.transform = `translateY(${(t.clientY - sy) + scrollDelta}px)`;
+    dropY = qvtComputeDrop(t.clientY, card);
+    edgeAutoScroll(t.clientY);
+  }, { passive: false });
+
+  const end = () => {
+    if (!dragging) return;
+    dragging = false;
+    const wY = dropY;
+    endDrag();
+    if (wY !== null) commitReorderBlock(blockId, wY);
+  };
+  handle.addEventListener("touchend", end);
+  handle.addEventListener("touchcancel", () => { if (dragging) endDrag(); });
+
+  function startDrag() {
+    const wrap = wrapEl();
+    startScroll = wrap ? wrap.scrollTop : 0;
+    card.classList.add("qflow-dragging");
+    let ind = indicatorEl();
+    if (!ind) { ind = document.createElement("div"); ind.id = "qvt-drop-indicator"; ind.className = "qflow-drop-indicator"; document.body.appendChild(ind); }
+    ind.style.display = "block";
+  }
+  function endDrag() {
+    card.classList.remove("qflow-dragging");
+    card.style.transform = "";
+    const ind = indicatorEl(); if (ind) ind.style.display = "none";
+    dropY = null;
+  }
+  function edgeAutoScroll(clientY) {
+    const wrap = wrapEl();
+    if (!wrap) return;
+    const r = wrap.getBoundingClientRect();
+    const EDGE = 64;
+    if (clientY < r.top + EDGE) wrap.scrollTop -= 10;
+    else if (clientY > r.bottom - EDGE) wrap.scrollTop += 10;
+  }
 }
 
 function buildQuestCanvasDOM(q) {
@@ -1380,6 +1579,12 @@ function attachQuestSwipeToDelete(swipe, card, q) {
     startY = e.touches[0].clientY;
     dx = 0; dragging = true; decided = false; horizontal = false;
     card.style.transition = "none";
+    // Release any running/filled animation that owns `transform`, or it overrides
+    // our inline translateX and the card never slides. base.js's scroll-reveal is
+    // a WAAPI fill:"both" animation (in the animation cascade origin, above inline
+    // styles), so cancelling the Animation objects is the only thing that frees it.
+    card.getAnimations().forEach(a => a.cancel());
+    card.style.opacity = "";
   }, { passive: true });
 
   card.addEventListener("touchmove", e => {
@@ -1392,17 +1597,18 @@ function attachQuestSwipeToDelete(swipe, card, q) {
     }
     if (!horizontal) return;        // vertical gesture → let the page scroll
     e.preventDefault();             // we own the horizontal gesture
-    dx = Math.max(-card.offsetWidth, Math.min(0, ddx));   // slide left only
-    card.style.transform = `translateX(${dx}px)`;
-    swipe.classList.toggle("swipe-ready", -dx > thresholdFor());
+    dx = Math.min(card.offsetWidth, Math.max(0, ddx));   // slide right only (matches the character tab)
+    // setProperty important so the drag transform beats any stray author rule
+    card.style.setProperty("transform", `translateX(${dx}px)`, "important");
+    swipe.classList.toggle("swipe-ready", dx > thresholdFor());
   }, { passive: false });
 
   const finish = () => {
     if (!dragging) return;
     dragging = false;
     card.style.transition = "";
-    if (-dx > thresholdFor()) {
-      card.style.transform = "translateX(-100%)";
+    if (dx > thresholdFor()) {
+      card.style.setProperty("transform", "translateX(100%)", "important");
       card.style.opacity = "0";
       card._swiped = true;
       setTimeout(() => remove(ref(db, `campaigns/${cid}/quests/${q.id}`)), 180);
@@ -1728,38 +1934,165 @@ function refreshOpenQuestViewFlow() {
   else canvasWrap.scrollTop = st;
 }
 
+// Build a block of `type`, prompting for its initial content. Returns null if
+// the prompt was cancelled. Shared by the toolbar (append) and drag-to-insert.
+function buildBlockWithPrompt(type) {
+  if (!BLOCK_DEFAULTS[type]) return null;
+  const block = { ...BLOCK_DEFAULTS[type], id: newId(), worldX: 20, worldY: 0, width: BLOCK_DEFAULT_W, height: BLOCK_DEFAULT_H };
+  if (type === "text" || type === "note") {
+    const v = prompt(type === "note" ? "DM note:" : "Text:"); if (v === null) return null; block.content = v;
+  } else if (type === "phase") {
+    const v = prompt("Phase name:"); if (v === null) return null; block.title = v || "";
+  } else if (type === "puzzle") {
+    const v = prompt("Puzzle title:"); if (v === null) return null; block.title = v || "";
+  } else if (type === "divider") {
+    const v = prompt("Divider label (optional):"); if (v === null) return null; block.title = v || "";
+  } else if (structuredSpec(type)) {
+    // Enemy / encounter / loot / character / lore: fill the rows right away so the
+    // block isn't created empty.
+    if (!promptStructuredRows(block)) return null;
+  }
+  return block;
+}
+
 // Append a content block to the open quest and save it (affects desktop too).
 function addBlockToCurrentQuest(type) {
   const q = quests.find(x => x.id === _viewQuestId);
-  if (!q || !BLOCK_DEFAULTS[type]) return;
+  if (!q) return;
+  const block = buildBlockWithPrompt(type);
+  if (!block) return;
   const blocks = (q.blocks || []).map(b => ({ ...b }));
   let maxBottom = 0;
   blocks.forEach(b => { maxBottom = Math.max(maxBottom, (b.worldY || 0) + (b.height || BLOCK_DEFAULT_H)); });
-  const worldY = blocks.length ? maxBottom + 24 : 20;
-  const block = { ...BLOCK_DEFAULTS[type], id: newId(), worldX: 20, worldY, width: BLOCK_DEFAULT_W, height: BLOCK_DEFAULT_H };
-
-  // Seed text-based blocks with a quick prompt so they're useful right away.
-  if (type === "text" || type === "note") {
-    const v = prompt(type === "note" ? "DM note:" : "Text:");
-    if (v === null) return;
-    block.content = v;
-  } else if (type === "phase") {
-    const v = prompt("Phase name:");
-    if (v === null) return;
-    block.title = v || "";
-  } else if (type === "puzzle") {
-    const v = prompt("Puzzle title:");
-    if (v === null) return;
-    block.title = v || "";
-  } else if (type === "divider") {
-    const v = prompt("Divider label (optional):");
-    if (v === null) return;
-    block.title = v || "";
-  }
-
+  block.worldY = blocks.length ? maxBottom + 24 : 20;
   blocks.push(block);
   _scrollFlowToBottom = true;
   set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+}
+
+// Insert a block at a reading position expressed as a worldY (drag-to-insert).
+function insertBlockInFlowAt(type, worldY) {
+  const q = quests.find(x => x.id === _viewQuestId);
+  if (!q) return;
+  const block = buildBlockWithPrompt(type);
+  if (!block) return;
+  block.worldY = worldY;
+  const blocks = (q.blocks || []).map(b => ({ ...b }));
+  blocks.push(block);
+  set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+}
+
+// Find where a drop at viewport-Y lands: move the indicator line and return the
+// worldY a new block should take to sort into that gap. Hidden (collapsed) cards
+// are ignored so the maths only sees what's on screen.
+function qvtComputeDrop(clientY, skipEl) {
+  const flow = document.querySelector("#qview-canvas-wrap .qc-ro-flow");
+  const ind = document.getElementById("qvt-drop-indicator");
+  if (!flow) return null;
+  const q = quests.find(x => x.id === _viewQuestId);
+  const byId = id => (q?.blocks || []).find(b => b.id === id);
+  const els = [...flow.querySelectorAll("[data-block-id]")]
+    .filter(el => el !== skipEl && el.getBoundingClientRect().height > 0);
+  let beforeIdx = els.length;
+  for (let i = 0; i < els.length; i++) {
+    const r = els[i].getBoundingClientRect();
+    if (clientY < r.top + r.height / 2) { beforeIdx = i; break; }
+  }
+  const prevEl = els[beforeIdx - 1], nextEl = els[beforeIdx];
+  const prevB = prevEl ? byId(prevEl.dataset.blockId) : null;
+  const nextB = nextEl ? byId(nextEl.dataset.blockId) : null;
+  let worldY;
+  if (prevB && nextB) {
+    const pY = prevB.worldY || 0, nY = nextB.worldY || 0;
+    worldY = nY > pY ? (pY + nY) / 2 : pY + 1;
+  } else if (prevB) {
+    worldY = (prevB.worldY || 0) + (prevB.height || BLOCK_DEFAULT_H) + 24;
+  } else if (nextB) {
+    worldY = (nextB.worldY || 0) - 30;
+  } else {
+    worldY = 20;
+  }
+  if (ind) {
+    const fr = flow.getBoundingClientRect();
+    const lineY = nextEl ? nextEl.getBoundingClientRect().top - 6
+                : prevEl ? prevEl.getBoundingClientRect().bottom + 6
+                : fr.top + 6;
+    ind.style.left = fr.left + "px";
+    ind.style.width = fr.width + "px";
+    ind.style.top = lineY + "px";
+  }
+  return worldY;
+}
+
+// Touch drag a toolbar button up into the flow to insert a block between others.
+// Vertical drag = insert; horizontal move = let the toolbar scroll; a plain tap
+// still appends at the end (handled by the click listener).
+function initQvtDragInsert(btn) {
+  let sx = 0, sy = 0, decided = false, dragging = false, ghost = null, dropY = null;
+  const type = btn.dataset.blockType;
+  const indicatorEl = () => document.getElementById("qvt-drop-indicator");
+
+  btn.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1) return;
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+    decided = false; dragging = false;
+  }, { passive: true });
+
+  btn.addEventListener("touchmove", e => {
+    const t = e.touches[0];
+    const dx = t.clientX - sx, dy = t.clientY - sy;
+    if (!decided) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      decided = true;
+      dragging = Math.abs(dy) > Math.abs(dx);   // vertical → drag; horizontal → toolbar scroll
+      if (dragging) startDrag(t);
+    }
+    if (!dragging) return;
+    e.preventDefault();
+    moveGhost(t);
+    dropY = qvtComputeDrop(t.clientY);
+    edgeAutoScroll(t.clientY);
+  }, { passive: false });
+
+  const end = () => {
+    if (!dragging) return;
+    dragging = false;
+    btn._qvtDragged = true;                       // suppress the trailing click
+    setTimeout(() => { btn._qvtDragged = false; }, 60);
+    const wY = dropY;
+    cleanupDrag();
+    if (wY !== null) insertBlockInFlowAt(type, wY);
+  };
+  btn.addEventListener("touchend", end);
+  btn.addEventListener("touchcancel", () => { dragging = false; cleanupDrag(); });
+
+  function startDrag(t) {
+    btn.classList.add("qvt-dragging");
+    ghost = document.createElement("div");
+    ghost.className = "qvt-drag-ghost qvt-btn";
+    ghost.dataset.blockType = type;
+    ghost.innerHTML = btn.innerHTML;
+    document.body.appendChild(ghost);
+    let ind = indicatorEl();
+    if (!ind) { ind = document.createElement("div"); ind.id = "qvt-drop-indicator"; ind.className = "qflow-drop-indicator"; document.body.appendChild(ind); }
+    ind.style.display = "block";
+    moveGhost(t);
+  }
+  function moveGhost(t) { if (ghost) { ghost.style.left = t.clientX + "px"; ghost.style.top = t.clientY + "px"; } }
+  function cleanupDrag() {
+    btn.classList.remove("qvt-dragging");
+    if (ghost) { ghost.remove(); ghost = null; }
+    const ind = indicatorEl(); if (ind) ind.style.display = "none";
+    dropY = null;
+  }
+  function edgeAutoScroll(clientY) {
+    const wrap = document.getElementById("qview-canvas-wrap");
+    if (!wrap) return;
+    const r = wrap.getBoundingClientRect();
+    const EDGE = 64;
+    if (clientY < r.top + EDGE) wrap.scrollTop -= 10;
+    else if (clientY > r.bottom - EDGE) wrap.scrollTop += 10;
+  }
 }
 
 // New quest from the mobile + button → create, then open the mobile editor.
@@ -1780,7 +2113,11 @@ function createQuestMobile() {
 }
 
 document.querySelectorAll(".qvt-btn").forEach(btn => {
-  btn.addEventListener("click", () => addBlockToCurrentQuest(btn.dataset.blockType));
+  btn.addEventListener("click", () => {
+    if (btn._qvtDragged) return;   // ignore the click that follows a drag-to-insert
+    addBlockToCurrentQuest(btn.dataset.blockType);
+  });
+  initQvtDragInsert(btn);
 });
 
 document.getElementById("qview-back").addEventListener("click", closeQuestView);

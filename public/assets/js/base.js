@@ -190,7 +190,11 @@
          { opacity: 1, transform: "translateY(0) scale(1)" }],
         { duration: 380, delay, easing: EXPO, fill: "both" }
       );
-      anim.finished.then(() => { el.style.opacity = ""; }).catch(() => {});
+      // Release the animation once done: with fill:"both" the WAAPI effect keeps
+      // ownership of `transform` forever, which overrides any later inline
+      // transform (e.g. swipe-to-delete translateX). The end frame is identity,
+      // so cancelling leaves the card visually unchanged but frees `transform`.
+      anim.finished.then(() => { el.style.opacity = ""; anim.cancel(); }).catch(() => {});
     }
 
     function revealPanel(el) {
