@@ -1107,66 +1107,202 @@ function buildQuestFlowDOM(q) {
 }
 
 // ── Mobile flow block editing (admin) ──────────────────────────────────────────
-// The phone flow has no canvas, so blocks are managed inline: edit the content,
-// reorder by swapping canvas positions, or delete (with graph cleanup). All
-// write straight to Firebase; refreshOpenQuestViewFlow re-renders.
+// The phone flow has no canvas, so blocks are managed inline: edit content via a
+// styled sheet, reorder by drag, or delete (with graph cleanup). All write
+// straight to Firebase; refreshOpenQuestViewFlow re-renders.
 
-// Structured blocks (enemy/encounter/loot/character/lore) hold a list of rows.
-// On mobile we edit them as pipe-separated lines in a single prompt — one row per
-// line — which covers add, edit, reorder and remove without a bespoke form.
-function structuredSpec(type) {
-  switch (type) {
-    case "boss":      return { key: "enemies",    fields: ["name","ac","hp","cr","notes"], label: "enemies",      hint: "Name | AC | HP | CR | Notes" };
-    case "encounter": return { key: "enemies",    fields: ["name","count","ac","hp","cr"], label: "enemies",      hint: "Name | Count | AC | HP | CR" };
-    case "loot":      return { key: "items",      fields: ["name","value","description"],  label: "loot items",    hint: "Name | Value | Description" };
-    case "character": return { key: "characters", fields: ["name","profession"],           label: "characters",    hint: "Name | Profession" };
-    case "loreref":   return { key: "items",      fields: ["title","type"],                label: "lore entries",  hint: "Title | book or scroll" };
-    default:          return null;
+// ── Mobile block editor sheet ───────────────────────────────────────────────
+// A styled bottom-sheet (replacing native prompts) for editing a block. Structured
+// blocks search the campaign database — enemy templates, items, characters, lore —
+// exactly like the desktop canvas; simple blocks get a text field. It mutates a
+// working copy; the caller persists in its onSave callback.
+const SHEET_CFG = {
+  boss:      { title: "Enemies",    key: "enemies",    kind: "enemy",     ph: "Search enemies…" },
+  encounter: { title: "Encounter",  key: "enemies",    kind: "encounter", ph: "Search enemies…" },
+  loot:      { title: "Loot",       key: "items",      kind: "loot",      ph: "Search items…" },
+  character: { title: "Characters", key: "characters", kind: "character", ph: "Search characters…" },
+  loreref:   { title: "Lore",       key: "items",      kind: "lore",      ph: "Search lore…" },
+};
+const SIMPLE_FIELD = { text: "content", note: "content", phase: "title", puzzle: "title", divider: "title" };
+const SIMPLE_LABEL = { text: "Text", note: "DM note", phase: "Phase name", puzzle: "Puzzle title", divider: "Divider label (optional)" };
+
+// Search pool + adapters per structured kind (mirrors the desktop pickers).
+function sheetPool(kind) {
+  if (kind === "enemy" || kind === "encounter") {
+    const seen = new Set();
+    return [...firebaseTemplates, ...MONSTER_PRESETS].filter(m => {
+      if (!m.name) return false;
+      const k = m.name.toLowerCase();
+      if (seen.has(k)) return false; seen.add(k); return true;
+    });
+  }
+  if (kind === "loot")      return allItems.filter(m => m.name);
+  if (kind === "character") return allCharacters.filter(c => c.name);
+  if (kind === "lore")      return allLoreItems.filter(it => it.title);
+  return [];
+}
+function sheetLabel(kind, m) { return (kind === "lore" ? m.title : m.name) || ""; }
+function sheetMeta(kind, m) {
+  if (kind === "enemy" || kind === "encounter")
+    return [m.cr ? "CR " + m.cr : "", m.hp ? "HP " + m.hp : "", m.ac ? "AC " + m.ac : ""].filter(Boolean).join(" · ");
+  if (kind === "loot")      return m.price != null ? formatGold(m.price) : "";
+  if (kind === "character") return m.profession || "";
+  if (kind === "lore")      return m.writer || "";
+  return "";
+}
+function sheetToRow(kind, m) {
+  switch (kind) {
+    case "enemy":     return { name: m.name || "", ac: String(m.ac || ""), hp: String(m.hp || ""), cr: String(m.cr || ""), notes: "" };
+    case "encounter": return { name: m.name || "", ac: String(m.ac || ""), hp: String(m.hp || ""), cr: String(m.cr || ""), count: 1, notes: "" };
+    case "loot":      return { name: m.name || "", value: m.price != null ? formatGold(m.price) : "", description: m.description || "" };
+    case "character": return { id: m.id || "", name: m.name || "", profession: m.profession || "", race: m.race || "", age: String(m.age || ""), picture: m.picture || "" };
+    case "lore":      return { id: m.id || "", title: m.title || "", type: m.type || "book", writer: m.writer || "" };
   }
 }
-function serializeRows(list, fields) {
-  return (list || []).map(it => fields.map(f => it[f] ?? "").join(" | ").replace(/[ |]+$/, "")).join("\n");
+function sheetCustomRow(kind, name) {
+  switch (kind) {
+    case "enemy":     return { name, ac: "", hp: "", cr: "", notes: "" };
+    case "encounter": return { name, ac: "", hp: "", cr: "", count: 1, notes: "" };
+    case "loot":      return { name, value: "", description: "" };
+    case "character": return { id: "", name, profession: "", race: "", age: "", picture: "" };
+    case "lore":      return { id: "", title: name, type: "book", writer: "" };
+  }
 }
-function parseRows(text, fields) {
-  return text.split("\n").map(l => l.trim()).filter(Boolean).map(line => {
-    const parts = line.split("|").map(s => s.trim());
-    const obj = {};
-    // `count` is used arithmetically (summary chips, ×N) so keep it numeric.
-    fields.forEach((f, i) => { obj[f] = f === "count" ? (parseInt(parts[i]) || 1) : (parts[i] || ""); });
-    return obj;
-  }).filter(it => it[fields[0]]);   // drop rows with no name/title
-}
-// Prompt to edit a structured block's rows in place. Returns false if cancelled.
-function promptStructuredRows(block) {
-  const spec = structuredSpec(block.type);
-  if (!spec) return true;
-  const v = prompt(`${spec.label} — one per line:\n${spec.hint}`, serializeRows(block[spec.key], spec.fields));
-  if (v === null) return false;
-  block[spec.key] = parseRows(v, spec.fields);
-  return true;
+function sheetRowHtml(kind, row, i) {
+  const del = `<button type="button" class="bsheet-row-del" data-idx="${i}" aria-label="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>`;
+  const stats = arr => arr.filter(Boolean).map(s => `<span class="bsheet-row-stat">${esc(s)}</span>`).join("");
+  switch (kind) {
+    case "enemy":
+      return `<div class="bsheet-row"><span class="bsheet-row-name">${esc(row.name)}</span>${stats([row.cr && "CR " + row.cr, row.hp && "HP " + row.hp, row.ac && "AC " + row.ac])}${del}</div>`;
+    case "encounter":
+      return `<div class="bsheet-row"><input type="number" class="bsheet-count" min="1" max="99" value="${esc(String(row.count || 1))}" data-idx="${i}" /><span class="bsheet-row-name">${esc(row.name)}</span>${stats([row.cr && "CR " + row.cr, row.hp && "HP " + row.hp, row.ac && "AC " + row.ac])}${del}</div>`;
+    case "loot":
+      return `<div class="bsheet-row"><iconify-icon icon="game-icons:open-treasure-chest" class="bsheet-row-icon"></iconify-icon><span class="bsheet-row-name">${esc(row.name)}</span>${row.value ? `<span class="bsheet-row-stat">${esc(row.value)}</span>` : ""}${del}</div>`;
+    case "character":
+      return `<div class="bsheet-row">${row.picture ? `<img class="bsheet-row-pic" src="${esc(row.picture)}" alt="">` : `<span class="bsheet-row-pic bsheet-row-pic-ph"><iconify-icon icon="lucide:user"></iconify-icon></span>`}<span class="bsheet-row-name">${esc(row.name)}</span>${row.profession ? `<span class="bsheet-row-stat">${esc(row.profession)}</span>` : ""}${del}</div>`;
+    case "lore":
+      return `<div class="bsheet-row"><iconify-icon icon="${row.type === "scroll" ? "game-icons:scroll-unfurled" : "game-icons:open-book"}" class="bsheet-row-icon"></iconify-icon><span class="bsheet-row-name">${esc(row.title)}</span>${del}</div>`;
+  }
+  return "";
 }
 
+let _blockSheet = null, _sheetSaveCb = null;
+function closeBlockSheet() { if (_blockSheet) _blockSheet.classList.remove("open"); _sheetSaveCb = null; }
+function ensureBlockSheet() {
+  if (_blockSheet) return _blockSheet;
+  const ov = document.createElement("div");
+  ov.id = "block-sheet";
+  ov.className = "bsheet-overlay";
+  ov.innerHTML = `
+    <div class="bsheet" role="dialog" aria-modal="true">
+      <div class="bsheet-grip"></div>
+      <div class="bsheet-head">
+        <span class="bsheet-title"></span>
+        <button class="bsheet-x" type="button" aria-label="Close"><iconify-icon icon="lucide:x"></iconify-icon></button>
+      </div>
+      <div class="bsheet-body"></div>
+      <div class="bsheet-foot">
+        <button class="bsheet-btn bsheet-cancel" type="button">Cancel</button>
+        <button class="bsheet-btn bsheet-save" type="button">Save</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener("click", e => { if (e.target === ov) closeBlockSheet(); });
+  ov.querySelector(".bsheet-x").addEventListener("click", closeBlockSheet);
+  ov.querySelector(".bsheet-cancel").addEventListener("click", closeBlockSheet);
+  ov.querySelector(".bsheet-save").addEventListener("click", () => { const cb = _sheetSaveCb; if (cb) cb(); });
+  _blockSheet = ov;
+  return ov;
+}
+function openBlockSheet(block, onSave) {
+  const ov = ensureBlockSheet();
+  const body = ov.querySelector(".bsheet-body");
+  const cfg = SHEET_CFG[block.type];
+  ov.querySelector(".bsheet-title").textContent = cfg ? cfg.title : (SIMPLE_LABEL[block.type] || "Block");
+  body.innerHTML = "";
+  if (cfg) buildStructuredSheet(body, block, cfg);
+  else     buildSimpleSheet(body, block);
+  _sheetSaveCb = () => {
+    if (!cfg) commitSimpleSheet(body, block);   // structured edits mutate live
+    closeBlockSheet();
+    onSave(block);
+  };
+  ov.classList.add("open");
+  setTimeout(() => body.querySelector("input,textarea")?.focus(), 60);
+}
+function buildSimpleSheet(body, block) {
+  const field = SIMPLE_FIELD[block.type] || "content";
+  const multiline = field === "content";
+  body.innerHTML = `
+    <label class="bsheet-label">${SIMPLE_LABEL[block.type] || "Text"}</label>
+    ${multiline
+      ? `<textarea class="bsheet-input bsheet-textarea" rows="6" data-field="${field}"></textarea>`
+      : `<input class="bsheet-input" type="text" data-field="${field}" />`}`;
+  body.querySelector(".bsheet-input").value = block[field] || "";
+}
+function commitSimpleSheet(body, block) {
+  const inp = body.querySelector(".bsheet-input");
+  if (inp) block[inp.dataset.field] = inp.value;
+}
+function buildStructuredSheet(body, block, cfg) {
+  if (!Array.isArray(block[cfg.key])) block[cfg.key] = [];
+  body.innerHTML = `
+    <div class="bsheet-search-wrap">
+      <iconify-icon icon="lucide:search" class="bsheet-search-icon"></iconify-icon>
+      <input class="bsheet-search" type="text" placeholder="${esc(cfg.ph)}" autocomplete="off" />
+      <div class="bsheet-drop"></div>
+    </div>
+    <div class="bsheet-list"></div>
+    <div class="bsheet-empty">Search to add from your campaign, or type a name and tap “Add”.</div>`;
+  const srch = body.querySelector(".bsheet-search");
+  const drop = body.querySelector(".bsheet-drop");
+  const list = body.querySelector(".bsheet-list");
+  const emptyMsg = body.querySelector(".bsheet-empty");
+  let hits = [];
+
+  const renderList = () => {
+    const rows = block[cfg.key] || [];
+    emptyMsg.style.display = rows.length ? "none" : "block";
+    list.innerHTML = rows.map((row, i) => sheetRowHtml(cfg.kind, row, i)).join("");
+    list.querySelectorAll(".bsheet-row-del").forEach(btn =>
+      btn.addEventListener("click", () => { block[cfg.key].splice(+btn.dataset.idx, 1); renderList(); }));
+    if (cfg.kind === "encounter") list.querySelectorAll(".bsheet-count").forEach(inp =>
+      inp.addEventListener("input", () => { block[cfg.key][+inp.dataset.idx].count = parseInt(inp.value) || 1; }));
+  };
+  const addRow = row => { if (row) block[cfg.key].push(row); srch.value = ""; hideDrop(drop); renderList(); srch.focus(); };
+
+  srch.addEventListener("input", () => {
+    const qy = srch.value.trim().toLowerCase();
+    if (!qy) { hideDrop(drop); return; }
+    hits = sheetPool(cfg.kind).filter(m => sheetLabel(cfg.kind, m).toLowerCase().includes(qy)).slice(0, 12);
+    drop.innerHTML =
+      hits.map((m, i) => `<button type="button" class="bsheet-drop-item" data-i="${i}">
+          <span class="bsheet-drop-name">${esc(sheetLabel(cfg.kind, m))}</span>
+          ${sheetMeta(cfg.kind, m) ? `<span class="bsheet-drop-meta">${esc(sheetMeta(cfg.kind, m))}</span>` : ""}
+        </button>`).join("") +
+      `<button type="button" class="bsheet-drop-item bsheet-drop-custom" data-custom="1">
+          <iconify-icon icon="lucide:plus"></iconify-icon> Add “${esc(srch.value.trim())}”
+        </button>`;
+    drop.style.display = "block";
+  });
+  drop.addEventListener("click", e => {
+    const it = e.target.closest(".bsheet-drop-item");
+    if (!it) return;
+    if (it.dataset.custom) addRow(sheetCustomRow(cfg.kind, srch.value.trim()));
+    else addRow(sheetToRow(cfg.kind, hits[+it.dataset.i]));
+  });
+  renderList();
+}
+
+// Edit an existing block via the sheet (deep-copies first so Cancel discards).
 function editFlowBlock(q, id) {
-  const blocks = (q.blocks || []).map(b => ({ ...b }));
-  const b = blocks.find(x => x.id === id);
-  if (!b) return;
-  if (b.type === "text" || b.type === "note") {
-    const v = prompt(b.type === "note" ? "DM note:" : "Text:", b.content || "");
-    if (v === null) return; b.content = v;
-  } else if (b.type === "phase") {
-    const v = prompt("Phase name:", b.title || "");
-    if (v === null) return; b.title = v;
-  } else if (b.type === "puzzle") {
-    const v = prompt("Puzzle title:", b.title || "");
-    if (v === null) return; b.title = v;
-  } else if (b.type === "divider") {
-    const v = prompt("Divider label (optional):", b.title || "");
-    if (v === null) return; b.title = v;
-  } else {
-    // Structured blocks: edit their row list (the desktop canvas has a richer form).
-    if (!promptStructuredRows(b)) return;
-  }
-  set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+  const orig = (q.blocks || []).find(x => x.id === id);
+  if (!orig) return;
+  const working = JSON.parse(JSON.stringify(orig));
+  openBlockSheet(working, edited => {
+    const blocks = (q.blocks || []).map(b => b.id === id ? edited : ({ ...b }));
+    set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+  });
 }
 
 function deleteFlowBlock(q, id) {
@@ -1934,89 +2070,94 @@ function refreshOpenQuestViewFlow() {
   else canvasWrap.scrollTop = st;
 }
 
-// Build a block of `type`, prompting for its initial content. Returns null if
-// the prompt was cancelled. Shared by the toolbar (append) and drag-to-insert.
-function buildBlockWithPrompt(type) {
-  if (!BLOCK_DEFAULTS[type]) return null;
-  const block = { ...BLOCK_DEFAULTS[type], id: newId(), worldX: 20, worldY: 0, width: BLOCK_DEFAULT_W, height: BLOCK_DEFAULT_H };
-  if (type === "text" || type === "note") {
-    const v = prompt(type === "note" ? "DM note:" : "Text:"); if (v === null) return null; block.content = v;
-  } else if (type === "phase") {
-    const v = prompt("Phase name:"); if (v === null) return null; block.title = v || "";
-  } else if (type === "puzzle") {
-    const v = prompt("Puzzle title:"); if (v === null) return null; block.title = v || "";
-  } else if (type === "divider") {
-    const v = prompt("Divider label (optional):"); if (v === null) return null; block.title = v || "";
-  } else if (structuredSpec(type)) {
-    // Enemy / encounter / loot / character / lore: fill the rows right away so the
-    // block isn't created empty.
-    if (!promptStructuredRows(block)) return null;
-  }
-  return block;
+// A fresh block of `type` at the default position.
+function newFlowBlock(type) {
+  return { ...BLOCK_DEFAULTS[type], id: newId(), worldX: 20, worldY: 0, width: BLOCK_DEFAULT_W, height: BLOCK_DEFAULT_H };
 }
 
-// Append a content block to the open quest and save it (affects desktop too).
+// Append a content block to the open quest (opens the editor sheet first).
 function addBlockToCurrentQuest(type) {
-  const q = quests.find(x => x.id === _viewQuestId);
-  if (!q) return;
-  const block = buildBlockWithPrompt(type);
-  if (!block) return;
-  const blocks = (q.blocks || []).map(b => ({ ...b }));
-  let maxBottom = 0;
-  blocks.forEach(b => { maxBottom = Math.max(maxBottom, (b.worldY || 0) + (b.height || BLOCK_DEFAULT_H)); });
-  block.worldY = blocks.length ? maxBottom + 24 : 20;
-  blocks.push(block);
-  _scrollFlowToBottom = true;
-  set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+  if (!BLOCK_DEFAULTS[type] || !quests.find(x => x.id === _viewQuestId)) return;
+  openBlockSheet(newFlowBlock(type), block => {
+    const q = quests.find(x => x.id === _viewQuestId);
+    if (!q) return;
+    const blocks = (q.blocks || []).map(b => ({ ...b }));
+    let maxBottom = 0;
+    blocks.forEach(b => { maxBottom = Math.max(maxBottom, (b.worldY || 0) + (b.height || BLOCK_DEFAULT_H)); });
+    block.worldY = blocks.length ? maxBottom + 24 : 20;
+    blocks.push(block);
+    _scrollFlowToBottom = true;
+    set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+  });
 }
 
-// Insert a block at a reading position expressed as a worldY (drag-to-insert).
+// Insert a block at a reading position (worldY) — used by drag-to-insert.
 function insertBlockInFlowAt(type, worldY) {
-  const q = quests.find(x => x.id === _viewQuestId);
-  if (!q) return;
-  const block = buildBlockWithPrompt(type);
-  if (!block) return;
-  block.worldY = worldY;
-  const blocks = (q.blocks || []).map(b => ({ ...b }));
-  blocks.push(block);
-  set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+  if (!BLOCK_DEFAULTS[type] || !quests.find(x => x.id === _viewQuestId)) return;
+  openBlockSheet(newFlowBlock(type), block => {
+    const q = quests.find(x => x.id === _viewQuestId);
+    if (!q) return;
+    block.worldY = worldY;
+    const blocks = (q.blocks || []).map(b => ({ ...b }));
+    blocks.push(block);
+    set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+  });
 }
 
 // Find where a drop at viewport-Y lands: move the indicator line and return the
 // worldY a new block should take to sort into that gap. Hidden (collapsed) cards
 // are ignored so the maths only sees what's on screen.
+// Build hit-test "slots" from the flow's top-level children. Each slot carries
+// the worldY range of the block(s) it represents. A *collapsed* phase/group is a
+// single slot spanning all its (hidden) blocks, so dropping after a collapsed
+// phase lands after it instead of snapping in before its first visible sibling.
+function flowDropSlots(flow, byId, skipEl) {
+  const slots = [];
+  const push = (rect, minY, maxY) => { if (rect.height > 0) slots.push({ rect, minY, maxY }); };
+  const yOf = id => { const b = byId(id); return b ? (b.worldY || 0) : null; };
+  for (const child of flow.children) {
+    if (child === skipEl) continue;
+    if (child.matches(".qflow-block")) {
+      const y = yOf(child.dataset.blockId);
+      if (y != null) push(child.getBoundingClientRect(), y, y);
+    } else if (child.matches(".qflow-section")) {
+      const phaseId = child.querySelector(".qflow-section-head .qflow-admin")?.dataset.blockId;
+      const cards = [...child.querySelectorAll("[data-block-id]")].filter(e => e !== skipEl);
+      if (child.hasAttribute("open")) {
+        const head = child.querySelector(".qflow-section-head");
+        const py = phaseId ? yOf(phaseId) : null;       // the phase header is its own slot
+        if (head && py != null) push(head.getBoundingClientRect(), py, py);
+        cards.forEach(e => { const y = yOf(e.dataset.blockId); if (y != null) push(e.getBoundingClientRect(), y, y); });
+      } else {
+        const ys = cards.map(e => yOf(e.dataset.blockId)).filter(y => y != null);
+        if (phaseId && yOf(phaseId) != null) ys.push(yOf(phaseId));
+        if (ys.length) push(child.getBoundingClientRect(), Math.min(...ys), Math.max(...ys));
+      }
+    }
+  }
+  return slots;
+}
+
 function qvtComputeDrop(clientY, skipEl) {
   const flow = document.querySelector("#qview-canvas-wrap .qc-ro-flow");
   const ind = document.getElementById("qvt-drop-indicator");
   if (!flow) return null;
   const q = quests.find(x => x.id === _viewQuestId);
   const byId = id => (q?.blocks || []).find(b => b.id === id);
-  const els = [...flow.querySelectorAll("[data-block-id]")]
-    .filter(el => el !== skipEl && el.getBoundingClientRect().height > 0);
-  let beforeIdx = els.length;
-  for (let i = 0; i < els.length; i++) {
-    const r = els[i].getBoundingClientRect();
-    if (clientY < r.top + r.height / 2) { beforeIdx = i; break; }
+  const slots = flowDropSlots(flow, byId, skipEl);
+  let beforeIdx = slots.length;
+  for (let i = 0; i < slots.length; i++) {
+    if (clientY < slots[i].rect.top + slots[i].rect.height / 2) { beforeIdx = i; break; }
   }
-  const prevEl = els[beforeIdx - 1], nextEl = els[beforeIdx];
-  const prevB = prevEl ? byId(prevEl.dataset.blockId) : null;
-  const nextB = nextEl ? byId(nextEl.dataset.blockId) : null;
+  const prev = slots[beforeIdx - 1], next = slots[beforeIdx];
   let worldY;
-  if (prevB && nextB) {
-    const pY = prevB.worldY || 0, nY = nextB.worldY || 0;
-    worldY = nY > pY ? (pY + nY) / 2 : pY + 1;
-  } else if (prevB) {
-    worldY = (prevB.worldY || 0) + (prevB.height || BLOCK_DEFAULT_H) + 24;
-  } else if (nextB) {
-    worldY = (nextB.worldY || 0) - 30;
-  } else {
-    worldY = 20;
-  }
+  if (prev && next)      worldY = next.minY > prev.maxY ? (prev.maxY + next.minY) / 2 : prev.maxY + 1;
+  else if (prev)         worldY = prev.maxY + 30;
+  else if (next)         worldY = next.minY - 30;
+  else                   worldY = 20;
   if (ind) {
     const fr = flow.getBoundingClientRect();
-    const lineY = nextEl ? nextEl.getBoundingClientRect().top - 6
-                : prevEl ? prevEl.getBoundingClientRect().bottom + 6
-                : fr.top + 6;
+    const lineY = next ? next.rect.top - 6 : prev ? prev.rect.bottom + 6 : fr.top + 6;
     ind.style.left = fr.left + "px";
     ind.style.width = fr.width + "px";
     ind.style.top = lineY + "px";
@@ -2028,9 +2169,16 @@ function qvtComputeDrop(clientY, skipEl) {
 // Vertical drag = insert; horizontal move = let the toolbar scroll; a plain tap
 // still appends at the end (handled by the click listener).
 function initQvtDragInsert(btn) {
-  let sx = 0, sy = 0, decided = false, dragging = false, ghost = null, dropY = null;
+  let sx = 0, sy = 0, decided = false, dragging = false, ghost = null, dropY = null, overCancel = false;
   const type = btn.dataset.blockType;
   const indicatorEl = () => document.getElementById("qvt-drop-indicator");
+  // True when the finger is back over the toolbar — release there to abort.
+  const onToolbar = clientY => {
+    const tb = document.getElementById("qview-toolbar");
+    if (!tb) return false;
+    const r = tb.getBoundingClientRect();
+    return clientY >= r.top - 8;
+  };
 
   btn.addEventListener("touchstart", e => {
     if (e.touches.length !== 1) return;
@@ -2050,8 +2198,16 @@ function initQvtDragInsert(btn) {
     if (!dragging) return;
     e.preventDefault();
     moveGhost(t);
-    dropY = qvtComputeDrop(t.clientY);
-    edgeAutoScroll(t.clientY);
+    overCancel = onToolbar(t.clientY);
+    ghost?.classList.toggle("qvt-ghost-cancel", overCancel);
+    if (overCancel) {
+      dropY = null;
+      const ind = indicatorEl(); if (ind) ind.style.display = "none";
+    } else {
+      const ind = indicatorEl(); if (ind) ind.style.display = "block";
+      dropY = qvtComputeDrop(t.clientY);
+      edgeAutoScroll(t.clientY);
+    }
   }, { passive: false });
 
   const end = () => {
@@ -2059,7 +2215,7 @@ function initQvtDragInsert(btn) {
     dragging = false;
     btn._qvtDragged = true;                       // suppress the trailing click
     setTimeout(() => { btn._qvtDragged = false; }, 60);
-    const wY = dropY;
+    const wY = overCancel ? null : dropY;          // released over the toolbar → abort
     cleanupDrag();
     if (wY !== null) insertBlockInFlowAt(type, wY);
   };
@@ -2067,6 +2223,7 @@ function initQvtDragInsert(btn) {
   btn.addEventListener("touchcancel", () => { dragging = false; cleanupDrag(); });
 
   function startDrag(t) {
+    overCancel = false;
     btn.classList.add("qvt-dragging");
     ghost = document.createElement("div");
     ghost.className = "qvt-drag-ghost qvt-btn";
@@ -2083,7 +2240,7 @@ function initQvtDragInsert(btn) {
     btn.classList.remove("qvt-dragging");
     if (ghost) { ghost.remove(); ghost = null; }
     const ind = indicatorEl(); if (ind) ind.style.display = "none";
-    dropY = null;
+    dropY = null; overCancel = false;
   }
   function edgeAutoScroll(clientY) {
     const wrap = document.getElementById("qview-canvas-wrap");
@@ -2095,21 +2252,95 @@ function initQvtDragInsert(btn) {
   }
 }
 
-// New quest from the mobile + button → create, then open the mobile editor.
+// New quest from the mobile + button → full-screen creation popup, then open the
+// mobile editor on the new quest.
+let _nqSheet = null, _nqCreateCb = null;
+function closeNewQuestSheet() { if (_nqSheet) _nqSheet.classList.remove("open"); _nqCreateCb = null; }
+function ensureNewQuestSheet() {
+  if (_nqSheet) return _nqSheet;
+  const ov = document.createElement("div");
+  ov.id = "new-quest-sheet";
+  ov.className = "nqsheet-overlay";
+  ov.innerHTML = `
+    <div class="nqsheet">
+      <div class="nqsheet-head">
+        <button class="nqsheet-x" type="button" aria-label="Close"><iconify-icon icon="lucide:x"></iconify-icon></button>
+        <span class="nqsheet-title">New Quest</span>
+      </div>
+      <div class="nqsheet-body">
+        <label class="bsheet-label">Quest name</label>
+        <input class="bsheet-input nq-title" type="text" placeholder="e.g. The Sunken Crypt" autocomplete="off" />
+        <label class="bsheet-label">Type</label>
+        <div class="nq-seg" data-field="type">
+          <button type="button" class="nq-seg-btn active" data-val="main">Main Quest</button>
+          <button type="button" class="nq-seg-btn" data-val="side">Side Quest</button>
+        </div>
+        <label class="bsheet-label">Status</label>
+        <div class="nq-seg" data-field="status">
+          <button type="button" class="nq-seg-btn active" data-val="not_started">Not Started</button>
+          <button type="button" class="nq-seg-btn" data-val="active">Active</button>
+          <button type="button" class="nq-seg-btn" data-val="completed">Done</button>
+        </div>
+        <label class="bsheet-label">Location <span class="nq-optional">optional</span></label>
+        <input class="bsheet-input nq-location" type="text" placeholder="Where it begins" autocomplete="off" />
+        <label class="nq-toggle">
+          <input type="checkbox" class="nq-discovered" />
+          <span class="nq-toggle-text">Visible to players</span>
+          <span class="nq-toggle-hint">Off = DM only until the party discovers it</span>
+        </label>
+      </div>
+      <div class="nqsheet-foot">
+        <button class="bsheet-btn bsheet-cancel" type="button">Cancel</button>
+        <button class="bsheet-btn bsheet-save nq-create" type="button">Create Quest</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.querySelectorAll(".nq-seg").forEach(seg => seg.addEventListener("click", e => {
+    const b = e.target.closest(".nq-seg-btn"); if (!b) return;
+    seg.querySelectorAll(".nq-seg-btn").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+  }));
+  ov.querySelector(".nqsheet-x").addEventListener("click", closeNewQuestSheet);
+  ov.querySelector(".bsheet-cancel").addEventListener("click", closeNewQuestSheet);
+  ov.querySelector(".nq-title").addEventListener("input", e => e.target.classList.remove("nq-error"));
+  ov.querySelector(".nq-create").addEventListener("click", () => {
+    const titleInp = ov.querySelector(".nq-title");
+    const title = titleInp.value.trim();
+    if (!title) { titleInp.classList.add("nq-error"); titleInp.focus(); return; }
+    const seg = f => ov.querySelector(`.nq-seg[data-field="${f}"] .nq-seg-btn.active`)?.dataset.val;
+    const fields = {
+      title,
+      type: seg("type") || "main",
+      status: seg("status") || "not_started",
+      location: ov.querySelector(".nq-location").value.trim(),
+      discovered: ov.querySelector(".nq-discovered").checked,
+    };
+    const cb = _nqCreateCb;
+    closeNewQuestSheet();
+    if (cb) cb(fields);
+  });
+  _nqSheet = ov;
+  return ov;
+}
 function createQuestMobile() {
-  const title = prompt("New quest name:");
-  if (title === null || !title.trim()) return;
-  const id = newId();
-  const payload = {
-    id,
-    title: title.trim(),
-    type: "main",
-    status: "not_started",
-    discovered: false,
-    blocks: [],
-    order: quests.length,
+  const ov = ensureNewQuestSheet();
+  ov.querySelector(".nq-title").value = "";
+  ov.querySelector(".nq-title").classList.remove("nq-error");
+  ov.querySelector(".nq-location").value = "";
+  ov.querySelector(".nq-discovered").checked = false;
+  ov.querySelectorAll(".nq-seg").forEach(seg =>
+    seg.querySelectorAll(".nq-seg-btn").forEach((b, i) => b.classList.toggle("active", i === 0)));
+  _nqCreateCb = fields => {
+    const id = newId();
+    const payload = {
+      id, title: fields.title, type: fields.type, status: fields.status,
+      location: fields.location || "", discovered: fields.discovered,
+      blocks: [], order: quests.length,
+    };
+    set(ref(db, `campaigns/${cid}/quests/${id}`), payload).then(() => openQuestView(payload));
   };
-  set(ref(db, `campaigns/${cid}/quests/${id}`), payload).then(() => openQuestView(payload));
+  ov.classList.add("open");
+  setTimeout(() => ov.querySelector(".nq-title").focus(), 80);
 }
 
 document.querySelectorAll(".qvt-btn").forEach(btn => {
