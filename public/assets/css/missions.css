@@ -3367,6 +3367,72 @@
 .bsheet-row-del:active { background: rgba(198,40,40,0.25); color: #f0c4c4; }
 .bsheet-empty { font-size: 13px; color: rgba(200,210,228,0.45); text-align: center; padding: 18px 10px 8px; font-style: italic; }
 
+/* Drag ghost over the toolbar = release-to-cancel state */
+.qvt-drag-ghost.qvt-ghost-cancel { filter: grayscale(0.7) brightness(0.7); opacity: 0.55; }
+
+/* ══ Full-screen new-quest popup (mobile) ════════════════════════════════════ */
+.nqsheet-overlay { position: fixed; inset: 0; z-index: 510; display: none; background: rgba(0,0,0,0.5); }
+.nqsheet-overlay.open { display: block; }
+.nqsheet {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  background: linear-gradient(180deg, #1b1e24 0%, #121419 100%);
+  animation: nqIn 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes nqIn { from { opacity: 0; transform: translateY(2%); } to { opacity: 1; transform: none; } }
+.nqsheet-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: calc(11px + env(safe-area-inset-top, 0px)) 16px 11px;
+  background: linear-gradient(180deg, #2a1505 0%, #1c0e03 100%);
+  border-bottom: 1px solid #3a2510;
+  flex-shrink: 0;
+}
+.nqsheet-x {
+  flex-shrink: 0; width: 34px; height: 34px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 50%;
+  background: rgba(255,255,255,0.07); color: rgba(230,220,200,0.8);
+  font-size: 18px; cursor: pointer;
+}
+.nqsheet-title {
+  font-family: 'IM Fell English', 'Garamond', serif;
+  font-size: 20px; color: var(--accent, #e0b84e);
+  text-shadow: 0 0 14px rgba(255,204,102,0.2);
+}
+.nqsheet-body { flex: 1; overflow-y: auto; padding: 8px 16px 16px; -webkit-overflow-scrolling: touch; }
+.nqsheet-body .bsheet-label { margin: 16px 2px 7px; }
+.nqsheet-body .bsheet-label:first-child { margin-top: 6px; }
+.nqsheet-foot {
+  display: flex; gap: 10px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.nq-optional { color: rgba(200,210,228,0.4); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 11px; }
+.nq-seg { display: flex; gap: 6px; }
+.nq-seg-btn {
+  flex: 1; padding: 11px 8px;
+  border: 1px solid rgba(200,164,92,0.25); border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  color: rgba(220,210,190,0.7);
+  font-family: var(--font, inherit); font-size: 13px; cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.nq-seg-btn.active {
+  background: linear-gradient(135deg, #8a6010 0%, #c8922a 50%, #b07820 100%);
+  color: #241502; border-color: rgba(220,170,60,0.6); font-weight: 600;
+}
+.nq-toggle {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 18px; padding: 13px;
+  border: 1px solid rgba(180,196,224,0.12); border-radius: 11px;
+  background: rgba(255,255,255,0.025); cursor: pointer;
+}
+.nq-toggle input { width: 20px; height: 20px; flex-shrink: 0; accent-color: #c8922a; }
+.nq-toggle-text { flex: 1; color: #eef2f8; font-size: 14px; }
+.nq-toggle-hint { width: 100%; font-size: 11px; color: rgba(200,210,228,0.45); }
+.bsheet-input.nq-error { border-color: #c0504a; box-shadow: 0 0 0 2px rgba(192,80,74,0.2); }
+
 /* Flow leaves room for the toolbar */
 .qview-canvas-wrap.has-toolbar .qc-ro-flow { padding-bottom: 104px; }
 
