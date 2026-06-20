@@ -3213,7 +3213,7 @@
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 18px;
+  padding: 16px calc(16px + env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
   background: rgba(0,0,0,0.55);
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
@@ -3222,7 +3222,8 @@
 .bsheet {
   width: 100%;
   max-width: 540px;
-  max-height: 84vh;
+  height: 100%;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #1b1e24 0%, #14161b 100%);
@@ -3273,7 +3274,8 @@
 .bsheet-save:active { filter: brightness(1.1); }
 
 /* Simple text blocks */
-.bsheet-label { display: block; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(200,164,92,0.7); margin: 4px 2px 7px; }
+.bsheet-label { display: block; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(200,164,92,0.7); margin: 15px 2px 7px; }
+.bsheet-body > .bsheet-label:first-child { margin-top: 4px; }
 .bsheet-input {
   width: 100%;
   background: rgba(255,255,255,0.04);
@@ -3369,6 +3371,114 @@
 
 /* Drag ghost over the toolbar = release-to-cancel state */
 .qvt-drag-ghost.qvt-ghost-cancel { filter: grayscale(0.7) brightness(0.7); opacity: 0.55; }
+
+/* ══ Multi-select mode (mobile flow) ═════════════════════════════════════════ */
+.flow-select-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 300;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: calc(9px + env(safe-area-inset-top, 0px)) 14px 9px;
+  background: linear-gradient(180deg, #1b1e24 0%, #16181d 100%);
+  border-bottom: 1px solid rgba(180,196,224,0.14);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.45);
+  animation: bsheetIn 0.18s ease;
+}
+.flow-select-bar.open { display: flex; }
+.fsb-count { flex: 1; font-size: 15px; font-weight: 600; color: #eef2f8; }
+.fsb-btn {
+  flex-shrink: 0;
+  width: 38px; height: 38px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 9px;
+  background: rgba(255,255,255,0.08);
+  color: rgba(232,222,202,0.85);
+  font-size: 18px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.fsb-btn:active { transform: scale(0.92); }
+.fsb-del { background: rgba(198,40,40,0.28); color: #f3c9c9; }
+.fsb-del:disabled { opacity: 0.4; }
+
+/* While selecting: hide per-card controls and show a checkbox top-right */
+.qflow-selecting .qflow-block { cursor: pointer; }
+.qflow-selecting .qflow-admin,
+.qflow-selecting .qflow-drag-handle,
+.qflow-selecting .qflow-card-chevron,
+.qflow-selecting .qflow-section-chevron { display: none; }
+/* In select mode each card collapses to just its header row, so the checkbox
+   centers cleanly (dividers keep their line). */
+.qflow-selecting .qflow-block:not(.qflow-divider) > .blk-body,
+.qflow-selecting .qflow-block > .qflow-branch { display: none; }
+.qflow-selecting .qflow-card-head { padding-right: 44px; }
+.qflow-selecting .qflow-divider { padding-right: 40px; }
+
+.qflow-selecting .qflow-block::after {
+  content: "";
+  position: absolute;
+  top: 50%; right: 12px;
+  transform: translateY(-50%);
+  width: 22px; height: 22px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.35);
+  background-color: rgba(0,0,0,0.3);
+  z-index: 3;
+  pointer-events: none;
+  transition: background-color 0.12s, border-color 0.12s;
+}
+.qflow-selecting .qflow-block.qflow-selected {
+  box-shadow: 0 0 0 2px var(--accent, #e0b84e);
+}
+/* Checkmark drawn as a centered SVG so it never drifts with font metrics */
+.qflow-selecting .qflow-block.qflow-selected::after {
+  border-color: var(--accent, #e0b84e);
+  background-color: var(--accent, #e0b84e);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a1206' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 13l4 4L19 7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 12px 12px;
+}
+
+/* Group-cards popup (from multi-select) */
+.gpop-overlay {
+  position: fixed; inset: 0; z-index: 520;
+  display: none; align-items: center; justify-content: center;
+  padding: 24px;
+  background: rgba(0,0,0,0.55);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+}
+.gpop-overlay.open { display: flex; }
+.gpop {
+  width: 100%; max-width: 380px;
+  background: linear-gradient(180deg, #1b1e24 0%, #14161b 100%);
+  border: 1px solid rgba(180,196,224,0.16);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+  padding: 18px;
+  animation: bsheetIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.gpop-title {
+  font-family: 'IM Fell English', 'Garamond', serif;
+  font-size: 18px; color: var(--accent, #e0b84e);
+  text-shadow: 0 0 14px rgba(255,204,102,0.2);
+}
+.gpop .bsheet-label:first-of-type { margin-top: 12px; }
+.gpop-colors { display: flex; flex-wrap: wrap; gap: 11px; }
+.gpop-color {
+  width: 34px; height: 34px; padding: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: var(--c);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s;
+}
+.gpop-color:active { transform: scale(0.9); }
+.gpop-color.active { border-color: #fff; box-shadow: 0 0 0 2px var(--c); }
+.gpop-foot { display: flex; gap: 10px; margin-top: 20px; }
 
 /* ══ Full-screen new-quest popup (mobile) ════════════════════════════════════ */
 .nqsheet-overlay { position: fixed; inset: 0; z-index: 510; display: none; background: rgba(0,0,0,0.5); }
@@ -3535,11 +3645,13 @@
 .qflow-drag-handle:active { cursor: grabbing; color: rgba(230,210,160,0.85); }
 .qflow-divider > .qflow-drag-handle { margin-left: 6px; }
 /* The lifted card while it's being dragged */
-.qflow-block.qflow-dragging {
+.qflow-block.qflow-dragging,
+.qflow-section.qflow-dragging {
   z-index: 40;
   box-shadow: 0 14px 34px rgba(0,0,0,0.6);
   opacity: 0.97;
   cursor: grabbing;
+  pointer-events: none;   /* so elementFromPoint sees the drop target underneath */
 }
 
 /* ── Inline block controls (admin, phone flow): edit · delete ── */

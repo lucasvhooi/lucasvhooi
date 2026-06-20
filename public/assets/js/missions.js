@@ -940,11 +940,22 @@ function buildQuestFlowDOM(q) {
     </span>` : "";
   // Grip at the front of each card — drag it up/down to reorder the quest.
   const dragHandle = () => isAdmin ? `<span class="qflow-drag-handle" title="Drag to reorder"><iconify-icon icon="lucide:menu"></iconify-icon></span>` : "";
-  // Wire the touch reorder behaviour to a freshly-built card's grip.
+  // Rename / ungroup controls for a group section header.
+  const groupCtrls = (gid) => isAdmin ? `
+    <span class="qflow-admin" data-group-id="${gid}">
+      <button class="qflow-admin-btn" data-gact="rename" title="Rename group"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+      <button class="qflow-admin-btn qflow-admin-del" data-gact="ungroup" title="Ungroup"><iconify-icon icon="lucide:ungroup"></iconify-icon></button>
+    </span>` : "";
+  // Wire a card's grip to block-reorder, a group header's grip to group-reorder.
   const wireHandle = (el, id) => {
     if (!isAdmin) return;
     const h = el.querySelector(".qflow-drag-handle");
     if (h) initFlowReorderDrag(h, el, id);
+  };
+  const wireGroupHandle = (el, gid) => {
+    if (!isAdmin) return;
+    const h = el.querySelector(".qflow-drag-handle");
+    if (h) initGroupReorderDrag(h, el, gid);
   };
 
   // Delegated edit/delete handler. preventDefault stops the click from toggling
@@ -955,12 +966,44 @@ function buildQuestFlowDOM(q) {
       if (!btn || !container.contains(btn)) return;
       e.preventDefault();
       e.stopPropagation();
-      const id = btn.closest(".qflow-admin")?.dataset.blockId;
+      const admin = btn.closest(".qflow-admin");
+      const gid = admin?.dataset.groupId;
+      if (gid) {                                  // group header controls
+        if (btn.dataset.gact === "rename") renameFlowGroup(gid);
+        else                               ungroupFlowGroup(gid);
+        return;
+      }
+      const id = admin?.dataset.blockId;
       if (!id) return;
       const live = quests.find(x => x.id === q.id) || q;   // freshest copy
       if (btn.dataset.act === "edit") editFlowBlock(live, id);
       else                            deleteFlowBlock(live, id);
     });
+
+    // Long-press a card → enter multi-select; while selecting, taps (de)select.
+    let lpTimer = null, lpX = 0, lpY = 0;
+    const clearLP = () => { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } };
+    container.addEventListener("touchstart", e => {
+      if (flowSelectMode || e.touches.length !== 1) return;
+      if (e.target.closest(".qflow-drag-handle, .qflow-admin")) return;
+      const card = e.target.closest(".qflow-block[data-block-id]");
+      if (!card) return;
+      lpX = e.touches[0].clientX; lpY = e.touches[0].clientY;
+      lpTimer = setTimeout(() => { lpTimer = null; enterFlowSelect(card.dataset.blockId); }, 480);
+    }, { passive: true });
+    container.addEventListener("touchmove", e => {
+      if (lpTimer && (Math.abs(e.touches[0].clientX - lpX) > 10 || Math.abs(e.touches[0].clientY - lpY) > 10)) clearLP();
+    }, { passive: true });
+    container.addEventListener("touchend", clearLP);
+    container.addEventListener("touchcancel", clearLP);
+    // Capture clicks while selecting so they toggle selection instead of expanding.
+    container.addEventListener("click", e => {
+      if (!flowSelectMode) return;
+      e.preventDefault(); e.stopPropagation();
+      if (_flowSuppressClick) { _flowSuppressClick = false; return; }
+      const card = e.target.closest(".qflow-block[data-block-id]");
+      if (card) toggleFlowSelect(card.dataset.blockId);
+    }, true);
   }
 
   const visible = blocks.filter(b => !(b.type === "note" && !isAdmin));
@@ -1035,19 +1078,22 @@ function buildQuestFlowDOM(q) {
     const det = document.createElement("details");
     det.className = `qflow-section qflow-section-${kind}`;
     if (kind === "group" && info.color) det.style.setProperty("--gc", info.color);
+    if (kind === "group" && info.groupId) det.dataset.groupId = info.groupId;
     det.open = flowExpandGet(qid, key, false);
     det.addEventListener("toggle", () => flowExpandSet(qid, key, det.open));
     const n = children.length;
+    const hasHandle = info.blockId || info.groupId;
     det.innerHTML = `
       <summary class="qflow-section-head">
-        ${info.blockId ? dragHandle() : ""}
+        ${hasHandle ? dragHandle() : ""}
         <span class="qflow-section-icon">${info.icon}</span>
         <span class="qflow-section-title">${esc(info.title)}</span>
         <span class="qflow-section-count">${n} ${n === 1 ? "item" : "items"}</span>
-        ${info.blockId ? adminCtrls(info.blockId) : ""}
+        ${info.blockId ? adminCtrls(info.blockId) : (info.groupId ? groupCtrls(info.groupId) : "")}
         <iconify-icon icon="lucide:chevron-right" class="qflow-section-chevron"></iconify-icon>
       </summary>`;
     if (info.blockId) wireHandle(det, info.blockId);
+    else if (info.groupId) wireGroupHandle(det, info.groupId);
     const body = document.createElement("div");
     body.className = "qflow-section-body";
     if (info.desc) {
@@ -1061,11 +1107,13 @@ function buildQuestFlowDOM(q) {
     return det;
   };
 
-  // Partition the reading order into render items. Explicit groups win; phase
-  // blocks otherwise open a sequential container for the cards that follow.
+  // Partition the reading order into render items. Explicit groups win; a card's
+  // phase membership comes from computeFlowPhaseMap (explicit `phaseId`, else the
+  // legacy positional rule), so a card dropped past a phase's edge renders after it.
+  const phaseMap = computeFlowPhaseMap(ordered, groupById);
   const items = [];
   const groupEntry = {};
-  let currentPhase = null;
+  const phaseEntry = {};
   ordered.forEach(b => {
     const g = groupById[b.id];
     if (g) {
@@ -1075,11 +1123,13 @@ function buildQuestFlowDOM(q) {
       return;
     }
     if (b.type === "phase") {
-      currentPhase = { kind: "phase", header: b, children: [] };
-      items.push(currentPhase);
+      const e = { kind: "phase", header: b, children: [] };
+      phaseEntry[b.id] = e;
+      items.push(e);
       return;
     }
-    if (currentPhase) currentPhase.children.push(b);
+    const pid = phaseMap[b.id];
+    if (pid && phaseEntry[pid]) phaseEntry[pid].children.push(b);
     else items.push({ kind: "card", block: b });
   });
 
@@ -1099,10 +1149,12 @@ function buildQuestFlowDOM(q) {
         icon: '<iconify-icon icon="lucide:layers"></iconify-icon>',
         title: item.group.title || "Group",
         color: item.group.color || "#ffcc66",
+        groupId: item.group.id,
       }, item.children));
     }
   });
 
+  if (isAdmin) reapplyFlowSelection(container);
   return container;
 }
 
@@ -1123,8 +1175,16 @@ const SHEET_CFG = {
   character: { title: "Characters", key: "characters", kind: "character", ph: "Search characters…" },
   loreref:   { title: "Lore",       key: "items",      kind: "lore",      ph: "Search lore…" },
 };
-const SIMPLE_FIELD = { text: "content", note: "content", phase: "title", puzzle: "title", divider: "title" };
-const SIMPLE_LABEL = { text: "Text", note: "DM note", phase: "Phase name", puzzle: "Puzzle title", divider: "Divider label (optional)" };
+// Full field list per simple block type — mirrors the desktop editor so every
+// property (puzzle hint/solution, phase description, headings, …) is editable.
+const F_HEADING = { k: "blockTitle", label: "Heading", optional: true, ph: "Optional heading above the block" };
+const BLOCK_FIELDS = {
+  text:    [F_HEADING, { k: "content", label: "Text", area: true, rows: 6 }],
+  note:    [F_HEADING, { k: "content", label: "Note", area: true, rows: 5, ph: "Private DM notes" }],
+  phase:   [F_HEADING, { k: "title", label: "Phase name" }, { k: "description", label: "Description", area: true, rows: 4, ph: "What happens in this phase" }],
+  puzzle:  [F_HEADING, { k: "title", label: "Puzzle name" }, { k: "description", label: "Describe the puzzle", area: true, rows: 4 }, { k: "hint", label: "Hint", ph: "Visible to players" }, { k: "solution", label: "Solution", ph: "DM only" }],
+  divider: [{ k: "title", label: "Label", optional: true, ph: "Optional divider label" }],
+};
 
 // Search pool + adapters per structured kind (mirrors the desktop pickers).
 function sheetPool(kind) {
@@ -1218,7 +1278,7 @@ function openBlockSheet(block, onSave) {
   const ov = ensureBlockSheet();
   const body = ov.querySelector(".bsheet-body");
   const cfg = SHEET_CFG[block.type];
-  ov.querySelector(".bsheet-title").textContent = cfg ? cfg.title : (SIMPLE_LABEL[block.type] || "Block");
+  ov.querySelector(".bsheet-title").textContent = cfg ? cfg.title : (BLOCK_TYPE_LABEL[block.type] || "Block");
   body.innerHTML = "";
   if (cfg) buildStructuredSheet(body, block, cfg);
   else     buildSimpleSheet(body, block);
@@ -1228,25 +1288,36 @@ function openBlockSheet(block, onSave) {
     onSave(block);
   };
   ov.classList.add("open");
-  setTimeout(() => body.querySelector("input,textarea")?.focus(), 60);
+  // Focus the main field (search for structured, first non-heading for simple).
+  setTimeout(() => {
+    const t = body.querySelector(".bsheet-search")
+      || body.querySelector('[data-field]:not([data-field="blockTitle"])')
+      || body.querySelector("input,textarea");
+    t?.focus();
+  }, 60);
+}
+function fieldHtml(f) {
+  const opt = f.optional ? ` <span class="nq-optional">optional</span>` : "";
+  return `
+    <label class="bsheet-label">${esc(f.label)}${opt}</label>
+    ${f.area
+      ? `<textarea class="bsheet-input bsheet-textarea" rows="${f.rows || 4}" data-field="${f.k}" placeholder="${esc(f.ph || "")}"></textarea>`
+      : `<input class="bsheet-input" type="text" data-field="${f.k}" placeholder="${esc(f.ph || "")}" />`}`;
 }
 function buildSimpleSheet(body, block) {
-  const field = SIMPLE_FIELD[block.type] || "content";
-  const multiline = field === "content";
-  body.innerHTML = `
-    <label class="bsheet-label">${SIMPLE_LABEL[block.type] || "Text"}</label>
-    ${multiline
-      ? `<textarea class="bsheet-input bsheet-textarea" rows="6" data-field="${field}"></textarea>`
-      : `<input class="bsheet-input" type="text" data-field="${field}" />`}`;
-  body.querySelector(".bsheet-input").value = block[field] || "";
+  const fields = BLOCK_FIELDS[block.type] || [{ k: "content", label: "Text", area: true, rows: 6 }];
+  body.innerHTML = fields.map(fieldHtml).join("");
+  fields.forEach(f => { const el = body.querySelector(`[data-field="${f.k}"]`); if (el) el.value = block[f.k] || ""; });
 }
 function commitSimpleSheet(body, block) {
-  const inp = body.querySelector(".bsheet-input");
-  if (inp) block[inp.dataset.field] = inp.value;
+  body.querySelectorAll("[data-field]").forEach(el => { block[el.dataset.field] = el.value; });
 }
 function buildStructuredSheet(body, block, cfg) {
   if (!Array.isArray(block[cfg.key])) block[cfg.key] = [];
   body.innerHTML = `
+    <label class="bsheet-label">Heading <span class="nq-optional">optional</span></label>
+    <input class="bsheet-input bsheet-heading" type="text" placeholder="Optional heading above the ${esc(cfg.title.toLowerCase())}" />
+    <label class="bsheet-label">${esc(cfg.title)}</label>
     <div class="bsheet-search-wrap">
       <iconify-icon icon="lucide:search" class="bsheet-search-icon"></iconify-icon>
       <input class="bsheet-search" type="text" placeholder="${esc(cfg.ph)}" autocomplete="off" />
@@ -1254,6 +1325,9 @@ function buildStructuredSheet(body, block, cfg) {
     </div>
     <div class="bsheet-list"></div>
     <div class="bsheet-empty">Search to add from your campaign, or type a name and tap “Add”.</div>`;
+  const heading = body.querySelector(".bsheet-heading");
+  heading.value = block.blockTitle || "";
+  heading.addEventListener("input", () => { block.blockTitle = heading.value; });
   const srch = body.querySelector(".bsheet-search");
   const drop = body.querySelector(".bsheet-drop");
   const list = body.querySelector(".bsheet-list");
@@ -1321,23 +1395,272 @@ function deleteFlowBlock(q, id) {
   });
 }
 
-// Commit a reorder: give the block a worldY that sorts it into the dropped gap.
-function commitReorderBlock(blockId, worldY) {
+// ── Multi-select mode (mobile): long-press a card to start, tap to (de)select ──
+let flowSelectMode = false;
+const flowSelected = new Set();
+let _flowSuppressClick = false, _flowSelBar = null;
+const flowContainer = () => document.querySelector("#qview-canvas-wrap .qc-ro-flow");
+
+function ensureFlowSelBar() {
+  if (_flowSelBar) return _flowSelBar;
+  const bar = document.createElement("div");
+  bar.id = "flow-select-bar";
+  bar.className = "flow-select-bar";
+  bar.innerHTML = `
+    <button class="fsb-btn fsb-cancel" type="button" title="Done"><iconify-icon icon="lucide:x"></iconify-icon></button>
+    <span class="fsb-count">0 selected</span>
+    <button class="fsb-btn fsb-all" type="button" title="Select all"><iconify-icon icon="lucide:list-checks"></iconify-icon></button>
+    <button class="fsb-btn fsb-group" type="button" title="Group selected"><iconify-icon icon="lucide:layers"></iconify-icon></button>
+    <button class="fsb-btn fsb-del" type="button" title="Delete selected"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>`;
+  document.body.appendChild(bar);
+  bar.querySelector(".fsb-cancel").addEventListener("click", exitFlowSelect);
+  bar.querySelector(".fsb-all").addEventListener("click", selectAllFlowBlocks);
+  bar.querySelector(".fsb-group").addEventListener("click", openGroupPopup);
+  bar.querySelector(".fsb-del").addEventListener("click", deleteSelectedFlowBlocks);
+  _flowSelBar = bar;
+  return bar;
+}
+function updateFlowSelBar() {
+  const bar = ensureFlowSelBar();
+  bar.querySelector(".fsb-count").textContent = `${flowSelected.size} selected`;
+  bar.querySelector(".fsb-del").disabled = flowSelected.size === 0;
+  bar.querySelector(".fsb-group").disabled = flowSelected.size === 0;
+}
+function enterFlowSelect(id) {
+  flowSelectMode = true;
+  flowSelected.clear();
+  if (id) flowSelected.add(id);
+  _flowSuppressClick = true;        // ignore the click that ends the long-press
+  const c = flowContainer();
+  if (c) {
+    c.classList.add("qflow-selecting");
+    if (id) c.querySelector(`[data-block-id="${id}"]`)?.classList.add("qflow-selected");
+  }
+  ensureFlowSelBar().classList.add("open");
+  updateFlowSelBar();
+  if (navigator.vibrate) { try { navigator.vibrate(15); } catch (_) {} }
+}
+function exitFlowSelect() {
+  flowSelectMode = false;
+  flowSelected.clear();
+  const c = flowContainer();
+  if (c) {
+    c.classList.remove("qflow-selecting");
+    c.querySelectorAll(".qflow-selected").forEach(el => el.classList.remove("qflow-selected"));
+  }
+  if (_flowSelBar) _flowSelBar.classList.remove("open");
+  closeGroupPopup();
+}
+function toggleFlowSelect(id) {
+  if (!id) return;
+  const el = flowContainer()?.querySelector(`[data-block-id="${id}"]`);
+  if (flowSelected.has(id)) { flowSelected.delete(id); el?.classList.remove("qflow-selected"); }
+  else { flowSelected.add(id); el?.classList.add("qflow-selected"); }
+  if (flowSelected.size === 0) exitFlowSelect();
+  else updateFlowSelBar();
+}
+function selectAllFlowBlocks() {
+  const c = flowContainer();
+  if (!c) return;
+  c.querySelectorAll(".qflow-block[data-block-id]").forEach(el => {
+    flowSelected.add(el.dataset.blockId);
+    el.classList.add("qflow-selected");
+  });
+  updateFlowSelBar();
+}
+function deleteSelectedFlowBlocks() {
+  const q = quests.find(x => x.id === _viewQuestId);
+  if (!q || !flowSelected.size) return;
+  const ids = new Set(flowSelected);
+  if (!confirm(`Delete ${ids.size} block${ids.size > 1 ? "s" : ""}?`)) return;
+  const blocks = (q.blocks || []).filter(b => !ids.has(b.id));
+  const conns  = (q.connections || []).filter(c => !ids.has(c.from) && !ids.has(c.to));
+  const groups = (q.groups || [])
+    .map(g => ({ ...g, blockIds: (g.blockIds || []).filter(x => !ids.has(x)) }))
+    .filter(g => (g.blockIds || []).length > 0);
+  update(ref(db, `campaigns/${cid}/quests/${q.id}`), {
+    blocks: blocks.length ? blocks : null,
+    connections: conns.length ? conns : null,
+    groups: groups.length ? groups : null,
+  });
+  exitFlowSelect();
+}
+
+// Group the selected cards under a named, colored section (like the desktop canvas).
+const GROUP_COLORS = ["#ffcc66", "#e0785a", "#7fb069", "#5aa0d0", "#b07cc6", "#d4a02e", "#5fcabb", "#c0556a"];
+let _groupPopup = null, _gpopOnSave = null;
+function closeGroupPopup() { if (_groupPopup) _groupPopup.classList.remove("open"); _gpopOnSave = null; }
+function ensureGroupPopup() {
+  if (_groupPopup) return _groupPopup;
+  const ov = document.createElement("div");
+  ov.id = "group-popup";
+  ov.className = "gpop-overlay";
+  ov.innerHTML = `
+    <div class="gpop">
+      <div class="gpop-title">Group cards</div>
+      <label class="bsheet-label">Group name</label>
+      <input class="bsheet-input gpop-name" type="text" placeholder="e.g. The Ambush" autocomplete="off" />
+      <label class="bsheet-label">Color</label>
+      <div class="gpop-colors">${GROUP_COLORS.map((c, i) => `<button type="button" class="gpop-color${i === 0 ? " active" : ""}" data-color="${c}" style="--c:${c}"></button>`).join("")}</div>
+      <div class="gpop-foot">
+        <button class="bsheet-btn bsheet-cancel gpop-cancel" type="button">Cancel</button>
+        <button class="bsheet-btn bsheet-save gpop-create" type="button">Create Group</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener("click", e => { if (e.target === ov) closeGroupPopup(); });
+  ov.querySelector(".gpop-colors").addEventListener("click", e => {
+    const b = e.target.closest(".gpop-color"); if (!b) return;
+    ov.querySelectorAll(".gpop-color").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+  });
+  ov.querySelector(".gpop-cancel").addEventListener("click", closeGroupPopup);
+  ov.querySelector(".gpop-create").addEventListener("click", () => {
+    const name = ov.querySelector(".gpop-name").value.trim();
+    const color = ov.querySelector(".gpop-color.active")?.dataset.color || GROUP_COLORS[0];
+    const cb = _gpopOnSave;
+    closeGroupPopup();
+    if (cb) cb(name, color);
+  });
+  _groupPopup = ov;
+  return ov;
+}
+function showGroupPopup({ title, name, color, saveLabel, onSave }) {
+  const ov = ensureGroupPopup();
+  ov.querySelector(".gpop-title").textContent = title;
+  ov.querySelector(".gpop-create").textContent = saveLabel;
+  ov.querySelector(".gpop-name").value = name || "";
+  const active = color || GROUP_COLORS[0];
+  ov.querySelectorAll(".gpop-color").forEach(b => b.classList.toggle("active", b.dataset.color === active));
+  if (!ov.querySelector(".gpop-color.active")) ov.querySelector(".gpop-color")?.classList.add("active");
+  _gpopOnSave = onSave;
+  ov.classList.add("open");
+  setTimeout(() => ov.querySelector(".gpop-name").focus(), 60);
+}
+function openGroupPopup() {   // create from the current multi-selection
+  if (!flowSelected.size) return;
+  showGroupPopup({
+    title: "Group cards", name: "", color: GROUP_COLORS[0], saveLabel: "Create Group",
+    onSave: createGroupFromSelection,
+  });
+}
+function renameFlowGroup(gid) {
+  const q = quests.find(x => x.id === _viewQuestId);
+  const g = (q?.groups || []).find(gr => gr.id === gid);
+  if (!g) return;
+  showGroupPopup({
+    title: "Edit group", name: g.title || "", color: g.color || GROUP_COLORS[0], saveLabel: "Save",
+    onSave: (name, color) => {
+      const q2 = quests.find(x => x.id === _viewQuestId);
+      if (!q2) return;
+      const groups = (q2.groups || []).map(x => x.id === gid ? { ...x, title: name || "Group", color: color || GROUP_COLORS[0] } : x);
+      set(ref(db, `campaigns/${cid}/quests/${q2.id}/groups`), groups);
+    },
+  });
+}
+function ungroupFlowGroup(gid) {
+  const q = quests.find(x => x.id === _viewQuestId);
+  if (!q) return;
+  const g = (q.groups || []).find(gr => gr.id === gid);
+  if (!confirm(`Ungroup "${g?.title || "this group"}"? The blocks stay.`)) return;
+  const groups = (q.groups || []).filter(x => x.id !== gid);
+  set(ref(db, `campaigns/${cid}/quests/${q.id}/groups`), groups.length ? groups : null);
+}
+function createGroupFromSelection(title, color) {
+  const q = quests.find(x => x.id === _viewQuestId);
+  if (!q || !flowSelected.size) return;
+  const ids = [...flowSelected];
+  const idset = new Set(ids);
+  // A block lives in one group: pull the selected ids out of any existing groups first.
+  const groups = (q.groups || [])
+    .map(g => ({ ...g, blockIds: (g.blockIds || []).filter(x => !idset.has(x)) }))
+    .filter(g => (g.blockIds || []).length > 0);
+  groups.push({ id: newId(), title: title || "Group", color: color || GROUP_COLORS[0], blockIds: ids });
+  set(ref(db, `campaigns/${cid}/quests/${q.id}/groups`), groups);
+  exitFlowSelect();
+}
+// Re-apply selection after a flow re-render (state lives in the Set, not the DOM).
+function reapplyFlowSelection(container) {
+  if (!flowSelectMode) return;
+  const present = new Set([...container.querySelectorAll("[data-block-id]")].map(e => e.dataset.blockId));
+  [...flowSelected].forEach(id => { if (!present.has(id)) flowSelected.delete(id); });
+  if (!flowSelected.size) { exitFlowSelect(); return; }
+  container.classList.add("qflow-selecting");
+  flowSelected.forEach(id => container.querySelector(`[data-block-id="${id}"]`)?.classList.add("qflow-selected"));
+  ensureFlowSelBar().classList.add("open");
+  updateFlowSelBar();
+}
+
+// Re-compute groups so `blockId` belongs only to `targetGroupId` (or none).
+// Returns the cleaned groups array (empty groups dropped).
+function membershipGroups(existingGroups, blockId, targetGroupId) {
+  let groups = (existingGroups || []).map(g => ({ ...g, blockIds: (g.blockIds || []).filter(x => x !== blockId) }));
+  if (targetGroupId) {
+    const tg = groups.find(g => g.id === targetGroupId);
+    if (tg) tg.blockIds.push(blockId);
+  }
+  return groups.filter(g => (g.blockIds || []).length > 0);
+}
+// Did blockId's group membership change vs the target?
+function groupOfBlock(groups, blockId) {
+  const g = (groups || []).find(gr => (gr.blockIds || []).includes(blockId));
+  return g ? g.id : null;
+}
+
+// Map each block → the phase it renders under (or null for top-level). Phases own
+// their cards by an explicit `block.phaseId`; blocks predating that field fall back
+// to the legacy positional rule (a phase header captures every following card up to
+// the next phase). Grouped blocks and phase headers themselves are never "in" a
+// phase. `ordered` must be reading order; `groupById` maps blockId→its group.
+function computeFlowPhaseMap(ordered, groupById) {
+  const phaseIds = new Set(ordered.filter(b => b.type === "phase").map(b => b.id));
+  const map = {};
+  let cur = null;
+  for (const b of ordered) {
+    if (groupById[b.id]) { map[b.id] = null; continue; }
+    if (b.type === "phase") { cur = b.id; map[b.id] = null; continue; }
+    if (b.phaseId !== undefined) map[b.id] = (b.phaseId && phaseIds.has(b.phaseId)) ? b.phaseId : null;
+    else                        map[b.id] = cur;          // legacy positional membership
+  }
+  return map;
+}
+// The phase a single block currently renders under, given a quest's raw blocks/groups.
+function phaseOfBlock(blocks, groups, blockId) {
+  const ordered = orderBlocksForReading((blocks || []).map(b => migrateBlock({ ...b })));
+  const groupById = {};
+  (groups || []).forEach(g => (g.blockIds || []).forEach(id => { if (!(id in groupById)) groupById[id] = g; }));
+  return computeFlowPhaseMap(ordered, groupById)[blockId] ?? null;
+}
+
+// Commit a reorder: set the block's worldY and update which group/phase it belongs
+// to (dropping outside a group's or phase's members pulls it out).
+function commitReorderBlock(blockId, worldY, groupId, phaseId) {
   const q = quests.find(x => x.id === _viewQuestId);
   if (!q) return;
   const blocks = (q.blocks || []).map(b => ({ ...b }));
   const b = blocks.find(x => x.id === blockId);
   if (!b) return;
-  if (b.worldY === worldY) return;   // dropped where it already was
+  // "" = explicitly top-level (not null, which Firebase would strip → legacy positional).
+  const targetPhase = groupId ? "" : (phaseId || "");        // grouped blocks are never phased
+  const groupChanged = groupOfBlock(q.groups, blockId) !== (groupId || null);
+  const phaseChanged = b.type !== "phase" && phaseOfBlock(q.blocks, q.groups, blockId) !== (targetPhase || null);
+  if (b.worldY === worldY && !groupChanged && !phaseChanged) return;   // nothing moved
   b.worldY = worldY;
-  set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+  if (b.type !== "phase") b.phaseId = targetPhase;
+  const updates = { blocks };   // keys are relative to the quest ref
+  if (groupChanged) {
+    const groups = membershipGroups(q.groups, blockId, groupId);
+    updates.groups = groups.length ? groups : null;
+  }
+  update(ref(db, `campaigns/${cid}/quests/${q.id}`), updates);
 }
 
 // Drag a flow card by its grip to reorder it. The card lifts and follows the
 // finger, a drop line shows where it lands, and on release the block's worldY is
 // set between its new neighbours so the reading order (and the card) update.
 function initFlowReorderDrag(handle, card, blockId) {
-  let sy = 0, sx = 0, decided = false, dragging = false, dropY = null, startScroll = 0;
+  let sy = 0, sx = 0, decided = false, dragging = false, drop = null;
+  let grabDY = 0, startLeft = 0, startWidth = 0;
   const indicatorEl = () => document.getElementById("qvt-drop-indicator");
   const wrapEl = () => document.getElementById("qview-canvas-wrap");
 
@@ -1360,19 +1683,111 @@ function initFlowReorderDrag(handle, card, blockId) {
     }
     if (!dragging) return;
     e.preventDefault();
-    const wrap = wrapEl();
-    const scrollDelta = wrap ? wrap.scrollTop - startScroll : 0;   // keep card under finger while auto-scrolling
-    card.style.transform = `translateY(${(t.clientY - sy) + scrollDelta}px)`;
-    dropY = qvtComputeDrop(t.clientY, card);
+    // The card is lifted out of flow (position:fixed) so its old slot collapses and
+    // the group's remaining members close up. Dragging to a group edge then lands
+    // outside those members and ejects the card, instead of hovering in its own
+    // vacated gap (which read as "still between two members" and kept it grouped).
+    card.style.top = (t.clientY - grabDY) + "px";
+    drop = qvtComputeDrop(t.clientX, t.clientY, card);
     edgeAutoScroll(t.clientY);
   }, { passive: false });
 
   const end = () => {
     if (!dragging) return;
     dragging = false;
-    const wY = dropY;
+    const d = drop;
     endDrag();
-    if (wY !== null) commitReorderBlock(blockId, wY);
+    if (d) commitReorderBlock(blockId, d.worldY, d.groupId, d.phaseId);
+  };
+  handle.addEventListener("touchend", end);
+  handle.addEventListener("touchcancel", () => { if (dragging) endDrag(); });
+
+  function startDrag() {
+    const r = card.getBoundingClientRect();
+    grabDY = sy - r.top;                       // where on the card the finger grabbed
+    startLeft = r.left; startWidth = r.width;
+    card.classList.add("qflow-dragging");
+    card.style.width = startWidth + "px";      // pin geometry before lifting out of flow
+    card.style.left = startLeft + "px";
+    card.style.top = r.top + "px";
+    card.style.position = "fixed";
+    card.style.margin = "0";
+    let ind = indicatorEl();
+    if (!ind) { ind = document.createElement("div"); ind.id = "qvt-drop-indicator"; ind.className = "qflow-drop-indicator"; document.body.appendChild(ind); }
+    ind.style.display = "block";
+  }
+  function endDrag() {
+    card.classList.remove("qflow-dragging");
+    card.style.position = "";
+    card.style.top = "";
+    card.style.left = "";
+    card.style.width = "";
+    card.style.margin = "";
+    card.style.transform = "";
+    const ind = indicatorEl(); if (ind) ind.style.display = "none";
+    drop = null;
+  }
+  function edgeAutoScroll(clientY) {
+    const wrap = wrapEl();
+    if (!wrap) return;
+    const r = wrap.getBoundingClientRect();
+    const EDGE = 64;
+    if (clientY < r.top + EDGE) wrap.scrollTop -= 10;
+    else if (clientY > r.bottom - EDGE) wrap.scrollTop += 10;
+  }
+}
+
+// Reposition every member of a group to a contiguous block starting at worldY,
+// so the whole group moves to the drop position (keeping its internal order).
+function commitGroupReorder(groupId, worldY) {
+  const q = quests.find(x => x.id === _viewQuestId);
+  if (!q) return;
+  const group = (q.groups || []).find(g => g.id === groupId);
+  if (!group) return;
+  const memberIds = new Set(group.blockIds || []);
+  const blocks = (q.blocks || []).map(b => ({ ...b }));
+  const members = orderBlocksForReading(blocks.filter(b => memberIds.has(b.id)));
+  if (!members.length) return;
+  let y = worldY;
+  members.forEach(m => { m.worldY = y; m.worldX = 20; y += (m.height || BLOCK_DEFAULT_H) + 8; });
+  set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+}
+
+// Drag a whole group section up/down by its grip to reorder it among the blocks.
+function initGroupReorderDrag(handle, section, groupId) {
+  let sy = 0, sx = 0, decided = false, dragging = false, drop = null, startScroll = 0;
+  const indicatorEl = () => document.getElementById("qvt-drop-indicator");
+  const wrapEl = () => document.getElementById("qview-canvas-wrap");
+
+  handle.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); });
+  handle.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1) return;
+    e.stopPropagation();
+    sy = e.touches[0].clientY; sx = e.touches[0].clientX;
+    decided = false; dragging = false;
+  }, { passive: true });
+  handle.addEventListener("touchmove", e => {
+    const t = e.touches[0];
+    const dy = t.clientY - sy, dx = t.clientX - sx;
+    if (!decided) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      decided = true; dragging = true;
+      startDrag();
+    }
+    if (!dragging) return;
+    e.preventDefault();
+    const wrap = wrapEl();
+    const scrollDelta = wrap ? wrap.scrollTop - startScroll : 0;
+    section.style.transform = `translateY(${(t.clientY - sy) + scrollDelta}px)`;
+    drop = qvtComputeDrop(t.clientX, t.clientY, section);
+    edgeAutoScroll(t.clientY);
+  }, { passive: false });
+  const end = () => {
+    if (!dragging) return;
+    dragging = false;
+    const d = drop;
+    endDrag();
+    if (d) commitGroupReorder(groupId, d.worldY);
   };
   handle.addEventListener("touchend", end);
   handle.addEventListener("touchcancel", () => { if (dragging) endDrag(); });
@@ -1380,16 +1795,16 @@ function initFlowReorderDrag(handle, card, blockId) {
   function startDrag() {
     const wrap = wrapEl();
     startScroll = wrap ? wrap.scrollTop : 0;
-    card.classList.add("qflow-dragging");
+    section.classList.add("qflow-dragging");
     let ind = indicatorEl();
     if (!ind) { ind = document.createElement("div"); ind.id = "qvt-drop-indicator"; ind.className = "qflow-drop-indicator"; document.body.appendChild(ind); }
     ind.style.display = "block";
   }
   function endDrag() {
-    card.classList.remove("qflow-dragging");
-    card.style.transform = "";
+    section.classList.remove("qflow-dragging");
+    section.style.transform = "";
     const ind = indicatorEl(); if (ind) ind.style.display = "none";
-    dropY = null;
+    drop = null;
   }
   function edgeAutoScroll(clientY) {
     const wrap = wrapEl();
@@ -2046,6 +2461,7 @@ function openQuestView(q) {
 }
 
 function closeQuestView() {
+  if (flowSelectMode) exitFlowSelect();
   _viewQuestId = null;
   savePageState({ openQuestId: null });
   document.getElementById("quest-view").classList.remove("open");
@@ -2091,16 +2507,23 @@ function addBlockToCurrentQuest(type) {
   });
 }
 
-// Insert a block at a reading position (worldY) — used by drag-to-insert.
-function insertBlockInFlowAt(type, worldY) {
+// Insert a block at a reading position (worldY), optionally into a group or phase — drag-to-insert.
+function insertBlockInFlowAt(type, worldY, groupId, phaseId) {
   if (!BLOCK_DEFAULTS[type] || !quests.find(x => x.id === _viewQuestId)) return;
   openBlockSheet(newFlowBlock(type), block => {
     const q = quests.find(x => x.id === _viewQuestId);
     if (!q) return;
     block.worldY = worldY;
+    // "" = explicitly top-level (not null, which Firebase strips). Grouped blocks & phases are never phased.
+    block.phaseId = (groupId || type === "phase") ? "" : (phaseId || "");
     const blocks = (q.blocks || []).map(b => ({ ...b }));
     blocks.push(block);
-    set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+    const updates = { blocks };   // keys are relative to the quest ref
+    if (groupId) {
+      const groups = membershipGroups(q.groups, block.id, groupId);
+      updates.groups = groups.length ? groups : null;
+    }
+    update(ref(db, `campaigns/${cid}/quests/${q.id}`), updates);
   });
 }
 
@@ -2113,32 +2536,36 @@ function insertBlockInFlowAt(type, worldY) {
 // phase lands after it instead of snapping in before its first visible sibling.
 function flowDropSlots(flow, byId, skipEl) {
   const slots = [];
-  const push = (rect, minY, maxY) => { if (rect.height > 0) slots.push({ rect, minY, maxY }); };
+  const push = (rect, minY, maxY, groupId, phaseId) => { if (rect.height > 0) slots.push({ rect, minY, maxY, groupId, phaseId: phaseId || null }); };
   const yOf = id => { const b = byId(id); return b ? (b.worldY || 0) : null; };
   for (const child of flow.children) {
     if (child === skipEl) continue;
     if (child.matches(".qflow-block")) {
       const y = yOf(child.dataset.blockId);
-      if (y != null) push(child.getBoundingClientRect(), y, y);
+      if (y != null) push(child.getBoundingClientRect(), y, y, null, null);   // top-level cards: no group, no phase
     } else if (child.matches(".qflow-section")) {
-      const phaseId = child.querySelector(".qflow-section-head .qflow-admin")?.dataset.blockId;
+      const gid = child.classList.contains("qflow-section-group") ? (child.dataset.groupId || null) : null;
+      const phaseId = child.querySelector(".qflow-section-head .qflow-admin")?.dataset.blockId;  // set only for phase sections
       const cards = [...child.querySelectorAll("[data-block-id]")].filter(e => e !== skipEl);
       if (child.hasAttribute("open")) {
         const head = child.querySelector(".qflow-section-head");
-        const py = phaseId ? yOf(phaseId) : null;       // the phase header is its own slot
-        if (head && py != null) push(head.getBoundingClientRect(), py, py);
-        cards.forEach(e => { const y = yOf(e.dataset.blockId); if (y != null) push(e.getBoundingClientRect(), y, y); });
+        const py = phaseId ? yOf(phaseId) : null;       // the phase header anchors its own phase
+        if (head && py != null) push(head.getBoundingClientRect(), py, py, null, phaseId);
+        cards.forEach(e => { const y = yOf(e.dataset.blockId); if (y != null) push(e.getBoundingClientRect(), y, y, gid, phaseId); });
       } else {
         const ys = cards.map(e => yOf(e.dataset.blockId)).filter(y => y != null);
         if (phaseId && yOf(phaseId) != null) ys.push(yOf(phaseId));
-        if (ys.length) push(child.getBoundingClientRect(), Math.min(...ys), Math.max(...ys));
+        if (ys.length) push(child.getBoundingClientRect(), Math.min(...ys), Math.max(...ys), gid, phaseId);
       }
     }
   }
   return slots;
 }
 
-function qvtComputeDrop(clientY, skipEl) {
+// Returns { worldY, groupId } for a drop at viewport-Y. groupId is the group the
+// block should belong to: only when dropped *between two members of the same
+// group* — so dropping at a group's edge or outside pulls the block out.
+function qvtComputeDrop(clientX, clientY, skipEl) {
   const flow = document.querySelector("#qview-canvas-wrap .qc-ro-flow");
   const ind = document.getElementById("qvt-drop-indicator");
   if (!flow) return null;
@@ -2155,6 +2582,48 @@ function qvtComputeDrop(clientY, skipEl) {
   else if (prev)         worldY = prev.maxY + 30;
   else if (next)         worldY = next.minY - 30;
   else                   worldY = 20;
+  // Group targeting (the dragged card is excluded from slots):
+  //  • slotGid  — you're strictly BETWEEN two members of one group → stay/reorder there.
+  //  • spanGid  — the group whose member cards vertically contain the finger.
+  // You leave your OWN group the moment you're not between two of its members (so
+  // dragging to either edge ejects it), but can still drop INTO a different group.
+  const slotGid = (prev && next && prev.groupId && prev.groupId === next.groupId) ? prev.groupId : null;
+  let spanGid = null;
+  const spans = {};
+  for (const s of slots) {
+    if (!s.groupId) continue;
+    const sp = spans[s.groupId] || (spans[s.groupId] = { top: Infinity, bot: -Infinity });
+    sp.top = Math.min(sp.top, s.rect.top);
+    sp.bot = Math.max(sp.bot, s.rect.bottom);
+  }
+  for (const gid in spans) { if (clientY >= spans[gid].top && clientY <= spans[gid].bot) { spanGid = gid; break; } }
+  const skipId = skipEl && skipEl.dataset ? skipEl.dataset.blockId : null;
+  const currentGid = skipId ? groupOfBlock(q?.groups, skipId) : null;
+  let groupId;
+  if (slotGid)                              groupId = slotGid;   // between two members of a group
+  else if (spanGid && spanGid !== currentGid) groupId = spanGid; // over a *different* group → join it
+  else                                      groupId = null;      // edge of own group / outside → leave
+  // Phase targeting mirrors groups: a phase header + its cards form a span, and you
+  // belong to the phase only while inside that span — dropping past its bottom edge
+  // (or above its header) leaves it. Grouped blocks and phase headers are never phased.
+  const skipBlock = skipId ? byId(skipId) : null;
+  let phaseId = null;
+  if (!groupId && skipBlock?.type !== "phase") {
+    const slotPid = (prev && next && prev.phaseId && prev.phaseId === next.phaseId) ? prev.phaseId : null;
+    let spanPid = null;
+    const pspans = {};
+    for (const s of slots) {
+      if (!s.phaseId) continue;
+      const sp = pspans[s.phaseId] || (pspans[s.phaseId] = { top: Infinity, bot: -Infinity });
+      sp.top = Math.min(sp.top, s.rect.top);
+      sp.bot = Math.max(sp.bot, s.rect.bottom);
+    }
+    for (const pid in pspans) { if (clientY >= pspans[pid].top && clientY <= pspans[pid].bot) { spanPid = pid; break; } }
+    const currentPid = skipId ? phaseOfBlock(q?.blocks, q?.groups, skipId) : null;
+    if (slotPid)                                phaseId = slotPid;   // between header/members of a phase
+    else if (spanPid && spanPid !== currentPid) phaseId = spanPid;   // over a *different* phase → join it
+    else                                        phaseId = null;      // edge of own phase / outside → leave
+  }
   if (ind) {
     const fr = flow.getBoundingClientRect();
     const lineY = next ? next.rect.top - 6 : prev ? prev.rect.bottom + 6 : fr.top + 6;
@@ -2162,23 +2631,20 @@ function qvtComputeDrop(clientY, skipEl) {
     ind.style.width = fr.width + "px";
     ind.style.top = lineY + "px";
   }
-  return worldY;
+  return { worldY, groupId, phaseId };
 }
 
 // Touch drag a toolbar button up into the flow to insert a block between others.
 // Vertical drag = insert; horizontal move = let the toolbar scroll; a plain tap
 // still appends at the end (handled by the click listener).
 function initQvtDragInsert(btn) {
-  let sx = 0, sy = 0, decided = false, dragging = false, ghost = null, dropY = null, overCancel = false;
+  let sx = 0, sy = 0, decided = false, dragging = false, ghost = null, drop = null, overCancel = false;
   const type = btn.dataset.blockType;
   const indicatorEl = () => document.getElementById("qvt-drop-indicator");
-  // True when the finger is back over the toolbar — release there to abort.
-  const onToolbar = clientY => {
-    const tb = document.getElementById("qview-toolbar");
-    if (!tb) return false;
-    const r = tb.getBoundingClientRect();
-    return clientY >= r.top - 8;
-  };
+  // True only when the finger is actually over the toolbar — release there to
+  // abort. elementFromPoint (ghost is pointer-events:none) keeps bottom-of-flow
+  // drops working instead of being eaten by a margin above the toolbar.
+  const onToolbar = (x, y) => !!document.elementFromPoint(x, y)?.closest("#qview-toolbar");
 
   btn.addEventListener("touchstart", e => {
     if (e.touches.length !== 1) return;
@@ -2198,14 +2664,14 @@ function initQvtDragInsert(btn) {
     if (!dragging) return;
     e.preventDefault();
     moveGhost(t);
-    overCancel = onToolbar(t.clientY);
+    overCancel = onToolbar(t.clientX, t.clientY);
     ghost?.classList.toggle("qvt-ghost-cancel", overCancel);
     if (overCancel) {
-      dropY = null;
+      drop = null;
       const ind = indicatorEl(); if (ind) ind.style.display = "none";
     } else {
       const ind = indicatorEl(); if (ind) ind.style.display = "block";
-      dropY = qvtComputeDrop(t.clientY);
+      drop = qvtComputeDrop(t.clientX, t.clientY);
       edgeAutoScroll(t.clientY);
     }
   }, { passive: false });
@@ -2215,9 +2681,9 @@ function initQvtDragInsert(btn) {
     dragging = false;
     btn._qvtDragged = true;                       // suppress the trailing click
     setTimeout(() => { btn._qvtDragged = false; }, 60);
-    const wY = overCancel ? null : dropY;          // released over the toolbar → abort
+    const d = overCancel ? null : drop;            // released over the toolbar → abort
     cleanupDrag();
-    if (wY !== null) insertBlockInFlowAt(type, wY);
+    if (d) insertBlockInFlowAt(type, d.worldY, d.groupId, d.phaseId);
   };
   btn.addEventListener("touchend", end);
   btn.addEventListener("touchcancel", () => { dragging = false; cleanupDrag(); });
@@ -2240,7 +2706,7 @@ function initQvtDragInsert(btn) {
     btn.classList.remove("qvt-dragging");
     if (ghost) { ghost.remove(); ghost = null; }
     const ind = indicatorEl(); if (ind) ind.style.display = "none";
-    dropY = null; overCancel = false;
+    drop = null; overCancel = false;
   }
   function edgeAutoScroll(clientY) {
     const wrap = document.getElementById("qview-canvas-wrap");
