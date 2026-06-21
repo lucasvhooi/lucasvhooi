@@ -821,6 +821,12 @@ const STATUS_CLASS = { active: "status-active", not_started: "status-pending", c
 const BLOCK_TYPE_ICON  = { text:'<iconify-icon icon="lucide:type"></iconify-icon>', phase:'<iconify-icon icon="lucide:chevron-right"></iconify-icon>', loot:'<iconify-icon icon="game-icons:open-treasure-chest"></iconify-icon>', boss:'<iconify-icon icon="game-icons:death-skull"></iconify-icon>', encounter:'<iconify-icon icon="game-icons:crossed-swords"></iconify-icon>', puzzle:'<iconify-icon icon="game-icons:puzzle"></iconify-icon>', character:'<iconify-icon icon="lucide:user"></iconify-icon>', loreref:'<iconify-icon icon="game-icons:bookshelf"></iconify-icon>', note:'<iconify-icon icon="lucide:file-text"></iconify-icon>', divider:'<iconify-icon icon="lucide:minus"></iconify-icon>' };
 const BLOCK_TYPE_LABEL = { text:"Text", phase:"Phase", loot:"Loot", boss:"Enemy", encounter:"Encounter", puzzle:"Puzzle", character:"Character", loreref:"Lore", note:"DM Note", divider:"Divider" };
 
+// CR/AC/HP stat pills for an enemy row in the read-only views.
+function enemyStatPills(en) {
+  return [en.cr && `CR ${esc(en.cr)}`, en.ac && `AC ${esc(en.ac)}`, en.hp && `HP ${esc(en.hp)}`]
+    .filter(Boolean).map(s => `<span class="qcb-boss-stat">${s}</span>`).join("");
+}
+
 function buildBlockROContent(b) {
   const titleHtml = b.blockTitle && b.type !== "divider"
     ? `<div class="qcro-block-title"${b.titleColor ? ` style="color:${esc(b.titleColor)}"` : ""}>${esc(b.blockTitle)}</div>`
@@ -835,17 +841,25 @@ function buildBlockROContent(b) {
     case "loot": {
       const items = b.items?.length ? b.items : (b.name ? [{name:b.name,value:b.value||""}] : []);
       if (!items.length) return titleHtml;
-      return titleHtml + items.map(it => `<div class="qcro-loot-row"><iconify-icon icon="game-icons:open-treasure-chest" class="qcb-loot-icon"></iconify-icon><span>${esc(it.name)}</span>${it.value ? `<span class="qcb-loot-value">${esc(it.value)}</span>` : ""}</div>`).join("");
+      return titleHtml + `<div class="qcro-list qcro-list-loot">` + items.map(it =>
+        `<div class="qcro-loot-row"><iconify-icon icon="game-icons:open-treasure-chest" class="qcb-loot-icon"></iconify-icon><span class="qcro-row-name">${esc(it.name)}</span>${it.value ? `<span class="qcb-loot-value">${esc(it.value)}</span>` : ""}</div>`).join("") + `</div>`;
     }
     case "boss": {
       const enemies = b.enemies?.length ? b.enemies : (b.name ? [{name:b.name,cr:b.cr||"",ac:b.ac||"",hp:b.hp||"",notes:b.notes||""}] : []);
       if (!enemies.length) return titleHtml;
-      return titleHtml + enemies.map(en => `<div class="qcro-boss-row"><iconify-icon icon="game-icons:death-skull" class="qcb-boss-icon"></iconify-icon><span class="qcb-boss-name">${esc(en.name)}</span>${en.cr?`<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>`:""}${en.ac?`<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>`:""}${en.hp?`<span class="qcb-boss-stat">HP ${esc(en.hp)}</span>`:""}</div>${en.notes?`<p class="qcro-text">${escBr(en.notes)}</p>`:""}`).join("");
+      return titleHtml + `<div class="qcro-list qcro-list-enemy">` + enemies.map(en =>
+        `<div class="qcro-enemy"><div class="qcro-boss-row"><iconify-icon icon="game-icons:death-skull" class="qcb-boss-icon"></iconify-icon><span class="qcb-boss-name">${esc(en.name)}</span><span class="qcro-stats">${enemyStatPills(en)}</span></div>${en.notes?`<p class="qcro-enemy-notes">${escBr(en.notes)}</p>`:""}</div>`).join("") + `</div>`;
     }
     case "encounter": {
       const enemies = b.enemies?.length ? b.enemies : [];
       if (!enemies.length) return titleHtml;
-      return titleHtml + enemies.map(en => `<div class="qcro-boss-row"><iconify-icon icon="game-icons:crossed-swords" class="qcb-encounter-icon"></iconify-icon><span class="qcb-boss-name">${esc(en.name)}${en.count > 1 ? ` ×${en.count}` : ""}</span>${en.cr?`<span class="qcb-boss-stat">CR ${esc(en.cr)}</span>`:""}${en.ac?`<span class="qcb-boss-stat">AC ${esc(en.ac)}</span>`:""}${en.hp?`<span class="qcb-boss-stat">HP ${esc(en.hp)}</span>`:""}</div>`).join("");
+      const rows = enemies.map(en =>
+        `<div class="qcro-boss-row"><iconify-icon icon="game-icons:crossed-swords" class="qcb-encounter-icon"></iconify-icon><span class="qcb-boss-name">${esc(en.name)}${en.count > 1 ? ` <span class="qcro-count">×${en.count}</span>` : ""}</span><span class="qcro-stats">${enemyStatPills(en)}</span></div>`).join("");
+      // Admin-only: seed combat state from these enemies and jump to the combat tracker.
+      const startBtn = isAdmin
+        ? `<button type="button" class="qcb-start-encounter-btn" data-enemies="${esc(JSON.stringify(enemies))}"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Start Combat</button>`
+        : "";
+      return titleHtml + `<div class="qcro-list qcro-list-enemy qcro-list-encounter">${rows}</div>` + startBtn;
     }
     case "puzzle":
       return titleHtml +
@@ -856,7 +870,8 @@ function buildBlockROContent(b) {
     case "character": {
       const chars = b.characters || [];
       if (!chars.length) return titleHtml;
-      return titleHtml + chars.map(ch => `<div class="qcro-char-row">${ch.picture?`<img class="char-item-pic" src="${esc(ch.picture)}" alt="">`:`<div class="char-item-pic char-item-pic-ph"><iconify-icon icon="lucide:user"></iconify-icon></div>`}<div><div class="char-item-name">${esc(ch.name)}</div>${ch.profession?`<div class="char-item-meta">${esc(ch.profession)}</div>`:""}</div></div>`).join("");
+      return titleHtml + `<div class="qcro-list qcro-list-char">` + chars.map(ch =>
+        `<div class="qcro-char-row">${ch.picture?`<img class="char-item-pic" src="${esc(ch.picture)}" alt="">`:`<div class="char-item-pic char-item-pic-ph"><iconify-icon icon="lucide:user"></iconify-icon></div>`}<div class="qcro-char-info"><div class="char-item-name">${esc(ch.name)}</div>${ch.profession?`<div class="char-item-meta">${esc(ch.profession)}</div>`:""}</div></div>`).join("") + `</div>`;
     }
     case "note":
       if (!isAdmin || !b.content) return "";
@@ -864,7 +879,8 @@ function buildBlockROContent(b) {
     case "loreref": {
       const items = b.items || [];
       if (!items.length) return titleHtml;
-      return titleHtml + items.map(it => `<div class="qcro-lore-row"><iconify-icon icon="${it.type==="scroll"?"game-icons:scroll-unfurled":"game-icons:open-book"}"></iconify-icon><span>${esc(it.title||"")}</span></div>`).join("");
+      return titleHtml + `<div class="qcro-list qcro-list-lore">` + items.map(it =>
+        `<div class="qcro-lore-row"><iconify-icon icon="${it.type==="scroll"?"game-icons:scroll-unfurled":"game-icons:open-book"}" class="qcb-lore-icon"></iconify-icon><span class="qcro-row-name">${esc(it.title||"")}</span></div>`).join("") + `</div>`;
     }
     case "divider":
       return b.title ? `<div class="qcro-divider-line"><span>${esc(b.title)}</span></div>` : `<div class="qcro-divider-line"></div>`;
@@ -2444,15 +2460,19 @@ function openQuestView(q) {
     canvasWrap.classList.remove("has-toolbar");
   }
 
-  // Encounter "Start Encounter" buttons
-  canvasWrap.addEventListener("click", e => {
-    const btn = e.target.closest(".qcb-start-encounter-btn");
-    if (!btn) return;
-    try {
-      const enemies = JSON.parse(btn.dataset.enemies || "[]");
-      _launchEncounter(enemies);
-    } catch (_) {}
-  });
+  // Encounter "Start Combat" buttons. Bind once — openQuestView runs on every open,
+  // so without the guard the handler would stack and launch combat multiple times.
+  if (!canvasWrap._encStartBound) {
+    canvasWrap._encStartBound = true;
+    canvasWrap.addEventListener("click", e => {
+      const btn = e.target.closest(".qcb-start-encounter-btn");
+      if (!btn) return;
+      try {
+        const enemies = JSON.parse(btn.dataset.enemies || "[]");
+        _launchEncounter(enemies);
+      } catch (_) {}
+    });
+  }
 
   _viewQuestId = q.id;
   savePageState({ openQuestId: q.id });
@@ -2501,6 +2521,9 @@ function addBlockToCurrentQuest(type) {
     let maxBottom = 0;
     blocks.forEach(b => { maxBottom = Math.max(maxBottom, (b.worldY || 0) + (b.height || BLOCK_DEFAULT_H)); });
     block.worldY = blocks.length ? maxBottom + 24 : 20;
+    // "" = explicitly top-level. Without this the legacy positional rule in
+    // computeFlowPhaseMap absorbs a block appended after a trailing phase into it.
+    block.phaseId = "";
     blocks.push(block);
     _scrollFlowToBottom = true;
     set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
@@ -2536,13 +2559,15 @@ function insertBlockInFlowAt(type, worldY, groupId, phaseId) {
 // phase lands after it instead of snapping in before its first visible sibling.
 function flowDropSlots(flow, byId, skipEl) {
   const slots = [];
-  const push = (rect, minY, maxY, groupId, phaseId) => { if (rect.height > 0) slots.push({ rect, minY, maxY, groupId, phaseId: phaseId || null }); };
+  // secEl = the owning .qflow-section element (null for top-level cards), so the
+  // drop indicator can be drawn relative to the whole section box when ejecting.
+  const push = (rect, minY, maxY, groupId, phaseId, secEl) => { if (rect.height > 0) slots.push({ rect, minY, maxY, groupId, phaseId: phaseId || null, secEl: secEl || null }); };
   const yOf = id => { const b = byId(id); return b ? (b.worldY || 0) : null; };
   for (const child of flow.children) {
     if (child === skipEl) continue;
     if (child.matches(".qflow-block")) {
       const y = yOf(child.dataset.blockId);
-      if (y != null) push(child.getBoundingClientRect(), y, y, null, null);   // top-level cards: no group, no phase
+      if (y != null) push(child.getBoundingClientRect(), y, y, null, null, null);   // top-level cards: no group, no phase
     } else if (child.matches(".qflow-section")) {
       const gid = child.classList.contains("qflow-section-group") ? (child.dataset.groupId || null) : null;
       const phaseId = child.querySelector(".qflow-section-head .qflow-admin")?.dataset.blockId;  // set only for phase sections
@@ -2550,12 +2575,12 @@ function flowDropSlots(flow, byId, skipEl) {
       if (child.hasAttribute("open")) {
         const head = child.querySelector(".qflow-section-head");
         const py = phaseId ? yOf(phaseId) : null;       // the phase header anchors its own phase
-        if (head && py != null) push(head.getBoundingClientRect(), py, py, null, phaseId);
-        cards.forEach(e => { const y = yOf(e.dataset.blockId); if (y != null) push(e.getBoundingClientRect(), y, y, gid, phaseId); });
+        if (head && py != null) push(head.getBoundingClientRect(), py, py, null, phaseId, child);
+        cards.forEach(e => { const y = yOf(e.dataset.blockId); if (y != null) push(e.getBoundingClientRect(), y, y, gid, phaseId, child); });
       } else {
         const ys = cards.map(e => yOf(e.dataset.blockId)).filter(y => y != null);
         if (phaseId && yOf(phaseId) != null) ys.push(yOf(phaseId));
-        if (ys.length) push(child.getBoundingClientRect(), Math.min(...ys), Math.max(...ys), gid, phaseId);
+        if (ys.length) push(child.getBoundingClientRect(), Math.min(...ys), Math.max(...ys), gid, phaseId, child);
       }
     }
   }
@@ -2626,7 +2651,15 @@ function qvtComputeDrop(clientX, clientY, skipEl) {
   }
   if (ind) {
     const fr = flow.getBoundingClientRect();
-    const lineY = next ? next.rect.top - 6 : prev ? prev.rect.bottom + 6 : fr.top + 6;
+    let lineY;
+    if (next) lineY = next.rect.top - 6;
+    else if (prev) {
+      // Dropping past the last element. If prev sits in a section we're leaving
+      // (ejecting below a group/phase), draw the line below the whole section box
+      // — not inside it at the last member — so the eject reads clearly.
+      const leavingSection = prev.secEl && !groupId && !phaseId;
+      lineY = (leavingSection ? prev.secEl.getBoundingClientRect().bottom : prev.rect.bottom) + 6;
+    } else lineY = fr.top + 6;
     ind.style.left = fr.left + "px";
     ind.style.width = fr.width + "px";
     ind.style.top = lineY + "px";

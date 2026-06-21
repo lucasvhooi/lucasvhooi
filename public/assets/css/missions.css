@@ -2927,17 +2927,59 @@
   margin-bottom: 4px;
 }
 
+/* Structured block item lists (loot / enemies / characters / lore) in the
+   read-only views — one clear, padded row per item with a tinted card. */
+.qcro-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 3px;
+}
 .qcro-loot-row,
 .qcro-boss-row,
 .qcro-lore-row,
 .qcro-char-row {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   font-size: 12px;
-  color: rgba(245,222,179,0.85);
-  padding: 2px 0;
+  color: rgba(245,222,179,0.9);
+  padding: 7px 9px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 7px;
 }
+/* Per-type tint so each list reads at a glance */
+.qcro-loot-row { background: rgba(255,213,79,0.06); border-color: rgba(255,213,79,0.16); }
+.qcro-boss-row { background: rgba(239,83,80,0.06); border-color: rgba(239,83,80,0.16); }
+.qcro-char-row { background: rgba(120,150,255,0.06); border-color: rgba(120,150,255,0.15); }
+.qcro-lore-row { background: rgba(200,164,92,0.06); border-color: rgba(200,164,92,0.16); }
+.qcro-list-encounter .qcro-boss-row { background: rgba(232,121,160,0.07); border-color: rgba(232,121,160,0.18); }
+
+/* Item name takes the line; trailing pills/stats stay right-aligned */
+.qcro-row-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qcro-stats { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.qcro-count { font-weight: normal; opacity: 0.75; }
+.qcb-lore-icon { color: #c8a45c; flex-shrink: 0; font-size: 14px; }
+
+/* Enemy notes sit under the row, not breaking the line */
+.qcro-enemy { display: flex; flex-direction: column; }
+.qcro-enemy-notes {
+  font-size: 11px;
+  color: rgba(184,168,154,0.85);
+  margin: 4px 0 0;
+  padding: 0 2px;
+  line-height: 1.45;
+  font-style: italic;
+}
+.qcro-char-info { flex: 1; min-width: 0; }
 
 .qcro-hint {
   font-size: 11px;
@@ -3623,9 +3665,11 @@
 .qflow-block > .qflow-branch { padding: 0 12px 11px; }
 .qflow-block > .qflow-branch { margin-top: 0; }
 
-/* Dividers render as a plain separator, not a collapsible card */
-.qflow-block.qflow-divider { background: none; border: none; display: flex; align-items: center; gap: 6px; }
-.qflow-block.qflow-divider > .blk-body { padding: 6px 12px; flex: 1; min-width: 0; }
+/* Dividers render as a plain separator, not a collapsible card. The line+label
+   span the full card width (so the text stays centered and the rules run long);
+   the grip and edit/delete controls float over the line's ends. */
+.qflow-block.qflow-divider { background: none; border: none; position: relative; display: block; }
+.qflow-block.qflow-divider > .blk-body { padding: 9px 4px; }
 
 /* ── Drag-to-reorder grip (admin, phone flow) ── */
 .qflow-drag-handle {
@@ -3643,7 +3687,14 @@
   -webkit-tap-highlight-color: transparent;
 }
 .qflow-drag-handle:active { cursor: grabbing; color: rgba(230,210,160,0.85); }
-.qflow-divider > .qflow-drag-handle { margin-left: 6px; }
+.qflow-divider > .qflow-drag-handle {
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  z-index: 2;
+}
 /* The lifted card while it's being dragged */
 .qflow-block.qflow-dragging,
 .qflow-section.qflow-dragging {
@@ -3662,7 +3713,14 @@
   margin-left: auto;
   flex-shrink: 0;
 }
-.qflow-divider > .qflow-admin { padding-right: 8px; }
+.qflow-divider > .qflow-admin {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  z-index: 2;
+}
 .qflow-admin-btn {
   width: 30px;
   height: 30px;

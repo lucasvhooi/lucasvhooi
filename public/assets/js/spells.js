@@ -113,30 +113,60 @@ function levelShort(level) {
 const spellbookRef = _userId ? ref(db, `campaigns/${cid}/spellbook/${_userId}`) : null;
 let savedSpellIds  = new Set();
 
-if (spellbookRef) {
-  onValue(spellbookRef, snap => {
-    savedSpellIds = new Set(snap.val() ? Object.keys(snap.val()) : []);
-    document.querySelectorAll('.spell-save-btn').forEach(btn => {
-      const saved = savedSpellIds.has(btn.dataset.spellId);
-      btn.classList.toggle('saved', saved);
-      btn.innerHTML = saved
-        ? '<iconify-icon icon="lucide:star"></iconify-icon>'
-        : '<iconify-icon icon="lucide:star" style="opacity:0.45"></iconify-icon>';
-      btn.title = saved ? 'Remove from spellbook' : 'Save to My Spells';
-    });
+// Paint a single save button to reflect saved/unsaved state.
+function paintSaveBtn(btn, saved) {
+  btn.classList.toggle('saved', saved);
+  btn.innerHTML = saved
+    ? '<iconify-icon icon="lucide:star" style="fill:currentColor"></iconify-icon>'
+    : '<iconify-icon icon="lucide:star" style="opacity:0.45"></iconify-icon>';
+  btn.title = saved ? 'Remove from spellbook' : 'Save to My Spells';
+}
+
+// Repaint every save button currently in the DOM from savedSpellIds.
+function repaintAllSaveBtns() {
+  document.querySelectorAll('.spell-save-btn').forEach(btn => {
+    paintSaveBtn(btn, savedSpellIds.has(btn.dataset.spellId));
   });
 }
 
+if (spellbookRef) {
+  onValue(spellbookRef, snap => {
+    savedSpellIds = new Set(snap.val() ? Object.keys(snap.val()) : []);
+    repaintAllSaveBtns();
+  });
+}
+
+// Guards rapid double-taps (mobile ghost clicks) from cancelling themselves out.
+const _saveInFlight = new Set();
+
 async function toggleSaveSpell(spellId) {
   if (!_userId) return;
+  if (_saveInFlight.has(spellId)) return;
+  _saveInFlight.add(spellId);
+
+  const wasSaved = savedSpellIds.has(spellId);
+  // Optimistically update local state + UI so the star reacts instantly,
+  // independent of the Firebase round-trip.
+  if (wasSaved) savedSpellIds.delete(spellId);
+  else          savedSpellIds.add(spellId);
+  document.querySelectorAll(`.spell-save-btn[data-spell-id="${spellId}"]`)
+    .forEach(btn => paintSaveBtn(btn, !wasSaved));
+
   try {
-    if (savedSpellIds.has(spellId)) {
+    if (wasSaved) {
       await remove(ref(db, `campaigns/${cid}/spellbook/${_userId}/${spellId}`));
     } else {
       await set(ref(db, `campaigns/${cid}/spellbook/${_userId}/${spellId}`), { savedAt: Date.now() });
     }
   } catch (e) {
     console.error("Spellbook save failed:", e);
+    // Revert optimistic change on failure.
+    if (wasSaved) savedSpellIds.add(spellId);
+    else          savedSpellIds.delete(spellId);
+    document.querySelectorAll(`.spell-save-btn[data-spell-id="${spellId}"]`)
+      .forEach(btn => paintSaveBtn(btn, wasSaved));
+  } finally {
+    _saveInFlight.delete(spellId);
   }
 }
 
@@ -485,12 +515,9 @@ function renderPage() {
 
     if (_userId) {
       const saveBtn = document.createElement('button');
-      saveBtn.className = 'spell-save-btn' + (savedSpellIds.has(spell.id) ? ' saved' : '');
+      saveBtn.className = 'spell-save-btn';
       saveBtn.dataset.spellId = spell.id;
-      saveBtn.innerHTML = savedSpellIds.has(spell.id)
-        ? '<iconify-icon icon="lucide:star"></iconify-icon>'
-        : '<iconify-icon icon="lucide:star" style="opacity:0.45"></iconify-icon>';
-      saveBtn.title = savedSpellIds.has(spell.id) ? 'Remove from spellbook' : 'Save to My Spells';
+      paintSaveBtn(saveBtn, savedSpellIds.has(spell.id));
       saveBtn.addEventListener('click', e => { e.stopPropagation(); toggleSaveSpell(spell.id); });
       row.querySelector('.spell-row-actions').appendChild(saveBtn);
     }

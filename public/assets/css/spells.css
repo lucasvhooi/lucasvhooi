@@ -619,9 +619,13 @@
   border-radius: 4px;
   transition: color 0.15s, background 0.15s;
 }
-.spell-save-btn:hover        { color: var(--accent); background: rgba(255,204,102,0.08); }
 .spell-save-btn.saved        { color: var(--accent); }
-.spell-save-btn.saved:hover  { color: #ff8080; background: rgba(255,100,100,0.08); }
+/* Hover styles only on devices with a real pointer — on touch screens
+   :hover sticks after a tap and made the saved star look stuck-red. */
+@media (hover: hover) and (pointer: fine) {
+  .spell-save-btn:hover        { color: var(--accent); background: rgba(255,204,102,0.08); }
+  .spell-save-btn.saved:hover  { color: #ff8080; background: rgba(255,100,100,0.08); }
+}
 
 /* ── List + detail panel layout ── */
 .spells-content {
