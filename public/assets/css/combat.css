@@ -1397,8 +1397,8 @@ body {
 
 .cond-picker-btn {
   font-family: var(--font);
-  font-size: 10px;
-  padding: 5px 4px;
+  font-size: 11px;
+  padding: 6px 6px;
   border-radius: 5px;
   border: 1px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.03);
@@ -1412,6 +1412,22 @@ body {
 }
 .cond-picker-btn:hover { background: rgba(255,255,255,0.09); color: #ccc; }
 .cond-picker-btn.active { font-weight: bold; background: rgba(0,0,0,0.4); }
+
+/* Phones: roomier picker — two wide columns, readable text, bigger tap targets */
+@media (max-width: 520px) {
+  .condition-picker { max-width: min(92vw, 420px); width: min(92vw, 420px); padding: 14px; }
+  .condition-grid   { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .cond-picker-btn  {
+    font-size: 14px;
+    padding: 12px 10px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .cond-picker-title { font-size: 15px; }
+}
 
 .cond-picker-header {
   display: flex;

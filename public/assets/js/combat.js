@@ -451,8 +451,10 @@ function buildCard(c, idx) {
     onCardClick(c.id);
   });
 
-  // Double click: enter attack mode with this combatant as the attacker
+  // Double click: enter attack mode with this combatant as the attacker.
+  // Desktop only — phones use the action toolbar instead.
   div.addEventListener("dblclick", e => {
+    if (isMobileCombat()) return;
     if (e.target.closest(".card-actions")) return;
     onCardDblClick(c.id);
   });
