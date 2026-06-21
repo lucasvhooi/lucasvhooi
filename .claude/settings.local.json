@@ -77,7 +77,10 @@
       "PowerShell($html = Get-Content \"C:\\\\Users\\\\lhooi\\\\Documents\\\\Github Projects\\\\lucasvhooi\\\\dist\\\\lore.html\" -Raw; \\($html | Select-String -Pattern 'id=\"lore-grid\"' -AllMatches\\).Matches.Count)",
       "Bash(fc /b \"assets\\\\js\\\\lore.js\" \"public\\\\assets\\\\js\\\\lore.js\")",
       "Bash(curl -s http://localhost:4321/lore)",
-      "Bash(Select-String *)"
+      "Bash(Select-String *)",
+      "PowerShell(npm run *)",
+      "PowerShell(node --check \"public/assets/js/missions.js\"; if \\($?\\) { \"JS syntax OK\" })",
+      "Bash(echo \"exit: $?\")"
     ]
   }
 }

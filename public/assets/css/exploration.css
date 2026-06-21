@@ -441,7 +441,7 @@
 .cdp-header {
   position: relative;
   flex-shrink: 0;
-  height: 300px;
+  height: 400px;
   overflow: hidden;
   background: #101216;
   border-bottom: 1px solid rgba(180,196,224,0.12);

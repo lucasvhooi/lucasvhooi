@@ -65,6 +65,7 @@ import Layout from '../layouts/Layout.astro';
         <option value="">— Target —</option>
       </select>
       <div class="ccb-divider"></div>
+      <button id="attack-dmgtype-btn" class="atk-action-btn dmgtype-btn" title="Damage type: untyped"><iconify-icon icon="game-icons:drop"></iconify-icon></button>
       <input type="number" id="attack-dmg-input" class="attack-dmg-input" placeholder="" min="0" />
       <button id="attack-deal-btn" class="atk-action-btn atk-deal-btn" title="Deal Damage"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon></button>
       <button id="attack-heal-btn" class="atk-action-btn atk-heal-btn" title="Heal"><iconify-icon icon="lucide:heart"></iconify-icon></button>
@@ -88,6 +89,49 @@ import Layout from '../layouts/Layout.astro';
       <div class="ccb-divider"></div>
       <button id="btn-start" class="hero-start-btn"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Start Combat</button>
       <button id="btn-end"   class="hero-end-btn" style="display:none"><iconify-icon icon="lucide:x"></iconify-icon> End Combat</button>
+    </div>
+
+  </div>
+
+  <!-- Mobile bottom UI (phones only): action row above the navbar -->
+  <div id="combat-bottom" class="combat-bottom">
+
+    <!-- Top row: standalone Add (left) + contextual action toolbar + Order (right) -->
+    <div class="combat-action-row">
+      <button class="ctb-side-btn" data-act="add" title="Add Combatant"><iconify-icon icon="lucide:plus"></iconify-icon></button>
+
+      <!-- Contextual action toolbar — heal / damage / condition for the tapped combatant -->
+      <div id="combat-action-toolbar" class="combat-action-toolbar" style="display:none">
+        <div class="cat-controls">
+          <input type="number" id="cat-amt" class="cat-amt" min="0" placeholder="0" inputmode="numeric" />
+          <button class="cat-btn cat-dmg"   id="cat-dmg"   title="Damage"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon></button>
+          <button class="cat-btn cat-heal"  id="cat-heal"  title="Heal"><iconify-icon icon="lucide:heart"></iconify-icon></button>
+          <button class="cat-btn cat-cond"  id="cat-cond"  title="Condition"><iconify-icon icon="lucide:zap"></iconify-icon></button>
+          <button class="cat-btn dmgtype-btn" id="cat-dmgtype" title="Damage type: untyped"><iconify-icon icon="game-icons:drop"></iconify-icon></button>
+        </div>
+      </div>
+
+      <button class="ctb-side-btn" data-act="sort" title="Sort by Initiative"><iconify-icon icon="lucide:arrow-up-down"></iconify-icon></button>
+    </div>
+
+    <!-- Main navbar — liquid-glass dock with the start/end toggle centred -->
+    <div id="combat-toolbar" class="combat-toolbar">
+      <div class="ctb-status">
+        <span class="ctb-round">Round <span id="ctb-round-num">1</span></span>
+        <span class="ctb-turn" id="ctb-turn">&#8212; Not in combat &#8212;</span>
+      </div>
+      <div class="ctb-dock">
+        <div class="ctb-group ctb-left">
+          <button class="ctb-btn" data-act="initiative" title="Initiative"><iconify-icon icon="game-icons:rank-3"></iconify-icon></button>
+          <button class="ctb-btn" data-act="prev" title="Previous Turn" disabled><iconify-icon icon="lucide:chevron-left"></iconify-icon></button>
+        </div>
+        <button class="ctb-btn ctb-toggle" data-act="toggle" title="Start Combat"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon></button>
+        <div class="ctb-group ctb-right">
+          <button class="ctb-btn" data-act="next" title="Next Turn" disabled><iconify-icon icon="lucide:chevron-right"></iconify-icon></button>
+          <button class="ctb-btn" data-act="log" title="Combat Log"><iconify-icon icon="lucide:scroll-text"></iconify-icon></button>
+          <button class="ctb-btn" data-act="loot" title="Loot"><iconify-icon icon="game-icons:coins"></iconify-icon></button>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -227,6 +271,14 @@ import Layout from '../layouts/Layout.astro';
     <div id="condition-grid" class="condition-grid"></div>
   </div>
 
+  <!-- Damage-type picker -->
+  <div id="dmg-type-picker" class="condition-picker" style="display:none">
+    <div class="cond-picker-header">
+      <span class="cond-picker-title">Damage Type</span>
+    </div>
+    <div id="dmg-type-grid" class="condition-grid"></div>
+  </div>
+
   <!-- Enemy Templates Modal -->
   <div id="enemy-templates-modal" class="modal-overlay enemy-modal-overlay">
     <div class="enemy-modal-box">
@@ -340,6 +392,18 @@ import Layout from '../layouts/Layout.astro';
                 <label class="editor-label">Languages
                   <input type="text" id="et-languages" placeholder="Common, Elvish…" />
                 </label>
+              </div>
+            </div>
+
+            <div class="editor-section">
+              <div class="editor-section-title"><iconify-icon icon="game-icons:shield"></iconify-icon> Damage Modifiers</div>
+              <div class="editor-field-row">
+                <label class="editor-label">Resistances <span class="field-hint">takes half damage</span></label>
+                <div id="et-resist-chips" class="dmg-type-chips"></div>
+              </div>
+              <div class="editor-field-row">
+                <label class="editor-label">Vulnerabilities <span class="field-hint">takes double damage</span></label>
+                <div id="et-vuln-chips" class="dmg-type-chips"></div>
               </div>
             </div>
 

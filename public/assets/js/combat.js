@@ -22,6 +22,23 @@ const CONDITIONS = [
   { id: "hidden",        label: "Hidden",        icon: "lucide:ghost",               color: "#607d8b" },
 ];
 
+// ── Damage types (5e) ───────────────────────────────────────────────────────────
+const DAMAGE_TYPES = [
+  { id: "acid",        label: "Acid",        icon: "lucide:flask-conical",  color: "#9ccc65" },
+  { id: "bludgeoning", label: "Bludgeoning", icon: "lucide:hammer",         color: "#bcaaa4" },
+  { id: "cold",        label: "Cold",        icon: "lucide:snowflake",      color: "#4fc3f7" },
+  { id: "fire",        label: "Fire",        icon: "lucide:flame",          color: "#ff7043" },
+  { id: "force",       label: "Force",       icon: "lucide:sparkles",       color: "#b388ff" },
+  { id: "lightning",   label: "Lightning",   icon: "lucide:zap",            color: "#ffd54f" },
+  { id: "necrotic",    label: "Necrotic",    icon: "lucide:skull",          color: "#8d6e63" },
+  { id: "piercing",    label: "Piercing",    icon: "game-icons:arrowhead",  color: "#90a4ae" },
+  { id: "poison",      label: "Poison",      icon: "game-icons:poison-bottle", color: "#66bb6a" },
+  { id: "psychic",     label: "Psychic",     icon: "lucide:brain",          color: "#f06292" },
+  { id: "radiant",     label: "Radiant",     icon: "lucide:sun",            color: "#fff176" },
+  { id: "slashing",    label: "Slashing",    icon: "lucide:swords",         color: "#a1887f" },
+  { id: "thunder",     label: "Thunder",     icon: "lucide:cloud-lightning", color: "#7986cb" },
+];
+
 // ── Type colours ──────────────────────────────────────────────────────────────
 const TYPE_COLORS = {
   player: { border: "#ffcc66", bg: "rgba(255,204,102,0.11)", activeBg: "rgba(80,55,0,0.45)",   badge: "#c9a030", badgeBg: "rgba(255,204,102,0.14)" },
@@ -102,21 +119,34 @@ document.getElementById("btn-clear-log").addEventListener("click", () => {
 });
 
 // ── Panel toggles (Log / Loot) ────────────────────────────────────────────────
-(function() {
-  const overlayRight = document.querySelector('.overlay-right');
-  const overlayLoot  = document.querySelector('.overlay-loot');
-  const btnLog  = document.getElementById('btn-toggle-log');
-  const btnLoot = document.getElementById('btn-toggle-loot');
+const overlayRightEl = document.querySelector('.overlay-right');
+const overlayLootEl  = document.querySelector('.overlay-loot');
+const btnToggleLog   = document.getElementById('btn-toggle-log');
+const btnToggleLoot  = document.getElementById('btn-toggle-loot');
+const isMobileCombat = () => window.matchMedia('(max-width: 520px)').matches;
 
-  function toggle(panel, btn) {
-    const visible = panel.style.display !== 'none';
-    panel.style.display = visible ? 'none' : 'flex';
-    btn.classList.toggle('active', !visible);
-  }
+function setSidePanel(panel, btn, show) {
+  panel.style.display = show ? 'flex' : 'none';
+  btn.classList.toggle('active', show);
+  // Mirror the active state onto the matching mobile toolbar button
+  const act = panel === overlayLootEl ? 'loot' : 'log';
+  combatToolbar.querySelector(`[data-act="${act}"]`)?.classList.toggle('active', show);
+}
 
-  btnLog.addEventListener('click',  () => toggle(overlayRight, btnLog));
-  btnLoot.addEventListener('click', () => toggle(overlayLoot,  btnLoot));
-})();
+function closeSidePanels() {
+  setSidePanel(overlayRightEl, btnToggleLog,  false);
+  setSidePanel(overlayLootEl,  btnToggleLoot, false);
+}
+
+function toggleSidePanel(panel, btn) {
+  const show = panel.style.display === 'none';
+  // On phones each menu takes over the initiative window — only one at a time
+  if (show && isMobileCombat()) { closeSidePanels(); hideCombatantInfo(); hideActionToolbar(); }
+  setSidePanel(panel, btn, show);
+}
+
+btnToggleLog.addEventListener('click',  () => toggleSidePanel(overlayRightEl, btnToggleLog));
+btnToggleLoot.addEventListener('click', () => toggleSidePanel(overlayLootEl,  btnToggleLoot));
 
 // ── Render ────────────────────────────────────────────────────────────────────
 function render() {
@@ -143,18 +173,93 @@ function renderHero() {
   btnPrev.disabled = !started || state.combatants.length === 0;
   btnNext.disabled = !started || state.combatants.length === 0;
 
-  if (!started || state.combatants.length === 0) {
+  const c = started ? state.combatants[state.currentTurn] : null;
+  if (!started || state.combatants.length === 0 || !c) {
     turnBanner.innerHTML = `<span class="turn-label">&#8212; Not in combat &#8212;</span>`;
-    return;
+  } else {
+    const col = TYPE_COLORS[c.type] || TYPE_COLORS.npc;
+    turnBanner.innerHTML =
+      `<span class="turn-label">It's&nbsp;</span>` +
+      `<span class="turn-name" style="color:${col.border}">${escHtml(c.name)}</span>` +
+      `<span class="turn-label">'s turn</span>`;
   }
-  const c   = state.combatants[state.currentTurn];
-  if (!c) return;
-  const col = TYPE_COLORS[c.type] || TYPE_COLORS.npc;
-  turnBanner.innerHTML =
-    `<span class="turn-label">It's&nbsp;</span>` +
-    `<span class="turn-name" style="color:${col.border}">${escHtml(c.name)}</span>` +
-    `<span class="turn-label">'s turn</span>`;
+  syncCombatToolbar(started);
 }
+
+// ── Mobile combat toolbar — mirrors the (hidden) desktop control bar ──────────
+const combatToolbar = document.getElementById("combat-toolbar");
+const ctbToggle     = combatToolbar.querySelector('[data-act="toggle"]');
+
+function syncCombatToolbar(started) {
+  document.getElementById("ctb-round-num").textContent = state.round;
+  document.getElementById("ctb-turn").textContent      = turnBanner.textContent;
+  combatToolbar.querySelector('[data-act="prev"]').disabled = btnPrev.disabled;
+  combatToolbar.querySelector('[data-act="next"]').disabled = btnNext.disabled;
+  ctbToggle.classList.toggle("is-end", started);
+  ctbToggle.title = started ? "End Combat" : "Start Combat";
+  ctbToggle.querySelector("iconify-icon")
+    .setAttribute("icon", started ? "lucide:x" : "game-icons:crossed-swords");
+}
+
+// Delegate on the whole bottom UI so the standalone Add/Order side buttons are
+// handled alongside the dock buttons.
+document.getElementById("combat-bottom").addEventListener("click", e => {
+  const btn = e.target.closest(".ctb-btn, .ctb-side-btn");
+  if (!btn || btn.disabled) return;
+  const started = state.currentTurn >= 0;
+  ({
+    initiative: () => { closeSidePanels(); hideCombatantInfo(); hideActionToolbar(); },
+    add:    () => document.getElementById("btn-add").click(),
+    sort:   () => document.getElementById("btn-sort").click(),
+    prev:   () => btnPrev.click(),
+    next:   () => btnNext.click(),
+    log:    () => document.getElementById("btn-toggle-log").click(),
+    loot:   () => document.getElementById("btn-toggle-loot").click(),
+    toggle: () => (started ? btnEnd : btnStart).click(),
+  })[btn.dataset.act]?.();
+});
+
+// ── Contextual action toolbar (phones) — heal / damage / condition for the
+//    tapped combatant; sits just above the main combat toolbar ────────────────
+const actionToolbar = document.getElementById("combat-action-toolbar");
+const catAmt  = document.getElementById("cat-amt");
+let actionId = null;   // track by id — index shifts when the list re-sorts
+
+function showActionToolbar(id) {
+  const c = state.combatants.find(x => x.id === id);
+  if (!c) { hideActionToolbar(); return; }
+  actionId = id;
+  const hasHp = c.type !== "player" && c.maxHp > 0;
+  actionToolbar.classList.toggle("no-hp", !hasHp);
+  catAmt.value = "";
+  actionToolbar.style.display = "flex";   // sits in the action row, between the side buttons
+}
+
+function hideActionToolbar() {
+  actionToolbar.style.display = "none";
+  actionId = null;
+}
+
+function actionHp(isDamage) {
+  if (actionId == null) return;
+  const idx = state.combatants.findIndex(x => x.id === actionId);
+  if (idx !== -1 && applyHpAmount(idx, parseInt(catAmt.value, 10), isDamage)) {
+    showActionToolbar(actionId);   // re-render shuffled the DOM; refresh + reposition
+  }
+}
+
+document.getElementById("cat-dmg").addEventListener("click",  () => actionHp(true));
+document.getElementById("cat-heal").addEventListener("click", () => actionHp(false));
+document.getElementById("cat-cond").addEventListener("click", e => {
+  e.stopPropagation();   // don't let the outside-click handler close it immediately
+  const idx = actionId == null ? -1 : state.combatants.findIndex(x => x.id === actionId);
+  if (idx !== -1) openCondPicker(idx, e.currentTarget);
+});
+document.getElementById("cat-dmgtype").addEventListener("click", e => {
+  e.stopPropagation();
+  openDmgTypePicker(e.currentTarget);
+});
+catAmt.addEventListener("keydown", e => { if (e.key === "Enter") actionHp(true); });
 
 // ── Combatant List ────────────────────────────────────────────────────────────
 const listEl = document.getElementById("combatant-list");
@@ -170,7 +275,74 @@ function renderCombatants() {
       </div>`;
     return;
   }
-  state.combatants.forEach((c, idx) => listEl.appendChild(buildCard(c, idx)));
+  state.combatants.forEach((c, idx) => listEl.appendChild(wrapCombatantSwipe(buildCard(c, idx), c)));
+}
+
+// Wrap a card so it can be swiped left to delete on phones (mirrors the quest tab).
+// On desktop the wrapper is `display:contents`, so layout is unchanged.
+function wrapCombatantSwipe(card, c) {
+  const swipe = document.createElement("div");
+  swipe.className = "combatant-swipe";
+  const del = document.createElement("div");
+  del.className = "combatant-swipe-delete";
+  del.innerHTML = `<iconify-icon icon="lucide:trash-2"></iconify-icon>`;
+  swipe.appendChild(del);
+  swipe.appendChild(card);
+  attachCombatSwipeToDelete(swipe, card, c);
+  return swipe;
+}
+
+function attachCombatSwipeToDelete(swipe, card, c) {
+  let startX = 0, startY = 0, dx = 0, dragging = false, decided = false, horizontal = false;
+  const thresholdFor = () => Math.min(140, card.offsetWidth * 0.4);
+
+  card.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1) return;
+    if (!isMobileCombat()) return;     // desktop uses the on-card buttons instead
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    dx = 0; dragging = true; decided = false; horizontal = false;
+    card.style.transition = "none";
+    // Free `transform` from the card's entry/breath animations so the drag sticks
+    card.getAnimations().forEach(a => a.cancel());
+    card.style.opacity = "";
+  }, { passive: true });
+
+  card.addEventListener("touchmove", e => {
+    if (!dragging) return;
+    const ddx = e.touches[0].clientX - startX;
+    const ddy = e.touches[0].clientY - startY;
+    if (!decided && (Math.abs(ddx) > 8 || Math.abs(ddy) > 8)) {
+      decided = true;
+      horizontal = Math.abs(ddx) > Math.abs(ddy);
+    }
+    if (!horizontal) return;        // vertical gesture → let the list scroll
+    e.preventDefault();             // we own the horizontal gesture
+    dx = Math.min(card.offsetWidth, Math.max(0, ddx));   // slide right only
+    card.style.setProperty("transform", `translateX(${dx}px)`, "important");
+    swipe.classList.toggle("swipe-ready", dx > thresholdFor());
+  }, { passive: false });
+
+  const finish = () => {
+    if (!dragging) return;
+    dragging = false;
+    card.style.transition = "";
+    if (dx > thresholdFor()) {
+      card.style.setProperty("transform", "translateX(100%)", "important");
+      card.style.opacity = "0";
+      card._swiped = true;
+      setTimeout(() => {
+        const i = state.combatants.findIndex(x => x.id === c.id);
+        if (i !== -1) removeCombatant(i);
+      }, 180);
+    } else {
+      card.style.transform = "";
+      swipe.classList.remove("swipe-ready");
+      if (Math.abs(dx) > 8) { card._swiped = true; setTimeout(() => { card._swiped = false; }, 60); }
+    }
+  };
+  card.addEventListener("touchend", finish);
+  card.addEventListener("touchcancel", finish);
 }
 
 function buildCard(c, idx) {
@@ -253,6 +425,7 @@ function buildCard(c, idx) {
       ${condHtml ? `<div class="card-conditions">${condHtml}</div>` : ""}
     </div>
     <div class="card-actions">
+      <button class="card-btn view-btn" title="View stats"><iconify-icon icon="lucide:eye"></iconify-icon></button>
       ${!isPlayer ? `<button class="card-btn hp-btn"   title="Adjust HP"><iconify-icon icon="lucide:heart-pulse"></iconify-icon></button>` : ""}
       <button class="card-btn cond-btn" title="Conditions"><iconify-icon icon="lucide:zap"></iconify-icon></button>
       ${hasConds   ? `<button class="card-btn clear-fx-btn" title="Clear all conditions"><iconify-icon icon="lucide:zap-off"></iconify-icon></button>` : ""}
@@ -263,6 +436,7 @@ function buildCard(c, idx) {
   if (!isPlayer) {
     div.querySelector(".hp-btn").addEventListener("click",  e => { e.stopPropagation(); openHpAdjust(idx, e.currentTarget); });
   }
+  div.querySelector(".view-btn").addEventListener("click",  e => { e.stopPropagation(); showCombatantInfo(c.id); });
   div.querySelector(".cond-btn").addEventListener("click",  e => { e.stopPropagation(); openCondPicker(idx, e.currentTarget); });
   if (hasConds) {
     div.querySelector(".clear-fx-btn").addEventListener("click", e => { e.stopPropagation(); clearAllConditions(idx); });
@@ -272,6 +446,7 @@ function buildCard(c, idx) {
 
   // Single click: select / switch selection (or pick target when in attack mode)
   div.addEventListener("click", e => {
+    if (div._swiped) return;   // ignore the click that follows a swipe-to-delete
     if (e.target.closest(".card-actions")) return;
     onCardClick(c.id);
   });
@@ -701,6 +876,8 @@ cmSave.addEventListener("click", () => {
         saves:      t.saves   || null,
         condImm:    t.condImm || null,
         languages:  t.languages || null,
+        resistances:     t.resistances    || [],
+        vulnerabilities: t.vulnerabilities || [],
       });
     }
     const label = count > 1 ? `${t.name} ×${count}` : t.name;
@@ -826,16 +1003,28 @@ function openHpAdjust(idx, anchor) {
   setTimeout(() => hpInput.focus(), 30);
 }
 
-function applyHp(isDamage) {
-  const amt = parseInt(hpInput.value, 10);
-  if (isNaN(amt) || amt <= 0) return;
-  const c = state.combatants[hpIdx];
-  if (!c) return;
+// Apply the currently-selected damage type to a raw amount against a target,
+// factoring in its resistances (½, rounded down) and vulnerabilities (×2).
+function adjustDamage(target, amt) {
+  const dt = currentDamageType;
+  const label = dt ? " " + (DAMAGE_TYPES.find(x => x.id === dt)?.label.toLowerCase() || dt) : "";
+  if (dt && (target.vulnerabilities || []).includes(dt))
+    return { dmg: amt * 2,            note: " (vulnerable)", typeLabel: label };
+  if (dt && (target.resistances || []).includes(dt))
+    return { dmg: Math.floor(amt / 2), note: " (resisted)",   typeLabel: label };
+  return { dmg: amt, note: "", typeLabel: label };
+}
+
+function applyHpAmount(idx, amt, isDamage) {
+  if (isNaN(amt) || amt <= 0) return false;
+  const c = state.combatants[idx];
+  if (!c) return false;
 
   if (isDamage) {
+    const { dmg, note, typeLabel } = adjustDamage(c, amt);
     const wasDead = c.hp <= 0;
-    c.hp = Math.max(0, c.hp - amt);
-    addLog(`${c.name} took ${amt} damage → ${c.hp}/${c.maxHp}`, "damage");
+    c.hp = Math.max(0, c.hp - dmg);
+    addLog(`${c.name} took ${dmg}${typeLabel} damage${note} → ${c.hp}/${c.maxHp}`, "damage");
     if (c.hp === 0 && !wasDead) {
       addLog(`${c.name} has fallen!`, "death");
       if (c.type === "enemy" && !c.lootDropped) { c.lootDropped = true; addLootDrop(c); }
@@ -844,9 +1033,54 @@ function applyHp(isDamage) {
     c.hp = Math.min(c.maxHp, c.hp + amt);
     addLog(`${c.name} healed ${amt} HP → ${c.hp}/${c.maxHp}`, "heal");
   }
-  hpOverlay.style.display = "none";
-  hpIdx = null;
   render();
+  return true;
+}
+
+// ── Damage-type selector (shared by the mobile action toolbar + desktop attack bar)
+let currentDamageType = null;   // null = untyped
+const dmgTypePicker = document.getElementById("dmg-type-picker");
+const dmgTypeGrid   = document.getElementById("dmg-type-grid");
+
+function updateDmgTypeButtons() {
+  const dt = currentDamageType ? DAMAGE_TYPES.find(x => x.id === currentDamageType) : null;
+  document.querySelectorAll(".dmgtype-btn").forEach(btn => {
+    const ic = btn.querySelector("iconify-icon");
+    ic.setAttribute("icon", dt ? dt.icon : "game-icons:drop");
+    btn.style.color = dt ? dt.color : "";
+    btn.title = dt ? `Damage type: ${dt.label}` : "Damage type: untyped";
+    btn.classList.toggle("typed", !!dt);
+  });
+}
+
+function openDmgTypePicker(anchor) {
+  dmgTypeGrid.innerHTML = "";
+  const mk = (id, label, icon, color) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "cond-picker-btn" + (currentDamageType === id ? " active" : "");
+    if (color) btn.style.color = color;
+    if (currentDamageType === id && color) btn.style.borderColor = color;
+    btn.innerHTML = `<iconify-icon icon="${icon}"></iconify-icon> ${label}`;
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      currentDamageType = id;
+      updateDmgTypeButtons();
+      dmgTypePicker.style.display = "none";
+    });
+    dmgTypeGrid.appendChild(btn);
+  };
+  mk(null, "Untyped", "game-icons:drop", "#9e9e9e");
+  DAMAGE_TYPES.forEach(dt => mk(dt.id, dt.label, dt.icon, dt.color));
+  dmgTypePicker.style.display = "block";
+  positionNear(dmgTypePicker, anchor);
+}
+
+function applyHp(isDamage) {
+  if (applyHpAmount(hpIdx, parseInt(hpInput.value, 10), isDamage)) {
+    hpOverlay.style.display = "none";
+    hpIdx = null;
+  }
 }
 
 hpDamageBtn.addEventListener("click", () => applyHp(true));
@@ -922,6 +1156,10 @@ document.addEventListener("click", e => {
       && !condPicker.contains(e.target)
       && !e.target.closest(".cond-btn"))
     { condPicker.style.display = "none"; condIdx = null; }
+  if (dmgTypePicker.style.display !== "none"
+      && !dmgTypePicker.contains(e.target)
+      && !e.target.closest(".dmgtype-btn"))
+    { dmgTypePicker.style.display = "none"; }
 });
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
@@ -931,6 +1169,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     hpOverlay.style.display = "none";
     condPicker.style.display = "none";
+    dmgTypePicker.style.display = "none";
     hpIdx = condIdx = null;
     if (attackState.attackerId) cancelAttack();
   }
@@ -967,6 +1206,8 @@ function renderAttackDropdowns() {
 function showCombatantInfo(id) {
   const c = state.combatants.find(x => x.id === id);
   if (!c) { hideCombatantInfo(); return; }
+  // On phones the inspector is its own full-screen menu — clear the others first
+  if (isMobileCombat()) { closeSidePanels(); hideActionToolbar(); }
   const col      = TYPE_COLORS[c.type] || TYPE_COLORS.npc;
   const isPlayer = c.type === "player";
   const isDead   = !isPlayer && c.maxHp > 0 && c.hp <= 0;
@@ -987,6 +1228,8 @@ function showCombatantInfo(id) {
     languages: c.languages ?? tmpl?.languages ?? null,
     notes:     c.notes     ?? tmpl?.notes     ?? null,
     cr:        c.cr        ?? tmpl?.cr        ?? null,
+    resistances:     c.resistances     ?? tmpl?.resistances     ?? [],
+    vulnerabilities: c.vulnerabilities ?? tmpl?.vulnerabilities ?? [],
   };
 
   cipName.textContent = c.name;
@@ -1051,6 +1294,18 @@ function showCombatantInfo(id) {
     </div>`;
   }
 
+  // Damage resistances / vulnerabilities
+  const dmgChip = id => {
+    const dt = DAMAGE_TYPES.find(x => x.id === id);
+    return dt ? `<span class="dmg-type-chip active" style="color:${dt.color};border-color:${dt.color}"><iconify-icon icon="${dt.icon}"></iconify-icon> ${dt.label}</span>` : "";
+  };
+  if (src.resistances.length || src.vulnerabilities.length) {
+    html += `<div class="cip-section">
+      ${src.resistances.length ? `<div class="cip-extra-row"><span class="cip-extra-label">Resist</span><span class="dmg-type-chips">${src.resistances.map(dmgChip).join("")}</span></div>` : ""}
+      ${src.vulnerabilities.length ? `<div class="cip-extra-row"><span class="cip-extra-label">Vuln</span><span class="dmg-type-chips">${src.vulnerabilities.map(dmgChip).join("")}</span></div>` : ""}
+    </div>`;
+  }
+
   // Conditions
   if (c.conditions && c.conditions.length) {
     const condHtml = c.conditions.map(cond => {
@@ -1063,7 +1318,8 @@ function showCombatantInfo(id) {
   }
 
   // No data at all — guide user to re-import
-  if (!src.stats && !atks && !extras.length && !c.conditions?.length) {
+  if (!src.stats && !atks && !extras.length && !c.conditions?.length
+      && !src.resistances.length && !src.vulnerabilities.length) {
     html += `<p style="font-size:12px;color:#555;font-style:italic;margin:4px 0">No stat data. Re-import D&amp;D 5e templates or edit this template to add a stat block.</p>`;
   }
 
@@ -1114,16 +1370,17 @@ function resolveAttack(isDamage) {
   if (!target) return;
 
   if (isDamage) {
+    const { dmg, note, typeLabel } = adjustDamage(target, amt);
     if (target.type !== "player" && target.maxHp > 0) {
       const wasDead = target.hp <= 0;
-      target.hp = Math.max(0, target.hp - amt);
-      addLog(`${attacker ? attacker.name : "?"} dealt ${amt} damage to ${target.name} → ${target.hp}/${target.maxHp}`, "damage");
+      target.hp = Math.max(0, target.hp - dmg);
+      addLog(`${attacker ? attacker.name : "?"} dealt ${dmg}${typeLabel} damage to ${target.name}${note} → ${target.hp}/${target.maxHp}`, "damage");
       if (target.hp === 0 && !wasDead) {
         addLog(`${target.name} has fallen!`, "death");
         if (target.type === "enemy" && !target.lootDropped) { target.lootDropped = true; addLootDrop(target); }
       }
     } else {
-      addLog(`${attacker ? attacker.name : "?"} dealt ${amt} damage to ${target.name}`, "damage");
+      addLog(`${attacker ? attacker.name : "?"} dealt ${dmg}${typeLabel} damage to ${target.name}${note}`, "damage");
     }
   } else {
     if (target.type !== "player" && target.maxHp > 0) {
@@ -1144,6 +1401,25 @@ function resolveAttack(isDamage) {
 function onCardClick(id) {
   const c = state.combatants.find(x => x.id === id);
   if (!c) return;
+
+  // Phones: tapping a card selects it and opens the contextual action toolbar
+  // (heal / damage / condition). The info overlay is reached via the eye button.
+  if (isMobileCombat()) {
+    // Re-tapping the already-selected card closes the toolbar (deselect)
+    if (actionId === id && actionToolbar.style.display !== "none") {
+      hideActionToolbar();
+      attackState = { attackerId: null, targetId: null };
+      patchCardClasses();
+      return;
+    }
+    attackState = { attackerId: id, targetId: null };
+    attackerSelect.value = id;
+    targetSelect.value   = "";
+    syncAttackDmgGroup();
+    patchCardClasses();
+    showActionToolbar(id);
+    return;
+  }
 
   // Always show info panel for the clicked card
   showCombatantInfo(id);
@@ -1218,6 +1494,10 @@ targetSelect.addEventListener("change", () => {
 
 document.getElementById("attack-deal-btn").addEventListener("click",  () => resolveAttack(true));
 document.getElementById("attack-heal-btn").addEventListener("click",  () => resolveAttack(false));
+document.getElementById("attack-dmgtype-btn").addEventListener("click", e => {
+  e.stopPropagation();
+  openDmgTypePicker(e.currentTarget);
+});
 document.getElementById("attack-cancel-btn").addEventListener("click", cancelAttack);
 document.getElementById("cip-close").addEventListener("click", hideCombatantInfo);
 attackDmgInput.addEventListener("keydown", e => {
@@ -1565,6 +1845,40 @@ function renderAttackRows() {
     etAttacksList.appendChild(row);
   });
 }
+
+// ── Damage resistances / vulnerabilities (toggle chips) ───────────────────────
+let etResistances = [];
+let etVulnerabilities = [];
+
+function renderDmgChips() {
+  [["et-resist-chips", etResistances, etVulnerabilities],
+   ["et-vuln-chips",   etVulnerabilities, etResistances]].forEach(([elId, list, other]) => {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    el.innerHTML = "";
+    DAMAGE_TYPES.forEach(dt => {
+      const on = list.includes(dt.id);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "dmg-type-chip" + (on ? " active" : "");
+      if (on) { btn.style.color = dt.color; btn.style.borderColor = dt.color; }
+      btn.innerHTML = `<iconify-icon icon="${dt.icon}"></iconify-icon> ${dt.label}`;
+      btn.addEventListener("click", () => {
+        const i = list.indexOf(dt.id);
+        if (i === -1) {
+          list.push(dt.id);
+          const j = other.indexOf(dt.id);   // a type is resist XOR vulnerable, never both
+          if (j !== -1) other.splice(j, 1);
+        } else {
+          list.splice(i, 1);
+        }
+        renderDmgChips();
+      });
+      el.appendChild(btn);
+    });
+  });
+}
+
 const etGpMin     = document.getElementById("et-gp-min");
 const etGpMax     = document.getElementById("et-gp-max");
 const etItemsMin  = document.getElementById("et-items-min");
@@ -1661,6 +1975,10 @@ function openTemplateEditor(id) {
   // Attacks
   etAttacks = tmpl.attacks ? tmpl.attacks.map(a => ({ ...a })) : [];
   renderAttackRows();
+  // Damage modifiers
+  etResistances     = Array.isArray(tmpl.resistances)    ? [...tmpl.resistances]    : [];
+  etVulnerabilities = Array.isArray(tmpl.vulnerabilities) ? [...tmpl.vulnerabilities] : [];
+  renderDmgChips();
   // Extra info
   etSaves.value     = tmpl.saves     || "";
   etCondImm.value   = tmpl.condImm   || "";
@@ -1681,6 +1999,7 @@ function clearEditorFields() {
   etStr.value = etDex.value = etCon.value = etInt.value = etWis.value = etCha.value = "";
   STAT_FIELDS.forEach(({ mod }) => { mod.textContent = "—"; mod.className = "et-stat-mod"; });
   etAttacks = []; renderAttackRows();
+  etResistances = []; etVulnerabilities = []; renderDmgChips();
   etSaves.value = etCondImm.value = etLanguages.value = "";
   etGpMin.value = etGpMax.value = etItemsMin.value = etItemsMax.value = "0";
   etError.textContent = "";
@@ -1810,6 +2129,8 @@ etSaveBtn.addEventListener("click", () => {
     notes:     etNotes.value.trim()          || null,
     stats:     statsPayload,
     attacks:   etAttacks.filter(a => a.name.trim()).map(a => ({ ...a })),
+    resistances:     [...etResistances],
+    vulnerabilities: [...etVulnerabilities],
     saves:     etSaves.value.trim()          || null,
     condImm:   etCondImm.value.trim()        || null,
     languages: etLanguages.value.trim()      || null,
@@ -1878,6 +2199,8 @@ etSpawnBtn.addEventListener("click", () => {
       saves:       tmpl.saves     || null,
       condImm:     tmpl.condImm   || null,
       languages:   tmpl.languages || null,
+      resistances:     tmpl.resistances    || [],
+      vulnerabilities: tmpl.vulnerabilities || [],
       loot:        lootCfg,
       lootDropped: false,
     });

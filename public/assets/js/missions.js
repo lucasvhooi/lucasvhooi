@@ -438,6 +438,16 @@ let selectedType = "main";
 
 document.getElementById("qm-zoom-reset-btn")?.addEventListener("click", resetCanvasView);
 
+// Manual re-flow: snap every block into a clean, non-overlapping reading column.
+// Useful after appending blocks on mobile (which can re-introduce overlap on the
+// wider canvas). Marks the edit dirty so a Save persists the tidied coordinates.
+document.getElementById("qm-tidy-btn")?.addEventListener("click", () => {
+  if (!tidyDesktopLayout()) return;
+  buildBlocksEditor();
+  resetCanvasView();
+  onEditTick();
+});
+
 // ── Infinite canvas: wheel zoom ───────────────────────────────────────────────
 qmBlockCanvas.addEventListener("wheel", e => {
   if (e.target.closest(".blk-body")) return;
@@ -2987,6 +2997,10 @@ function openModal(q) {
 
   // Seed the first undo snapshot so initial edits go on the stack correctly
   undoStack.push(captureState());
+
+  // Mobile-authored quests carry only a logical reading order — tidy them once
+  // into a readable, non-overlapping desktop layout the first time they're opened.
+  maybeAutoTidyDesktop(q);
 }
 
 function closeModal() {
@@ -3033,6 +3047,9 @@ qmSave.addEventListener("click", async () => {
     objectives:      objClean.length ? objClean : null,
     prerequisites:   currentPrerequisites.length ? currentPrerequisites : null,
     recommendedLevel: String(currentRecommendedLevel || "").trim() || null,
+    // Coordinates saved from the desktop canvas are authoritative spatial layout,
+    // so mark the quest arranged — it will never be auto-tidied (clobbered) again.
+    desktopArranged: true,
   };
   await set(ref(db, `campaigns/${cid}/quests/${payload.id}`), payload);
   // Clear local draft on successful save
@@ -3310,6 +3327,101 @@ qmBlockCanvas.addEventListener("click", e => {
 
 
 // ── Build block editor ────────────────────────────────────────────────────────
+// ── Tidy / auto-arrange ──────────────────────────────────────────────────────
+// A quest authored on mobile only ever carries a *logical* reading order: every
+// block sits in one x-column with worldY values computed from the *default* block
+// height. On the wide desktop canvas blocks render at their real (and much taller,
+// variable) heights, so those mobile coordinates overlap and pile up. tidyDesktop-
+// Layout() re-flows the blocks into one clean, non-overlapping column using each
+// card's *measured* on-screen height, keeping group members contiguous (and slightly
+// indented so the group box wraps them) and giving phase headers extra breathing room.
+// Must run while the canvas is visible (after the modal opens) so offsetHeight is real.
+function tidyDesktopLayout() {
+  if (!currentBlocks.length || !canvasWorld) return false;
+
+  // Measured rendered size of a card, falling back to its stored/default size.
+  const heightOf = id => {
+    const el = canvasWorld.querySelector(`.qm-block[data-block-id="${id}"]`);
+    const h  = el ? el.offsetHeight : 0;
+    return h > 0 ? h : ((currentBlocks.find(b => b.id === id)?.height) || BLOCK_DEFAULT_H);
+  };
+  const widthOf = id => (currentBlocks.find(b => b.id === id)?.width) || BLOCK_DEFAULT_W;
+
+  // blockId -> owning groupId (first group that claims it).
+  const groupOf = {};
+  (currentGroups || []).forEach(g => (g.blockIds || []).forEach(bid => { if (!(bid in groupOf)) groupOf[bid] = g.id; }));
+
+  // Reading order, dividers excluded (mobile-only). Emit each group's members
+  // together at the group's first appearance so a group stays one contiguous run.
+  const order = orderBlocksForReading(currentBlocks.filter(b => b.type !== "divider"));
+  const emittedGroup = new Set();
+  const seq = [];
+  order.forEach(b => {
+    if (seq.includes(b)) return;
+    const gid = groupOf[b.id];
+    if (gid && !emittedGroup.has(gid)) {
+      emittedGroup.add(gid);
+      orderBlocksForReading(order.filter(x => groupOf[x.id] === gid))
+        .forEach(m => { if (!seq.includes(m)) seq.push(m); });
+    } else if (!gid) {
+      seq.push(b);
+    }
+  });
+  order.forEach(b => { if (!seq.includes(b)) seq.push(b); }); // safety net
+  if (!seq.length) return false;
+
+  // Lay out in vertical columns that flow left-to-right, so a long quest spreads
+  // across the canvas instead of running off the bottom in one tall stack. Each
+  // phase header starts a fresh column; if there are no phases (or a phase grows
+  // too tall) a column also wraps once it passes COL_MAX_H — but never mid-group.
+  const TOP = 40, X0 = 40, COL_GAP = 56, INDENT = 28;
+  const GAP = 26, GROUP_GAP = 14, GROUP_PAD = 18, PHASE_EXTRA = 24, COL_MAX_H = 1300;
+  const hasPhases = seq.some(b => b.type === "phase");
+
+  let colX = X0, colWidth = 0, y = TOP, prevGid = null, first = true;
+  const newColumn = () => { colX += colWidth + COL_GAP; colWidth = 0; y = TOP; prevGid = null; };
+
+  seq.forEach(b => {
+    const gid = groupOf[b.id] || null;
+    const atBoundary = gid !== prevGid;       // not in the middle of the same group
+
+    if (!first) {
+      if (hasPhases && b.type === "phase")              newColumn();
+      else if (atBoundary && y > COL_MAX_H)             newColumn();
+    }
+
+    if (prevGid && gid !== prevGid) y += GROUP_PAD;     // close the previous group box
+    if (b.type === "phase" && prevGid === null) y += PHASE_EXTRA;
+    if (gid && gid !== prevGid) y += GROUP_PAD;         // open space inside the group box
+
+    b.worldX = colX + (gid ? INDENT : 0);
+    b.worldY = y;
+    colWidth = Math.max(colWidth, widthOf(b.id) + (gid ? INDENT : 0));
+    y += heightOf(b.id) + (gid ? GROUP_GAP : GAP);
+    prevGid = gid;
+    first = false;
+  });
+  return true;
+}
+
+// First time a mobile-authored quest (no `desktopArranged` flag) is opened on the
+// desktop canvas, tidy it once and persist the cleaned coordinates + the flag, so
+// the layout is stable and we never re-arrange (and clobber) a hand-placed layout.
+function maybeAutoTidyDesktop(q) {
+  if (!q || !q.id || q.desktopArranged || !currentBlocks.length) return;
+  requestAnimationFrame(() => {
+    if (editingId !== q.id) return;            // modal moved on underneath us
+    if (!tidyDesktopLayout()) return;
+    buildBlocksEditor();                        // re-render at the tidy coordinates
+    try {
+      set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), JSON.parse(JSON.stringify(currentBlocks)));
+      set(ref(db, `campaigns/${cid}/quests/${q.id}/desktopArranged`), true);
+    } catch (_) {}
+    const local = quests.find(x => x.id === q.id);
+    if (local) local.desktopArranged = true;
+  });
+}
+
 function buildBlocksEditor() {
   // Ensure the world div exists inside the canvas viewport
   if (!canvasWorld || !qmBlockCanvas.contains(canvasWorld)) {
@@ -3341,6 +3453,9 @@ function buildBlocksEditor() {
   }
 
   currentBlocks.forEach((block, i) => {
+    // Dividers are a mobile-flow-only affordance (a visual break between cards in
+    // the vertical reading view); they have no meaning on the spatial canvas.
+    if (block.type === "divider") return;
     const wrap = document.createElement("div");
     wrap.className = `qm-block qm-block-${block.type}${selectedBlockSet.has(block.id) ? " blk-selected" : ""}`;
     wrap.dataset.index = i;
