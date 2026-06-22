@@ -1658,21 +1658,51 @@ function phaseOfBlock(blocks, groups, blockId) {
   return computeFlowPhaseMap(ordered, groupById)[blockId] ?? null;
 }
 
-// Commit a reorder: set the block's worldY and update which group/phase it belongs
-// to (dropping outside a group's or phase's members pulls it out).
-function commitReorderBlock(blockId, worldY, groupId, phaseId) {
+// Rebuild the whole quest into a clean single column so reading order is determined
+// SOLELY by worldY. `movingIds` (one card, or a group's members) are lifted out and
+// re-inserted as a contiguous run at the drop anchor — between the block that was just
+// above the drop (afterId) and just below it (beforeId) in the current rendered order.
+// This avoids orderBlocksForReading's ROW_GAP row-grouping + worldX tiebreak, which
+// otherwise made tightly-spaced drops land one or two spots off.
+function restackFlowBlocks(blocks, movingIds, afterId, beforeId) {
+  const moveSet = new Set(movingIds);
+  const has = id => blocks.some(b => b.id === id);
+  // Use the RENDERED (DOM) order, not raw orderBlocksForReading: it matches what the
+  // user sees and the drop anchors, and keeps phase/group members contiguous (the
+  // renderer pulls members under their header regardless of raw worldY). Phase header
+  // ids live on `.qflow-section-head .qflow-admin[data-block-id]`; cards on `.qflow-block`.
+  const flow = document.querySelector("#qview-canvas-wrap .qc-ro-flow");
+  let rendered = flow
+    ? [...flow.querySelectorAll(".qflow-block[data-block-id], .qflow-section-head .qflow-admin[data-block-id]")].map(e => e.dataset.blockId)
+    : [];
+  if (!rendered.length) rendered = orderBlocksForReading(blocks).map(b => b.id);   // fallback
+  const others = rendered.filter(id => !moveSet.has(id) && has(id));
+  let idx = others.length;                                              // default: append at the end
+  if (afterId && others.includes(afterId))       idx = others.indexOf(afterId) + 1;
+  else if (beforeId && others.includes(beforeId)) idx = others.indexOf(beforeId);
+  const moving = movingIds.filter(has);
+  const order = [...others.slice(0, idx), ...moving, ...others.slice(idx)];
+  const seen = new Set(order);
+  blocks.forEach(b => { if (!seen.has(b.id)) order.push(b.id); });      // safety: never drop a block
+  const byId = id => blocks.find(b => b.id === id);
+  let y = 20;
+  order.forEach(id => { const b = byId(id); if (!b) return; b.worldX = 20; b.worldY = y; y += (b.height || BLOCK_DEFAULT_H) + 40; });  // step >> ROW_GAP(70)
+}
+
+// Commit a reorder: place the dragged block at the drop anchor, update which
+// group/phase it belongs to, and restack so reading order matches the drop exactly.
+function commitReorderBlock(blockId, drop) {
   const q = quests.find(x => x.id === _viewQuestId);
   if (!q) return;
+  const { groupId, phaseId, afterId, beforeId } = drop;
   const blocks = (q.blocks || []).map(b => ({ ...b }));
   const b = blocks.find(x => x.id === blockId);
   if (!b) return;
   // "" = explicitly top-level (not null, which Firebase would strip → legacy positional).
   const targetPhase = groupId ? "" : (phaseId || "");        // grouped blocks are never phased
   const groupChanged = groupOfBlock(q.groups, blockId) !== (groupId || null);
-  const phaseChanged = b.type !== "phase" && phaseOfBlock(q.blocks, q.groups, blockId) !== (targetPhase || null);
-  if (b.worldY === worldY && !groupChanged && !phaseChanged) return;   // nothing moved
-  b.worldY = worldY;
   if (b.type !== "phase") b.phaseId = targetPhase;
+  restackFlowBlocks(blocks, [blockId], afterId, beforeId);
   const updates = { blocks };   // keys are relative to the quest ref
   if (groupChanged) {
     const groups = membershipGroups(q.groups, blockId, groupId);
@@ -1686,7 +1716,11 @@ function commitReorderBlock(blockId, worldY, groupId, phaseId) {
 // set between its new neighbours so the reading order (and the card) update.
 function initFlowReorderDrag(handle, card, blockId) {
   let sy = 0, sx = 0, decided = false, dragging = false, drop = null;
-  let grabDY = 0, startLeft = 0, startWidth = 0;
+  let grabDY = 0, grabDX = 0, startWidth = 0;
+  // Drag the card sideways past this many px to "tear" it out of its phase/group
+  // regardless of the vertical span — a reliable eject for cards sandwiched between
+  // members (where the vertical edge-zone is fiddly and snaps back).
+  const TEAR_OUT_PX = 56;
   const indicatorEl = () => document.getElementById("qvt-drop-indicator");
   const wrapEl = () => document.getElementById("qview-canvas-wrap");
 
@@ -1713,8 +1747,12 @@ function initFlowReorderDrag(handle, card, blockId) {
     // the group's remaining members close up. Dragging to a group edge then lands
     // outside those members and ejects the card, instead of hovering in its own
     // vacated gap (which read as "still between two members" and kept it grouped).
+    // Card tracks the finger in both axes; a clear sideways pull = tear-out eject.
     card.style.top = (t.clientY - grabDY) + "px";
-    drop = qvtComputeDrop(t.clientX, t.clientY, card);
+    card.style.left = (t.clientX - grabDX) + "px";
+    const tearOut = Math.abs(dx) > TEAR_OUT_PX;
+    card.classList.toggle("qflow-tear-out", tearOut);
+    drop = qvtComputeDrop(t.clientX, t.clientY, card, tearOut);
     edgeAutoScroll(t.clientY);
   }, { passive: false });
 
@@ -1723,7 +1761,7 @@ function initFlowReorderDrag(handle, card, blockId) {
     dragging = false;
     const d = drop;
     endDrag();
-    if (d) commitReorderBlock(blockId, d.worldY, d.groupId, d.phaseId);
+    if (d) commitReorderBlock(blockId, d);
   };
   handle.addEventListener("touchend", end);
   handle.addEventListener("touchcancel", () => { if (dragging) endDrag(); });
@@ -1731,10 +1769,11 @@ function initFlowReorderDrag(handle, card, blockId) {
   function startDrag() {
     const r = card.getBoundingClientRect();
     grabDY = sy - r.top;                       // where on the card the finger grabbed
-    startLeft = r.left; startWidth = r.width;
+    grabDX = sx - r.left;
+    startWidth = r.width;
     card.classList.add("qflow-dragging");
     card.style.width = startWidth + "px";      // pin geometry before lifting out of flow
-    card.style.left = startLeft + "px";
+    card.style.left = r.left + "px";
     card.style.top = r.top + "px";
     card.style.position = "fixed";
     card.style.margin = "0";
@@ -1743,7 +1782,7 @@ function initFlowReorderDrag(handle, card, blockId) {
     ind.style.display = "block";
   }
   function endDrag() {
-    card.classList.remove("qflow-dragging");
+    card.classList.remove("qflow-dragging", "qflow-tear-out");
     card.style.position = "";
     card.style.top = "";
     card.style.left = "";
@@ -1763,19 +1802,18 @@ function initFlowReorderDrag(handle, card, blockId) {
   }
 }
 
-// Reposition every member of a group to a contiguous block starting at worldY,
-// so the whole group moves to the drop position (keeping its internal order).
-function commitGroupReorder(groupId, worldY) {
+// Move a whole group (all its members, keeping their internal order) to the drop
+// anchor, restacking the quest so reading order matches the drop exactly.
+function commitGroupReorder(groupId, drop) {
   const q = quests.find(x => x.id === _viewQuestId);
   if (!q) return;
   const group = (q.groups || []).find(g => g.id === groupId);
   if (!group) return;
   const memberIds = new Set(group.blockIds || []);
   const blocks = (q.blocks || []).map(b => ({ ...b }));
-  const members = orderBlocksForReading(blocks.filter(b => memberIds.has(b.id)));
+  const members = orderBlocksForReading(blocks.filter(b => memberIds.has(b.id))).map(b => b.id);
   if (!members.length) return;
-  let y = worldY;
-  members.forEach(m => { m.worldY = y; m.worldX = 20; y += (m.height || BLOCK_DEFAULT_H) + 8; });
+  restackFlowBlocks(blocks, members, drop.afterId, drop.beforeId);
   set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
 }
 
@@ -1813,7 +1851,7 @@ function initGroupReorderDrag(handle, section, groupId) {
     dragging = false;
     const d = drop;
     endDrag();
-    if (d) commitGroupReorder(groupId, d.worldY);
+    if (d) commitGroupReorder(groupId, d);
   };
   handle.addEventListener("touchend", end);
   handle.addEventListener("touchcancel", () => { if (dragging) endDrag(); });
@@ -2540,17 +2578,18 @@ function addBlockToCurrentQuest(type) {
   });
 }
 
-// Insert a block at a reading position (worldY), optionally into a group or phase — drag-to-insert.
-function insertBlockInFlowAt(type, worldY, groupId, phaseId) {
+// Insert a block at the drop anchor, optionally into a group or phase — drag-to-insert.
+function insertBlockInFlowAt(type, drop) {
   if (!BLOCK_DEFAULTS[type] || !quests.find(x => x.id === _viewQuestId)) return;
+  const { groupId, phaseId, afterId, beforeId } = drop;
   openBlockSheet(newFlowBlock(type), block => {
     const q = quests.find(x => x.id === _viewQuestId);
     if (!q) return;
-    block.worldY = worldY;
     // "" = explicitly top-level (not null, which Firebase strips). Grouped blocks & phases are never phased.
     block.phaseId = (groupId || type === "phase") ? "" : (phaseId || "");
     const blocks = (q.blocks || []).map(b => ({ ...b }));
     blocks.push(block);
+    restackFlowBlocks(blocks, [block.id], afterId, beforeId);
     const updates = { blocks };   // keys are relative to the quest ref
     if (groupId) {
       const groups = membershipGroups(q.groups, block.id, groupId);
@@ -2571,26 +2610,33 @@ function flowDropSlots(flow, byId, skipEl) {
   const slots = [];
   // secEl = the owning .qflow-section element (null for top-level cards), so the
   // drop indicator can be drawn relative to the whole section box when ejecting.
-  const push = (rect, minY, maxY, groupId, phaseId, secEl) => { if (rect.height > 0) slots.push({ rect, minY, maxY, groupId, phaseId: phaseId || null, secEl: secEl || null }); };
+  // firstId/lastId = the block ids at the top/bottom of this slot in reading order,
+  // used as drop anchors ("insert after lastId of prev / before firstId of next").
+  const push = (rect, minY, maxY, groupId, phaseId, secEl, firstId, lastId) => { if (rect.height > 0) slots.push({ rect, minY, maxY, groupId, phaseId: phaseId || null, secEl: secEl || null, firstId: firstId || null, lastId: lastId || (firstId || null) }); };
   const yOf = id => { const b = byId(id); return b ? (b.worldY || 0) : null; };
   for (const child of flow.children) {
     if (child === skipEl) continue;
     if (child.matches(".qflow-block")) {
-      const y = yOf(child.dataset.blockId);
-      if (y != null) push(child.getBoundingClientRect(), y, y, null, null, null);   // top-level cards: no group, no phase
+      const id = child.dataset.blockId, y = yOf(id);
+      if (y != null) push(child.getBoundingClientRect(), y, y, null, null, null, id, id);   // top-level cards: no group, no phase
     } else if (child.matches(".qflow-section")) {
       const gid = child.classList.contains("qflow-section-group") ? (child.dataset.groupId || null) : null;
       const phaseId = child.querySelector(".qflow-section-head .qflow-admin")?.dataset.blockId;  // set only for phase sections
-      const cards = [...child.querySelectorAll("[data-block-id]")].filter(e => e !== skipEl);
+      // Only the card elements — NOT the nested `.qflow-admin[data-block-id]` control
+      // spans, which would otherwise add phantom tiny slots at each card's worldY and
+      // throw the drop index off by one or two.
+      const cards = [...child.querySelectorAll(".qflow-block")].filter(e => e !== skipEl);
       if (child.hasAttribute("open")) {
         const head = child.querySelector(".qflow-section-head");
         const py = phaseId ? yOf(phaseId) : null;       // the phase header anchors its own phase
-        if (head && py != null) push(head.getBoundingClientRect(), py, py, null, phaseId, child);
-        cards.forEach(e => { const y = yOf(e.dataset.blockId); if (y != null) push(e.getBoundingClientRect(), y, y, gid, phaseId, child); });
+        if (head && py != null) push(head.getBoundingClientRect(), py, py, null, phaseId, child, phaseId, phaseId);
+        cards.forEach(e => { const id = e.dataset.blockId, y = yOf(id); if (y != null) push(e.getBoundingClientRect(), y, y, gid, phaseId, child, id, id); });
       } else {
         const ys = cards.map(e => yOf(e.dataset.blockId)).filter(y => y != null);
         if (phaseId && yOf(phaseId) != null) ys.push(yOf(phaseId));
-        if (ys.length) push(child.getBoundingClientRect(), Math.min(...ys), Math.max(...ys), gid, phaseId, child);
+        const firstId = phaseId || (cards[0] && cards[0].dataset.blockId) || null;
+        const lastId = (cards.length && cards[cards.length - 1].dataset.blockId) || phaseId || null;
+        if (ys.length) push(child.getBoundingClientRect(), Math.min(...ys), Math.max(...ys), gid, phaseId, child, firstId, lastId);
       }
     }
   }
@@ -2600,16 +2646,24 @@ function flowDropSlots(flow, byId, skipEl) {
 // Returns { worldY, groupId } for a drop at viewport-Y. groupId is the group the
 // block should belong to: only when dropped *between two members of the same
 // group* — so dropping at a group's edge or outside pulls the block out.
-function qvtComputeDrop(clientX, clientY, skipEl) {
+function qvtComputeDrop(clientX, clientY, skipEl, tearOut) {
   const flow = document.querySelector("#qview-canvas-wrap .qc-ro-flow");
   const ind = document.getElementById("qvt-drop-indicator");
   if (!flow) return null;
   const q = quests.find(x => x.id === _viewQuestId);
   const byId = id => (q?.blocks || []).find(b => b.id === id);
   const slots = flowDropSlots(flow, byId, skipEl);
+  // The fixed bottom toolbar overlays the flow, so a tall last card's midpoint can
+  // sit behind it (unreachable by the finger) — without capping, a drop at the
+  // bottom lands ABOVE the last card. Cap each slot's switch point to just above the
+  // toolbar so the bottom region always reads as "append after the last card".
+  const tb = document.getElementById("qview-toolbar");
+  const tbr = tb && tb.offsetHeight > 0 ? tb.getBoundingClientRect() : null;   // offsetParent is null for position:fixed
+  const floorY = (tbr ? tbr.top : window.innerHeight) - 12;
   let beforeIdx = slots.length;
   for (let i = 0; i < slots.length; i++) {
-    if (clientY < slots[i].rect.top + slots[i].rect.height / 2) { beforeIdx = i; break; }
+    const switchY = Math.min(slots[i].rect.top + slots[i].rect.height / 2, floorY);
+    if (clientY < switchY) { beforeIdx = i; break; }
   }
   const prev = slots[beforeIdx - 1], next = slots[beforeIdx];
   let worldY;
@@ -2659,6 +2713,9 @@ function qvtComputeDrop(clientX, clientY, skipEl) {
     else if (spanPid && spanPid !== currentPid) phaseId = spanPid;   // over a *different* phase → join it
     else                                        phaseId = null;      // edge of own phase / outside → leave
   }
+  // A clear sideways pull tears the card out of any phase/group it's over, no matter
+  // where it sits vertically — the reliable escape for sandwiched cards.
+  if (tearOut) { groupId = null; phaseId = null; }
   if (ind) {
     const fr = flow.getBoundingClientRect();
     let lineY;
@@ -2674,7 +2731,9 @@ function qvtComputeDrop(clientX, clientY, skipEl) {
     ind.style.width = fr.width + "px";
     ind.style.top = lineY + "px";
   }
-  return { worldY, groupId, phaseId };
+  // Anchors: the block just above (afterId) and just below (beforeId) the drop point,
+  // used by the commit to place the dragged block exactly there in reading order.
+  return { worldY, groupId, phaseId, afterId: prev ? prev.lastId : null, beforeId: next ? next.firstId : null };
 }
 
 // Touch drag a toolbar button up into the flow to insert a block between others.
@@ -2726,7 +2785,7 @@ function initQvtDragInsert(btn) {
     setTimeout(() => { btn._qvtDragged = false; }, 60);
     const d = overCancel ? null : drop;            // released over the toolbar → abort
     cleanupDrag();
-    if (d) insertBlockInFlowAt(type, d.worldY, d.groupId, d.phaseId);
+    if (d) insertBlockInFlowAt(type, d);
   };
   btn.addEventListener("touchend", end);
   btn.addEventListener("touchcancel", () => { dragging = false; cleanupDrag(); });

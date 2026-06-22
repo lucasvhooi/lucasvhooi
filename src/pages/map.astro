@@ -30,18 +30,25 @@ import Layout from '../layouts/Layout.astro';
 
     <!-- DM Toolbar -->
     <div id="dm-toolbar">
-      <span class="dm-label">DM Tools</span>
-      <button id="btn-place-marker" class="dm-btn">Place Marker</button>
-      <label id="btn-upload-map" class="dm-btn" style="position:relative;overflow:hidden;cursor:pointer">
-        <iconify-icon icon="lucide:image-up" style="font-size:14px;margin-right:5px"></iconify-icon>Upload Map
+      <button id="btn-place-marker" class="dm-tool-btn" title="Place Marker">
+        <iconify-icon icon="lucide:map-pin-plus"></iconify-icon>
+      </button>
+      <button id="btn-draw-area" class="dm-tool-btn" title="Draw Area">
+        <iconify-icon icon="lucide:pen-tool"></iconify-icon>
+      </button>
+      <button id="btn-manage-types" class="dm-tool-btn" title="Marker Types">
+        <iconify-icon icon="lucide:tags"></iconify-icon>
+      </button>
+      <label id="btn-upload-map" class="dm-tool-btn" title="Upload Map" style="position:relative;overflow:hidden;cursor:pointer">
+        <iconify-icon icon="lucide:image-up"></iconify-icon>
         <input type="file" id="maps-file-input-toolbar" accept="image/*"
                style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer">
       </label>
     </div>
 
     <!-- Location panel open button -->
-    <button id="lp-open-btn" class="lp-open-btn">
-      <iconify-icon icon="lucide:map-pin"></iconify-icon> Locations
+    <button id="lp-open-btn" class="lp-open-btn" title="Locations" aria-label="Locations">
+      <iconify-icon icon="lucide:map-pin"></iconify-icon>
     </button>
 
     <!-- Location panel -->
@@ -83,6 +90,7 @@ import Layout from '../layouts/Layout.astro';
             <option value="Other">Other</option>
           </select>
         </label>
+        <div id="m-type-preview" class="m-type-preview"></div>
       </div>
       <div class="form-row two-col">
         <label>Population
@@ -159,6 +167,57 @@ import Layout from '../layouts/Layout.astro';
       <div class="modal-actions">
         <button id="cm-save" class="dm-btn">Save</button>
         <button id="cm-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Marker Type Modal -->
+  <div id="type-modal" class="modal-overlay">
+    <div class="modal-box type-modal-box">
+      <h2>Marker Types</h2>
+      <div class="form-row">
+        <label>New type name <span class="required">*</span>
+          <input type="text" id="tt-name" placeholder="e.g. Capital" />
+        </label>
+      </div>
+      <div class="form-row">
+        <label>Colour</label>
+        <div id="tt-color-swatches" class="country-color-row"></div>
+      </div>
+      <div class="form-row">
+        <label>Icon</label>
+        <div id="tt-icon-grid" class="tt-icon-grid"></div>
+      </div>
+      <div id="tt-error" class="modal-error"></div>
+      <div class="modal-actions">
+        <button id="tt-save" class="dm-btn">Add Type</button>
+        <button id="tt-close" class="dm-btn dm-btn-secondary">Done</button>
+      </div>
+      <div class="tt-list-section">
+        <div class="tt-list-title">Custom types</div>
+        <div id="tt-list" class="tt-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Area Modal -->
+  <div id="area-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2 id="am-title">Name Area</h2>
+      <div class="form-row">
+        <label>Name <span class="required">*</span>
+          <input type="text" id="am-name" placeholder="e.g. Kingdom of Arcadia" />
+        </label>
+      </div>
+      <div class="form-row">
+        <label>Colour</label>
+        <div id="am-color-swatches" class="country-color-row"></div>
+      </div>
+      <div id="am-error" class="modal-error"></div>
+      <div class="modal-actions">
+        <button id="am-delete" class="dm-btn dm-btn-danger" style="display:none;margin-right:auto">Delete</button>
+        <button id="am-save" class="dm-btn">Save</button>
+        <button id="am-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
       </div>
     </div>
   </div>

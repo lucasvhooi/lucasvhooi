@@ -27,6 +27,29 @@ const markerLayer  = document.getElementById("marker-layer");
 mapImage.draggable = false;
 mapImage.addEventListener("dragstart", e => e.preventDefault());
 
+// ── Area + pen overlay layers — live inside the wrapper so they pan/zoom with
+// the map. The SVG holds polygon fills/borders; HTML layers hold labels and the
+// in-progress pen vertices (kept as HTML so they stay perfectly round). ────────
+const SVG_NS = "http://www.w3.org/2000/svg";
+const areaSvg = document.createElementNS(SVG_NS, "svg");
+areaSvg.id = "area-layer";
+areaSvg.setAttribute("viewBox", "0 0 100 100");
+areaSvg.setAttribute("preserveAspectRatio", "none");
+
+const penDrawGroup = document.createElementNS(SVG_NS, "g");
+penDrawGroup.id = "pen-draw";
+areaSvg.appendChild(penDrawGroup);
+
+const areaLabelLayer = document.createElement("div");
+areaLabelLayer.id = "area-label-layer";
+
+const penLayer = document.createElement("div");
+penLayer.id = "pen-layer";
+
+mapWrapper.insertBefore(areaSvg, markerLayer);
+mapWrapper.insertBefore(areaLabelLayer, markerLayer);
+mapWrapper.insertBefore(penLayer, markerLayer);
+
 // ── Cached values — read once, never pay layout cost again ───────────────────
 let _cachedRect = { left: 0, top: 0, width: 0, height: 0 };
 function _updateCachedRect() {
@@ -49,6 +72,8 @@ function updateTransform() {
 function flushCounterScale() {
   const t = `translate3d(-50%,-50%,0) scale(${1 / scale})`;
   _markerEls.forEach(({ el }) => { el.style.transform = t; });
+  areaLabelLayer.querySelectorAll(".area-label").forEach(el => { el.style.transform = t; });
+  penLayer.querySelectorAll(".pen-vertex").forEach(el => { el.style.transform = t; });
 }
 
 // Debounce flush 120 ms after the last wheel tick; re-enable pointer events.
@@ -174,7 +199,7 @@ mapContainer.addEventListener("pointerdown", function(e) {
   _didDrag    = false;
   _startX = e.clientX;
   _startY = e.clientY;
-  mapContainer.style.cursor = placingMode ? "crosshair" : "grabbing";
+  mapContainer.style.cursor = (placingMode || penMode) ? "crosshair" : "grabbing";
   mapContainer.setPointerCapture(e.pointerId);
   // Suppress marker hover recalcs while panning.
   markerLayer.classList.add("gesturing");
@@ -197,6 +222,11 @@ mapContainer.addEventListener("pointerup", function(e) {
   _isDragging = false;
   markerLayer.classList.remove("gesturing");
 
+  if (penMode && !_didDrag && isAdmin && e.pointerType === "mouse") {
+    penClickAt(e.clientX - _cachedRect.left, e.clientY - _cachedRect.top);
+    return;
+  }
+
   if (placingMode && !_didDrag && isAdmin && e.pointerType === "mouse") {
     const clickX = e.clientX - _cachedRect.left;
     const clickY = e.clientY - _cachedRect.top;
@@ -207,12 +237,19 @@ mapContainer.addEventListener("pointerup", function(e) {
     return;
   }
 
-  mapContainer.style.cursor = placingMode ? "crosshair" : "grab";
+  mapContainer.style.cursor = (placingMode || penMode) ? "crosshair" : "grab";
 });
+
+// Rubber-band preview line following the cursor while drawing.
+mapContainer.addEventListener("pointermove", function(e) {
+  if (!penMode || e.pointerType !== "mouse") return;
+  penCursor = { x: e.clientX - _cachedRect.left, y: e.clientY - _cachedRect.top };
+  updatePenDraw();
+}, { passive: true });
 
 mapContainer.addEventListener("pointercancel", function() {
   _isDragging = false;
-  mapContainer.style.cursor = placingMode ? "crosshair" : "grab";
+  mapContainer.style.cursor = (placingMode || penMode) ? "crosshair" : "grab";
   markerLayer.classList.remove("gesturing");
 });
 
@@ -289,15 +326,19 @@ if (isTouchDevice) {
       }
     }
 
-    if (placingMode && isAdmin && !_isPinching && e.changedTouches.length === 1) {
+    if ((placingMode || penMode) && isAdmin && !_isPinching && e.changedTouches.length === 1) {
       const touch = e.changedTouches[0];
       if (Math.abs(touch.clientX - _touchStartX) < 12 &&
           Math.abs(touch.clientY - _touchStartY) < 12) {
-        const rect  = mapContainer.getBoundingClientRect();
-        pendingCoords   = screenToPct(touch.clientX - rect.left, touch.clientY - rect.top);
-        pendingCoords.x = Math.max(0, Math.min(100, pendingCoords.x));
-        pendingCoords.y = Math.max(0, Math.min(100, pendingCoords.y));
-        openPlaceModal();
+        const rect = mapContainer.getBoundingClientRect();
+        if (penMode) {
+          penClickAt(touch.clientX - rect.left, touch.clientY - rect.top);
+        } else {
+          pendingCoords   = screenToPct(touch.clientX - rect.left, touch.clientY - rect.top);
+          pendingCoords.x = Math.max(0, Math.min(100, pendingCoords.x));
+          pendingCoords.y = Math.max(0, Math.min(100, pendingCoords.y));
+          openPlaceModal();
+        }
       }
     }
   });
@@ -370,6 +411,46 @@ const COUNTRY_COLORS = [
   "#ff5722","#78909c"
 ];
 
+// ── Marker Type Registry ──────────────────────────────────────────────────────
+// Each type carries its own colour + icon. Built-ins ship with the app; DMs can
+// add custom types stored under campaigns/{cid}/markerTypes.
+const markerTypesRef = ref(db, `campaigns/${_cid}/markerTypes`);
+
+const BUILTIN_TYPES = [
+  { name: "City",     color: "#e74c3c", icon: "game-icons:castle" },
+  { name: "Town",     color: "#e67e22", icon: "game-icons:village" },
+  { name: "Village",  color: "#f1c40f", icon: "game-icons:hut" },
+  { name: "Dungeon",  color: "#9b59b6", icon: "game-icons:dungeon-gate" },
+  { name: "Landmark", color: "#1abc9c", icon: "lucide:landmark" },
+  { name: "Cave",     color: "#78909c", icon: "game-icons:cave-entrance" },
+  { name: "Ruin",     color: "#8d6e63", icon: "game-icons:broken-wall" },
+  { name: "Other",    color: "#3498db", icon: "lucide:map-pin" },
+];
+
+let customTypes = []; // [{ id, name, color, icon }]
+
+function allTypes()      { return BUILTIN_TYPES.concat(customTypes); }
+function typeInfo(name)  {
+  return allTypes().find(t => t.name === name)
+      || BUILTIN_TYPES[BUILTIN_TYPES.length - 1]; // fall back to "Other"
+}
+
+// Icon choices offered when creating a custom type.
+const ICON_LIBRARY = [
+  "lucide:castle","lucide:landmark","lucide:building-2","lucide:house",
+  "lucide:store","lucide:warehouse","lucide:church","lucide:tent-tree",
+  "lucide:mountain","lucide:mountain-snow","lucide:trees","lucide:tree-pine",
+  "lucide:waves","lucide:anchor","lucide:ship","lucide:sailboat",
+  "lucide:flag","lucide:crown","lucide:gem","lucide:pickaxe",
+  "lucide:wheat","lucide:flame","lucide:skull","lucide:swords",
+  "game-icons:castle","game-icons:village","game-icons:dungeon-gate","game-icons:cave-entrance",
+  "game-icons:broken-wall","game-icons:lighthouse","game-icons:volcano","game-icons:treasure-map",
+];
+
+// ── Areas (pen-tool land overlays) ────────────────────────────────────────────
+const areasRef = ref(db, `campaigns/${_cid}/areas`);
+let areas = []; // [{ id, name, color, points:[{x,y}] }]
+
 function saveMarker(marker)     { set(ref(db, `campaigns/${_cid}/markers/` + marker.id), marker); }
 function deleteMarkerById(id)   { remove(ref(db, `campaigns/${_cid}/markers/` + id)); }
 function generateId()           { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
@@ -416,6 +497,14 @@ function renderMarkers() {
   flushCounterScale();
 }
 
+// Tear down every marker element and rebuild — used when the type registry
+// changes (colours/icons live outside the per-marker hash).
+function forceRerenderMarkers() {
+  _markerEls.forEach(d => d.el.remove());
+  _markerEls.clear();
+  renderMarkers();
+}
+
 function _buildMarkerEl(marker) {
   const el = document.createElement("div");
   el.className        = "map-marker";
@@ -430,9 +519,13 @@ function _buildMarkerEl(marker) {
   // Stop pointerdown from bubbling to mapContainer (prevents drag hijack).
   el.addEventListener("pointerdown", e => e.stopPropagation());
 
-  // Pin
+  // Pin — icon + colour both come from the marker's category (type registry).
+  // Unexplored markers are dimmed via the data-explored attribute (see CSS).
+  const info = typeInfo(marker.type);
+  el.style.setProperty("--mc", info.color);
   const pin = document.createElement("div");
   pin.className = "marker-pin";
+  pin.innerHTML = `<iconify-icon icon="${info.icon}"></iconify-icon>`;
 
   // Tooltip
   const tooltip = document.createElement("div");
@@ -511,8 +604,11 @@ mapContainer.appendChild(placingBanner);
 
 if (btnPlaceMarker) {
   btnPlaceMarker.addEventListener("click", () => {
+    if (!placingMode && penMode) exitPenMode();
     placingMode = !placingMode;
-    btnPlaceMarker.textContent = placingMode ? "Cancel Placing" : "Place Marker";
+    const pmIcon = btnPlaceMarker.querySelector("iconify-icon");
+    if (pmIcon) pmIcon.setAttribute("icon", placingMode ? "lucide:x" : "lucide:map-pin-plus");
+    btnPlaceMarker.title = placingMode ? "Cancel Placing" : "Place Marker";
     btnPlaceMarker.classList.toggle("active", placingMode);
     mapContainer.classList.toggle("placing-mode", placingMode);
     placingBanner.classList.toggle("visible", placingMode);
@@ -533,6 +629,32 @@ const mNotes      = document.getElementById("m-notes");
 const modalError  = document.getElementById("modal-error");
 const mSave       = document.getElementById("m-save");
 const mCancel     = document.getElementById("m-cancel");
+const mTypePreview = document.getElementById("m-type-preview");
+
+// Rebuild the type <select> from the registry (built-ins + custom types).
+function populateTypeSelect(selected) {
+  const keep = selected ?? mType.value;
+  mType.innerHTML = "";
+  allTypes().forEach(t => {
+    const opt = document.createElement("option");
+    opt.value = t.name;
+    opt.textContent = t.name;
+    mType.appendChild(opt);
+  });
+  if (keep && allTypes().some(t => t.name === keep)) mType.value = keep;
+  updateTypePreview();
+}
+
+// Show the selected type's icon + colour beneath the dropdown.
+function updateTypePreview() {
+  if (!mTypePreview) return;
+  const info = typeInfo(mType.value);
+  mTypePreview.innerHTML =
+    `<span class="m-type-chip" style="--mc:${info.color}"><iconify-icon icon="${info.icon}"></iconify-icon></span>` +
+    `<span class="m-type-chip-label">${esc(info.name)}</span>`;
+}
+
+mType.addEventListener("change", updateTypePreview);
 
 function openPlaceModal() {
   editingId             = null;
@@ -542,6 +664,7 @@ function openPlaceModal() {
   mMainRace.value   = "";
   mExplored.checked = false;
   modalError.textContent = "";
+  updateTypePreview();
   populateCountrySelect("");
   markerModal.classList.add("open");
   mName.focus();
@@ -561,6 +684,7 @@ function openEditModal(id) {
   mExplored.checked      = marker.explored   === true;
   mNotes.value           = marker.notes      || "";
   modalError.textContent = "";
+  updateTypePreview();
   populateCountrySelect(marker.countryId || "");
   markerModal.classList.add("open");
   mName.focus();
@@ -569,7 +693,9 @@ function openEditModal(id) {
 function exitPlaceMode() {
   placingMode = false;
   if (btnPlaceMarker) {
-    btnPlaceMarker.textContent = "Place Marker";
+    const pmIcon = btnPlaceMarker.querySelector("iconify-icon");
+    if (pmIcon) pmIcon.setAttribute("icon", "lucide:map-pin-plus");
+    btnPlaceMarker.title = "Place Marker";
     btnPlaceMarker.classList.remove("active");
   }
   mapContainer.classList.remove("placing-mode");
@@ -648,6 +774,18 @@ onValue(countriesRef, snapshot => {
 
   renderLocationList();
   populateCountrySelect();
+});
+
+onValue(markerTypesRef, snapshot => {
+  customTypes = snapshot.val() ? Object.values(snapshot.val()) : [];
+  populateTypeSelect(mType.value);
+  forceRerenderMarkers();
+  renderCustomTypeList();
+});
+
+onValue(areasRef, snapshot => {
+  areas = snapshot.val() ? Object.values(snapshot.val()) : [];
+  renderAreas();
 });
 
 // ── Location Panel ────────────────────────────────────────────────────────────
@@ -1088,3 +1226,341 @@ async function _handleFileChange(e) {
 }
 
 mapsFileInputs.forEach(inp => inp.addEventListener("change", _handleFileChange));
+
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Custom Marker Types
+// ════════════════════════════════════════════════════════════════════════════
+const btnManageTypes  = document.getElementById("btn-manage-types");
+const typeModal       = document.getElementById("type-modal");
+const ttName          = document.getElementById("tt-name");
+const ttColorSwatches = document.getElementById("tt-color-swatches");
+const ttIconGrid      = document.getElementById("tt-icon-grid");
+const ttList          = document.getElementById("tt-list");
+const ttError         = document.getElementById("tt-error");
+const ttSave          = document.getElementById("tt-save");
+const ttClose         = document.getElementById("tt-close");
+
+let _selTypeColor = COUNTRY_COLORS[0];
+let _selTypeIcon  = ICON_LIBRARY[0];
+
+function openTypeModal() {
+  ttName.value        = "";
+  _selTypeColor       = COUNTRY_COLORS[0];
+  _selTypeIcon        = ICON_LIBRARY[0];
+  ttError.textContent = "";
+  _buildTypeColorSwatches();
+  _buildTypeIconGrid();
+  renderCustomTypeList();
+  typeModal.classList.add("open");
+  ttName.focus();
+}
+function closeTypeModal() { typeModal.classList.remove("open"); }
+
+function _buildTypeColorSwatches() {
+  ttColorSwatches.innerHTML = "";
+  COUNTRY_COLORS.forEach(color => {
+    const sw = document.createElement("div");
+    sw.className = "country-color-swatch" + (color === _selTypeColor ? " selected" : "");
+    sw.style.background = color;
+    sw.title = color;
+    sw.addEventListener("click", () => {
+      _selTypeColor = color;
+      ttColorSwatches.querySelectorAll(".country-color-swatch")
+        .forEach(s => s.classList.toggle("selected", s.title === color));
+    });
+    ttColorSwatches.appendChild(sw);
+  });
+}
+
+function _buildTypeIconGrid() {
+  ttIconGrid.innerHTML = "";
+  ICON_LIBRARY.forEach(icon => {
+    const cell = document.createElement("button");
+    cell.type = "button";
+    cell.className = "tt-icon-cell" + (icon === _selTypeIcon ? " selected" : "");
+    cell.innerHTML = `<iconify-icon icon="${icon}"></iconify-icon>`;
+    cell.addEventListener("click", () => {
+      _selTypeIcon = icon;
+      ttIconGrid.querySelectorAll(".tt-icon-cell").forEach(c => c.classList.remove("selected"));
+      cell.classList.add("selected");
+    });
+    ttIconGrid.appendChild(cell);
+  });
+}
+
+function renderCustomTypeList() {
+  if (!ttList) return;
+  if (customTypes.length === 0) {
+    ttList.innerHTML = `<p class="tt-empty">No custom types yet.</p>`;
+    return;
+  }
+  ttList.innerHTML = "";
+  customTypes.forEach(t => {
+    const row = document.createElement("div");
+    row.className = "tt-row";
+    row.innerHTML =
+      `<span class="m-type-chip" style="--mc:${t.color}"><iconify-icon icon="${t.icon}"></iconify-icon></span>` +
+      `<span class="tt-row-name">${esc(t.name)}</span>` +
+      `<button class="tt-row-del" title="Delete type"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>`;
+    row.querySelector(".tt-row-del").addEventListener("click", () => {
+      if (!confirm(`Delete type "${t.name}"? Markers using it will fall back to "Other".`)) return;
+      remove(ref(db, `campaigns/${_cid}/markerTypes/${t.id}`));
+    });
+    ttList.appendChild(row);
+  });
+}
+
+if (btnManageTypes) btnManageTypes.addEventListener("click", openTypeModal);
+if (ttClose)        ttClose.addEventListener("click", closeTypeModal);
+if (ttSave) ttSave.addEventListener("click", () => {
+  const name = ttName.value.trim();
+  if (!name) { ttError.textContent = "Name is required."; return; }
+  if (allTypes().some(t => t.name.toLowerCase() === name.toLowerCase())) {
+    ttError.textContent = "A type with that name already exists."; return;
+  }
+  const id = generateId();
+  set(ref(db, `campaigns/${_cid}/markerTypes/${id}`), { id, name, color: _selTypeColor, icon: _selTypeIcon });
+  ttName.value        = "";
+  ttError.textContent = "";
+  // The list + dropdown refresh through the markerTypes onValue listener.
+});
+if (typeModal) typeModal.addEventListener("click", e => { if (e.target === typeModal) closeTypeModal(); });
+if (ttName)    ttName.addEventListener("keydown", e => { if (e.key === "Enter") ttSave.click(); });
+
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Pen Tool — draw land areas
+// ════════════════════════════════════════════════════════════════════════════
+const btnDrawArea = document.getElementById("btn-draw-area");
+let penMode   = false;
+let penPoints = [];     // [{x,y}] in percent
+let penCursor = null;   // {x,y} container-relative px (rubber-band target)
+
+// Percent point → container-relative px (inverse of screenToPct).
+function pctToScreen(p) {
+  return {
+    x: (p.x / 100) * _imgNW * scale + originX,
+    y: (p.y / 100) * _imgNH * scale + originY,
+  };
+}
+
+const penControls = document.createElement("div");
+penControls.id = "pen-controls";
+penControls.innerHTML =
+  `<span class="pen-hint">Click to add points · click the first point to close</span>` +
+  `<button id="pen-undo" class="pen-ctrl-btn" title="Undo last point"><iconify-icon icon="lucide:undo-2"></iconify-icon></button>` +
+  `<button id="pen-finish" class="pen-ctrl-btn pen-ctrl-finish" title="Finish area"><iconify-icon icon="lucide:check"></iconify-icon> Finish</button>` +
+  `<button id="pen-cancel" class="pen-ctrl-btn pen-ctrl-cancel" title="Cancel"><iconify-icon icon="lucide:x"></iconify-icon></button>`;
+mapContainer.appendChild(penControls);
+penControls.addEventListener("pointerdown", e => e.stopPropagation());
+penControls.querySelector("#pen-undo").addEventListener("click",   () => { penPoints.pop(); updatePenDraw(); });
+penControls.querySelector("#pen-finish").addEventListener("click", finishPen);
+penControls.querySelector("#pen-cancel").addEventListener("click", () => { penPoints = []; exitPenMode(); });
+
+function enterPenMode() {
+  if (placingMode) exitPlaceMode();
+  penMode   = true;
+  penPoints = [];
+  penCursor = null;
+  if (btnDrawArea) btnDrawArea.classList.add("active");
+  mapContainer.classList.add("placing-mode"); // reuse crosshair cursor
+  penControls.classList.add("visible");
+  updatePenDraw();
+}
+
+function exitPenMode() {
+  penMode   = false;
+  penCursor = null;
+  penPoints = [];
+  if (btnDrawArea) btnDrawArea.classList.remove("active");
+  mapContainer.classList.remove("placing-mode");
+  penControls.classList.remove("visible");
+  updatePenDraw();
+}
+
+if (btnDrawArea) btnDrawArea.addEventListener("click", () => { penMode ? exitPenMode() : enterPenMode(); });
+
+function penClickAt(cx, cy) {
+  const pct = screenToPct(cx, cy);
+  pct.x = Math.max(0, Math.min(100, pct.x));
+  pct.y = Math.max(0, Math.min(100, pct.y));
+  // Close the shape when the click lands on the first vertex.
+  if (penPoints.length >= 3) {
+    const f = pctToScreen(penPoints[0]);
+    if (Math.hypot(cx - f.x, cy - f.y) < 16) { finishPen(); return; }
+  }
+  penPoints.push(pct);
+  updatePenDraw();
+}
+
+function updatePenDraw() {
+  penDrawGroup.innerHTML = "";
+  penLayer.innerHTML     = "";
+  if (!penMode || penPoints.length === 0) { flushCounterScale(); return; }
+
+  const ptsStr = penPoints.map(p => `${p.x},${p.y}`).join(" ");
+
+  if (penPoints.length >= 3) {
+    const fill = document.createElementNS(SVG_NS, "polygon");
+    fill.setAttribute("points", ptsStr);
+    fill.setAttribute("class", "pen-preview-fill");
+    penDrawGroup.appendChild(fill);
+  }
+
+  const line = document.createElementNS(SVG_NS, "polyline");
+  line.setAttribute("points", ptsStr);
+  line.setAttribute("class", "pen-preview-line");
+  penDrawGroup.appendChild(line);
+
+  if (penCursor) {
+    const last = penPoints[penPoints.length - 1];
+    const cur  = screenToPct(penCursor.x, penCursor.y);
+    const rb = document.createElementNS(SVG_NS, "line");
+    rb.setAttribute("x1", last.x); rb.setAttribute("y1", last.y);
+    rb.setAttribute("x2", cur.x);  rb.setAttribute("y2", cur.y);
+    rb.setAttribute("class", "pen-preview-rubber");
+    penDrawGroup.appendChild(rb);
+  }
+
+  penPoints.forEach((p, i) => {
+    const dot = document.createElement("div");
+    dot.className  = "pen-vertex" + (i === 0 ? " pen-vertex-first" : "");
+    dot.style.left = p.x + "%";
+    dot.style.top  = p.y + "%";
+    penLayer.appendChild(dot);
+  });
+
+  flushCounterScale();
+}
+
+function finishPen() {
+  if (penPoints.length < 3) return;
+  _pendingAreaPoints = penPoints.slice();
+  exitPenMode();
+  openAreaModal(null);
+}
+
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Areas — render + naming/edit modal
+// ════════════════════════════════════════════════════════════════════════════
+function _centroid(points) {
+  // Area-weighted polygon centroid; falls back to vertex average if degenerate.
+  let a = 0, cx = 0, cy = 0;
+  for (let i = 0; i < points.length; i++) {
+    const p0 = points[i], p1 = points[(i + 1) % points.length];
+    const cross = p0.x * p1.y - p1.x * p0.y;
+    a += cross; cx += (p0.x + p1.x) * cross; cy += (p0.y + p1.y) * cross;
+  }
+  if (Math.abs(a) < 1e-6) {
+    const n = points.length;
+    return { x: points.reduce((s, p) => s + p.x, 0) / n, y: points.reduce((s, p) => s + p.y, 0) / n };
+  }
+  a *= 0.5;
+  return { x: cx / (6 * a), y: cy / (6 * a) };
+}
+
+function renderAreas() {
+  areaSvg.querySelectorAll(".area-poly").forEach(n => n.remove());
+  areaLabelLayer.innerHTML = "";
+
+  areas.forEach(area => {
+    if (!area.points || area.points.length < 3) return;
+    const poly = document.createElementNS(SVG_NS, "polygon");
+    poly.setAttribute("points", area.points.map(p => `${p.x},${p.y}`).join(" "));
+    poly.setAttribute("class", "area-poly");
+    poly.style.setProperty("--ac", area.color || "#3498db");
+    if (isAdmin) {
+      poly.style.cursor = "pointer";
+      poly.style.pointerEvents = "auto";
+      poly.addEventListener("click", () => { if (!penMode && !placingMode) openAreaModal(area.id); });
+    }
+    areaSvg.appendChild(poly);
+
+    const c = _centroid(area.points);
+    const label = document.createElement("div");
+    label.className = "area-label";
+    label.style.left = c.x + "%";
+    label.style.top  = c.y + "%";
+    label.style.setProperty("--ac", area.color || "#3498db");
+    label.textContent = area.name || "";
+    if (isAdmin) {
+      label.style.cursor = "pointer";
+      label.style.pointerEvents = "auto";
+      label.addEventListener("click", () => { if (!penMode && !placingMode) openAreaModal(area.id); });
+    }
+    areaLabelLayer.appendChild(label);
+  });
+
+  // Keep the in-progress pen group above the saved areas.
+  areaSvg.appendChild(penDrawGroup);
+  flushCounterScale();
+}
+
+const areaModal       = document.getElementById("area-modal");
+const amTitle         = document.getElementById("am-title");
+const amName          = document.getElementById("am-name");
+const amColorSwatches = document.getElementById("am-color-swatches");
+const amError         = document.getElementById("am-error");
+const amSave          = document.getElementById("am-save");
+const amCancel        = document.getElementById("am-cancel");
+const amDelete        = document.getElementById("am-delete");
+
+let _editingAreaId     = null;
+let _pendingAreaPoints = null;
+let _selAreaColor      = COUNTRY_COLORS[0];
+
+function openAreaModal(id) {
+  _editingAreaId = id;
+  const existing = id ? areas.find(a => a.id === id) : null;
+  amTitle.textContent    = existing ? "Edit Area" : "Name Area";
+  amName.value           = existing?.name || "";
+  _selAreaColor          = existing?.color || COUNTRY_COLORS[0];
+  amError.textContent    = "";
+  amDelete.style.display = existing ? "inline-flex" : "none";
+  _buildAreaColorSwatches();
+  areaModal.classList.add("open");
+  amName.focus();
+}
+function closeAreaModal() {
+  areaModal.classList.remove("open");
+  _editingAreaId     = null;
+  _pendingAreaPoints = null;
+}
+
+function _buildAreaColorSwatches() {
+  amColorSwatches.innerHTML = "";
+  COUNTRY_COLORS.forEach(color => {
+    const sw = document.createElement("div");
+    sw.className = "country-color-swatch" + (color === _selAreaColor ? " selected" : "");
+    sw.style.background = color;
+    sw.title = color;
+    sw.addEventListener("click", () => {
+      _selAreaColor = color;
+      amColorSwatches.querySelectorAll(".country-color-swatch")
+        .forEach(s => s.classList.toggle("selected", s.title === color));
+    });
+    amColorSwatches.appendChild(sw);
+  });
+}
+
+if (amSave) amSave.addEventListener("click", () => {
+  const name = amName.value.trim();
+  if (!name) { amError.textContent = "Name is required."; return; }
+  const existing = _editingAreaId ? areas.find(a => a.id === _editingAreaId) : null;
+  const id       = _editingAreaId || generateId();
+  const points   = _pendingAreaPoints || existing?.points;
+  if (!points || points.length < 3) { amError.textContent = "Area shape is missing."; return; }
+  set(ref(db, `campaigns/${_cid}/areas/${id}`), { id, name, color: _selAreaColor, points });
+  closeAreaModal();
+});
+if (amCancel) amCancel.addEventListener("click", closeAreaModal);
+if (amDelete) amDelete.addEventListener("click", () => {
+  if (!_editingAreaId) return;
+  if (!confirm("Delete this area?")) return;
+  remove(ref(db, `campaigns/${_cid}/areas/${_editingAreaId}`));
+  closeAreaModal();
+});
+if (areaModal) areaModal.addEventListener("click", e => { if (e.target === areaModal) closeAreaModal(); });
+if (amName)    amName.addEventListener("keydown", e => { if (e.key === "Enter") amSave.click(); });

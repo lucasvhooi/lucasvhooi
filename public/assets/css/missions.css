@@ -3704,6 +3704,12 @@
   cursor: grabbing;
   pointer-events: none;   /* so elementFromPoint sees the drop target underneath */
 }
+/* Pulled sideways far enough to tear out of its phase/group on release. */
+.qflow-block.qflow-tear-out {
+  opacity: 0.85;
+  box-shadow: 0 14px 34px rgba(0,0,0,0.6), 0 0 0 2px rgba(220,120,90,0.9);
+  transform: rotate(-1.5deg);
+}
 
 /* ── Inline block controls (admin, phone flow): edit · delete ── */
 .qflow-admin {

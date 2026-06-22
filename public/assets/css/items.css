@@ -1218,8 +1218,8 @@
   .item-detail-inner {
     width: 100%;
     max-width: 440px;
-    height: auto;
-    max-height: 88vh;
+    height: 95vh;
+    max-height: 95vh;
     min-height: 0;
     border-radius: 14px;
     border: 1px solid rgba(200,164,92,0.18);

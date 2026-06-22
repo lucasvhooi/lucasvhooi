@@ -86,6 +86,7 @@ const lmAddPageBtn = document.getElementById("lm-add-page-btn");
 const lmScrollSection = document.getElementById("lm-scroll-section");
 const lmScrollContent = document.getElementById("lm-scroll-content");
 const lmAvailableInLibrary = document.getElementById("lm-available-in-library");
+const lmDiscovered = document.getElementById("lm-discovered");
 
 // Reader modal elements
 const loreReader    = document.getElementById("lore-reader");
@@ -165,14 +166,18 @@ function buildCard(item) {
   if (isAdmin) {
     // Edit button
     const editBtn = document.createElement("button");
-    editBtn.className = "dm-btn dm-btn-sm lore-card-edit-btn";
-    editBtn.textContent = "Edit";
+    editBtn.className = "lore-card-edit-btn";
+    editBtn.title = "Edit";
+    editBtn.setAttribute("aria-label", "Edit");
+    editBtn.innerHTML = '<iconify-icon icon="lucide:pencil"></iconify-icon>';
     editBtn.addEventListener("click", e => { e.stopPropagation(); openEditModal(item); });
     wrap.appendChild(editBtn);
 
     const delBtn = document.createElement("button");
-    delBtn.className = "marker-delete-btn dm-btn dm-btn-sm lore-card-delete-btn";
-    delBtn.textContent = "Delete";
+    delBtn.className = "lore-card-delete-btn";
+    delBtn.title = "Delete";
+    delBtn.setAttribute("aria-label", "Delete");
+    delBtn.innerHTML = '<iconify-icon icon="lucide:trash-2"></iconify-icon>';
     delBtn.addEventListener("click", e => {
       e.stopPropagation();
       if (confirm(`Delete "${item.title}"?`)) remove(ref(db, `campaigns/${cid}/lore/${item.id}`));
@@ -182,7 +187,9 @@ function buildCard(item) {
     // Give to player button
     const giveBtn = document.createElement("button");
     giveBtn.className = "lore-card-give-btn";
-    giveBtn.innerHTML = "+";
+    giveBtn.title = "Give to player";
+    giveBtn.setAttribute("aria-label", "Give to player");
+    giveBtn.innerHTML = '<iconify-icon icon="lucide:user-plus"></iconify-icon>';
     giveBtn.addEventListener("click", e => {
       e.stopPropagation();
       openGivePanel(e.currentTarget, {
@@ -208,19 +215,6 @@ function buildCard(item) {
       libBadge.title = "Available in library";
       wrap.appendChild(libBadge);
     }
-
-    // Visibility toggle
-    const dmBar = document.createElement("div");
-    dmBar.className = "lore-card-dm-bar";
-    const visBtn = document.createElement("button");
-    visBtn.className = "lore-visibility-btn";
-    visBtn.textContent = item.discovered ? "Hide" : "Show";
-    visBtn.addEventListener("click", e => {
-      e.stopPropagation();
-      set(ref(db, `campaigns/${cid}/lore/${item.id}/discovered`), !item.discovered);
-    });
-    dmBar.appendChild(visBtn);
-    wrap.appendChild(dmBar);
   }
 
   return wrap;
@@ -319,6 +313,7 @@ function openEditModal(item = null) {
   lmWriter.value               = item ? (item.writer || "") : "";
   lmScrollContent.value        = item ? (item.content || "") : "";
   lmAvailableInLibrary.checked = item ? (item.availableInLibrary ?? false) : false;
+  lmDiscovered.checked         = item ? (item.discovered ?? false) : false;
   lmError.textContent          = "";
 
   setModalType(selectedType);
@@ -408,7 +403,7 @@ lmSave.addEventListener("click", async () => {
     type:               selectedType,
     title,
     writer:             lmWriter.value.trim() || null,
-    discovered:         editingId ? (loreItems.find(i => i.id === editingId)?.discovered ?? false) : false,
+    discovered:         lmDiscovered.checked,
     coverColor:         selectedType === "book" ? selectedColor : null,
     pages:              selectedType === "book" ? currentPages : null,
     content:            selectedType === "scroll" ? lmScrollContent.value.trim() || null : null,

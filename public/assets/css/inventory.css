@@ -1547,8 +1547,7 @@
   .inv-detail-inner {
     width: 100%;
     max-width: 440px;
-    min-height: 0;
-    max-height: 85vh;
+    height: 95vh;
     overflow-y: auto;
     border-radius: 16px;
     border: 1px solid rgba(200,164,92,0.18);
