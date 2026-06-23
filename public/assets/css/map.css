@@ -17,7 +17,8 @@ body.map-page {
   overflow: hidden;
   background: #111;
   touch-action: none;
-  cursor: grab;
+  /* Panning is bound to the middle mouse button, so no grab affordance here */
+  cursor: default;
   contain: layout paint;
 }
 
@@ -68,6 +69,12 @@ body.map-page {
 /* Suppress marker :hover + pointer-events during any gesture (pan/zoom/pinch).
    Applied via JS: markerLayer.classList.add("gesturing") */
 #marker-layer.gesturing .map-marker {
+  pointer-events: none;
+}
+
+/* While drawing an area, markers must not steal clicks — pen points can be
+   placed anywhere, including on top of existing markers. */
+#map-container.pen-mode .map-marker {
   pointer-events: none;
 }
 
@@ -143,10 +150,10 @@ body.map-page {
 /* Marker accent colour (--mc) is set per-category from JS (type registry).
    Unexplored markers stay their category colour but render dimmed/desaturated. */
 .map-marker[data-explored="false"] .marker-pin {
-  opacity: 0.5;
-  filter: grayscale(0.45);
+  opacity: 0.78;
+  filter: grayscale(0.35);
 }
-.map-marker[data-explored="false"] .marker-pin::after { opacity: 0.5; }
+.map-marker[data-explored="false"] .marker-pin::after { opacity: 0.7; }
 .map-marker[data-explored="false"]:hover .marker-pin,
 .map-marker[data-explored="false"].active .marker-pin {
   opacity: 1;
@@ -664,6 +671,29 @@ body.map-page {
 .lp-hdr-close { color: #aaa; }
 .lp-hdr-close:hover { color: var(--text); }
 
+/* Golden circular + button — matches the add buttons used across the app */
+.lp-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8a6010 0%, #c8922a 40%, #e0b040 60%, #b07820 100%);
+  border: 1px solid rgba(220,170,60,0.6);
+  color: #1a1000;
+  font-size: 16px;
+  cursor: pointer;
+  transition: filter 0.22s, box-shadow 0.25s, transform 0.2s;
+}
+.lp-add-btn:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 14px rgba(221,88,26,0.32), 0 4px 16px rgba(0,0,0,0.4);
+  transform: translateY(-1px);
+}
+.lp-add-btn:active { transform: translateY(0) scale(0.96); }
+
 /* Search */
 .lp-search-row {
   padding: 8px 10px;
@@ -774,6 +804,15 @@ body.map-page {
 }
 .lp-icon-btn:hover { color: var(--accent); background: rgba(255,204,102,0.1); }
 
+/* Collapse indicator — purely visual; the whole header is the click target */
+.lp-collapse-ind {
+  color: #666;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: color 0.12s;
+}
+.lp-country-header:hover .lp-collapse-ind { color: var(--accent); }
+
 .lp-country-desc {
   width: 100%;
   font-size: 11px;
@@ -804,15 +843,17 @@ body.map-page {
 }
 .lp-item:hover { background: rgba(255,255,255,0.05); }
 
-.lp-item-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+/* Location icon — same category icon + colour used by the map markers */
+.lp-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  font-size: 16px;
+  color: var(--mc, var(--accent));
   flex-shrink: 0;
-  border: 1px solid rgba(0,0,0,0.4);
 }
-.lp-dot-explored   { background: #FFD700; }
-.lp-dot-unexplored { background: #FF8A80; }
+.lp-item-icon.lp-item-unexplored { opacity: 0.5; filter: grayscale(0.4); }
 
 .lp-item-info {
   flex: 1;
@@ -894,17 +935,20 @@ body.map-page {
 
 /* ── Mobile ── */
 @media (max-width: 600px) {
-  /* Modal: full-width, scrollable so keyboard doesn't block inputs */
+  /* Modal: full-width sheet anchored directly beneath the mobile topbar, so
+     there's no dead gap above it. Scrollable so the keyboard doesn't block. */
   .modal-overlay {
-    align-items: flex-end;
+    align-items: flex-start;
+    padding-top: 54px; /* mobile topbar height */
   }
 
   .modal-box {
     width: 100%;
     max-width: 100%;
-    max-height: 90vh;
+    max-height: 95vh;
+    height: 95vh;
     overflow-y: auto;
-    border-radius: 14px 14px 0 0;
+    border-radius: 0 0 14px 14px;
     padding: 20px 18px 32px;
   }
 
@@ -928,14 +972,37 @@ body.map-page {
     top: calc(100% + 8px);
   }
 
-  /* DM dock: bottom-left on mobile (Locations button owns bottom-right) */
+  /* DM tools: horizontal liquid-glass dock, centred at the bottom — sized to
+     exactly match the quest editor's mobile toolbar (.qview-toolbar) */
   #dm-toolbar {
-    bottom: calc(10vh + 12px);
+    flex-direction: row;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
     right: auto;
-    left: 12px;
-    gap: 12px;
+    transform: translateX(-50%);
+    gap: 8px;
+    padding: 6px;
+    border-radius: 999px;
+    background: rgba(22,22,20,0.5);
+    border: 1px solid rgba(255,255,255,0.14);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    box-shadow:
+      0 10px 34px rgba(0,0,0,0.5),
+      0 2px 10px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.22),
+      inset 0 -1px 1px rgba(0,0,0,0.25);
   }
-  .dm-tool-btn { width: 48px; height: 48px; font-size: 22px; }
+  .dm-tool-btn { width: 42px; height: 42px; font-size: 19px; box-shadow: none; }
+
+  /* Locations button docks inside the toolbar (DM) — flow inline with the rest */
+  #dm-toolbar .lp-open-btn {
+    position: static;
+    width: 42px;
+    height: 42px;
+    font-size: 19px;
+    box-shadow: none;
+  }
 
   .dm-btn {
     font-size: 14px;
@@ -965,16 +1032,17 @@ body.map-page {
     bottom: 16px;
   }
 
-  /* Location panel: full-width slide up from bottom on mobile */
+  /* Location panel: full-screen overlay sliding up from the bottom on mobile */
   .location-panel {
-    top: auto;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     width: 100% !important;
-    height: 60vh;
+    height: 100%;
     border-left: none;
-    border-top: 1px solid rgba(255,255,255,0.1);
+    border-top: none;
+    box-shadow: none;
     transform: translateY(100%);
     transition: transform 0.25s ease;
   }
@@ -1364,6 +1432,208 @@ body.map-page {
 }
 .tt-row-del:hover { color: #e57373; background: rgba(229,115,115,0.12); }
 
+/* ── General editor tabs ── */
+.ed-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.ed-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--smoke);
+  font-family: var(--font);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.ed-tab:hover { color: var(--text); }
+.ed-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ── Climate editor ── */
+.cl-card {
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #111110;
+}
+.cl-card-hdr {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cl-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--ac, #3498db);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--ac, #3498db) 60%, transparent);
+}
+.cl-card-name {
+  flex: 1;
+  font-family: var(--title);
+  font-size: 14px;
+  color: var(--text);
+  letter-spacing: 0.03em;
+}
+.cl-del {
+  background: none;
+  border: none;
+  color: var(--deep-smoke);
+  cursor: pointer;
+  font-size: 15px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+.cl-del:hover { color: #e57373; background: rgba(229,115,115,0.12); }
+
+.cl-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 0;
+  padding-left: 19px;
+}
+.cl-fields-empty {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--deep-smoke);
+  margin: 4px 0;
+}
+.cl-field-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.cl-f-l { color: var(--accent); }
+.cl-f-eq { color: var(--deep-smoke); }
+.cl-f-v { flex: 1; color: var(--text); }
+.cl-f-del {
+  background: none;
+  border: none;
+  color: var(--deep-smoke);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  transition: color 0.15s, background 0.15s;
+}
+.cl-f-del:hover { color: #e57373; background: rgba(229,115,115,0.12); }
+
+.cl-field-add {
+  display: flex;
+  gap: 6px;
+  padding-left: 19px;
+}
+.cl-field-add input {
+  flex: 1;
+  min-width: 0;
+  background: #161614;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 5px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 6px 9px;
+  outline: none;
+}
+.cl-field-add input:focus { border-color: var(--accent); }
+.cl-f-add-btn {
+  flex-shrink: 0;
+  width: 32px;
+  border: 1px solid rgba(255,204,102,0.4);
+  border-radius: 5px;
+  background: rgba(255,204,102,0.12);
+  color: var(--accent);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.cl-f-add-btn:hover { background: rgba(255,204,102,0.22); }
+
+/* ── Area creatures editor ── */
+.am-creature-add {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.am-creature-add #am-creature-name { flex: 1; min-width: 0; }
+.am-creature-add #am-creature-rarity { flex: 0 0 auto; }
+.am-creature-add-btn {
+  flex-shrink: 0;
+  width: 36px;
+  border: 1px solid rgba(255,204,102,0.4);
+  border-radius: 5px;
+  background: rgba(255,204,102,0.12);
+  color: var(--accent);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.am-creature-add-btn:hover { background: rgba(255,204,102,0.22); }
+
+.am-creature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 8px;
+}
+.am-creature-empty {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--deep-smoke);
+  margin: 2px 0;
+}
+.am-creature-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  background: #111110;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+}
+.am-creature-cname { flex: 1; font-size: 13px; color: var(--text); }
+.am-creature-rar {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.rar-common   { background: rgba(150,150,150,0.18); color: #b8b8b8; }
+.rar-uncommon { background: rgba(120,200,120,0.16); color: #8bd48b; }
+.rar-rare     { background: rgba(255,204,102,0.16); color: var(--accent); }
+.am-creature-del {
+  background: none;
+  border: none;
+  color: var(--deep-smoke);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  transition: color 0.15s, background 0.15s;
+}
+.am-creature-del:hover { color: #e57373; background: rgba(229,115,115,0.12); }
+
 /* ════════════════════════════════════════════════════════════════════════
    Area overlays (pen tool)
    ════════════════════════════════════════════════════════════════════════ */
@@ -1376,7 +1646,9 @@ body.map-page {
   z-index: 1;
 }
 .area-poly {
-  fill: color-mix(in srgb, var(--ac, #3498db) 22%, transparent);
+  fill: color-mix(in srgb, var(--ac, #3498db) 15%, transparent);
+  /* Even-odd so nested rings knock holes — overlapping areas never blend */
+  fill-rule: evenodd;
   stroke: var(--ac, #3498db);
   stroke-width: 2;
   stroke-linejoin: round;
@@ -1384,7 +1656,7 @@ body.map-page {
   pointer-events: none;
   transition: fill 0.15s;
 }
-.area-poly:hover { fill: color-mix(in srgb, var(--ac, #3498db) 34%, transparent); }
+.area-poly:hover { fill: color-mix(in srgb, var(--ac, #3498db) 24%, transparent); }
 
 #area-label-layer,
 #pen-layer {
@@ -1410,6 +1682,13 @@ body.map-page {
   user-select: none;
 }
 .area-label:hover { text-decoration: underline; }
+.area-label.dragging { text-decoration: none; opacity: 0.85; }
+
+/* While drawing/placing, areas + labels must not intercept clicks */
+#map-container.pen-mode .area-poly,
+#map-container.pen-mode .area-label,
+#map-container.placing-mode .area-poly,
+#map-container.placing-mode .area-label { pointer-events: none !important; }
 
 /* ── Pen drawing preview ── */
 .pen-preview-fill {
@@ -1496,8 +1775,26 @@ body.map-page {
 .pen-ctrl-cancel:hover { background: rgba(229,115,115,0.16); }
 
 @media (max-width: 600px) {
-  .type-modal-box { width: 100%; }
-  .tt-icon-grid { grid-template-columns: repeat(6, 1fr); }
+  /* Marker-type modal: trim the top spacing and shrink every control so the
+     whole thing fits on a phone without a tall scroll */
+  .type-modal-box { width: 100%; padding-top: 16px; }
+  .type-modal-box h2 { font-size: 17px; margin-bottom: 12px; }
+  .type-modal-box .form-row { margin-bottom: 10px; }
+  .type-modal-box .form-row label { font-size: 12px; gap: 4px; }
+  .type-modal-box .country-color-row { gap: 6px; margin-top: 4px; }
+  .type-modal-box .country-color-swatch { width: 22px; height: 22px; }
+  .type-modal-box .modal-actions { gap: 8px; margin-top: 0; }
+  .type-modal-box .dm-btn { padding: 6px 12px; font-size: 13px; }
+
+  .tt-icon-grid { grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 4px; }
+  .tt-icon-cell { font-size: 15px; border-radius: 5px; }
+
+  .tt-list-section { margin-top: 12px; padding-top: 10px; }
+  .tt-list-title { font-size: 11px; margin-bottom: 6px; }
+  .tt-row { padding: 5px 7px; gap: 8px; }
+  .tt-row-name { font-size: 12px; }
+  .tt-row-del { font-size: 14px; }
+
   .pen-hint { display: none; }
   #pen-controls { top: 8px; padding: 6px; }
 }

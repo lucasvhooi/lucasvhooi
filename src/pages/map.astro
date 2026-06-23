@@ -36,8 +36,8 @@ import Layout from '../layouts/Layout.astro';
       <button id="btn-draw-area" class="dm-tool-btn" title="Draw Area">
         <iconify-icon icon="lucide:pen-tool"></iconify-icon>
       </button>
-      <button id="btn-manage-types" class="dm-tool-btn" title="Marker Types">
-        <iconify-icon icon="lucide:tags"></iconify-icon>
+      <button id="btn-manage-types" class="dm-tool-btn" title="Map Editor">
+        <iconify-icon icon="lucide:sliders-horizontal"></iconify-icon>
       </button>
       <label id="btn-upload-map" class="dm-tool-btn" title="Upload Map" style="position:relative;overflow:hidden;cursor:pointer">
         <iconify-icon icon="lucide:image-up"></iconify-icon>
@@ -57,7 +57,7 @@ import Layout from '../layouts/Layout.astro';
       <div class="lp-header">
         <span class="lp-title">Locations</span>
         <div class="lp-header-actions">
-          <button id="lp-add-country-btn" class="lp-hdr-btn" style="display:none">+ Region</button>
+          <button id="lp-add-country-btn" class="lp-add-btn" title="Add Region" style="display:none"><iconify-icon icon="lucide:plus"></iconify-icon></button>
           <button id="lp-close-btn" class="lp-hdr-btn lp-hdr-close">✕</button>
         </div>
       </div>
@@ -171,31 +171,63 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </div>
 
-  <!-- Marker Type Modal -->
+  <!-- Map Editor Modal (marker types + climates) -->
   <div id="type-modal" class="modal-overlay">
     <div class="modal-box type-modal-box">
-      <h2>Marker Types</h2>
-      <div class="form-row">
-        <label>New type name <span class="required">*</span>
-          <input type="text" id="tt-name" placeholder="e.g. Capital" />
-        </label>
+      <h2>Map Editor</h2>
+      <div class="ed-tabs">
+        <button class="ed-tab active" data-tab="types">Marker Types</button>
+        <button class="ed-tab" data-tab="climates">Climates</button>
       </div>
-      <div class="form-row">
-        <label>Colour</label>
-        <div id="tt-color-swatches" class="country-color-row"></div>
+
+      <!-- Tab: Marker Types -->
+      <div id="ed-tab-types" class="ed-tab-panel">
+        <div class="form-row">
+          <label>New type name <span class="required">*</span>
+            <input type="text" id="tt-name" placeholder="e.g. Capital" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Colour</label>
+          <div id="tt-color-swatches" class="country-color-row"></div>
+        </div>
+        <div class="form-row">
+          <label>Icon</label>
+          <div id="tt-icon-grid" class="tt-icon-grid"></div>
+        </div>
+        <div id="tt-error" class="modal-error"></div>
+        <div class="modal-actions" style="justify-content:flex-start">
+          <button id="tt-save" class="dm-btn">Add Type</button>
+        </div>
+        <div class="tt-list-section">
+          <div class="tt-list-title">Custom types</div>
+          <div id="tt-list" class="tt-list"></div>
+        </div>
       </div>
-      <div class="form-row">
-        <label>Icon</label>
-        <div id="tt-icon-grid" class="tt-icon-grid"></div>
+
+      <!-- Tab: Climates -->
+      <div id="ed-tab-climates" class="ed-tab-panel" style="display:none">
+        <div class="form-row">
+          <label>New climate name <span class="required">*</span>
+            <input type="text" id="cl-name" placeholder="e.g. Arctic Tundra" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Colour</label>
+          <div id="cl-color-swatches" class="country-color-row"></div>
+        </div>
+        <div id="cl-error" class="modal-error"></div>
+        <div class="modal-actions" style="justify-content:flex-start">
+          <button id="cl-add" class="dm-btn">Add Climate</button>
+        </div>
+        <div class="tt-list-section">
+          <div class="tt-list-title">Climates &amp; their values</div>
+          <div id="cl-list" class="tt-list"></div>
+        </div>
       </div>
-      <div id="tt-error" class="modal-error"></div>
+
       <div class="modal-actions">
-        <button id="tt-save" class="dm-btn">Add Type</button>
         <button id="tt-close" class="dm-btn dm-btn-secondary">Done</button>
-      </div>
-      <div class="tt-list-section">
-        <div class="tt-list-title">Custom types</div>
-        <div id="tt-list" class="tt-list"></div>
       </div>
     </div>
   </div>
@@ -212,6 +244,24 @@ import Layout from '../layouts/Layout.astro';
       <div class="form-row">
         <label>Colour</label>
         <div id="am-color-swatches" class="country-color-row"></div>
+      </div>
+      <div class="form-row">
+        <label>Climate
+          <select id="am-climate"></select>
+        </label>
+      </div>
+      <div class="form-row">
+        <label>Creatures you may encounter</label>
+        <div class="am-creature-add">
+          <input type="text" id="am-creature-name" placeholder="e.g. Wolf" />
+          <select id="am-creature-rarity">
+            <option value="Common">Common</option>
+            <option value="Uncommon">Uncommon</option>
+            <option value="Rare">Rare</option>
+          </select>
+          <button type="button" id="am-creature-add-btn" class="am-creature-add-btn" title="Add creature"><iconify-icon icon="lucide:plus"></iconify-icon></button>
+        </div>
+        <div id="am-creature-list" class="am-creature-list"></div>
       </div>
       <div id="am-error" class="modal-error"></div>
       <div class="modal-actions">

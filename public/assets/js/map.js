@@ -66,12 +66,21 @@ function updateTransform() {
   mapWrapper.style.transform = `translate3d(${originX}px,${originY}px,0) scale(${scale})`;
 }
 
-// Counter-scale: keep pins a constant screen size regardless of zoom.
-// Written directly as an inline style on each marker element — avoids the
-// CSS-variable cascade that forces a style recalc on every child simultaneously.
+// Pins normally hold a constant screen size (counter-scale = 1/scale). When the
+// map is zoomed out they'd dominate the view, so we shrink them a little: at the
+// most-zoomed-out level they sit at ~70%, easing back to full size by ~2× zoom.
+function _markerCounterScale() {
+  const z = minScale ? scale / minScale : 1;          // 1 = fully zoomed out
+  const f = Math.min(1, 0.78 + 0.22 * (z - 1));        // 0.78 → 1.0 across the first 2×
+  return f / scale;
+}
+
+// Counter-scale: written directly as an inline style on each marker element —
+// avoids the CSS-variable cascade that forces a style recalc on every child.
 function flushCounterScale() {
-  const t = `translate3d(-50%,-50%,0) scale(${1 / scale})`;
-  _markerEls.forEach(({ el }) => { el.style.transform = t; });
+  const markerT = `translate3d(-50%,-50%,0) scale(${_markerCounterScale()})`;
+  const t       = `translate3d(-50%,-50%,0) scale(${1 / scale})`;
+  _markerEls.forEach(({ el }) => { el.style.transform = markerT; });
   areaLabelLayer.querySelectorAll(".area-label").forEach(el => { el.style.transform = t; });
   penLayer.querySelectorAll(".pen-vertex").forEach(el => { el.style.transform = t; });
 }
@@ -188,56 +197,96 @@ mapContainer.addEventListener("wheel", function(e) {
 }, { passive: false });
 
 // ── Pan (Desktop) ─────────────────────────────────────────────────────────────
-let _isDragging = false;
+// Middle mouse button drags the map. Left mouse is reserved for actions —
+// placing markers, drawing areas, and selecting markers/areas.
+let _isPanning  = false;   // middle-button drag in progress
 let _didDrag    = false;
+let _actionDown = false;   // left-button press while a placing/pen mode is active
 let _startX, _startY;
 
+// Suppress the browser's middle-click autoscroll so middle-drag pans cleanly.
+mapContainer.addEventListener("mousedown", e => { if (e.button === 1) e.preventDefault(); });
+
 mapContainer.addEventListener("pointerdown", function(e) {
-  if (e.pointerType !== "mouse" || e.button !== 0) return;
+  if (e.pointerType !== "mouse") return;
   if (e.target.closest("#map-empty-state")) return;
-  _isDragging = true;
-  _didDrag    = false;
-  _startX = e.clientX;
-  _startY = e.clientY;
-  mapContainer.style.cursor = (placingMode || penMode) ? "crosshair" : "grabbing";
-  mapContainer.setPointerCapture(e.pointerId);
-  // Suppress marker hover recalcs while panning.
-  markerLayer.classList.add("gesturing");
+
+  // Middle mouse → pan the map.
+  if (e.button === 1) {
+    e.preventDefault();
+    _isPanning = true;
+    _didDrag   = false;
+    _startX    = e.clientX;
+    _startY    = e.clientY;
+    mapContainer.style.cursor = "grabbing";
+    mapContainer.setPointerCapture(e.pointerId);
+    // Suppress marker hover recalcs while panning.
+    markerLayer.classList.add("gesturing");
+    return;
+  }
+
+  // Left mouse in an action mode → a click places/draws, a drag pans the map.
+  if (e.button === 0 && (placingMode || penMode)) {
+    _actionDown = true;
+    _didDrag    = false;
+    _startX     = e.clientX;
+    _startY     = e.clientY;
+    mapContainer.setPointerCapture(e.pointerId);
+  }
 });
 
 mapContainer.addEventListener("pointermove", function(e) {
-  if (!_isDragging) return;
-  const dx = e.clientX - _startX;
-  const dy = e.clientY - _startY;
-  if (Math.abs(dx) > 4 || Math.abs(dy) > 4) _didDrag = true;
-  _startX = e.clientX;
-  _startY = e.clientY;
-  originX += dx;
-  originY += dy;
-  scheduleTransform();
+  if (_isPanning) {
+    const dx = e.clientX - _startX;
+    const dy = e.clientY - _startY;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) _didDrag = true;
+    _startX = e.clientX;
+    _startY = e.clientY;
+    originX += dx;
+    originY += dy;
+    scheduleTransform();
+  } else if (_actionDown) {
+    const dx = e.clientX - _startX;
+    const dy = e.clientY - _startY;
+    // Past the click threshold this becomes a pan — so you can navigate the map
+    // without leaving draw/place mode. A point is only placed on a clean click.
+    if (!_didDrag && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
+      _didDrag = true;
+      markerLayer.classList.add("gesturing");
+    }
+    if (_didDrag) {
+      originX += dx;
+      originY += dy;
+      _startX = e.clientX;
+      _startY = e.clientY;
+      scheduleTransform();
+    }
+  }
 }, { passive: true });
 
 mapContainer.addEventListener("pointerup", function(e) {
-  if (!_isDragging) return;
-  _isDragging = false;
-  markerLayer.classList.remove("gesturing");
-
-  if (penMode && !_didDrag && isAdmin && e.pointerType === "mouse") {
-    penClickAt(e.clientX - _cachedRect.left, e.clientY - _cachedRect.top);
+  if (_isPanning && e.button === 1) {
+    _isPanning = false;
+    markerLayer.classList.remove("gesturing");
+    mapContainer.style.cursor = (placingMode || penMode) ? "crosshair" : "";
     return;
   }
 
-  if (placingMode && !_didDrag && isAdmin && e.pointerType === "mouse") {
-    const clickX = e.clientX - _cachedRect.left;
-    const clickY = e.clientY - _cachedRect.top;
-    pendingCoords   = screenToPct(clickX, clickY);
-    pendingCoords.x = Math.max(0, Math.min(100, pendingCoords.x));
-    pendingCoords.y = Math.max(0, Math.min(100, pendingCoords.y));
-    openPlaceModal();
-    return;
+  if (_actionDown && e.button === 0) {
+    _actionDown = false;
+    markerLayer.classList.remove("gesturing");
+    if (_didDrag || !isAdmin) return;
+    if (penMode) {
+      penClickAt(e.clientX - _cachedRect.left, e.clientY - _cachedRect.top);
+    } else if (placingMode) {
+      const clickX = e.clientX - _cachedRect.left;
+      const clickY = e.clientY - _cachedRect.top;
+      pendingCoords   = screenToPct(clickX, clickY);
+      pendingCoords.x = Math.max(0, Math.min(100, pendingCoords.x));
+      pendingCoords.y = Math.max(0, Math.min(100, pendingCoords.y));
+      openPlaceModal();
+    }
   }
-
-  mapContainer.style.cursor = (placingMode || penMode) ? "crosshair" : "grab";
 });
 
 // Rubber-band preview line following the cursor while drawing.
@@ -248,8 +297,9 @@ mapContainer.addEventListener("pointermove", function(e) {
 }, { passive: true });
 
 mapContainer.addEventListener("pointercancel", function() {
-  _isDragging = false;
-  mapContainer.style.cursor = (placingMode || penMode) ? "crosshair" : "grab";
+  _isPanning  = false;
+  _actionDown = false;
+  mapContainer.style.cursor = (placingMode || penMode) ? "crosshair" : "";
   markerLayer.classList.remove("gesturing");
 });
 
@@ -449,7 +499,14 @@ const ICON_LIBRARY = [
 
 // ── Areas (pen-tool land overlays) ────────────────────────────────────────────
 const areasRef = ref(db, `campaigns/${_cid}/areas`);
-let areas = []; // [{ id, name, color, points:[{x,y}] }]
+let areas = []; // [{ id, name, color, points:[{x,y}], climateId, creatures:[{name,rarity}] }]
+
+// ── Climate Registry ──────────────────────────────────────────────────────────
+// User-defined climates with named key/value fields (consumed later by the
+// travel planner). Stored under campaigns/{cid}/climates.
+const climatesRef = ref(db, `campaigns/${_cid}/climates`);
+let climates = []; // [{ id, name, color, fields:[{label,value}] }]
+function climateInfo(id) { return climates.find(c => c.id === id) || null; }
 
 function saveMarker(marker)     { set(ref(db, `campaigns/${_cid}/markers/` + marker.id), marker); }
 function deleteMarkerById(id)   { remove(ref(db, `campaigns/${_cid}/markers/` + id)); }
@@ -514,7 +571,7 @@ function _buildMarkerEl(marker) {
   el.style.left       = marker.x + "%";
   el.style.top        = marker.y + "%";
   // Initial transform — flushCounterScale will update this correctly.
-  el.style.transform  = `translate3d(-50%,-50%,0) scale(${1 / scale})`;
+  el.style.transform  = `translate3d(-50%,-50%,0) scale(${_markerCounterScale()})`;
 
   // Stop pointerdown from bubbling to mapContainer (prevents drag hijack).
   el.addEventListener("pointerdown", e => e.stopPropagation());
@@ -753,8 +810,8 @@ mCancel.addEventListener("click", () => closeMarkerModal(!!editingId));
 markerModal.addEventListener("click", e => { if (e.target === markerModal) closeMarkerModal(!!editingId); });
 mName.addEventListener("keydown", e => { if (e.key === "Enter") mSave.click(); });
 
-// ── Show DM Toolbar ───────────────────────────────────────────────────────────
-if (isAdmin && dmToolbar) dmToolbar.style.display = "flex";
+// DM toolbar visibility + the Locations button's home (corner vs. toolbar) are
+// handled by syncToolbarLayout(), set up once the Locations button is defined.
 
 // ── Firebase Live Sync ────────────────────────────────────────────────────────
 onValue(markersRef, snapshot => {
@@ -788,6 +845,12 @@ onValue(areasRef, snapshot => {
   renderAreas();
 });
 
+onValue(climatesRef, snapshot => {
+  climates = snapshot.val() ? Object.values(snapshot.val()) : [];
+  populateClimateSelect(amClimate?.value || "");
+  renderClimateList();
+});
+
 // ── Location Panel ────────────────────────────────────────────────────────────
 const locationPanel   = document.getElementById("location-panel");
 const lpOpenBtn       = document.getElementById("lp-open-btn");
@@ -810,13 +873,31 @@ locationPanel.addEventListener("wheel",       e => e.stopPropagation(), { passiv
 lpOpenBtn.addEventListener("click", e => {
   e.stopPropagation();
   locationPanel.classList.add("open");
-  lpOpenBtn.style.display = "none";
+  // Hide the floating corner button while the panel is open; when it's docked
+  // inside the toolbar (mobile), leave it in place — no need to remove it.
+  if (lpOpenBtn.parentElement !== dmToolbar) lpOpenBtn.style.display = "none";
 });
 
 lpCloseBtn.addEventListener("click", () => {
   locationPanel.classList.remove("open");
   lpOpenBtn.style.display = "flex";
 });
+
+// ── Toolbar layout ────────────────────────────────────────────────────────────
+// Mobile: the Locations button joins the DM's bottom toolbar dock.
+// Desktop (and players on mobile): it floats in the corner, toolbar stays DM-only.
+const _mqMobile = window.matchMedia("(max-width: 600px)");
+function syncToolbarLayout() {
+  if (!dmToolbar) return;
+  if (isAdmin && _mqMobile.matches) {
+    if (lpOpenBtn.parentElement !== dmToolbar) dmToolbar.appendChild(lpOpenBtn);
+  } else if (lpOpenBtn.parentElement !== mapContainer) {
+    mapContainer.appendChild(lpOpenBtn);
+  }
+  dmToolbar.style.display = isAdmin ? "flex" : "none";
+}
+_mqMobile.addEventListener("change", syncToolbarLayout);
+syncToolbarLayout();
 
 lpSearch.addEventListener("input", () => {
   lpSearchQuery = lpSearch.value.trim().toLowerCase();
@@ -885,6 +966,7 @@ function buildCountrySection(country, items) {
   header.className = "lp-country-header";
   header.innerHTML = `
     <div class="lp-country-left">
+      <iconify-icon class="lp-collapse-ind" icon="${isCollapsed ? "lucide:chevron-right" : "lucide:chevron-down"}"></iconify-icon>
       <div class="lp-country-dot" style="background:${country.color || "#888"}"></div>
       <span class="lp-country-name">${esc(country.name)}</span>
       <span class="lp-country-count">${items.length}</span>
@@ -894,9 +976,6 @@ function buildCountrySection(country, items) {
         <button class="lp-icon-btn lp-edit-country" title="Edit" data-id="${country.id}"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
         <button class="lp-icon-btn lp-del-country"  title="Delete" data-id="${country.id}"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
       ` : ""}
-      <button class="lp-icon-btn lp-collapse-btn">${isCollapsed
-        ? '<iconify-icon icon="lucide:chevron-right"></iconify-icon>'
-        : '<iconify-icon icon="lucide:chevron-down"></iconify-icon>'}</button>
     </div>`;
 
   if (country.description) {
@@ -910,8 +989,7 @@ function buildCountrySection(country, items) {
   itemsWrap.className = "lp-country-items" + (isCollapsed ? " collapsed" : "");
   items.forEach(m => itemsWrap.appendChild(buildLocationItem(m)));
 
-  header.querySelector(".lp-collapse-btn").addEventListener("click", e => {
-    e.stopPropagation();
+  header.addEventListener("click", () => {
     collapsedCountries.has(country.id) ? collapsedCountries.delete(country.id) : collapsedCountries.add(country.id);
     renderLocationList();
   });
@@ -940,22 +1018,17 @@ function buildUnassignedSection(items) {
   header.className = "lp-country-header";
   header.innerHTML = `
     <div class="lp-country-left">
+      <iconify-icon class="lp-collapse-ind" icon="${isCollapsed ? "lucide:chevron-right" : "lucide:chevron-down"}"></iconify-icon>
       <div class="lp-country-dot" style="background:#555"></div>
       <span class="lp-country-name" style="color:#888">Unassigned</span>
       <span class="lp-country-count">${items.length}</span>
-    </div>
-    <div class="lp-country-right">
-      <button class="lp-icon-btn lp-collapse-btn">${isCollapsed
-        ? '<iconify-icon icon="lucide:chevron-right"></iconify-icon>'
-        : '<iconify-icon icon="lucide:chevron-down"></iconify-icon>'}</button>
     </div>`;
 
   const itemsWrap = document.createElement("div");
   itemsWrap.className = "lp-country-items" + (isCollapsed ? " collapsed" : "");
   items.forEach(m => itemsWrap.appendChild(buildLocationItem(m)));
 
-  header.querySelector(".lp-collapse-btn").addEventListener("click", e => {
-    e.stopPropagation();
+  header.addEventListener("click", () => {
     collapsedCountries.has("__unassigned__") ? collapsedCountries.delete("__unassigned__") : collapsedCountries.add("__unassigned__");
     renderLocationList();
   });
@@ -969,8 +1042,9 @@ function buildLocationItem(marker) {
   const item = document.createElement("div");
   item.className = "lp-item";
   const explored = marker.explored === true;
+  const info = typeInfo(marker.type);
   item.innerHTML = `
-    <div class="lp-item-dot ${explored ? "lp-dot-explored" : "lp-dot-unexplored"}"></div>
+    <span class="lp-item-icon ${explored ? "" : "lp-item-unexplored"}" style="--mc:${info.color}"><iconify-icon icon="${info.icon}"></iconify-icon></span>
     <div class="lp-item-info">
       <span class="lp-item-name">${esc(marker.name)}</span>
       <span class="lp-item-type">${esc(marker.type || "")}</span>
@@ -1252,6 +1326,13 @@ function openTypeModal() {
   _buildTypeColorSwatches();
   _buildTypeIconGrid();
   renderCustomTypeList();
+  // Climate tab
+  _selClimateColor    = COUNTRY_COLORS[0];
+  if (clName)  clName.value = "";
+  if (clError) clError.textContent = "";
+  _buildClimateColorSwatches();
+  renderClimateList();
+  _switchEditorTab("types");
   typeModal.classList.add("open");
   ttName.focus();
 }
@@ -1330,6 +1411,124 @@ if (ttName)    ttName.addEventListener("keydown", e => { if (e.key === "Enter") 
 
 
 // ════════════════════════════════════════════════════════════════════════════
+//  Climates (general editor — second tab)
+// ════════════════════════════════════════════════════════════════════════════
+const edTabs          = document.querySelectorAll(".ed-tab");
+const edPanelTypes    = document.getElementById("ed-tab-types");
+const edPanelClimates = document.getElementById("ed-tab-climates");
+const clName          = document.getElementById("cl-name");
+const clColorSwatches = document.getElementById("cl-color-swatches");
+const clError         = document.getElementById("cl-error");
+const clAdd           = document.getElementById("cl-add");
+const clList          = document.getElementById("cl-list");
+
+let _selClimateColor = COUNTRY_COLORS[0];
+
+function _switchEditorTab(tab) {
+  edTabs.forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  if (edPanelTypes)    edPanelTypes.style.display    = tab === "types"    ? "" : "none";
+  if (edPanelClimates) edPanelClimates.style.display = tab === "climates" ? "" : "none";
+}
+edTabs.forEach(b => b.addEventListener("click", () => _switchEditorTab(b.dataset.tab)));
+
+function _buildClimateColorSwatches() {
+  if (!clColorSwatches) return;
+  clColorSwatches.innerHTML = "";
+  COUNTRY_COLORS.forEach(color => {
+    const sw = document.createElement("div");
+    sw.className = "country-color-swatch" + (color === _selClimateColor ? " selected" : "");
+    sw.style.background = color;
+    sw.title = color;
+    sw.addEventListener("click", () => {
+      _selClimateColor = color;
+      clColorSwatches.querySelectorAll(".country-color-swatch")
+        .forEach(s => s.classList.toggle("selected", s.title === color));
+    });
+    clColorSwatches.appendChild(sw);
+  });
+}
+
+function renderClimateList() {
+  if (!clList) return;
+  if (climates.length === 0) {
+    clList.innerHTML = `<p class="tt-empty">No climates yet.</p>`;
+    return;
+  }
+  clList.innerHTML = "";
+  climates.forEach(cl => {
+    const card = document.createElement("div");
+    card.className = "cl-card";
+    card.style.setProperty("--ac", cl.color || "#3498db");
+    card.innerHTML = `
+      <div class="cl-card-hdr">
+        <span class="cl-dot"></span>
+        <span class="cl-card-name">${esc(cl.name)}</span>
+        <button class="cl-del" title="Delete climate"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
+      </div>
+      <div class="cl-fields"></div>
+      <div class="cl-field-add">
+        <input class="cl-f-label" type="text" placeholder="Label (e.g. Avg Temp)" />
+        <input class="cl-f-value" type="text" placeholder="Value (e.g. -15°C)" />
+        <button class="cl-f-add-btn" title="Add value"><iconify-icon icon="lucide:plus"></iconify-icon></button>
+      </div>`;
+
+    const fieldsWrap = card.querySelector(".cl-fields");
+    const fields = cl.fields || [];
+    if (fields.length === 0) {
+      fieldsWrap.innerHTML = `<p class="cl-fields-empty">No values yet.</p>`;
+    } else {
+      fields.forEach((f, idx) => {
+        const row = document.createElement("div");
+        row.className = "cl-field-row";
+        row.innerHTML =
+          `<span class="cl-f-l">${esc(f.label)}</span>` +
+          `<span class="cl-f-eq">=</span>` +
+          `<span class="cl-f-v">${esc(f.value)}</span>` +
+          `<button class="cl-f-del" title="Remove value"><iconify-icon icon="lucide:x"></iconify-icon></button>`;
+        row.querySelector(".cl-f-del").addEventListener("click", () => {
+          const next = fields.slice(); next.splice(idx, 1);
+          set(ref(db, `campaigns/${_cid}/climates/${cl.id}/fields`), next);
+        });
+        fieldsWrap.appendChild(row);
+      });
+    }
+
+    card.querySelector(".cl-del").addEventListener("click", () => {
+      if (!confirm(`Delete climate "${cl.name}"?`)) return;
+      remove(ref(db, `campaigns/${_cid}/climates/${cl.id}`));
+    });
+
+    const lblEl = card.querySelector(".cl-f-label");
+    const valEl = card.querySelector(".cl-f-value");
+    const addField = () => {
+      const label = lblEl.value.trim();
+      const value = valEl.value.trim();
+      if (!label) { lblEl.focus(); return; }
+      set(ref(db, `campaigns/${_cid}/climates/${cl.id}/fields`), fields.concat([{ label, value }]));
+      lblEl.value = ""; valEl.value = ""; lblEl.focus();
+    };
+    card.querySelector(".cl-f-add-btn").addEventListener("click", addField);
+    valEl.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addField(); } });
+
+    clList.appendChild(card);
+  });
+}
+
+if (clAdd) clAdd.addEventListener("click", () => {
+  const name = clName.value.trim();
+  if (!name) { clError.textContent = "Name is required."; return; }
+  if (climates.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+    clError.textContent = "A climate with that name already exists."; return;
+  }
+  const id = generateId();
+  set(ref(db, `campaigns/${_cid}/climates/${id}`), { id, name, color: _selClimateColor, fields: [] });
+  clName.value = ""; clError.textContent = "";
+  // List refreshes via the climates onValue listener.
+});
+if (clName) clName.addEventListener("keydown", e => { if (e.key === "Enter") clAdd.click(); });
+
+
+// ════════════════════════════════════════════════════════════════════════════
 //  Pen Tool — draw land areas
 // ════════════════════════════════════════════════════════════════════════════
 const btnDrawArea = document.getElementById("btn-draw-area");
@@ -1365,6 +1564,7 @@ function enterPenMode() {
   penCursor = null;
   if (btnDrawArea) btnDrawArea.classList.add("active");
   mapContainer.classList.add("placing-mode"); // reuse crosshair cursor
+  mapContainer.classList.add("pen-mode");     // disables marker selection (see CSS)
   penControls.classList.add("visible");
   updatePenDraw();
 }
@@ -1375,6 +1575,7 @@ function exitPenMode() {
   penPoints = [];
   if (btnDrawArea) btnDrawArea.classList.remove("active");
   mapContainer.classList.remove("placing-mode");
+  mapContainer.classList.remove("pen-mode");
   penControls.classList.remove("visible");
   updatePenDraw();
 }
@@ -1461,14 +1662,54 @@ function _centroid(points) {
   return { x: cx / (6 * a), y: cy / (6 * a) };
 }
 
+// Absolute polygon area (shoelace) — used to order overlapping areas.
+function _polyArea(points) {
+  if (!points || points.length < 3) return 0;
+  let a = 0;
+  for (let i = 0; i < points.length; i++) {
+    const p0 = points[i], p1 = points[(i + 1) % points.length];
+    a += p0.x * p1.y - p1.x * p0.y;
+  }
+  return Math.abs(a) / 2;
+}
+
+// Ray-casting point-in-polygon (points share the same percent space).
+function _pointInPoly(pt, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const xi = poly[i].x, yi = poly[i].y, xj = poly[j].x, yj = poly[j].y;
+    if (((yi > pt.y) !== (yj > pt.y)) &&
+        (pt.x < (xj - xi) * (pt.y - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+
+function _ringPath(points) {
+  return "M" + points.map(p => `${p.x},${p.y}`).join("L") + "Z";
+}
+
 function renderAreas() {
   areaSvg.querySelectorAll(".area-poly").forEach(n => n.remove());
   areaLabelLayer.innerHTML = "";
 
-  areas.forEach(area => {
-    if (!area.points || area.points.length < 3) return;
-    const poly = document.createElementNS(SVG_NS, "polygon");
-    poly.setAttribute("points", area.points.map(p => `${p.x},${p.y}`).join(" "));
+  // Paint the largest areas first so smaller, nested ones (lakes, enclaves)
+  // stack on top — keeping the inner area clickable instead of being buried.
+  const ordered = areas
+    .filter(a => a.points && a.points.length >= 3)
+    .sort((a, b) => _polyArea(b.points) - _polyArea(a.points));
+
+  ordered.forEach(area => {
+    // Knock a hole wherever a smaller area sits inside this one, so the fills
+    // never blend through — each region shows exactly one area's colour.
+    let d = _ringPath(area.points);
+    ordered.forEach(other => {
+      if (other === area) return;
+      if (_polyArea(other.points) >= _polyArea(area.points)) return;
+      if (_pointInPoly(_centroid(other.points), area.points)) d += _ringPath(other.points);
+    });
+
+    const poly = document.createElementNS(SVG_NS, "path");
+    poly.setAttribute("d", d);
     poly.setAttribute("class", "area-poly");
     poly.style.setProperty("--ac", area.color || "#3498db");
     if (isAdmin) {
@@ -1478,7 +1719,10 @@ function renderAreas() {
     }
     areaSvg.appendChild(poly);
 
-    const c = _centroid(area.points);
+    // Label sits at its saved spot if the DM has dragged it, else the centroid.
+    const c = (area.labelX != null && area.labelY != null)
+      ? { x: area.labelX, y: area.labelY }
+      : _centroid(area.points);
     const label = document.createElement("div");
     label.className = "area-label";
     label.style.left = c.x + "%";
@@ -1486,9 +1730,9 @@ function renderAreas() {
     label.style.setProperty("--ac", area.color || "#3498db");
     label.textContent = area.name || "";
     if (isAdmin) {
-      label.style.cursor = "pointer";
+      label.style.cursor = "grab";
       label.style.pointerEvents = "auto";
-      label.addEventListener("click", () => { if (!penMode && !placingMode) openAreaModal(area.id); });
+      _enableLabelDrag(label, area);
     }
     areaLabelLayer.appendChild(label);
   });
@@ -1496,6 +1740,48 @@ function renderAreas() {
   // Keep the in-progress pen group above the saved areas.
   areaSvg.appendChild(penDrawGroup);
   flushCounterScale();
+}
+
+// Drag a label to reposition it; a clean click (no drag) opens the area modal.
+function _enableLabelDrag(label, area) {
+  let downX, downY, startLeft, startTop, dragging = false, captured = false;
+
+  label.addEventListener("pointerdown", e => {
+    if (penMode || placingMode) return;
+    e.stopPropagation();
+    downX = e.clientX; downY = e.clientY;
+    startLeft = parseFloat(label.style.left) || 0;
+    startTop  = parseFloat(label.style.top)  || 0;
+    dragging  = false;
+    captured  = true;
+    label.setPointerCapture(e.pointerId);
+  });
+
+  label.addEventListener("pointermove", e => {
+    if (!captured) return;
+    const dx = e.clientX - downX, dy = e.clientY - downY;
+    if (!dragging && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+    if (!dragging) { dragging = true; label.classList.add("dragging"); label.style.cursor = "grabbing"; }
+    // Screen px → wrapper percent (wrapper is scaled by `scale`, sized _imgNW×_imgNH).
+    const nx = Math.max(0, Math.min(100, startLeft + (dx / scale / _imgNW) * 100));
+    const ny = Math.max(0, Math.min(100, startTop  + (dy / scale / _imgNH) * 100));
+    label.style.left = nx + "%";
+    label.style.top  = ny + "%";
+  });
+
+  label.addEventListener("pointerup", e => {
+    if (!captured) return;
+    captured = false;
+    label.classList.remove("dragging");
+    label.style.cursor = "grab";
+    label.releasePointerCapture(e.pointerId);
+    if (dragging) {
+      set(ref(db, `campaigns/${_cid}/areas/${area.id}/labelX`), parseFloat(label.style.left));
+      set(ref(db, `campaigns/${_cid}/areas/${area.id}/labelY`), parseFloat(label.style.top));
+    } else if (!penMode && !placingMode) {
+      openAreaModal(area.id);
+    }
+  });
 }
 
 const areaModal       = document.getElementById("area-modal");
@@ -1506,10 +1792,16 @@ const amError         = document.getElementById("am-error");
 const amSave          = document.getElementById("am-save");
 const amCancel        = document.getElementById("am-cancel");
 const amDelete        = document.getElementById("am-delete");
+const amClimate       = document.getElementById("am-climate");
+const amCreatureName  = document.getElementById("am-creature-name");
+const amCreatureRarity= document.getElementById("am-creature-rarity");
+const amCreatureAddBtn= document.getElementById("am-creature-add-btn");
+const amCreatureList  = document.getElementById("am-creature-list");
 
 let _editingAreaId     = null;
 let _pendingAreaPoints = null;
 let _selAreaColor      = COUNTRY_COLORS[0];
+let _areaCreatures     = []; // working copy while the modal is open
 
 function openAreaModal(id) {
   _editingAreaId = id;
@@ -1517,9 +1809,12 @@ function openAreaModal(id) {
   amTitle.textContent    = existing ? "Edit Area" : "Name Area";
   amName.value           = existing?.name || "";
   _selAreaColor          = existing?.color || COUNTRY_COLORS[0];
+  _areaCreatures         = (existing?.creatures || []).map(c => ({ ...c }));
   amError.textContent    = "";
   amDelete.style.display = existing ? "inline-flex" : "none";
   _buildAreaColorSwatches();
+  populateClimateSelect(existing?.climateId || "");
+  renderAreaCreatures();
   areaModal.classList.add("open");
   amName.focus();
 }
@@ -1527,7 +1822,58 @@ function closeAreaModal() {
   areaModal.classList.remove("open");
   _editingAreaId     = null;
   _pendingAreaPoints = null;
+  _areaCreatures     = [];
 }
+
+// Climate dropdown — built from the climate registry.
+function populateClimateSelect(selectedId) {
+  if (!amClimate) return;
+  amClimate.innerHTML = `<option value="">— None —</option>`;
+  climates.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = c.name;
+    if (c.id === selectedId) opt.selected = true;
+    amClimate.appendChild(opt);
+  });
+}
+
+const RARITY_CLASS = { Common: "rar-common", Uncommon: "rar-uncommon", Rare: "rar-rare" };
+
+function renderAreaCreatures() {
+  if (!amCreatureList) return;
+  if (_areaCreatures.length === 0) {
+    amCreatureList.innerHTML = `<p class="am-creature-empty">No creatures added yet.</p>`;
+    return;
+  }
+  amCreatureList.innerHTML = "";
+  _areaCreatures.forEach((c, i) => {
+    const row = document.createElement("div");
+    row.className = "am-creature-row";
+    row.innerHTML =
+      `<span class="am-creature-rar ${RARITY_CLASS[c.rarity] || "rar-common"}">${esc(c.rarity || "Common")}</span>` +
+      `<span class="am-creature-cname">${esc(c.name)}</span>` +
+      `<button type="button" class="am-creature-del" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>`;
+    row.querySelector(".am-creature-del").addEventListener("click", () => {
+      _areaCreatures.splice(i, 1);
+      renderAreaCreatures();
+    });
+    amCreatureList.appendChild(row);
+  });
+}
+
+function _addAreaCreature() {
+  const name = amCreatureName.value.trim();
+  if (!name) return;
+  _areaCreatures.push({ name, rarity: amCreatureRarity.value || "Common" });
+  amCreatureName.value = "";
+  renderAreaCreatures();
+  amCreatureName.focus();
+}
+if (amCreatureAddBtn) amCreatureAddBtn.addEventListener("click", _addAreaCreature);
+if (amCreatureName)   amCreatureName.addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); _addAreaCreature(); }
+});
 
 function _buildAreaColorSwatches() {
   amColorSwatches.innerHTML = "";
@@ -1552,7 +1898,15 @@ if (amSave) amSave.addEventListener("click", () => {
   const id       = _editingAreaId || generateId();
   const points   = _pendingAreaPoints || existing?.points;
   if (!points || points.length < 3) { amError.textContent = "Area shape is missing."; return; }
-  set(ref(db, `campaigns/${_cid}/areas/${id}`), { id, name, color: _selAreaColor, points });
+  const area = { id, name, color: _selAreaColor, points };
+  // Preserve a dragged label position across edits.
+  if (existing?.labelX != null && existing?.labelY != null) {
+    area.labelX = existing.labelX;
+    area.labelY = existing.labelY;
+  }
+  if (amClimate && amClimate.value) area.climateId = amClimate.value;
+  if (_areaCreatures.length)        area.creatures = _areaCreatures.map(c => ({ ...c }));
+  set(ref(db, `campaigns/${_cid}/areas/${id}`), area);
   closeAreaModal();
 });
 if (amCancel) amCancel.addEventListener("click", closeAreaModal);
