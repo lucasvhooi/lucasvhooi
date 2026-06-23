@@ -253,13 +253,15 @@ import Layout from '../layouts/Layout.astro';
       <div class="form-row">
         <label>Creatures you may encounter</label>
         <div class="am-creature-add">
-          <input type="text" id="am-creature-name" placeholder="e.g. Wolf" />
+          <div class="am-creature-search-wrap">
+            <input type="text" id="am-creature-name" placeholder="Search enemy library…" autocomplete="off" />
+            <div id="am-creature-results" class="am-creature-results"></div>
+          </div>
           <select id="am-creature-rarity">
             <option value="Common">Common</option>
             <option value="Uncommon">Uncommon</option>
             <option value="Rare">Rare</option>
           </select>
-          <button type="button" id="am-creature-add-btn" class="am-creature-add-btn" title="Add creature"><iconify-icon icon="lucide:plus"></iconify-icon></button>
         </div>
         <div id="am-creature-list" class="am-creature-list"></div>
       </div>

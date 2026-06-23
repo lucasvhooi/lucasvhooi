@@ -4,6 +4,7 @@ import { ref, set, remove, onValue }              from "https://www.gstatic.com/
 import { ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject }
                                                   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
 import { getSession }                             from "./auth.js";
+import { buildDefaultClimates, CLIMATE_FIELDS }   from "./default-climates.js";
 
 // ── Remember last location — redirect if user came back from a location ───────
 const _savedLoc = sessionStorage.getItem("lastLocationId");
@@ -502,11 +503,61 @@ const areasRef = ref(db, `campaigns/${_cid}/areas`);
 let areas = []; // [{ id, name, color, points:[{x,y}], climateId, creatures:[{name,rarity}] }]
 
 // ── Climate Registry ──────────────────────────────────────────────────────────
-// User-defined climates with named key/value fields (consumed later by the
-// travel planner). Stored under campaigns/{cid}/climates.
+// User-defined climates with a FIXED field schema (see CLIMATE_FIELDS) so the
+// keys stay stable for later code use. Stored under campaigns/{cid}/climates.
 const climatesRef = ref(db, `campaigns/${_cid}/climates`);
-let climates = []; // [{ id, name, color, fields:[{label,value}] }]
+let climates = []; // [{ id, name, color, temp, precipitation, terrain }]
 function climateInfo(id) { return climates.find(c => c.id === id) || null; }
+
+// Backfill the base climates into campaigns that predate the feature. We seed
+// once (guarded by a `climatesSeeded` flag) and only when the campaign has no
+// climates of its own — so a DM who deletes them all won't have them reappear.
+const climatesSeededRef = ref(db, `campaigns/${_cid}/climatesSeeded`);
+let _climatesLoaded = false, _seedFlagLoaded = false, _climatesSeeded = false, _seedAttempted = false;
+function _maybeSeedClimates() {
+  if (!isAdmin || _seedAttempted) return;
+  if (!_climatesLoaded || !_seedFlagLoaded) return;   // wait for both reads
+  if (_climatesSeeded || climates.length > 0) return; // already seeded or has data
+  _seedAttempted = true;
+  set(climatesRef, buildDefaultClimates());
+  set(climatesSeededRef, true);
+}
+
+// One-time migration: older climates stored values as a free-form
+// `fields: [{label, value}]` array. Map the known labels onto the fixed keys
+// and drop the array. Runs only for admins; once `fields` is gone it's a no-op.
+const _CLIMATE_LABEL_ALIASES = {
+  temp:          ["avg temperature", "avg temp", "temperature", "temp"],
+  precipitation: ["precipitation", "precip", "rainfall"],
+  terrain:       ["terrain"],
+};
+function _migrateLegacyClimates() {
+  if (!isAdmin) return;
+  climates.forEach(cl => {
+    if (cl.fields == null) return; // already on the new schema
+    const arr = Array.isArray(cl.fields) ? cl.fields : Object.values(cl.fields);
+    const byLabel = {};
+    arr.forEach(f => { if (f && f.label) byLabel[String(f.label).toLowerCase()] = f.value || ""; });
+
+    const migrated = { id: cl.id, name: cl.name, color: cl.color || "#3498db" };
+    CLIMATE_FIELDS.forEach(f => {
+      let v = (cl[f.key] != null && cl[f.key] !== "") ? cl[f.key] : "";
+      if (!v) {
+        for (const alias of (_CLIMATE_LABEL_ALIASES[f.key] || [f.label.toLowerCase()])) {
+          if (byLabel[alias] != null) { v = byLabel[alias]; break; }
+        }
+      }
+      migrated[f.key] = v;
+    });
+    set(ref(db, `campaigns/${_cid}/climates/${cl.id}`), migrated);
+  });
+}
+
+// ── Enemy library ──────────────────────────────────────────────────────────────
+// The same campaign-scoped enemy templates the Combat + Database tabs use. The
+// area editor's creature search picks from this list (read-only here).
+const enemyTemplatesRef = ref(db, `campaigns/${_cid}/enemyTemplates`);
+let enemyLib = []; // [{ id, name, cr, hp, ac, ... }]
 
 function saveMarker(marker)     { set(ref(db, `campaigns/${_cid}/markers/` + marker.id), marker); }
 function deleteMarkerById(id)   { remove(ref(db, `campaigns/${_cid}/markers/` + id)); }
@@ -847,8 +898,25 @@ onValue(areasRef, snapshot => {
 
 onValue(climatesRef, snapshot => {
   climates = snapshot.val() ? Object.values(snapshot.val()) : [];
+  _climatesLoaded = true;
+  _migrateLegacyClimates();
   populateClimateSelect(amClimate?.value || "");
   renderClimateList();
+  _maybeSeedClimates();
+});
+
+onValue(climatesSeededRef, snapshot => {
+  _climatesSeeded = snapshot.val() === true;
+  _seedFlagLoaded = true;
+  _maybeSeedClimates();
+});
+
+onValue(enemyTemplatesRef, snapshot => {
+  enemyLib = snapshot.val()
+    ? Object.values(snapshot.val()).sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+    : [];
+  // Refresh the open results dropdown if the modal is mid-search.
+  if (areaModal && areaModal.classList.contains("open")) renderCreatureResults();
 });
 
 // ── Location Panel ────────────────────────────────────────────────────────────
@@ -1448,6 +1516,147 @@ function _buildClimateColorSwatches() {
   });
 }
 
+// ── Climate field controls ───────────────────────────────────────────────────
+// Each climate field renders a typed control so stored values stay structured
+// enough for the travel planner to read later: a numeric temperature range, a
+// fixed precipitation scale, and a combinable terrain list. `persist(value)`
+// writes the field back to Firebase.
+
+// Pull the signed numbers out of any legacy/free-form temp string.
+function _parseTempRange(v) {
+  const n = String(v == null ? "" : v).match(/-?\d+(?:\.\d+)?/g) || [];
+  return { min: n[0] != null ? n[0] : "", max: n[1] != null ? n[1] : "" };
+}
+function _formatTempRange(min, max, unit) {
+  min = String(min).trim(); max = String(max).trim();
+  if (min === "" && max === "") return "";
+  return `${min}–${max}${unit || ""}`;
+}
+// Split a stored list on commas (and legacy "&" / "and" separators).
+function _parseClimateList(v) {
+  return String(v == null ? "" : v)
+    .split(/\s*(?:,|&|\band\b)\s*/i)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+function _buildClimateText(row, f, cl, persist) {
+  const input = document.createElement("input");
+  input.className = "cl-f-input";
+  input.type = "text";
+  input.placeholder = f.placeholder || "";
+  input.value = cl[f.key] || "";
+  input.addEventListener("change", () => persist(input.value.trim()));
+  input.addEventListener("keydown", e => { if (e.key === "Enter") input.blur(); });
+  row.appendChild(input);
+}
+
+function _buildClimateRange(row, f, cl, persist) {
+  const { min, max } = _parseTempRange(cl[f.key]);
+  const wrap = document.createElement("div");
+  wrap.className = "cl-range";
+  const mkNum = (val, ph) => {
+    const i = document.createElement("input");
+    i.className = "cl-f-input cl-f-num";
+    i.type = "number";
+    i.inputMode = "numeric";
+    i.placeholder = ph;
+    i.value = val;
+    return i;
+  };
+  const lo = mkNum(min, "min"), hi = mkNum(max, "max");
+  const commit = () => persist(_formatTempRange(lo.value, hi.value, f.unit));
+  [lo, hi].forEach(i => {
+    i.addEventListener("change", commit);
+    i.addEventListener("keydown", e => { if (e.key === "Enter") i.blur(); });
+  });
+  wrap.append(lo,
+    Object.assign(document.createElement("span"), { className: "cl-range-sep", textContent: "–" }),
+    hi);
+  if (f.unit) wrap.appendChild(
+    Object.assign(document.createElement("span"), { className: "cl-range-unit", textContent: f.unit }));
+  row.appendChild(wrap);
+}
+
+function _buildClimateSelect(row, f, cl, persist) {
+  const sel = document.createElement("select");
+  sel.className = "cl-f-input cl-f-select";
+  const cur = cl[f.key] || "";
+  const opts = [""].concat(f.options || []);
+  if (cur && !opts.includes(cur)) opts.push(cur); // keep a legacy/custom value
+  opts.forEach(o => {
+    const opt = document.createElement("option");
+    opt.value = o;
+    opt.textContent = o === "" ? (f.placeholder || "Select…") : o;
+    sel.appendChild(opt);
+  });
+  sel.value = cur;
+  sel.addEventListener("change", () => persist(sel.value));
+  row.appendChild(sel);
+}
+
+function _buildClimateMulti(row, f, cl, persist) {
+  const selected = _parseClimateList(cl[f.key]);
+  const wrap = document.createElement("div");
+  wrap.className = "cl-multi";
+  const chips = document.createElement("div");
+  chips.className = "cl-chips";
+  const sel = document.createElement("select");
+  sel.className = "cl-f-input cl-f-select cl-multi-select";
+  wrap.append(chips, sel);
+  row.appendChild(wrap);
+
+  const commit = () => persist(selected.join(", "));
+
+  const renderChips = () => {
+    chips.innerHTML = "";
+    if (selected.length === 0) {
+      chips.appendChild(Object.assign(document.createElement("span"),
+        { className: "cl-chips-empty", textContent: "None yet" }));
+    }
+    selected.forEach((t, idx) => {
+      const chip = document.createElement("span");
+      chip.className = "cl-chip";
+      chip.appendChild(Object.assign(document.createElement("span"), { textContent: t }));
+      const x = document.createElement("button");
+      x.type = "button";
+      x.className = "cl-chip-x";
+      x.title = "Remove";
+      x.textContent = "×";
+      x.addEventListener("click", () => {
+        selected.splice(idx, 1); commit(); renderChips(); renderOptions();
+      });
+      chip.appendChild(x);
+      chips.appendChild(chip);
+    });
+  };
+
+  const renderOptions = () => {
+    sel.innerHTML = "";
+    sel.appendChild(Object.assign(document.createElement("option"),
+      { value: "", textContent: f.placeholder || "Add…" }));
+    (f.options || []).filter(o => !selected.includes(o)).forEach(o => {
+      sel.appendChild(Object.assign(document.createElement("option"),
+        { value: o, textContent: o }));
+    });
+    sel.appendChild(Object.assign(document.createElement("option"),
+      { value: "__custom__", textContent: "Custom…" }));
+    sel.value = "";
+  };
+
+  sel.addEventListener("change", () => {
+    let v = sel.value;
+    if (v === "__custom__") v = (prompt("Add a custom terrain:") || "").trim();
+    if (v && !selected.includes(v)) {
+      selected.push(v); commit(); renderChips();
+    }
+    renderOptions();
+  });
+
+  renderChips();
+  renderOptions();
+}
+
 function renderClimateList() {
   if (!clList) return;
   if (climates.length === 0) {
@@ -1465,50 +1674,31 @@ function renderClimateList() {
         <span class="cl-card-name">${esc(cl.name)}</span>
         <button class="cl-del" title="Delete climate"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
       </div>
-      <div class="cl-fields"></div>
-      <div class="cl-field-add">
-        <input class="cl-f-label" type="text" placeholder="Label (e.g. Avg Temp)" />
-        <input class="cl-f-value" type="text" placeholder="Value (e.g. -15°C)" />
-        <button class="cl-f-add-btn" title="Add value"><iconify-icon icon="lucide:plus"></iconify-icon></button>
-      </div>`;
+      <div class="cl-fields"></div>`;
 
+    // Fixed fields — DMs edit values only; labels (and keys) are constant.
+    // The control rendered depends on the field's `type` (see CLIMATE_FIELDS).
+    // Each persists on commit — one write per edit, not per keystroke.
     const fieldsWrap = card.querySelector(".cl-fields");
-    const fields = cl.fields || [];
-    if (fields.length === 0) {
-      fieldsWrap.innerHTML = `<p class="cl-fields-empty">No values yet.</p>`;
-    } else {
-      fields.forEach((f, idx) => {
-        const row = document.createElement("div");
-        row.className = "cl-field-row";
-        row.innerHTML =
-          `<span class="cl-f-l">${esc(f.label)}</span>` +
-          `<span class="cl-f-eq">=</span>` +
-          `<span class="cl-f-v">${esc(f.value)}</span>` +
-          `<button class="cl-f-del" title="Remove value"><iconify-icon icon="lucide:x"></iconify-icon></button>`;
-        row.querySelector(".cl-f-del").addEventListener("click", () => {
-          const next = fields.slice(); next.splice(idx, 1);
-          set(ref(db, `campaigns/${_cid}/climates/${cl.id}/fields`), next);
-        });
-        fieldsWrap.appendChild(row);
-      });
-    }
+    CLIMATE_FIELDS.forEach(f => {
+      const row = document.createElement("div");
+      row.className = "cl-field-row cl-field-" + (f.type || "text");
+      row.appendChild(Object.assign(document.createElement("span"),
+        { className: "cl-f-l", textContent: f.label }));
+      const persist = v => set(ref(db, `campaigns/${_cid}/climates/${cl.id}/${f.key}`), v);
+
+      if      (f.type === "range")       _buildClimateRange(row, f, cl, persist);
+      else if (f.type === "select")      _buildClimateSelect(row, f, cl, persist);
+      else if (f.type === "multiselect") _buildClimateMulti(row, f, cl, persist);
+      else                               _buildClimateText(row, f, cl, persist);
+
+      fieldsWrap.appendChild(row);
+    });
 
     card.querySelector(".cl-del").addEventListener("click", () => {
       if (!confirm(`Delete climate "${cl.name}"?`)) return;
       remove(ref(db, `campaigns/${_cid}/climates/${cl.id}`));
     });
-
-    const lblEl = card.querySelector(".cl-f-label");
-    const valEl = card.querySelector(".cl-f-value");
-    const addField = () => {
-      const label = lblEl.value.trim();
-      const value = valEl.value.trim();
-      if (!label) { lblEl.focus(); return; }
-      set(ref(db, `campaigns/${_cid}/climates/${cl.id}/fields`), fields.concat([{ label, value }]));
-      lblEl.value = ""; valEl.value = ""; lblEl.focus();
-    };
-    card.querySelector(".cl-f-add-btn").addEventListener("click", addField);
-    valEl.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addField(); } });
 
     clList.appendChild(card);
   });
@@ -1521,7 +1711,10 @@ if (clAdd) clAdd.addEventListener("click", () => {
     clError.textContent = "A climate with that name already exists."; return;
   }
   const id = generateId();
-  set(ref(db, `campaigns/${_cid}/climates/${id}`), { id, name, color: _selClimateColor, fields: [] });
+  // Create with the fixed fields blank — the DM fills them in on the card below.
+  const climate = { id, name, color: _selClimateColor };
+  CLIMATE_FIELDS.forEach(f => { climate[f.key] = ""; });
+  set(ref(db, `campaigns/${_cid}/climates/${id}`), climate);
   clName.value = ""; clError.textContent = "";
   // List refreshes via the climates onValue listener.
 });
@@ -1688,8 +1881,34 @@ function _ringPath(points) {
   return "M" + points.map(p => `${p.x},${p.y}`).join("L") + "Z";
 }
 
+// Do segments p1→p2 and p3→p4 cross? (proper intersection via orientation signs)
+function _segIntersect(p1, p2, p3, p4) {
+  const d = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+  const d1 = d(p3, p4, p1), d2 = d(p3, p4, p2);
+  const d3 = d(p1, p2, p3), d4 = d(p1, p2, p4);
+  return ((d1 > 0) !== (d2 > 0)) && ((d3 > 0) !== (d4 > 0));
+}
+
+// Two polygons overlap if either contains a vertex of the other, or their
+// edges cross (the cross-overlap case where no vertex sits inside).
+function _polysOverlap(a, b) {
+  if (a.some(p => _pointInPoly(p, b))) return true;
+  if (b.some(p => _pointInPoly(p, a))) return true;
+  for (let i = 0; i < a.length; i++) {
+    const a1 = a[i], a2 = a[(i + 1) % a.length];
+    for (let j = 0; j < b.length; j++) {
+      if (_segIntersect(a1, a2, b[j], b[(j + 1) % b.length])) return true;
+    }
+  }
+  return false;
+}
+
 function renderAreas() {
   areaSvg.querySelectorAll(".area-poly").forEach(n => n.remove());
+  let defs = areaSvg.querySelector("defs");
+  if (defs) defs.remove();
+  defs = document.createElementNS(SVG_NS, "defs");
+  areaSvg.appendChild(defs);
   areaLabelLayer.innerHTML = "";
 
   // Paint the largest areas first so smaller, nested ones (lakes, enclaves)
@@ -1699,18 +1918,31 @@ function renderAreas() {
     .sort((a, b) => _polyArea(b.points) - _polyArea(a.points));
 
   ordered.forEach(area => {
-    // Knock a hole wherever a smaller area sits inside this one, so the fills
-    // never blend through — each region shows exactly one area's colour.
-    let d = _ringPath(area.points);
+    const ring = _ringPath(area.points);
+
+    // Knock a hole wherever a smaller area overlaps this one, so the fills
+    // never blend through — each region shows exactly one area's colour. The
+    // fill is clipped to this area's own outline so a partially overlapping
+    // neighbour's cut ring can't spill colour past the border.
+    let d = ring;
     ordered.forEach(other => {
       if (other === area) return;
       if (_polyArea(other.points) >= _polyArea(area.points)) return;
-      if (_pointInPoly(_centroid(other.points), area.points)) d += _ringPath(other.points);
+      if (_polysOverlap(area.points, other.points)) d += _ringPath(other.points);
     });
+
+    const clipId = "area-clip-" + area.id;
+    const clip = document.createElementNS(SVG_NS, "clipPath");
+    clip.id = clipId;
+    const clipShape = document.createElementNS(SVG_NS, "path");
+    clipShape.setAttribute("d", ring);
+    clip.appendChild(clipShape);
+    defs.appendChild(clip);
 
     const poly = document.createElementNS(SVG_NS, "path");
     poly.setAttribute("d", d);
-    poly.setAttribute("class", "area-poly");
+    poly.setAttribute("class", "area-poly area-fill");
+    poly.setAttribute("clip-path", `url(#${clipId})`);
     poly.style.setProperty("--ac", area.color || "#3498db");
     if (isAdmin) {
       poly.style.cursor = "pointer";
@@ -1718,6 +1950,14 @@ function renderAreas() {
       poly.addEventListener("click", () => { if (!penMode && !placingMode) openAreaModal(area.id); });
     }
     areaSvg.appendChild(poly);
+
+    // Border is its own ring-only path so cut rings never add stray strokes
+    // and the clip doesn't shave the real outline.
+    const border = document.createElementNS(SVG_NS, "path");
+    border.setAttribute("d", ring);
+    border.setAttribute("class", "area-poly area-stroke");
+    border.style.setProperty("--ac", area.color || "#3498db");
+    areaSvg.appendChild(border);
 
     // Label sits at its saved spot if the DM has dragged it, else the centroid.
     const c = (area.labelX != null && area.labelY != null)
@@ -1793,10 +2033,10 @@ const amSave          = document.getElementById("am-save");
 const amCancel        = document.getElementById("am-cancel");
 const amDelete        = document.getElementById("am-delete");
 const amClimate       = document.getElementById("am-climate");
-const amCreatureName  = document.getElementById("am-creature-name");
-const amCreatureRarity= document.getElementById("am-creature-rarity");
-const amCreatureAddBtn= document.getElementById("am-creature-add-btn");
-const amCreatureList  = document.getElementById("am-creature-list");
+const amCreatureName    = document.getElementById("am-creature-name");
+const amCreatureRarity  = document.getElementById("am-creature-rarity");
+const amCreatureResults = document.getElementById("am-creature-results");
+const amCreatureList    = document.getElementById("am-creature-list");
 
 let _editingAreaId     = null;
 let _pendingAreaPoints = null;
@@ -1814,6 +2054,8 @@ function openAreaModal(id) {
   amDelete.style.display = existing ? "inline-flex" : "none";
   _buildAreaColorSwatches();
   populateClimateSelect(existing?.climateId || "");
+  if (amCreatureName) amCreatureName.value = "";
+  _hideCreatureResults();
   renderAreaCreatures();
   areaModal.classList.add("open");
   amName.focus();
@@ -1823,6 +2065,8 @@ function closeAreaModal() {
   _editingAreaId     = null;
   _pendingAreaPoints = null;
   _areaCreatures     = [];
+  if (amCreatureName) amCreatureName.value = "";
+  _hideCreatureResults();
 }
 
 // Climate dropdown — built from the climate registry.
@@ -1862,18 +2106,86 @@ function renderAreaCreatures() {
   });
 }
 
-function _addAreaCreature() {
-  const name = amCreatureName.value.trim();
-  if (!name) return;
-  _areaCreatures.push({ name, rarity: amCreatureRarity.value || "Common" });
+// ── Creature search — picks only from the campaign's enemy library ────────────
+// Adding a creature requires selecting an entry from the shared enemy templates
+// (same library as the Combat + Database tabs), so area encounters stay in sync.
+function _addAreaCreature(tmpl) {
+  if (!tmpl || !tmpl.name) return;
+  if (_areaCreatures.some(c => c.name === tmpl.name)) {
+    // Already listed — just bump its rarity to the current selection.
+    _areaCreatures.find(c => c.name === tmpl.name).rarity = amCreatureRarity.value || "Common";
+  } else {
+    _areaCreatures.push({ name: tmpl.name, rarity: amCreatureRarity.value || "Common" });
+  }
   amCreatureName.value = "";
+  _hideCreatureResults();
   renderAreaCreatures();
   amCreatureName.focus();
 }
-if (amCreatureAddBtn) amCreatureAddBtn.addEventListener("click", _addAreaCreature);
-if (amCreatureName)   amCreatureName.addEventListener("keydown", e => {
-  if (e.key === "Enter") { e.preventDefault(); _addAreaCreature(); }
-});
+
+function _hideCreatureResults() {
+  if (!amCreatureResults) return;
+  amCreatureResults.classList.remove("open");
+  amCreatureResults.innerHTML = "";
+}
+
+// Render the dropdown of enemy-library matches for the current search query.
+function renderCreatureResults() {
+  if (!amCreatureResults || !amCreatureName) return;
+  const q = amCreatureName.value.trim().toLowerCase();
+  if (!q) { _hideCreatureResults(); return; }
+
+  const matches = enemyLib
+    .filter(t => (t.name || "").toLowerCase().includes(q))
+    .slice(0, 12);
+
+  amCreatureResults.innerHTML = "";
+  if (matches.length === 0) {
+    amCreatureResults.innerHTML =
+      `<div class="am-creature-result-empty">${enemyLib.length
+        ? "No matching creatures in the library."
+        : "Enemy library is empty — add templates in the Combat tab."}</div>`;
+    amCreatureResults.classList.add("open");
+    return;
+  }
+
+  matches.forEach(t => {
+    const meta = [
+      t.cr != null && t.cr !== "" ? `CR ${esc(String(t.cr))}` : null,
+      t.hp != null && t.hp !== "" ? `HP ${esc(String(t.hp))}` : null,
+      t.ac != null && t.ac !== "" ? `AC ${esc(String(t.ac))}` : null,
+    ].filter(Boolean).join(" · ");
+    const row = document.createElement("div");
+    row.className = "am-creature-result";
+    row.innerHTML =
+      `<span class="acr-name">${esc(t.name)}</span>` +
+      (meta ? `<span class="acr-meta">${meta}</span>` : "");
+    // mousedown (not click) so the input's blur handler doesn't close us first.
+    row.addEventListener("mousedown", e => { e.preventDefault(); _addAreaCreature(t); });
+    amCreatureResults.appendChild(row);
+  });
+  amCreatureResults.classList.add("open");
+}
+
+if (amCreatureName) {
+  amCreatureName.addEventListener("input", renderCreatureResults);
+  amCreatureName.addEventListener("focus", renderCreatureResults);
+  amCreatureName.addEventListener("blur",  () => setTimeout(_hideCreatureResults, 150));
+  amCreatureName.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      // Library-only: Enter adds the single match if the query is unambiguous.
+      e.preventDefault();
+      const q = amCreatureName.value.trim().toLowerCase();
+      if (!q) return;
+      const exact   = enemyLib.find(t => (t.name || "").toLowerCase() === q);
+      const matches = enemyLib.filter(t => (t.name || "").toLowerCase().includes(q));
+      if (exact)               _addAreaCreature(exact);
+      else if (matches.length === 1) _addAreaCreature(matches[0]);
+    } else if (e.key === "Escape") {
+      _hideCreatureResults();
+    }
+  });
+}
 
 function _buildAreaColorSwatches() {
   amColorSwatches.innerHTML = "";

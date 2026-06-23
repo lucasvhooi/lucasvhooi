@@ -1,0 +1,145 @@
+---
+/**
+ * Shared combat stat-block editor — the reusable form used by both the Combat
+ * enemy-template editor and the Characters codex (creature/villain stat blocks).
+ *
+ * Markup only. Behaviour lives in /assets/js/stat-block-editor.js (window.StatBlockEditor)
+ * and styling in /assets/css/stat-block-editor.css — both pages must load those.
+ *
+ * Props:
+ *   showName  — render the Name field (Combat templates need it; Characters reuse
+ *               the character's own name, so they leave it off).
+ */
+interface Props {
+  showName?: boolean;
+}
+const { showName = false } = Astro.props;
+---
+
+<div class="editor-section">
+  <div class="editor-section-title">Identity</div>
+  {showName && (
+    <div class="editor-field-row">
+      <label class="editor-label">Name <span class="req">*</span>
+        <input type="text" id="et-name" placeholder="e.g. Forest Bandit" />
+      </label>
+    </div>
+  )}
+  <div class="editor-field-row five-col">
+    <label class="editor-label">Max HP
+      <input type="number" id="et-hp" placeholder="11" min="1" max="9999" />
+    </label>
+    <label class="editor-label">AC
+      <input type="number" id="et-ac" placeholder="12" min="0" max="30" />
+    </label>
+    <label class="editor-label">Init Mod
+      <input type="number" id="et-init-mod" placeholder="+1" min="-5" max="10" />
+    </label>
+    <label class="editor-label">CR
+      <input type="text" id="et-cr" placeholder="1/4" />
+    </label>
+    <label class="editor-label">Speed
+      <input type="text" id="et-speed" placeholder="30 ft." />
+    </label>
+  </div>
+  <div class="editor-field-row">
+    <label class="editor-label">Notes
+      <textarea id="et-notes" placeholder="e.g. Fire resist, multiattack…" rows="2"></textarea>
+    </label>
+  </div>
+</div>
+
+<div class="editor-section">
+  <div class="editor-section-title">Ability Scores</div>
+  <div class="editor-field-row six-col">
+    <label class="editor-label">STR
+      <input type="number" id="et-str" class="et-stat-input" placeholder="10" min="1" max="30" />
+      <span class="et-stat-mod" id="et-str-mod">—</span>
+    </label>
+    <label class="editor-label">DEX
+      <input type="number" id="et-dex" class="et-stat-input" placeholder="10" min="1" max="30" />
+      <span class="et-stat-mod" id="et-dex-mod">—</span>
+    </label>
+    <label class="editor-label">CON
+      <input type="number" id="et-con" class="et-stat-input" placeholder="10" min="1" max="30" />
+      <span class="et-stat-mod" id="et-con-mod">—</span>
+    </label>
+    <label class="editor-label">INT
+      <input type="number" id="et-int" class="et-stat-input" placeholder="10" min="1" max="30" />
+      <span class="et-stat-mod" id="et-int-mod">—</span>
+    </label>
+    <label class="editor-label">WIS
+      <input type="number" id="et-wis" class="et-stat-input" placeholder="10" min="1" max="30" />
+      <span class="et-stat-mod" id="et-wis-mod">—</span>
+    </label>
+    <label class="editor-label">CHA
+      <input type="number" id="et-cha" class="et-stat-input" placeholder="10" min="1" max="30" />
+      <span class="et-stat-mod" id="et-cha-mod">—</span>
+    </label>
+  </div>
+</div>
+
+<div class="editor-section">
+  <div class="editor-section-title-row">
+    <span class="editor-section-title"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Attacks</span>
+    <button type="button" id="et-add-attack-btn" class="ctrl-btn ctrl-btn-sm ctrl-btn-secondary"><iconify-icon icon="lucide:plus"></iconify-icon> Add Attack</button>
+  </div>
+  <div id="et-attacks-list" class="et-attacks-list"></div>
+</div>
+
+<div class="editor-section">
+  <div class="editor-section-title">Additional Info</div>
+  <div class="editor-field-row three-col">
+    <label class="editor-label">Saving Throws
+      <input type="text" id="et-saves" placeholder="Str +3, Con +2…" />
+    </label>
+    <label class="editor-label">Condition Immunities
+      <input type="text" id="et-cond-imm" placeholder="Frightened, Charmed…" />
+    </label>
+    <label class="editor-label">Languages
+      <input type="text" id="et-languages" placeholder="Common, Elvish…" />
+    </label>
+  </div>
+</div>
+
+<div class="editor-section">
+  <div class="editor-section-title"><iconify-icon icon="game-icons:shield"></iconify-icon> Damage Modifiers</div>
+  <div class="editor-field-row">
+    <label class="editor-label">Resistances <span class="field-hint">takes half damage</span></label>
+    <div id="et-resist-chips" class="dmg-type-chips"></div>
+  </div>
+  <div class="editor-field-row">
+    <label class="editor-label">Vulnerabilities <span class="field-hint">takes double damage</span></label>
+    <div id="et-vuln-chips" class="dmg-type-chips"></div>
+  </div>
+</div>
+
+<div class="editor-section">
+  <div class="editor-section-title"><iconify-icon icon="game-icons:coins"></iconify-icon> Loot Table</div>
+  <div class="editor-field-row four-col">
+    <label class="editor-label">Min Gold (gp)
+      <input type="number" id="et-gp-min" value="0" min="0" max="9999" />
+    </label>
+    <label class="editor-label">Max Gold (gp)
+      <input type="number" id="et-gp-max" value="0" min="0" max="9999" />
+    </label>
+    <label class="editor-label">Min Items
+      <input type="number" id="et-items-min" value="0" min="0" max="20" />
+    </label>
+    <label class="editor-label">Max Items
+      <input type="number" id="et-items-max" value="0" min="0" max="20" />
+    </label>
+  </div>
+
+  <div class="editor-field-row">
+    <label class="editor-label">Add Item from List</label>
+    <div class="item-picker-wrap">
+      <input type="text" id="et-item-search" class="item-picker-search" placeholder="Search items…" autocomplete="off" />
+      <div id="et-item-results" class="item-picker-results" style="display:none"></div>
+    </div>
+  </div>
+
+  <div id="et-loot-items" class="et-loot-items">
+    <p class="et-loot-empty" id="et-loot-empty">No items added yet.</p>
+  </div>
+</div>

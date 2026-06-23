@@ -1,9 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
+import StatBlockEditor from '../components/StatBlockEditor.astro';
 import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
 ---
-<Layout title="Characters — Essolis" activePage="exploration" extraCSS={['/assets/css/exploration.css']}>
+<Layout title="Characters — Essolis" activePage="exploration" extraCSS={['/assets/css/stat-block-editor.css', '/assets/css/exploration.css']}>
 
   <Header
     title="Characters"
@@ -222,6 +223,20 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
           </label>
         </div>
 
+        <!-- Combat stat block — DM only, shown for creatures & villains. Uses the
+             shared editor so a homebrew creature is authored once and spawns in Combat. -->
+        <div id="char-statblock-section" class="char-statblock-section" style="display:none">
+          <div class="char-statblock-divider"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Combat Stat Block</div>
+          <label class="checkbox-label" style="margin-bottom:12px">
+            <input type="checkbox" id="char-has-statblock" />
+            <span class="checkbox-box"></span>
+            Has a combat stat block <span class="field-hint">spawnable in the Combat tracker</span>
+          </label>
+          <div id="char-statblock-fields" style="display:none">
+            <StatBlockEditor />
+          </div>
+        </div>
+
         <div id="char-error" class="modal-error"></div>
       </div>
       <div class="modal-actions">
@@ -231,7 +246,46 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
     </div>
   </div>
 
+  <script is:inline src="/assets/js/stat-block-editor.js"></script>
   <script is:inline type="module" src="/assets/js/exploration.js"></script>
+
+  <style is:global>
+    /* Combat stat-block section inside the character modal */
+    .char-statblock-section {
+      border-top: 1px solid rgba(200,164,92,0.14);
+      margin-top: 16px;
+      padding-top: 14px;
+    }
+    .char-statblock-divider {
+      font-family: 'IM Fell English', 'Garamond', serif;
+      font-size: 13px;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    /* The character creation/edit window fills the whole viewport. */
+    #char-modal .modal-box {
+      width: 100vw;
+      height: 100vh;
+      max-width: 100vw;
+      max-height: 100vh;
+      border-radius: 0;
+    }
+    #char-modal .modal-header { border-radius: 0; }
+    #char-modal .modal-actions { border-radius: 0; }
+    /* Keep the form readable instead of stretching fields across the full width. */
+    #char-modal .modal-body > * {
+      max-width: 720px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    /* The stat block needs room for its multi-column grids; full-screen already has it,
+       so the old has-statblock widen rule is a no-op here but harmless elsewhere. */
+    .modal-box.has-statblock { max-width: 720px; }
+  </style>
 
   <!-- Framer Motion: staggered row entry on filter/search rebuild -->
   <script>

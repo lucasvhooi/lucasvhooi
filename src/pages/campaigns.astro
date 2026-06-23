@@ -992,6 +992,7 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
              orderByChild, equalTo, onValue }                        from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
     import { onAuthStateChanged }                                    from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { getSession, clearSession }                              from "/assets/js/auth.js";
+    import { buildDefaultClimates }                                  from "/assets/js/default-climates.js";
 
     const session = getSession();
     if (!session) { window.location.href = "login"; }
@@ -1224,6 +1225,8 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
           useAttunement: document.getElementById('c-set-attunement').checked,
           useWeight:     document.getElementById('c-set-weight').checked,
         };
+        data.climates      = buildDefaultClimates();
+        data.climatesSeeded = true;
 
         await set(newRef, data);
         closeAddModal();

@@ -997,6 +997,18 @@
 }
 .im-ability-add-btn:hover { background: rgba(255,255,255,0.04); }
 
+/* ── List + side detail panel layout ── */
+/* The list and the slide-out detail panel sit side by side; the list flexes to
+   fill and the panel animates its width open from the right. */
+.items-content {
+  display: flex;
+  align-items: flex-start;
+}
+.items-list-section {
+  flex: 1;
+  min-width: 0;
+}
+
 /* ── Side detail panel ── */
 .item-detail-panel {
   flex-shrink: 0;

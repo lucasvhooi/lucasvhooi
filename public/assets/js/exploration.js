@@ -66,6 +66,32 @@ const charSave        = document.getElementById("char-save");
 const charCancel      = document.getElementById("char-cancel");
 const charModalClose  = document.getElementById("char-modal-close");
 
+// ── Combat stat block (DM only; creatures & villains) ─────────────────────────
+const charStatblockSection = document.getElementById("char-statblock-section");
+const charHasStatblock     = document.getElementById("char-has-statblock");
+const charStatblockFields  = document.getElementById("char-statblock-fields");
+const charModalBox         = charModal.querySelector(".modal-box");
+const STATBLOCK_ROLES      = ["creature", "villain"];
+
+window.StatBlockEditor?.mount();
+
+// The loot picker inside the stat-block editor reads the campaign item list.
+window._combatItems = [];
+onValue(ref(db, "items"), snap => {
+  window._combatItems = snap.val() ? Object.values(snap.val()) : [];
+});
+
+// Show the section only for a DM editing a creature/villain; the checkbox reveals
+// the actual fields and widens the modal to fit the editor's multi-column grids.
+function updateStatblockUI() {
+  const roleOk   = isAdmin && STATBLOCK_ROLES.includes(selectedRole);
+  const fieldsOn = roleOk && charHasStatblock.checked;
+  charStatblockSection.style.display = roleOk ? "" : "none";
+  charStatblockFields.style.display  = fieldsOn ? "" : "none";
+  charModalBox?.classList.toggle("has-statblock", fieldsOn);
+}
+charHasStatblock.addEventListener("change", updateStatblockUI);
+
 // ── Stat bar / role filter ────────────────────────────────────────────────────
 document.querySelectorAll(".chars-stat-card").forEach(card => {
   card.addEventListener("click", () => {
@@ -97,6 +123,7 @@ document.querySelectorAll(".role-sel-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     selectedRole = btn.dataset.role;
     _syncRoleButtons();
+    updateStatblockUI();
   });
 });
 
@@ -477,6 +504,11 @@ function openEditModal(c = null) {
   charEncountered.checked = c ? (c.encountered ?? false) : false;
   selectedRole = c ? (c.role || "") : "";
   _syncRoleButtons();
+  // Combat stat block
+  const sb = c && c.statBlock ? c.statBlock : null;
+  charHasStatblock.checked = !!sb;
+  window.StatBlockEditor?.load(sb || {});
+  updateStatblockUI();
   charError.textContent = "";
   updatePicPreview();
   charModal.classList.add("open");
@@ -563,6 +595,17 @@ charSave.addEventListener("click", async () => {
   if (!name) { charError.textContent = "Name is required."; return; }
   charError.textContent = "";
 
+  // Combat stat block: a DM keeps/updates it for creatures & villains; otherwise
+  // preserve whatever was stored (so a non-DM save can't wipe it).
+  let statBlock;
+  if (isAdmin) {
+    statBlock = (STATBLOCK_ROLES.includes(selectedRole) && charHasStatblock.checked)
+      ? window.StatBlockEditor.read()
+      : null;
+  } else {
+    statBlock = characters.find(x => x.id === editingId)?.statBlock ?? null;
+  }
+
   const id = editingId || push(charactersRef).key;
   const payload = {
     id,
@@ -575,6 +618,7 @@ charSave.addEventListener("click", async () => {
     picture:     charPicture.value.trim()    || null,
     encountered: charEncountered.checked,
     role:        selectedRole                || null,
+    statBlock:   statBlock,
   };
 
   await set(ref(db, `campaigns/${cid}/characters/${id}`), payload);

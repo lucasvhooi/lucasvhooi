@@ -332,7 +332,7 @@ body.map-page {
               transform 0.18s var(--ease-out-expo);
 }
 .dm-tool-btn:hover {
-  background: rgba(255,204,102,0.18);
+  background: rgba(58,47,20,0.96);
   border-color: var(--accent);
   box-shadow: 0 6px 22px rgba(255,204,102,0.25), 0 2px 8px rgba(0,0,0,0.5);
   transform: translateY(-2px);
@@ -346,7 +346,7 @@ body.map-page {
   color: #e57373;
 }
 .dm-tool-btn.active:hover {
-  background: rgba(229,115,115,0.28);
+  background: rgba(74,28,28,0.96);
   border-color: #ef9a9a;
   color: #ef9a9a;
   box-shadow: 0 6px 22px rgba(229,115,115,0.25), 0 2px 8px rgba(0,0,0,0.5);
@@ -355,6 +355,22 @@ body.map-page {
 /* DM button styles (core, .active, -secondary) centralized in base.css.
    Map keeps a compact size override for its modal controls. */
 .dm-btn { padding: 7px 16px; border-radius: 5px; }
+
+/* Neutral ghost secondary — the base brown fill clashes with the gold theme.
+   Scoped to the map so its modals (Cancel/Done) read as a clean dark button. */
+.dm-btn-secondary {
+  background: rgba(255,255,255,0.04);
+  color: #d8d0c4;
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: none;
+}
+.dm-btn-secondary:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.32);
+  color: var(--text);
+  box-shadow: none;
+  transform: translateY(-1px);
+}
 
 /* ── Modals ── */
 .modal-overlay {
@@ -585,7 +601,7 @@ body.map-page {
   pointer-events: auto;
 }
 .lp-open-btn:hover {
-  background: rgba(255,204,102,0.18);
+  background: rgba(58,47,20,0.96);
   border-color: var(--accent);
   box-shadow: 0 6px 22px rgba(255,204,102,0.25), 0 2px 8px rgba(0,0,0,0.5);
   transform: translateY(-2px);
@@ -1513,30 +1529,17 @@ body.map-page {
 .cl-field-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 13px;
 }
-.cl-f-l { color: var(--accent); }
-.cl-f-eq { color: var(--deep-smoke); }
-.cl-f-v { flex: 1; color: var(--text); }
-.cl-f-del {
-  background: none;
-  border: none;
-  color: var(--deep-smoke);
-  cursor: pointer;
-  font-size: 13px;
-  padding: 1px 4px;
-  border-radius: 3px;
-  transition: color 0.15s, background 0.15s;
+.cl-field-row.cl-field-multiselect { align-items: flex-start; }
+.cl-field-row.cl-field-multiselect .cl-f-l { padding-top: 5px; }
+.cl-f-l {
+  flex: 0 0 104px;
+  color: var(--accent);
+  font-size: 12px;
 }
-.cl-f-del:hover { color: #e57373; background: rgba(229,115,115,0.12); }
-
-.cl-field-add {
-  display: flex;
-  gap: 6px;
-  padding-left: 19px;
-}
-.cl-field-add input {
+.cl-f-input {
   flex: 1;
   min-width: 0;
   background: #161614;
@@ -1545,25 +1548,74 @@ body.map-page {
   color: var(--text);
   font-family: var(--font);
   font-size: 13px;
-  padding: 6px 9px;
+  padding: 5px 9px;
   outline: none;
+  transition: border-color 0.15s;
 }
-.cl-field-add input:focus { border-color: var(--accent); }
-.cl-f-add-btn {
-  flex-shrink: 0;
-  width: 32px;
-  border: 1px solid rgba(255,204,102,0.4);
+.cl-f-input:focus { border-color: var(--accent); }
+.cl-f-input::placeholder { color: var(--deep-smoke); }
+
+/* ── Temperature range (two numeric inputs) ── */
+.cl-range { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.cl-f-num {
+  flex: 0 0 64px;
+  text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.cl-f-num::-webkit-outer-spin-button,
+.cl-f-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.cl-range-sep  { color: var(--deep-smoke); }
+.cl-range-unit { color: var(--deep-smoke); font-size: 12px; }
+
+/* ── Select-based fields (precipitation / terrain picker) ── */
+.cl-f-select {
+  flex: 1;
+  min-width: 0;
+  background: #161614;
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 5px;
-  background: rgba(255,204,102,0.12);
-  color: var(--accent);
-  font-size: 15px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 5px 9px;
+  outline: none;
   cursor: pointer;
-  display: flex;
+  transition: border-color 0.15s;
+}
+.cl-f-select:focus { border-color: var(--accent); }
+
+/* ── Terrain multiselect (chips + add dropdown) ── */
+.cl-multi { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.cl-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.cl-chips-empty { font-size: 12px; font-style: italic; color: var(--deep-smoke); }
+.cl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 12px;
+  padding: 2px 4px 2px 9px;
+  font-size: 12px;
+  color: var(--text);
+}
+.cl-chip-x {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s;
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--deep-smoke);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
 }
-.cl-f-add-btn:hover { background: rgba(255,204,102,0.22); }
+.cl-chip-x:hover { background: rgba(229,115,115,0.18); color: #e57373; }
 
 /* ── Area creatures editor ── */
 .am-creature-add {
@@ -1571,23 +1623,46 @@ body.map-page {
   gap: 6px;
   margin-top: 4px;
 }
-.am-creature-add #am-creature-name { flex: 1; min-width: 0; }
+.am-creature-add .am-creature-search-wrap { position: relative; flex: 1; min-width: 0; }
+.am-creature-add #am-creature-name { width: 100%; min-width: 0; }
 .am-creature-add #am-creature-rarity { flex: 0 0 auto; }
-.am-creature-add-btn {
-  flex-shrink: 0;
-  width: 36px;
-  border: 1px solid rgba(255,204,102,0.4);
-  border-radius: 5px;
-  background: rgba(255,204,102,0.12);
-  color: var(--accent);
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s;
+
+/* Live enemy-library results dropdown */
+.am-creature-results {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #15140f;
+  border: 1px solid rgba(255,204,102,0.32);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
-.am-creature-add-btn:hover { background: rgba(255,204,102,0.22); }
+.am-creature-results.open { display: block; }
+.am-creature-result {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.am-creature-result:last-child { border-bottom: none; }
+.am-creature-result:hover,
+.am-creature-result.active { background: rgba(255,204,102,0.12); }
+.am-creature-result .acr-name { font-size: 13px; color: var(--text); }
+.am-creature-result .acr-meta { font-size: 11px; color: var(--deep-smoke); flex-shrink: 0; }
+.am-creature-result-empty {
+  padding: 8px 10px;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--deep-smoke);
+}
 
 .am-creature-list {
   display: flex;
@@ -1657,6 +1732,11 @@ body.map-page {
   transition: fill 0.15s;
 }
 .area-poly:hover { fill: color-mix(in srgb, var(--ac, #3498db) 24%, transparent); }
+
+/* Fill and border are drawn as separate paths: the fill carries the colour and
+   is clipped to the area's own outline; the border traces only its own ring. */
+.area-fill   { stroke: none; }
+.area-stroke { fill: none; pointer-events: none; }
 
 #area-label-layer,
 #pen-layer {

@@ -1,0 +1,321 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Shared combat stat-block editor styling.
+
+   Styles the markup from src/components/StatBlockEditor.astro, used by both the
+   Combat enemy-template editor and the Characters codex stat blocks. Loaded on
+   both pages. (On the Combat page combat.css also defines these same rules — the
+   two are identical, so the cascade is a no-op there.)
+
+   Relies on the global CSS variables (--accent, --text, --font) from base.css.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+.req         { color: #E57373; }
+.field-hint  { font-size: 11px; color: #555; font-style: italic; margin-left: 4px; }
+
+/* ── Shared control buttons (the editor's Add Attack button) ─────────────────── */
+.ctrl-btn {
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: filter 0.18s, background 0.15s, transform 0.1s, box-shadow 0.18s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.ctrl-btn:active { transform: scale(0.97); }
+.ctrl-btn-secondary {
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  border-color: rgba(255,255,255,0.1);
+}
+.ctrl-btn-secondary:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); }
+.ctrl-btn-sm { padding: 3px 10px; font-size: 11px; }
+
+/* ── Editor sections ─────────────────────────────────────────────────────────── */
+.editor-section {
+  border: 1px solid rgba(200,164,92,0.1);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  background: rgba(255,255,255,0.015);
+}
+
+.editor-section-title {
+  font-family: 'IM Fell English', 'Garamond', serif;
+  font-size: 13px;
+  color: var(--accent);
+  margin-bottom: 12px;
+  letter-spacing: 0.04em;
+}
+
+.editor-section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.editor-section-title-row .editor-section-title { margin-bottom: 0; }
+
+.editor-field-row { margin-bottom: 10px; }
+.editor-field-row:last-child { margin-bottom: 0; }
+
+.editor-field-row.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.editor-field-row.four-col  { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.editor-field-row.five-col  { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.editor-field-row.six-col   { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+
+.editor-label {
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  color: #888;
+  gap: 4px;
+}
+
+.editor-label input,
+.editor-label textarea {
+  box-sizing: border-box;
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 5px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 6px 9px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  resize: vertical;
+  line-height: 1.4;
+}
+.editor-label input:focus,
+.editor-label textarea:focus {
+  border-color: rgba(200,164,92,0.55);
+  box-shadow: 0 0 0 3px rgba(200,164,92,0.07);
+}
+
+/* ── Ability score modifier badge ───────────────────────────────────────────── */
+.et-stat-input { text-align: center; }
+.et-stat-mod {
+  display: block;
+  text-align: center;
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
+  font-weight: bold;
+  line-height: 1;
+}
+.et-stat-mod.positive { color: #66bb6a; }
+.et-stat-mod.negative { color: #e57373; }
+
+/* ── Attack rows ─────────────────────────────────────────────────────────────── */
+.et-attacks-empty { font-size: 11px; color: #555; font-style: italic; margin: 0; }
+
+.et-attack-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.et-atk-top-row {
+  display: grid;
+  grid-template-columns: 1fr 70px auto;
+  gap: 6px;
+  align-items: center;
+}
+.et-attack-row input,
+.et-attack-row textarea {
+  box-sizing: border-box;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 5px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 5px 8px;
+  outline: none;
+  width: 100%;
+}
+.et-attack-row textarea {
+  resize: vertical;
+  line-height: 1.4;
+  min-height: 44px;
+}
+.et-attack-row input:focus,
+.et-attack-row textarea:focus { border-color: rgba(200,164,92,0.55); }
+
+.et-atk-del-btn {
+  background: none; border: 1px solid transparent; color: #444; border-radius: 4px;
+  cursor: pointer; font-size: 13px; padding: 3px 6px; transition: color 0.15s, border-color 0.15s;
+}
+.et-atk-del-btn:hover { color: #e57373; border-color: rgba(229,115,115,0.4); }
+
+/* ── Damage resistance / vulnerability chips ────────────────────────────────── */
+.dmg-type-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.dmg-type-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.03);
+  color: #999;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.dmg-type-chip:hover { background: rgba(255,255,255,0.07); }
+.dmg-type-chip.active { background: rgba(255,255,255,0.06); font-weight: bold; }
+
+/* ── Loot item picker ────────────────────────────────────────────────────────── */
+.item-picker-wrap { position: relative; }
+
+.item-picker-search {
+  box-sizing: border-box;
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 5px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 6px 9px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.item-picker-search:focus { border-color: rgba(200,164,92,0.55); }
+
+.item-picker-results {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 0;
+  right: 0;
+  background: #1a1a18;
+  border: 1px solid rgba(200,164,92,0.15);
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 50;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.8);
+}
+.item-picker-results::-webkit-scrollbar       { width: 4px; }
+.item-picker-results::-webkit-scrollbar-thumb { background: #3a3530; border-radius: 2px; }
+
+.item-picker-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.12s;
+  gap: 8px;
+}
+.item-picker-row:last-child { border-bottom: none; }
+.item-picker-row:hover { background: rgba(200,164,92,0.07); }
+
+.item-picker-name { font-size: 13px; color: var(--text); }
+.item-picker-rarity {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+/* ── Loot item rows ──────────────────────────────────────────────────────────── */
+.et-loot-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.et-loot-empty {
+  font-size: 11px;
+  color: #555;
+  font-style: italic;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.et-loot-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 5px;
+  padding: 6px 10px;
+}
+
+.et-loot-item-name {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.et-loot-item-rarity {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+
+.et-loot-chance-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #888;
+}
+
+.et-loot-chance-input,
+.et-loot-qty-input {
+  width: 46px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 3px 6px;
+  outline: none;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+.et-loot-chance-input:focus,
+.et-loot-qty-input:focus { border-color: rgba(200,164,92,0.55); }
+
+.et-loot-remove-btn {
+  background: transparent;
+  border: none;
+  color: #555;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+.et-loot-remove-btn:hover { color: #e57373; }
+
+/* ── Responsive: collapse multi-col grids on narrow screens ─────────────────── */
+@media (max-width: 680px) {
+  .editor-field-row.five-col  { grid-template-columns: 1fr 1fr 1fr; }
+  .editor-field-row.six-col   { grid-template-columns: 1fr 1fr 1fr; }
+  .editor-field-row.three-col { grid-template-columns: 1fr 1fr; }
+}

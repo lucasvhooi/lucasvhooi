@@ -209,6 +209,7 @@ document.getElementById("combat-bottom").addEventListener("click", e => {
   const started = state.currentTurn >= 0;
   ({
     initiative: () => { closeSidePanels(); hideCombatantInfo(); hideActionToolbar(); },
+    enemies: () => document.getElementById("btn-enemy-list").click(),
     add:    () => document.getElementById("btn-add").click(),
     sort:   () => document.getElementById("btn-sort").click(),
     prev:   () => btnPrev.click(),
@@ -717,7 +718,7 @@ cmRollBtn.addEventListener("click", () => {
 cmPresetSearch.addEventListener("input", () => {
   const q = cmPresetSearch.value.trim().toLowerCase();
   if (!q) { cmPresetList.innerHTML = ""; cmPresetList.style.display = "none"; return; }
-  const matches = enemyTemplates.filter(m => m.name.toLowerCase().includes(q)).slice(0, 12);
+  const matches = spawnableTemplates().filter(m => m.name.toLowerCase().includes(q)).slice(0, 12);
   if (matches.length === 0) { cmPresetList.innerHTML = ""; cmPresetList.style.display = "none"; return; }
 
   cmPresetList.innerHTML = "";
@@ -739,9 +740,10 @@ cmPresetSearch.addEventListener("blur", () => {
 // ── Enemy template search (simplified add-enemy mode) ─────────────────────────
 cmEnemyTmplSearch.addEventListener("input", () => {
   const q = cmEnemyTmplSearch.value.trim().toLowerCase();
+  const all = spawnableTemplates();
   const matches = q
-    ? enemyTemplates.filter(t => t.name.toLowerCase().includes(q)).slice(0, 12)
-    : enemyTemplates.slice(0, 12);
+    ? all.filter(t => t.name.toLowerCase().includes(q)).slice(0, 12)
+    : all.slice(0, 12);
   if (!matches.length) { cmEnemyTmplList.innerHTML = `<div class="preset-item" style="color:#666;font-style:italic">No templates found</div>`; cmEnemyTmplList.style.display = "block"; return; }
   cmEnemyTmplList.innerHTML = "";
   matches.forEach(t => {
@@ -1510,8 +1512,6 @@ attackDmgInput.addEventListener("keydown", e => {
 // ── Enemy Templates ───────────────────────────────────────────────────────────
 let enemyTemplates     = [];
 let selectedTemplateId = null;
-// In-progress loot items for the currently open template
-let etLootItems = [];  // [{ id, name, price, rarity, chance, qty }]
 
 // ── Seed Items ────────────────────────────────────────────────────────────────
 // Stable-ID items written to Firebase on first run (idempotent by ID).
@@ -1733,6 +1733,16 @@ function _checkAndSeedLoot() {
 window._onSystemFlagsLoaded = _checkAndSeedLoot;
 
 // Called every time Firebase pushes an update
+// Real templates plus codex characters that carry a stat block. This spawnable
+// set is what the add-combatant pickers offer; the Enemy Templates management
+// list stays templates-only (so editing there can't fork a codex creature).
+function spawnableTemplates() {
+  const codex = (window._codexCreatures || [])
+    .filter(c => c && c.statBlock && c.name)
+    .map(c => ({ ...c.statBlock, id: c.id, name: c.name, fromCodex: true }));
+  return enemyTemplates.concat(codex).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+}
+
 window._onEnemyTemplatesUpdate = () => {
   const firebaseList = window._enemyTemplates || [];
 
@@ -1749,10 +1759,10 @@ window._onEnemyTemplatesUpdate = () => {
 
   _checkAndSeedLoot(); // also check if loot version needs updating
   renderTemplateList();
-  // If the currently selected template was just updated from Firebase, refresh the loot rows
+  // If the currently selected template was just updated from Firebase, refresh the form
   if (selectedTemplateId) {
     const updated = enemyTemplates.find(t => t.id === selectedTemplateId);
-    if (updated) etLootItems = updated.lootItems ? updated.lootItems.map(x => ({ ...x })) : [];
+    if (updated) window.StatBlockEditor.load(updated);
   }
 };
 
@@ -1779,116 +1789,11 @@ const enemyEditorEmpty     = document.getElementById("enemy-editor-empty");
 const enemyEditorForm      = document.getElementById("enemy-editor-form");
 
 const etName      = document.getElementById("et-name");
-const etHp        = document.getElementById("et-hp");
-const etAc        = document.getElementById("et-ac");
-const etInitMod   = document.getElementById("et-init-mod");
-const etCr        = document.getElementById("et-cr");
-const etSpeed     = document.getElementById("et-speed");
-const etNotes     = document.getElementById("et-notes");
-const etStr       = document.getElementById("et-str");
-const etDex       = document.getElementById("et-dex");
-const etCon       = document.getElementById("et-con");
-const etInt       = document.getElementById("et-int");
-const etWis       = document.getElementById("et-wis");
-const etCha       = document.getElementById("et-cha");
-const etSaves     = document.getElementById("et-saves");
-const etCondImm   = document.getElementById("et-cond-imm");
-const etLanguages = document.getElementById("et-languages");
-const etAttacksList = document.getElementById("et-attacks-list");
-const etAddAttackBtn = document.getElementById("et-add-attack-btn");
 
-// ── Stat modifier display ─────────────────────────────────────────────────────
-const STAT_FIELDS = [
-  { inp: etStr, mod: document.getElementById("et-str-mod") },
-  { inp: etDex, mod: document.getElementById("et-dex-mod") },
-  { inp: etCon, mod: document.getElementById("et-con-mod") },
-  { inp: etInt, mod: document.getElementById("et-int-mod") },
-  { inp: etWis, mod: document.getElementById("et-wis-mod") },
-  { inp: etCha, mod: document.getElementById("et-cha-mod") },
-];
-STAT_FIELDS.forEach(({ inp, mod }) => {
-  inp.addEventListener("input", () => {
-    const v = parseInt(inp.value, 10);
-    if (isNaN(v)) { mod.textContent = "—"; return; }
-    const m = Math.floor((v - 10) / 2);
-    mod.textContent = (m >= 0 ? "+" : "") + m;
-    mod.className = "et-stat-mod" + (m >= 0 ? " positive" : " negative");
-  });
-});
+// The stat-block form fields (HP/AC, ability scores, attacks, damage chips, loot
+// picker) live in the shared StatBlockEditor module — wire them up once here.
+window.StatBlockEditor.mount();
 
-// ── Attacks list ──────────────────────────────────────────────────────────────
-let etAttacks = [];   // [{name, hit, damage}]
-
-etAddAttackBtn.addEventListener("click", () => {
-  etAttacks.push({ name: "", hit: "", damage: "" });
-  renderAttackRows();
-});
-
-function renderAttackRows() {
-  etAttacksList.innerHTML = "";
-  if (etAttacks.length === 0) {
-    etAttacksList.innerHTML = `<p class="et-attacks-empty">No attacks defined.</p>`;
-    return;
-  }
-  etAttacks.forEach((atk, i) => {
-    const row = document.createElement("div");
-    row.className = "et-attack-row";
-    row.innerHTML = `
-      <div class="et-atk-top-row">
-        <input class="et-atk-name"   type="text" placeholder="Attack name…" value="${escHtml(atk.name)}" />
-        <input class="et-atk-hit"    type="text" placeholder="+5"           value="${escHtml(atk.hit)}"  />
-        <button type="button" class="et-atk-del-btn" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>
-      </div>
-      <textarea class="et-atk-damage" placeholder="1d8+3 piercing&#10;On hit: …" rows="2">${escHtml(atk.damage)}</textarea>`;
-    row.querySelector(".et-atk-name").addEventListener("input",   e => { etAttacks[i].name   = e.target.value; });
-    row.querySelector(".et-atk-hit").addEventListener("input",    e => { etAttacks[i].hit    = e.target.value; });
-    row.querySelector(".et-atk-damage").addEventListener("input", e => { etAttacks[i].damage = e.target.value; });
-    row.querySelector(".et-atk-del-btn").addEventListener("click", () => { etAttacks.splice(i, 1); renderAttackRows(); });
-    etAttacksList.appendChild(row);
-  });
-}
-
-// ── Damage resistances / vulnerabilities (toggle chips) ───────────────────────
-let etResistances = [];
-let etVulnerabilities = [];
-
-function renderDmgChips() {
-  [["et-resist-chips", etResistances, etVulnerabilities],
-   ["et-vuln-chips",   etVulnerabilities, etResistances]].forEach(([elId, list, other]) => {
-    const el = document.getElementById(elId);
-    if (!el) return;
-    el.innerHTML = "";
-    DAMAGE_TYPES.forEach(dt => {
-      const on = list.includes(dt.id);
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "dmg-type-chip" + (on ? " active" : "");
-      if (on) { btn.style.color = dt.color; btn.style.borderColor = dt.color; }
-      btn.innerHTML = `<iconify-icon icon="${dt.icon}"></iconify-icon> ${dt.label}`;
-      btn.addEventListener("click", () => {
-        const i = list.indexOf(dt.id);
-        if (i === -1) {
-          list.push(dt.id);
-          const j = other.indexOf(dt.id);   // a type is resist XOR vulnerable, never both
-          if (j !== -1) other.splice(j, 1);
-        } else {
-          list.splice(i, 1);
-        }
-        renderDmgChips();
-      });
-      el.appendChild(btn);
-    });
-  });
-}
-
-const etGpMin     = document.getElementById("et-gp-min");
-const etGpMax     = document.getElementById("et-gp-max");
-const etItemsMin  = document.getElementById("et-items-min");
-const etItemsMax  = document.getElementById("et-items-max");
-const etItemSearch   = document.getElementById("et-item-search");
-const etItemResults  = document.getElementById("et-item-results");
-const etLootItemsEl  = document.getElementById("et-loot-items");
-const etLootEmpty    = document.getElementById("et-loot-empty");
 const etSaveBtn      = document.getElementById("et-save-btn");
 const etDeleteBtn    = document.getElementById("et-delete-btn");
 const etSpawnBtn     = document.getElementById("et-spawn-btn");
@@ -1949,7 +1854,6 @@ function renderTemplateList() {
 // ── Editor ────────────────────────────────────────────────────────────────────
 btnNewEnemy.addEventListener("click", () => {
   selectedTemplateId = null;
-  etLootItems = [];
   clearEditorFields();
   showEditorForm();
   etName.focus();
@@ -1960,52 +1864,17 @@ function openTemplateEditor(id) {
   const tmpl = enemyTemplates.find(t => t.id === id);
   if (!tmpl) return;
   selectedTemplateId = id;
-  etLootItems = tmpl.lootItems ? tmpl.lootItems.map(x => ({ ...x })) : [];
-
-  etName.value     = tmpl.name    || "";
-  etHp.value       = tmpl.hp      ?? "";
-  etAc.value       = tmpl.ac      ?? "";
-  etInitMod.value  = tmpl.initMod ?? "";
-  etCr.value       = tmpl.cr      || "";
-  etSpeed.value    = tmpl.speed   || "";
-  etNotes.value    = tmpl.notes   || "";
-  // Stats
-  const st = tmpl.stats || {};
-  etStr.value = st.str ?? ""; etDex.value = st.dex ?? ""; etCon.value = st.con ?? "";
-  etInt.value = st.int ?? ""; etWis.value = st.wis ?? ""; etCha.value = st.cha ?? "";
-  STAT_FIELDS.forEach(({ inp, mod }) => inp.dispatchEvent(new Event("input")));
-  // Attacks
-  etAttacks = tmpl.attacks ? tmpl.attacks.map(a => ({ ...a })) : [];
-  renderAttackRows();
-  // Damage modifiers
-  etResistances     = Array.isArray(tmpl.resistances)    ? [...tmpl.resistances]    : [];
-  etVulnerabilities = Array.isArray(tmpl.vulnerabilities) ? [...tmpl.vulnerabilities] : [];
-  renderDmgChips();
-  // Extra info
-  etSaves.value     = tmpl.saves     || "";
-  etCondImm.value   = tmpl.condImm   || "";
-  etLanguages.value = tmpl.languages || "";
-  etGpMin.value    = tmpl.loot?.gpMin    ?? 0;
-  etGpMax.value    = tmpl.loot?.gpMax    ?? 0;
-  etItemsMin.value = tmpl.loot?.itemsMin ?? 0;
-  etItemsMax.value = tmpl.loot?.itemsMax ?? 0;
+  etName.value = tmpl.name || "";
+  window.StatBlockEditor.load(tmpl);
   etError.textContent = "";
-
-  renderLootItemRows();
   showEditorForm();
   renderTemplateList();
 }
 
 function clearEditorFields() {
-  etName.value = etHp.value = etAc.value = etInitMod.value = etCr.value = etSpeed.value = etNotes.value = "";
-  etStr.value = etDex.value = etCon.value = etInt.value = etWis.value = etCha.value = "";
-  STAT_FIELDS.forEach(({ mod }) => { mod.textContent = "—"; mod.className = "et-stat-mod"; });
-  etAttacks = []; renderAttackRows();
-  etResistances = []; etVulnerabilities = []; renderDmgChips();
-  etSaves.value = etCondImm.value = etLanguages.value = "";
-  etGpMin.value = etGpMax.value = etItemsMin.value = etItemsMax.value = "0";
+  etName.value = "";
+  window.StatBlockEditor.clear();
   etError.textContent = "";
-  renderLootItemRows();
 }
 
 function showEditorForm() {
@@ -2014,135 +1883,16 @@ function showEditorForm() {
   etDeleteBtn.style.display = selectedTemplateId ? "" : "none";
 }
 
-// ── Loot item rows ────────────────────────────────────────────────────────────
-function renderLootItemRows() {
-  etLootItemsEl.innerHTML = "";
-  if (etLootItems.length === 0) {
-    etLootItemsEl.appendChild(etLootEmpty);
-    etLootEmpty.style.display = "";
-    return;
-  }
-  etLootEmpty.style.display = "none";
-
-  const RARITY_COLS = {
-    "common": "#9e9e9e", "uncommon": "#4caf50", "rare": "#2196f3",
-    "very rare": "#9c27b0", "legendary": "#ff9800"
-  };
-
-  etLootItems.forEach((item, idx) => {
-    const row = document.createElement("div");
-    row.className = "et-loot-row";
-    const rc = RARITY_COLS[item.rarity || "common"] || "#9e9e9e";
-    row.innerHTML = `
-      <span class="et-loot-item-name" title="${escHtml(item.name)}">${escHtml(item.name)}</span>
-      <span class="et-loot-item-rarity" style="color:${rc};border-color:${rc}33">${item.rarity || "common"}</span>
-      <div class="et-loot-chance-group">
-        <input class="et-loot-chance-input" type="number" value="${item.chance ?? 100}" min="1" max="100" title="Drop chance %" />
-        <span>%</span>
-        <span style="margin-left:4px;color:#666">×</span>
-        <input class="et-loot-qty-input" type="number" value="${item.qty ?? 1}" min="1" max="99" title="Quantity" />
-      </div>
-      <button class="et-loot-remove-btn" title="Remove">&times;</button>`;
-
-    row.querySelector(".et-loot-chance-input").addEventListener("change", e => {
-      etLootItems[idx].chance = Math.max(1, Math.min(100, parseInt(e.target.value, 10) || 100));
-    });
-    row.querySelector(".et-loot-qty-input").addEventListener("change", e => {
-      etLootItems[idx].qty = Math.max(1, parseInt(e.target.value, 10) || 1);
-    });
-    row.querySelector(".et-loot-remove-btn").addEventListener("click", () => {
-      etLootItems.splice(idx, 1);
-      renderLootItemRows();
-    });
-
-    etLootItemsEl.appendChild(row);
-  });
-}
-
-// ── Item picker (search & add) ────────────────────────────────────────────────
-etItemSearch.addEventListener("input", () => {
-  const q = etItemSearch.value.trim().toLowerCase();
-  if (!q) { etItemResults.style.display = "none"; return; }
-
-  const items = window._combatItems || [];
-  const matches = items.filter(item => item.name.toLowerCase().includes(q)).slice(0, 15);
-
-  if (!matches.length) { etItemResults.style.display = "none"; return; }
-
-  const RARITY_COLS = {
-    "common": "#9e9e9e", "uncommon": "#4caf50", "rare": "#2196f3",
-    "very rare": "#9c27b0", "legendary": "#ff9800"
-  };
-
-  etItemResults.innerHTML = "";
-  matches.forEach(item => {
-    const row = document.createElement("div");
-    row.className = "item-picker-row";
-    const rc = RARITY_COLS[item.rarity || "common"] || "#9e9e9e";
-    row.innerHTML = `
-      <span class="item-picker-name">${escHtml(item.name)}</span>
-      <span class="item-picker-rarity" style="color:${rc};border-color:${rc}33">${item.rarity || "common"}</span>`;
-    row.addEventListener("click", () => {
-      // Prevent duplicates
-      if (!etLootItems.find(x => x.id === item.id)) {
-        etLootItems.push({
-          id:     item.id,
-          name:   item.name,
-          price:  item.price ?? null,
-          rarity: item.rarity || "common",
-          chance: 100,
-          qty:    1,
-        });
-        renderLootItemRows();
-      }
-      etItemSearch.value = "";
-      etItemResults.style.display = "none";
-    });
-    etItemResults.appendChild(row);
-  });
-  etItemResults.style.display = "block";
-});
-
-etItemSearch.addEventListener("blur", () => {
-  setTimeout(() => { etItemResults.style.display = "none"; }, 180);
-});
-
 // ── Save template ─────────────────────────────────────────────────────────────
 etSaveBtn.addEventListener("click", () => {
   const name = etName.value.trim();
   if (!name) { etError.textContent = "Name is required."; return; }
   etError.textContent = "";
 
-  const statsPayload = (() => {
-    const pairs = [["str",etStr],["dex",etDex],["con",etCon],["int",etInt],["wis",etWis],["cha",etCha]];
-    const obj = {};
-    pairs.forEach(([k, el]) => { const v = parseInt(el.value, 10); if (!isNaN(v)) obj[k] = v; });
-    return Object.keys(obj).length ? obj : null;
-  })();
-
   const payload = {
-    id:        selectedTemplateId || (Date.now().toString(36) + Math.random().toString(36).slice(2)),
+    id:   selectedTemplateId || (Date.now().toString(36) + Math.random().toString(36).slice(2)),
     name,
-    hp:        parseInt(etHp.value, 10)      || 10,
-    ac:        parseInt(etAc.value, 10)      || 10,
-    initMod:   parseInt(etInitMod.value, 10) || 0,
-    cr:        etCr.value.trim()             || "—",
-    speed:     etSpeed.value.trim()          || null,
-    notes:     etNotes.value.trim()          || null,
-    stats:     statsPayload,
-    attacks:   etAttacks.filter(a => a.name.trim()).map(a => ({ ...a })),
-    resistances:     [...etResistances],
-    vulnerabilities: [...etVulnerabilities],
-    saves:     etSaves.value.trim()          || null,
-    condImm:   etCondImm.value.trim()        || null,
-    languages: etLanguages.value.trim()      || null,
-    loot: {
-      gpMin:    parseInt(etGpMin.value,    10) || 0,
-      gpMax:    parseInt(etGpMax.value,    10) || 0,
-      itemsMin: parseInt(etItemsMin.value, 10) || 0,
-      itemsMax: parseInt(etItemsMax.value, 10) || 0,
-    },
-    lootItems: etLootItems.map(x => ({ ...x })),
+    ...window.StatBlockEditor.read(),
   };
 
   if (!selectedTemplateId) selectedTemplateId = payload.id;
@@ -2160,7 +1910,6 @@ etDeleteBtn.addEventListener("click", () => {
   if (!confirm(`Delete template "${tmpl?.name}"?`)) return;
   deleteTemplate(selectedTemplateId);
   selectedTemplateId = null;
-  etLootItems = [];
   enemyEditorEmpty.style.display = "";
   enemyEditorForm.style.display  = "none";
   renderTemplateList();
