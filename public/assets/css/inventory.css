@@ -818,34 +818,36 @@
 }
 
 /* ── Side detail panel ───────────────────────────────────────────────────────── */
+/* Full-height drawer pinned to the right edge of the viewport (like the combat
+   inspector) so it's always fully on screen — no page-scrolling to reveal it.
+   The list reserves room for it via .inv-content.panel-open. */
 .inv-detail-panel {
-  flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
   width: 0;
-  margin-left: 0;
   overflow: hidden;
-  transition:
-    width 0.42s cubic-bezier(0.16, 1, 0.3, 1),
-    margin-left 0.42s cubic-bezier(0.16, 1, 0.3, 1);
-  position: sticky;
-  top: 2.5vh;
-  align-self: flex-start;
+  z-index: 60;
+  transition: width 0.42s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .inv-detail-panel.open {
-  width: 440px;
-  margin-left: 20px;
-  height: 95vh;
+  width: 460px;
+}
+
+/* Push list content clear of the drawer instead of letting it slide under. */
+.inv-content.panel-open {
+  padding-right: 480px;
 }
 
 .inv-detail-inner {
-  width: 440px;
-  height: 100%;
+  width: 460px;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background: linear-gradient(160deg, #0e100c 0%, #0b0e09 100%);
-  border: 1px solid rgba(200,164,92,0.11);
   border-left: 3px solid #3a2510;
-  border-radius: 10px;
   overflow: hidden;
   opacity: 0;
   transform: translateX(18px);
@@ -1492,6 +1494,9 @@
 
 /* ── Responsive ──────────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
+  /* Drawer overlays the list here, so the list no longer reserves side room */
+  .inv-content.panel-open { padding-right: 0; }
+
   .inv-detail-panel {
     position: fixed;
     top: 0; right: 0; bottom: 0;

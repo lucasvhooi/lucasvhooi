@@ -210,7 +210,9 @@ body {
 .ctb-group { display: flex; align-items: center; gap: 8px; }
 .ctb-left  { justify-self: start; }
 .ctb-right { justify-self: end; }
-.ctb-dock .ctb-toggle { justify-self: center; }
+/* Prev / toggle / next grouped in the centre column so the turn arrows sit
+   directly beside the start/end toggle instead of out at the dock edges. */
+.ctb-center { display: flex; align-items: center; gap: 8px; justify-self: center; }
 
 .ctb-btn {
   flex: none;
@@ -2107,6 +2109,19 @@ body {
   flex-shrink: 0;
 }
 .atk-action-btn:active { transform: scale(0.95); }
+
+/* Damage-type selector — neutral navbar look (matches .ctb-btn) when untyped;
+   tints to the chosen damage type's colour once one is picked (see .typed). */
+.atk-action-btn.dmgtype-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(200, 164, 92, 0.28);
+  color: #d8cba8;
+}
+.atk-action-btn.dmgtype-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  filter: brightness(1.12);
+}
+.atk-action-btn.dmgtype-btn.typed { border-color: currentColor; }
 
 .atk-deal-btn {
   background: #3b1515;

@@ -127,15 +127,18 @@ import StatBlockEditor from '../components/StatBlockEditor.astro';
       <div class="ctb-dock">
         <div class="ctb-group ctb-left">
           <!-- List-management buttons relocated from the initiative panel header (desktop) -->
-          <button class="ctb-btn ctb-mgmt" data-act="enemies" title="Enemy Templates"><iconify-icon icon="game-icons:skull"></iconify-icon></button>
+          <button class="ctb-btn ctb-mgmt" data-act="enemies" title="Enemy Templates"><iconify-icon icon="game-icons:death-skull"></iconify-icon></button>
           <button class="ctb-btn ctb-mgmt" data-act="add" title="Add Combatant"><iconify-icon icon="lucide:plus"></iconify-icon></button>
           <button class="ctb-btn ctb-mgmt" data-act="sort" title="Sort by Initiative"><iconify-icon icon="lucide:arrow-up-down"></iconify-icon></button>
           <button class="ctb-btn" data-act="initiative" title="Initiative"><iconify-icon icon="game-icons:rank-3"></iconify-icon></button>
-          <button class="ctb-btn" data-act="prev" title="Previous Turn" disabled><iconify-icon icon="lucide:chevron-left"></iconify-icon></button>
         </div>
-        <button class="ctb-btn ctb-toggle" data-act="toggle" title="Start Combat"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon></button>
-        <div class="ctb-group ctb-right">
+        <!-- Turn controls flank the start/end toggle so prev/next sit right beside it -->
+        <div class="ctb-center">
+          <button class="ctb-btn" data-act="prev" title="Previous Turn" disabled><iconify-icon icon="lucide:chevron-left"></iconify-icon></button>
+          <button class="ctb-btn ctb-toggle" data-act="toggle" title="Start Combat"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon></button>
           <button class="ctb-btn" data-act="next" title="Next Turn" disabled><iconify-icon icon="lucide:chevron-right"></iconify-icon></button>
+        </div>
+        <div class="ctb-group ctb-right">
           <button class="ctb-btn" data-act="log" title="Combat Log"><iconify-icon icon="lucide:scroll-text"></iconify-icon></button>
           <button class="ctb-btn" data-act="loot" title="Loot"><iconify-icon icon="game-icons:coins"></iconify-icon></button>
         </div>

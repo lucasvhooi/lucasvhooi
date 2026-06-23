@@ -396,34 +396,36 @@
 .char-swipe-delete { display: none; }
 
 /* ── Side detail panel ── */
+/* Full-height drawer pinned to the right edge of the viewport (like the combat
+   inspector) so it's always fully on screen — no page-scrolling to reveal it.
+   The list reserves room for it via .chars-content.panel-open. */
 .char-detail-panel {
-  flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
   width: 0;
-  margin-left: 0;
   overflow: hidden;
-  transition:
-    width 0.42s cubic-bezier(0.16, 1, 0.3, 1),
-    margin-left 0.42s cubic-bezier(0.16, 1, 0.3, 1);
-  position: sticky;
-  top: 2.5vh;
-  align-self: flex-start;
+  z-index: 60;
+  transition: width 0.42s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .char-detail-panel.open {
-  width: 440px;
-  margin-left: 20px;
-  height: 95vh;
+  width: 460px;
+}
+
+/* Push list content clear of the drawer instead of letting it slide under. */
+.chars-content.panel-open {
+  padding-right: 480px;
 }
 
 .char-detail-inner {
-  width: 440px;
-  height: 100%;
+  width: 460px;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background: linear-gradient(160deg, #1b1e24 0%, #101216 100%);
-  border: 1px solid rgba(180,196,224,0.12);
   border-left: 3px solid #4a8a7a;
-  border-radius: 10px;
   overflow: hidden;
   opacity: 0;
   transform: translateX(18px);
@@ -595,8 +597,8 @@
 .modal-overlay.open { display: flex; }
 
 .modal-box {
-  background: #0e1209;
-  border: 1px solid #2a3a20;
+  background: #161614;
+  border: 1px solid rgba(200,164,92,0.15);
   border-radius: 12px;
   padding: 0;
   width: 520px;
@@ -606,14 +608,14 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.9), 0 0 0 1px rgba(74,138,122,0.08), inset 0 1px 0 rgba(255,255,255,0.03);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.9), 0 0 0 1px rgba(200,164,92,0.06), inset 0 1px 0 rgba(255,255,255,0.03);
   font-family: var(--font);
   color: var(--text);
 }
 
 .modal-header {
-  background: linear-gradient(135deg, #141c10 0%, #101508 100%);
-  border-bottom: 1px solid #2a3a20;
+  background: linear-gradient(135deg, #1b1b18 0%, #161614 100%);
+  border-bottom: 1px solid rgba(200,164,92,0.15);
   border-radius: 12px 12px 0 0;
   padding: 16px 20px 15px;
   display: flex;
@@ -645,7 +647,7 @@
   transition: color 0.15s, border-color 0.15s, background 0.15s;
   flex-shrink: 0;
 }
-.modal-close-x:hover { color: var(--accent); border-color: #2a3a20; background: rgba(255,255,255,0.04); }
+.modal-close-x:hover { color: var(--accent); border-color: rgba(200,164,92,0.3); background: rgba(255,255,255,0.04); }
 
 .modal-body {
   overflow-y: auto;
@@ -677,8 +679,8 @@
 .form-row textarea {
   box-sizing: border-box;
   width: 100%;
-  background: #141c10;
-  border: 1px solid #2a3a20;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 6px;
   color: var(--text);
   font-family: var(--font);
@@ -691,8 +693,8 @@
 .form-row input:focus,
 .form-row select:focus,
 .form-row textarea:focus {
-  border-color: #4a8a7a;
-  box-shadow: 0 0 0 2px rgba(74,138,122,0.12);
+  border-color: rgba(200,164,92,0.55);
+  box-shadow: 0 0 0 2px rgba(200,164,92,0.08);
 }
 
 .form-row textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
@@ -708,8 +710,8 @@
 }
 
 .modal-actions {
-  border-top: 1px solid #1e2a18;
-  background: linear-gradient(0deg, #0e1209 0%, transparent 100%);
+  border-top: 1px solid rgba(200,164,92,0.12);
+  background: linear-gradient(0deg, #161614 0%, transparent 100%);
   padding: 13px 22px 14px;
   display: flex;
   gap: 10px;
@@ -734,20 +736,20 @@
 .checkbox-label input[type="checkbox"] { display: none; }
 .checkbox-box {
   width: 18px; height: 18px;
-  border: 2px solid #2a3a20;
+  border: 2px solid rgba(255,255,255,0.18);
   border-radius: 4px;
-  background: #141c10;
+  background: rgba(255,255,255,0.05);
   flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   transition: background 0.15s, border-color 0.15s;
 }
 .checkbox-label input[type="checkbox"]:checked + .checkbox-box {
-  background: #4a8a7a; border-color: #4a8a7a;
+  background: var(--accent); border-color: var(--accent);
 }
 .checkbox-label input[type="checkbox"]:checked + .checkbox-box::after {
   content: "";
   width: 5px; height: 9px;
-  border: 2px solid #0e1209;
+  border: 2px solid #161614;
   border-top: none; border-left: none;
   transform: rotate(45deg) translate(-1px, -1px);
   display: block;
@@ -766,19 +768,19 @@
   height: 72px;
   border-radius: 50%;
   background: rgba(255,255,255,0.03);
-  border: 2px dashed #2a3a20;
+  border: 2px dashed rgba(255,255,255,0.18);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 26px;
-  color: #3a4a38;
+  color: #666;
   cursor: pointer;
   flex-shrink: 0;
   overflow: hidden;
   position: relative;
   transition: border-color 0.2s, background 0.2s;
 }
-.char-pic-preview:hover { border-color: #4a8a7a; background: rgba(74,138,122,0.06); }
+.char-pic-preview:hover { border-color: var(--accent); background: rgba(200,164,92,0.06); }
 .char-pic-preview.drag-over { border-color: var(--accent); background: rgba(200,164,92,0.08); }
 .char-pic-preview.uploading { opacity: 0.6; }
 
@@ -806,10 +808,10 @@
 }
 
 .char-upload-btn {
-  background: rgba(74,138,122,0.1);
-  border: 1px solid rgba(74,138,122,0.3);
+  background: rgba(200,164,92,0.1);
+  border: 1px solid rgba(200,164,92,0.3);
   border-radius: 6px;
-  color: #7abcac;
+  color: var(--accent);
   font-size: 14px;
   width: 34px;
   height: 34px;
@@ -820,7 +822,7 @@
   flex-shrink: 0;
   transition: background 0.15s, color 0.15s;
 }
-.char-upload-btn:hover { background: rgba(74,138,122,0.18); color: #9adccc; }
+.char-upload-btn:hover { background: rgba(200,164,92,0.18); color: #ffd98a; }
 
 .char-upload-status {
   font-size: 11px;
@@ -973,6 +975,9 @@
 
 /* ── Responsive ── */
 @media (max-width: 900px) {
+  /* Drawer becomes a centered modal, so the list no longer reserves side room */
+  .chars-content.panel-open { padding-right: 0; }
+
   /* Centered modal (with backdrop) instead of a right-side drawer */
   .char-detail-panel {
     position: fixed;
