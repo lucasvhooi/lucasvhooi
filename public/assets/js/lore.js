@@ -3,7 +3,7 @@ import { ref, set, remove, onValue, push, get } from "https://www.gstatic.com/fi
 import { openGivePanel }              from "./give-to-player.js";
 
 const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
-const isAdmin = _session?.role === 'admin';
+const isAdmin = _session?.campaignRole === 'dm';
 const cid = _session?.campaignId;
 if (!cid) { window.location.href = '/campaigns'; throw new Error('No campaign selected'); }
 

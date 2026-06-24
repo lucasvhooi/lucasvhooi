@@ -23,9 +23,15 @@
         ".read":  "auth != null && auth.uid === $uid",
         ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         ".validate": "newData.hasChildren(['username', 'color', 'role']) && (newData.child('role').val() === 'player' || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "username": { ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 30" },
+        "color":    { ".validate": "newData.isString() && newData.val().length <= 9" },
+        "tag":      { ".validate": "newData.isString() && newData.val().length <= 8" },
         "invites": {
           ".read":  "auth != null && auth.uid === $uid",
-          ".write": "auth != null"
+          ".write": "auth != null",
+          "$inviteId": {
+            ".validate": "newData.child('campaignId').isString() && root.child('campaigns').child(newData.child('campaignId').val()).child('members').child(auth.uid).val() === 'dm'"
+          }
         }
       }
     },
@@ -71,7 +77,8 @@
         ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || !data.exists() || data.child('createdBy').val() === auth.uid || data.child('members').child(auth.uid).val() === 'dm')",
         "members": {
           "$uid": {
-            ".write": "auth != null && auth.uid === $uid"
+            ".write": "auth != null && ((auth.uid === $uid && (!newData.exists() || newData.val() === 'player')) || root.child('campaigns').child($campaignId).child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+            ".validate": "newData.val() === 'player' || newData.val() === 'dm'"
           }
         },
         "spellbook": {

@@ -21,8 +21,8 @@ function loadContinents(continents) {
   const locationList = document.getElementById("location-list");
   locationList.innerHTML = ""; // Clear any existing content
 
-  // Read the login mode from localStorage:
-  const isAdmin = localStorage.getItem("isAdmin") === "true";
+  // DM status is per-campaign — read the role for the campaign the user entered.
+  const isAdmin = (() => { try { return JSON.parse(localStorage.getItem("playerSession"))?.campaignRole === "dm"; } catch { return false; } })();
 
   Object.keys(continents).forEach(continentKey => {
     const continentData = continents[continentKey];

@@ -1617,6 +1617,70 @@ body.map-page {
 }
 .cl-chip-x:hover { background: rgba(229,115,115,0.18); color: #e57373; }
 
+/* ── Area editor (full-screen, two-pane) ── */
+/* Desktop: a full-bleed overlay that starts past the sidebar, so the nav stays
+   on screen and usable. The drawer takes over below 900px (see base.css). */
+@media (min-width: 901px) {
+  #area-modal.modal-overlay { left: 220px; }
+}
+.area-modal-box {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  border-radius: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+.am-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 28px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
+}
+.am-hdr h2 { margin: 0; text-align: left; }
+
+.am-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  overflow: hidden;
+  min-height: 0;
+}
+.am-col {
+  padding: 20px 28px;
+  overflow-y: auto;
+  min-height: 0;
+}
+.am-col-details { padding-top: 22px; }
+.am-col-creatures {
+  border-right: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  flex-direction: column;
+}
+.am-col-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+/* The error + action row sit outside the scrolling layout. */
+.area-modal-box > .modal-error { padding: 8px 28px 0; margin-bottom: 0; }
+.area-modal-box > .modal-actions {
+  padding: 14px 28px 18px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
 /* ── Area creatures editor ── */
 .am-creature-add {
   display: flex;
@@ -1626,6 +1690,22 @@ body.map-page {
 .am-creature-add .am-creature-search-wrap { position: relative; flex: 1; min-width: 0; }
 .am-creature-add #am-creature-name { width: 100%; min-width: 0; }
 .am-creature-add #am-creature-rarity { flex: 0 0 auto; }
+
+/* These inputs live outside a .form-row, so they need their own field styling. */
+.am-creature-add input,
+.am-creature-add select {
+  background: #111110;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 5px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.am-creature-add input:focus,
+.am-creature-add select:focus { border-color: var(--accent); }
 
 /* Live enemy-library results dropdown */
 .am-creature-results {
@@ -1668,7 +1748,10 @@ body.map-page {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  margin-top: 8px;
+  margin-top: 12px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 .am-creature-empty {
   font-size: 12px;
@@ -1694,6 +1777,20 @@ body.map-page {
   border-radius: 10px;
   flex-shrink: 0;
 }
+/* Per-row rarity adjuster — pill-shaped select tinted to its current value. */
+.am-creature-rar-select {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-family: var(--font);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+  outline: none;
+}
+.am-creature-rar-select option { background: #161614; color: var(--text); text-transform: none; }
 .rar-common   { background: rgba(150,150,150,0.18); color: #b8b8b8; }
 .rar-uncommon { background: rgba(120,200,120,0.16); color: #8bd48b; }
 .rar-rare     { background: rgba(255,204,102,0.16); color: var(--accent); }
@@ -1708,6 +1805,28 @@ body.map-page {
   transition: color 0.15s, background 0.15s;
 }
 .am-creature-del:hover { color: #e57373; background: rgba(229,115,115,0.12); }
+
+/* Area editor stacks into a single scrolling column on small screens. */
+@media (max-width: 760px) {
+  .area-modal-box {
+    width: 100%;
+    max-width: 100%;
+    height: 95vh;
+    max-height: 95vh;
+    padding: 0;
+  }
+  .am-layout {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .am-col { overflow: visible; }
+  .am-col-creatures {
+    border-right: none;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .am-creature-list { flex: none; overflow: visible; }
+}
 
 /* ════════════════════════════════════════════════════════════════════════
    Area overlays (pen tool)

@@ -5,7 +5,7 @@ const _session = (() => {
   try { return JSON.parse(localStorage.getItem('playerSession')); }
   catch { return null; }
 })();
-const isAdmin = _session?.role === 'admin';
+const isAdmin = _session?.campaignRole === 'dm';
 const _userId = _session?.id || null;
 const cid = _session?.campaignId;
 if (!cid) { window.location.href = '/campaigns'; throw new Error('No campaign selected'); }

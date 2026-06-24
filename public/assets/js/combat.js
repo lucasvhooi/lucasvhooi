@@ -318,6 +318,9 @@ function attachCombatSwipeToDelete(swipe, card, c) {
     if (!decided && (Math.abs(ddx) > 8 || Math.abs(ddy) > 8)) {
       decided = true;
       horizontal = Math.abs(ddx) > Math.abs(ddy);
+      // Only reveal the delete underlay once we've committed to a horizontal
+      // swipe — a tap or vertical scroll must never show it.
+      if (horizontal) swipe.classList.add("swiping");
     }
     if (!horizontal) return;        // vertical gesture → let the list scroll
     e.preventDefault();             // we own the horizontal gesture
@@ -340,7 +343,7 @@ function attachCombatSwipeToDelete(swipe, card, c) {
       }, 180);
     } else {
       card.style.transform = "";
-      swipe.classList.remove("swipe-ready");
+      swipe.classList.remove("swiping", "swipe-ready");
       if (Math.abs(dx) > 8) { card._swiped = true; setTimeout(() => { card._swiped = false; }, 60); }
     }
   };
@@ -1198,6 +1201,16 @@ function updateDmgTypeButtons() {
 }
 
 function openDmgTypePicker(anchor) {
+  // Toggle: pressing the same trigger again closes the popup
+  if (dmgTypePicker.style.display === "block" && dmgTypePicker._anchor === anchor) {
+    dmgTypePicker.style.display = "none";
+    dmgTypePicker._anchor = null;
+    return;
+  }
+  // Only one popup open at a time
+  condPicker.style.display = "none";
+  condIdx = null;
+
   dmgTypeGrid.innerHTML = "";
   const mk = (id, label, icon, color) => {
     const btn = document.createElement("button");
@@ -1217,6 +1230,7 @@ function openDmgTypePicker(anchor) {
   mk(null, "Untyped", "game-icons:drop", "#9e9e9e");
   DAMAGE_TYPES.forEach(dt => mk(dt.id, dt.label, dt.icon, dt.color));
   dmgTypePicker.style.display = "block";
+  dmgTypePicker._anchor = anchor;
   positionNear(dmgTypePicker, anchor);
 }
 
@@ -1242,6 +1256,16 @@ const condRoundsInput = document.getElementById("cond-rounds-input");
 let condIdx = null;
 
 function openCondPicker(idx, anchor) {
+  // Toggle: pressing the same combatant's trigger again closes the popup
+  if (condPicker.style.display === "block" && condIdx === idx) {
+    condPicker.style.display = "none";
+    condIdx = null;
+    return;
+  }
+  // Only one popup open at a time
+  dmgTypePicker.style.display = "none";
+  dmgTypePicker._anchor = null;
+
   condIdx = idx;
   const c = state.combatants[idx];
   condGrid.innerHTML = "";
@@ -1652,8 +1676,8 @@ attackDmgInput.addEventListener("keydown", e => {
 // ── Enemy Templates ───────────────────────────────────────────────────────────
 let enemyTemplates     = [];
 let selectedTemplateId = null;
-// Per-template quantities queued for a multi-template "add in one go" spawn.
-const templateQueue    = new Map();   // templateId -> count
+// Per-template entries queued for a multi-template "add in one go" spawn.
+const templateQueue    = new Map();   // templateId -> { count, init, rollEach }
 
 // ── Seed Items ────────────────────────────────────────────────────────────────
 // Stable-ID items written to Firebase on first run (idempotent by ID).
@@ -1894,13 +1918,14 @@ window._onEnemyTemplatesUpdate = () => {
 
   // Show/hide import button based on whether dnd5e creatures are already imported
   const _cmSession = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
-  if (_cmSession?.role === 'admin' && btnImportCreatures) {
+  if (_cmSession?.campaignRole === 'dm' && btnImportCreatures) {
     const hasDnd5e = firebaseList.some(t => t.id?.startsWith("dnd5e_"));
     btnImportCreatures.style.display = hasDnd5e ? "none" : "inline-flex";
   }
 
   _checkAndSeedLoot(); // also check if loot version needs updating
   renderTemplateList();
+  if (enemyTemplatesModal.classList.contains("open")) renderEnemyQueue();
   // If the currently selected template was just updated from Firebase, refresh the form
   if (selectedTemplateId) {
     const updated = enemyTemplates.find(t => t.id === selectedTemplateId);
@@ -1929,6 +1954,10 @@ const enemyTemplateListEl  = document.getElementById("enemy-template-list");
 const btnNewEnemy          = document.getElementById("btn-new-enemy");
 const enemyEditorEmpty     = document.getElementById("enemy-editor-empty");
 const enemyEditorForm      = document.getElementById("enemy-editor-form");
+const enemyEditorPanel     = document.getElementById("enemy-editor-panel");
+const enemyEditorBack      = document.getElementById("enemy-editor-back");
+const enemyEditorDrawerTitle = document.getElementById("enemy-editor-drawer-title");
+const enemyQueueListEl     = document.getElementById("enemy-queue-list");
 
 const etName      = document.getElementById("et-name");
 
@@ -1945,18 +1974,28 @@ const etError        = document.getElementById("et-error");
 // ── Open / close ──────────────────────────────────────────────────────────────
 btnEnemyList.addEventListener("click", () => {
   enemyTemplatesModal.classList.add("open");
+  closeEditorDrawer();
   renderTemplateList();
-  updateMultiaddBar();
+  renderEnemyQueue();
 });
 
 function closeEnemyModal() {
   enemyTemplatesModal.classList.remove("open");
-  selectedTemplateId = null;
+  closeEditorDrawer();
   templateQueue.clear();
-  updateMultiaddBar();
+  renderEnemyQueue();
+}
+
+// The stat-block editor slides in over the encounter panel on demand.
+function openEditorDrawer() { enemyEditorPanel.classList.add("open"); }
+function closeEditorDrawer() {
+  enemyEditorPanel.classList.remove("open");
+  selectedTemplateId = null;
+  renderTemplateList();
 }
 
 enemyModalClose.addEventListener("click", closeEnemyModal);
+enemyEditorBack.addEventListener("click", closeEditorDrawer);
 enemyTemplatesModal.addEventListener("click", e => {
   if (e.target === enemyTemplatesModal) closeEnemyModal();
 });
@@ -1983,7 +2022,7 @@ function renderTemplateList() {
   }
 
   filtered.forEach(tmpl => {
-    const queued = templateQueue.get(tmpl.id) || 0;
+    const queued = templateQueue.get(tmpl.id)?.count || 0;
     const item = document.createElement("div");
     item.className = "enemy-template-item"
       + (tmpl.id === selectedTemplateId ? " selected" : "")
@@ -1992,27 +2031,27 @@ function renderTemplateList() {
       ? `<span style="font-size:9px;color:#666;letter-spacing:0.06em;text-transform:uppercase;margin-left:4px">preset</span>`
       : `<span style="font-size:9px;color:#5a8a5a;letter-spacing:0.06em;text-transform:uppercase;margin-left:4px">custom</span>`;
 
+    // Click the text to queue the enemy for the encounter; the pencil opens the
+    // editor drawer.
     const text = document.createElement("div");
     text.className = "et-item-text";
+    text.title = "Add to encounter";
     text.innerHTML = `
-      <div class="enemy-template-name">${escHtml(tmpl.name)}${builtinBadge}</div>
+      <div class="enemy-template-name">${escHtml(tmpl.name)}${builtinBadge}${queued > 0 ? `<span class="et-queued-badge">×${queued}</span>` : ""}</div>
       <div class="enemy-template-meta">HP ${tmpl.hp ?? "?"} · AC ${tmpl.ac ?? "?"} · CR ${tmpl.cr || "—"}</div>`;
-    text.addEventListener("click", () => openTemplateEditor(tmpl.id));
+    text.addEventListener("click", () => addToQueue(tmpl.id, 1));
 
-    // Quantity stepper — queues this template for the multi-add button without
-    // opening the editor. Clicks here must not bubble to the row's edit handler.
-    const stepper = document.createElement("div");
-    stepper.className = "et-stepper";
-    stepper.innerHTML = `
-      <button type="button" class="et-step-btn et-minus" title="Remove one"${queued === 0 ? " disabled" : ""}>&minus;</button>
-      <span class="et-step-count">${queued}</span>
-      <button type="button" class="et-step-btn et-plus" title="Add one">+</button>`;
-    stepper.addEventListener("click", e => e.stopPropagation());
-    stepper.querySelector(".et-minus").addEventListener("click", () => setTemplateQueue(tmpl.id, queued - 1));
-    stepper.querySelector(".et-plus").addEventListener("click", () => setTemplateQueue(tmpl.id, queued + 1));
+    const actions = document.createElement("div");
+    actions.className = "et-item-actions";
+    actions.innerHTML = `
+      <button type="button" class="et-icon-btn et-edit-btn" title="Edit template"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
+      <button type="button" class="et-icon-btn et-add-btn" title="Add to encounter"><iconify-icon icon="lucide:plus"></iconify-icon></button>`;
+    actions.addEventListener("click", e => e.stopPropagation());
+    actions.querySelector(".et-edit-btn").addEventListener("click", () => openTemplateEditor(tmpl.id));
+    actions.querySelector(".et-add-btn").addEventListener("click", () => addToQueue(tmpl.id, 1));
 
     item.appendChild(text);
-    item.appendChild(stepper);
+    item.appendChild(actions);
     enemyTemplateListEl.appendChild(item);
   });
 }
@@ -2021,7 +2060,9 @@ function renderTemplateList() {
 btnNewEnemy.addEventListener("click", () => {
   selectedTemplateId = null;
   clearEditorFields();
+  if (enemyEditorDrawerTitle) enemyEditorDrawerTitle.textContent = "New Template";
   showEditorForm();
+  openEditorDrawer();
   etName.focus();
   renderTemplateList();
 });
@@ -2033,7 +2074,9 @@ function openTemplateEditor(id) {
   etName.value = tmpl.name || "";
   window.StatBlockEditor.load(tmpl);
   etError.textContent = "";
+  if (enemyEditorDrawerTitle) enemyEditorDrawerTitle.textContent = "Edit Template";
   showEditorForm();
+  openEditorDrawer();
   renderTemplateList();
 }
 
@@ -2075,10 +2118,9 @@ etDeleteBtn.addEventListener("click", () => {
   const tmpl = enemyTemplates.find(t => t.id === selectedTemplateId);
   if (!confirm(`Delete template "${tmpl?.name}"?`)) return;
   deleteTemplate(selectedTemplateId);
-  selectedTemplateId = null;
   enemyEditorEmpty.style.display = "";
   enemyEditorForm.style.display  = "none";
-  renderTemplateList();
+  closeEditorDrawer();
 });
 
 // ── Add to Combat ─────────────────────────────────────────────────────────────
@@ -2136,50 +2178,116 @@ etSpawnBtn.addEventListener("click", () => {
   closeEnemyModal();
 });
 
-// ── Multi-template add: queue counts on several templates, spawn all at once ───
-const enemyMultiaddBar   = document.getElementById("enemy-multiadd-bar");
+// ── Encounter queue: stage several templates (with per-enemy initiative) and
+//    drop them all into combat at once ────────────────────────────────────────
 const enemyMultiaddBtn   = document.getElementById("enemy-multiadd-btn");
 const enemyMultiaddClear = document.getElementById("enemy-multiadd-clear");
 const enemyMultiaddCount = document.getElementById("enemy-multiadd-count");
 
 function queueTotal() {
   let n = 0;
-  templateQueue.forEach(c => { n += c; });
+  templateQueue.forEach(e => { n += e.count; });
   return n;
 }
 
-function setTemplateQueue(id, count) {
-  const c = Math.max(0, Math.min(20, count));
-  if (c === 0) templateQueue.delete(id);
-  else templateQueue.set(id, c);
-  updateMultiaddBar();
+// Add `delta` to a template's queued count (creating the entry if needed).
+function addToQueue(id, delta = 1) {
+  const entry = templateQueue.get(id) || { count: 0, init: null, rollEach: false };
+  entry.count = Math.max(0, Math.min(20, entry.count + delta));
+  if (entry.count === 0) templateQueue.delete(id);
+  else templateQueue.set(id, entry);
   renderTemplateList();
+  renderEnemyQueue();
 }
 
-const enemyMultiaddHint = document.querySelector(".enemy-multiadd-hint");
+function setQueueCount(id, count) {
+  const entry = templateQueue.get(id) || { count: 0, init: null, rollEach: false };
+  entry.count = Math.max(0, Math.min(20, count));
+  if (entry.count === 0) templateQueue.delete(id);
+  else templateQueue.set(id, entry);
+  renderTemplateList();
+  renderEnemyQueue();
+}
 
-function updateMultiaddBar() {
+function renderEnemyQueue() {
   const total = queueTotal();
   enemyMultiaddCount.textContent = total;
   enemyMultiaddBtn.disabled = total === 0;
   enemyMultiaddClear.style.display = total > 0 ? "" : "none";
-  if (enemyMultiaddHint) enemyMultiaddHint.style.display = total > 0 ? "none" : "";
+
+  if (!enemyQueueListEl) return;
+  enemyQueueListEl.innerHTML = "";
+  if (total === 0) {
+    enemyQueueListEl.innerHTML = `<div class="enemy-queue-empty">
+      <iconify-icon icon="game-icons:battle-gear"></iconify-icon>
+      <p>No enemies queued.</p>
+      <span>Click a template on the left to add it here.</span>
+    </div>`;
+    return;
+  }
+
+  templateQueue.forEach((entry, id) => {
+    const tmpl = enemyTemplates.find(t => t.id === id);
+    if (!tmpl) return;
+    const row = document.createElement("div");
+    row.className = "enemy-queue-item";
+    row.innerHTML = `
+      <div class="enemy-queue-info">
+        <span class="enemy-queue-name">${escHtml(tmpl.name)}</span>
+        <span class="enemy-queue-meta">HP ${tmpl.hp ?? "?"} · AC ${tmpl.ac ?? "?"}</span>
+      </div>
+      <div class="enemy-queue-init">
+        <input type="number" class="enemy-queue-init-input" min="-5" max="50" inputmode="numeric"
+               placeholder="${entry.rollEach ? "🎲 each" : "Init"}"
+               value="${entry.init != null ? entry.init : ""}" />
+        <button type="button" class="enemy-queue-roll${entry.rollEach ? " active" : ""}" title="Roll a random initiative (one per enemy)">d20</button>
+      </div>
+      <div class="enemy-queue-stepper">
+        <button type="button" class="enemy-queue-step eq-minus" title="Remove one">&minus;</button>
+        <span class="enemy-queue-count">${entry.count}</span>
+        <button type="button" class="enemy-queue-step eq-plus" title="Add one">+</button>
+      </div>
+      <button type="button" class="enemy-queue-remove" title="Remove">&times;</button>`;
+
+    const initInput = row.querySelector(".enemy-queue-init-input");
+    initInput.addEventListener("input", () => {
+      const v = parseInt(initInput.value, 10);
+      entry.init = isNaN(v) ? null : v;
+      entry.rollEach = false;
+    });
+    row.querySelector(".enemy-queue-roll").addEventListener("click", () => {
+      if (entry.count > 1) {
+        entry.rollEach = true;       // each enemy rolls its own at spawn time
+        entry.init = null;
+        renderEnemyQueue();
+      } else {
+        entry.rollEach = false;
+        entry.init = roll(20) + (tmpl.initMod ?? 0);
+        initInput.value = entry.init;
+      }
+    });
+    row.querySelector(".eq-minus").addEventListener("click", () => setQueueCount(id, entry.count - 1));
+    row.querySelector(".eq-plus").addEventListener("click",  () => setQueueCount(id, entry.count + 1));
+    row.querySelector(".enemy-queue-remove").addEventListener("click", () => setQueueCount(id, 0));
+
+    enemyQueueListEl.appendChild(row);
+  });
 }
 
 enemyMultiaddClear.addEventListener("click", () => {
   templateQueue.clear();
-  updateMultiaddBar();
   renderTemplateList();
+  renderEnemyQueue();
 });
 
 enemyMultiaddBtn.addEventListener("click", () => {
   if (queueTotal() === 0) return;
   const parts = [];
-  templateQueue.forEach((count, id) => {
+  templateQueue.forEach((entry, id) => {
     const tmpl = enemyTemplates.find(t => t.id === id);
     if (!tmpl) return;
-    spawnCombatantsFromTemplate(tmpl, count);
-    parts.push(`${tmpl.name}${count > 1 ? " ×" + count : ""}`);
+    spawnCombatantsFromTemplate(tmpl, entry.count, entry.init);
+    parts.push(`${tmpl.name}${entry.count > 1 ? " ×" + entry.count : ""}`);
   });
   if (parts.length === 0) return;
 

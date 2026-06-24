@@ -327,8 +327,7 @@ import Layout from '../layouts/Layout.astro';
       const pass2 = document.getElementById('s-pass2').value;
 
       if (!email || !name || !pass) { showErr('Please fill in all fields.'); return; }
-      if (/\s/.test(name))          { showErr('Username cannot contain spaces.'); return; }
-      if (name.length < 2)          { showErr('Username must be at least 2 characters.'); return; }
+      if (!/^[\p{L}\p{N}_.-]{2,30}$/u.test(name)) { showErr('Username must be 2–30 characters using letters, numbers, _ . - only (no spaces or symbols).'); return; }
       if (isBannedUsername(name))   { showErr('That username is not allowed.'); return; }
       if (pass.length < 6)          { showErr('Password must be at least 6 characters.'); return; }
       if (pass !== pass2)           { showErr('Passwords do not match.'); return; }

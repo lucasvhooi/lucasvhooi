@@ -8,7 +8,7 @@ import { parseTags, formatGold, getDisplayTags }  from "./item-utils.js";
 const session = getSession();
 if (!session) { window.location.href = "login.html"; }
 
-const isAdmin = session.role === "admin";
+const isAdmin = session.campaignRole === "dm";
 const cid     = session.campaignId;
 if (!cid) { window.location.href = "campaigns"; throw new Error('No campaign selected'); }
 
@@ -210,7 +210,7 @@ function renderPlayerSelector() {
     .sort((a, b) => (getDisplayName(a.uid) || "").localeCompare(getDisplayName(b.uid) || ""));
 
   playerSelect.innerHTML = userList
-    .map(u => `<option value="${esc(u.uid)}" ${u.uid === viewingId ? "selected" : ""}>${esc(getDisplayName(u.uid))}${u.role === "admin" ? " (DM)" : ""}</option>`)
+    .map(u => `<option value="${esc(u.uid)}" ${u.uid === viewingId ? "selected" : ""}>${esc(getDisplayName(u.uid))}${allMembers[u.uid] === "dm" ? " (DM)" : ""}</option>`)
     .join("");
 
   const aiTarget = document.getElementById("ai-target");
@@ -1240,7 +1240,7 @@ function renderPlayerList() {
       <div class="player-entry-info">
         <span class="player-entry-dot" style="background:${esc(u.color || '#888')}"></span>
         <span class="player-entry-name">${esc(u.username)}</span>
-        <span class="player-entry-role">${u.role === "admin" ? "DM" : "Player"}</span>
+        <span class="player-entry-role">${allMembers[u.uid] === "dm" ? "DM" : "Player"}</span>
       </div>
       ${u.uid !== session.id ? `<button class="player-entry-del" data-id="${esc(u.uid)}">Remove</button>` : '<span style="font-size:11px;color:#555">(you)</span>'}
     </div>`).join("");

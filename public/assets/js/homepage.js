@@ -1,5 +1,5 @@
 const dmSections = document.querySelectorAll('.dm-only');
-const isAdmin = localStorage.getItem('isAdmin') === 'true';
+const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.campaignRole === 'dm'; } catch { return false; } })();
 
 document.addEventListener('DOMContentLoaded', () => {
   dmSections.forEach(section => {

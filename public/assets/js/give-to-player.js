@@ -70,7 +70,7 @@ export function openGivePanel(anchor, itemData) {
       <button class="give-panel-player" data-id="${escAttr(u.uid)}" style="--pc:${escAttr(u.color || '#888')}">
         <span class="give-panel-dot"></span>
         <span class="give-panel-name">${escHtml(_gDisplayName(u.uid))}</span>
-        <span class="give-panel-role">${u.role === "admin" ? "DM" : "Player"}</span>
+        <span class="give-panel-role">${_gMembers[u.uid] === "dm" ? "DM" : "Player"}</span>
       </button>`).join("");
 
     list.querySelectorAll(".give-panel-player").forEach(btn => {

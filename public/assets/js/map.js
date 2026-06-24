@@ -397,7 +397,7 @@ if (isTouchDevice) {
 
 // ── Marker System ─────────────────────────────────────────────────────────────
 const isAdmin = (() => {
-  try { return JSON.parse(localStorage.getItem("playerSession"))?.role === "admin"; }
+  try { return JSON.parse(localStorage.getItem("playerSession"))?.campaignRole === "dm"; }
   catch { return false; }
 })();
 
@@ -2027,6 +2027,8 @@ function _enableLabelDrag(label, area) {
 const areaModal       = document.getElementById("area-modal");
 const amTitle         = document.getElementById("am-title");
 const amName          = document.getElementById("am-name");
+const amDesc          = document.getElementById("am-desc");
+const amClose         = document.getElementById("am-close");
 const amColorSwatches = document.getElementById("am-color-swatches");
 const amError         = document.getElementById("am-error");
 const amSave          = document.getElementById("am-save");
@@ -2048,6 +2050,7 @@ function openAreaModal(id) {
   const existing = id ? areas.find(a => a.id === id) : null;
   amTitle.textContent    = existing ? "Edit Area" : "Name Area";
   amName.value           = existing?.name || "";
+  if (amDesc) amDesc.value = existing?.description || "";
   _selAreaColor          = existing?.color || COUNTRY_COLORS[0];
   _areaCreatures         = (existing?.creatures || []).map(c => ({ ...c }));
   amError.textContent    = "";
@@ -2092,12 +2095,24 @@ function renderAreaCreatures() {
   }
   amCreatureList.innerHTML = "";
   _areaCreatures.forEach((c, i) => {
+    const rarity = c.rarity || "Common";
     const row = document.createElement("div");
     row.className = "am-creature-row";
     row.innerHTML =
-      `<span class="am-creature-rar ${RARITY_CLASS[c.rarity] || "rar-common"}">${esc(c.rarity || "Common")}</span>` +
       `<span class="am-creature-cname">${esc(c.name)}</span>` +
+      `<select class="am-creature-rar-select ${RARITY_CLASS[rarity] || "rar-common"}">` +
+        ["Common", "Uncommon", "Rare"].map(r =>
+          `<option value="${r}"${r === rarity ? " selected" : ""}>${r}</option>`).join("") +
+      `</select>` +
       `<button type="button" class="am-creature-del" title="Remove"><iconify-icon icon="lucide:x"></iconify-icon></button>`;
+
+    const sel = row.querySelector(".am-creature-rar-select");
+    sel.addEventListener("change", () => {
+      _areaCreatures[i].rarity = sel.value;
+      // Recolour the select to match the chosen rarity.
+      sel.className = "am-creature-rar-select " + (RARITY_CLASS[sel.value] || "rar-common");
+    });
+
     row.querySelector(".am-creature-del").addEventListener("click", () => {
       _areaCreatures.splice(i, 1);
       renderAreaCreatures();
@@ -2216,12 +2231,15 @@ if (amSave) amSave.addEventListener("click", () => {
     area.labelX = existing.labelX;
     area.labelY = existing.labelY;
   }
+  const desc = amDesc ? amDesc.value.trim() : "";
+  if (desc)                         area.description = desc;
   if (amClimate && amClimate.value) area.climateId = amClimate.value;
   if (_areaCreatures.length)        area.creatures = _areaCreatures.map(c => ({ ...c }));
   set(ref(db, `campaigns/${_cid}/areas/${id}`), area);
   closeAreaModal();
 });
 if (amCancel) amCancel.addEventListener("click", closeAreaModal);
+if (amClose)  amClose.addEventListener("click", closeAreaModal);
 if (amDelete) amDelete.addEventListener("click", () => {
   if (!_editingAreaId) return;
   if (!confirm("Delete this area?")) return;

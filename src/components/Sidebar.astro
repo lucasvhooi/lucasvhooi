@@ -84,7 +84,7 @@ const campaignLinks = [
     if (section) section.style.display = '';
   }
 
-  var isDM = session.role === 'admin' || session.role === 'dm';
+  var isDM = session.campaignRole === 'dm';
   if (isDM) {
     document.querySelectorAll('[data-dm-only]').forEach(function (el) { el.style.display = ''; });
   }

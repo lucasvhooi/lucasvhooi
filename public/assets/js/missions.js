@@ -4,7 +4,7 @@ import { ref, set, remove, update, onValue, push } from "https://www.gstatic.com
 import { formatGold }                      from "./item-utils.js";
 
 const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
-const isAdmin = _session?.role === 'admin';
+const isAdmin = _session?.campaignRole === 'dm';
 const cid = _session?.campaignId;
 if (!cid) { window.location.href = '/campaigns'; throw new Error('No campaign selected'); }
 const questsRef  = ref(db, `campaigns/${cid}/quests`);

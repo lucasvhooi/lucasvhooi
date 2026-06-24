@@ -320,43 +320,58 @@ import StatBlockEditor from '../components/StatBlockEditor.astro';
           <div id="enemy-template-list" class="enemy-template-list"></div>
         </div>
 
-        <div class="enemy-editor-panel" id="enemy-editor-panel">
-          <div class="enemy-editor-empty" id="enemy-editor-empty">
-            <div class="empty-icon"><iconify-icon icon="game-icons:skull"></iconify-icon></div>
-            <p>Select a template or create a new one.</p>
+        <!-- Right side: the encounter queue, with the stat-block editor sliding in
+             over it on demand (clicking a template's edit pencil). -->
+        <div class="enemy-main">
+
+          <div class="enemy-encounter-panel">
+            <div class="enemy-encounter-header">
+              <span class="enemy-encounter-title"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Encounter</span>
+              <button id="enemy-multiadd-clear" class="enemy-encounter-clear" type="button" title="Clear queue" style="display:none"><iconify-icon icon="lucide:trash-2"></iconify-icon> Clear</button>
+            </div>
+            <div id="enemy-queue-list" class="enemy-queue-list"></div>
+            <div class="enemy-encounter-footer">
+              <button id="enemy-multiadd-btn" class="ctrl-btn ctrl-btn-spawn" type="button" disabled>
+                <iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Add <span id="enemy-multiadd-count">0</span> to Combat
+              </button>
+            </div>
           </div>
 
-          <div id="enemy-editor-form" style="display:none">
-
-            <StatBlockEditor showName={true} />
-
-            <div class="editor-footer">
-              <div class="editor-footer-left">
-                <button id="et-delete-btn" class="ctrl-btn ctrl-btn-danger"><iconify-icon icon="lucide:trash-2"></iconify-icon> Delete</button>
+          <div class="enemy-editor-panel" id="enemy-editor-panel">
+            <div class="enemy-editor-drawer-header">
+              <button id="enemy-editor-back" class="enemy-editor-back" type="button"><iconify-icon icon="lucide:arrow-left"></iconify-icon> Back</button>
+              <span class="enemy-editor-drawer-title" id="enemy-editor-drawer-title">Edit Template</span>
+            </div>
+            <div class="enemy-editor-scroll">
+              <div class="enemy-editor-empty" id="enemy-editor-empty">
+                <div class="empty-icon"><iconify-icon icon="game-icons:skull"></iconify-icon></div>
+                <p>Select a template or create a new one.</p>
               </div>
-              <div class="editor-footer-right">
-                <button id="et-save-btn" class="ctrl-btn ctrl-btn-primary"><iconify-icon icon="lucide:check"></iconify-icon> Save Template</button>
-                <div class="add-to-combat-group">
-                  <input type="number" id="et-spawn-count" value="1" min="1" max="20" class="spawn-count-input" title="Count" />
-                  <button id="et-spawn-btn" class="ctrl-btn ctrl-btn-spawn"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Add to Combat</button>
+
+              <div id="enemy-editor-form" style="display:none">
+
+                <StatBlockEditor showName={true} />
+
+                <div class="editor-footer">
+                  <div class="editor-footer-left">
+                    <button id="et-delete-btn" class="ctrl-btn ctrl-btn-danger"><iconify-icon icon="lucide:trash-2"></iconify-icon> Delete</button>
+                  </div>
+                  <div class="editor-footer-right">
+                    <button id="et-save-btn" class="ctrl-btn ctrl-btn-primary"><iconify-icon icon="lucide:check"></iconify-icon> Save Template</button>
+                    <div class="add-to-combat-group">
+                      <input type="number" id="et-spawn-count" value="1" min="1" max="20" class="spawn-count-input" title="Count" />
+                      <button id="et-spawn-btn" class="ctrl-btn ctrl-btn-spawn"><iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Add to Combat</button>
+                    </div>
+                  </div>
                 </div>
+
+                <div id="et-error" class="modal-error" style="text-align:left;margin-top:6px"></div>
               </div>
             </div>
-
-            <div id="et-error" class="modal-error" style="text-align:left;margin-top:6px"></div>
           </div>
+
         </div>
 
-      </div>
-
-      <!-- Multi-add footer: queue counts on several templates (via the +/− on each
-           row) then drop them all into the encounter at once. -->
-      <div id="enemy-multiadd-bar" class="enemy-multiadd-bar">
-        <span class="enemy-multiadd-hint">Tap <b>+</b> on templates to queue them</span>
-        <button id="enemy-multiadd-clear" class="ctrl-btn ctrl-btn-secondary" type="button" title="Clear queue" style="display:none">Clear</button>
-        <button id="enemy-multiadd-btn" class="ctrl-btn ctrl-btn-spawn" type="button" disabled>
-          <iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Add <span id="enemy-multiadd-count">0</span> to Combat
-        </button>
       </div>
     </div>
   </div>

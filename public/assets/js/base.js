@@ -37,7 +37,7 @@
     document.head.appendChild(ls);
   }
 
-  const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.role === 'admin'; } catch { return false; } })();
+  const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('playerSession'))?.campaignRole === 'dm'; } catch { return false; } })();
 
   // Highlight the current page's nav link
   const links   = document.querySelectorAll("nav a");

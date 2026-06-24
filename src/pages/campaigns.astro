@@ -1093,7 +1093,7 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
     function buildCard(id, c) {
       const initialRole  = c.members?.[session.id] || 'player';
       const initialCount = Object.keys(c.members || {}).length;
-      const initialIsDM  = initialRole === 'dm' || session.role === 'admin';
+      const initialIsDM  = initialRole === 'dm';
 
       const card = document.createElement('div');
       card.className = 'campaign-card';
@@ -1146,7 +1146,7 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
         const members = snap.val() || {};
         const count   = Object.keys(members).length;
         const role    = members[session.id] || 'player';
-        const isDM    = role === 'dm' || session.role === 'admin';
+        const isDM    = role === 'dm';
 
         const countEl = card.querySelector('.member-count-text');
         if (countEl) countEl.textContent = count + ' member' + (count !== 1 ? 's' : '');
@@ -1166,6 +1166,10 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
       if (s) {
         s.campaignId   = id;
         s.campaignName = c.name || 'Campaign';
+        // DM powers are per-campaign: a user is DM only of campaigns where their
+        // membership role is 'dm' (the creator). Everyone else — global admins
+        // included — enters as a plain player. Pages read session.campaignRole.
+        s.campaignRole = (c.members && c.members[s.id]) || 'player';
         localStorage.setItem('playerSession', JSON.stringify(s));
       }
       window.location.href = 'inventory';
