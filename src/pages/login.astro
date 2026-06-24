@@ -375,18 +375,29 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
       if (!email || !password) { showErr("Please enter your email and password."); return; }
 
       setLoading(true);
+
+      let cred;
       try {
-        const cred    = await signInWithEmailAndPassword(auth, email, password);
+        cred = await signInWithEmailAndPassword(auth, email, password);
+      } catch (e) {
+        setLoading(false);
+        if (["auth/invalid-credential","auth/invalid-login-credentials","auth/wrong-password","auth/user-not-found"].includes(e.code)) {
+          showErr("Wrong email or password.");
+        } else if (e.code === "auth/too-many-requests") {
+          showErr("Too many failed attempts. Please wait or use Forgot Password.");
+        } else {
+          showErr("Sign-in error (" + (e.code || "unknown") + "). Please try again.");
+        }
+        return;
+      }
+
+      try {
         const profile = await fetchProfile(cred.user.uid);
-        if (!profile) { showErr("Account has no profile. Ask your DM."); return; }
+        if (!profile) { showErr("Account has no profile. Contact your DM."); return; }
         saveSession({ id: cred.user.uid, username: profile.username, role: profile.role || "player", color: profile.color || "#c8a45c" });
         window.location.href = "campaigns";
       } catch (e) {
-        if (["auth/invalid-credential","auth/wrong-password","auth/user-not-found"].includes(e.code)) {
-          showErr("Wrong email or password.");
-        } else {
-          showErr("Connection error. Please try again.");
-        }
+        showErr("Profile could not be loaded (" + (e.code || "unknown") + "). Please try again.");
       } finally { setLoading(false); }
     }
 
