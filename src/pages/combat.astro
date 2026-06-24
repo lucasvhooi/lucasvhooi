@@ -12,7 +12,6 @@ import StatBlockEditor from '../components/StatBlockEditor.astro';
         <span class="overlay-title"><iconify-icon icon="game-icons:rank-3" style="font-size:14px;opacity:0.7"></iconify-icon> Initiative</span>
         <div class="list-actions">
           <button id="btn-enemy-list" class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="game-icons:skull"></iconify-icon> Enemies</button>
-          <button id="btn-sort"  class="ctrl-btn ctrl-btn-secondary"><iconify-icon icon="lucide:arrow-up-down"></iconify-icon></button>
           <button id="btn-clear" class="ctrl-btn ctrl-btn-danger"><iconify-icon icon="lucide:x"></iconify-icon></button>
           <button id="btn-add"   class="ctrl-btn ctrl-btn-primary"><iconify-icon icon="lucide:plus"></iconify-icon> Add</button>
         </div>
@@ -100,10 +99,8 @@ import StatBlockEditor from '../components/StatBlockEditor.astro';
       <button id="attack-cancel-btn" class="hero-nav-btn" title="Clear Selection"><iconify-icon icon="lucide:x"></iconify-icon></button>
     </div>
 
-    <!-- Top row (phones): standalone Add (left) + contextual action toolbar + Order (right) -->
+    <!-- Top row (phones): contextual action toolbar for the tapped combatant -->
     <div class="combat-action-row">
-      <button class="ctb-side-btn" data-act="add" title="Add Combatant"><iconify-icon icon="lucide:plus"></iconify-icon></button>
-
       <!-- Contextual action toolbar — heal / damage / condition for the tapped combatant -->
       <div id="combat-action-toolbar" class="combat-action-toolbar" style="display:none">
         <div class="cat-controls">
@@ -114,8 +111,6 @@ import StatBlockEditor from '../components/StatBlockEditor.astro';
           <button class="cat-btn dmgtype-btn" id="cat-dmgtype" title="Damage type: untyped"><iconify-icon icon="game-icons:drop"></iconify-icon></button>
         </div>
       </div>
-
-      <button class="ctb-side-btn" data-act="sort" title="Sort by Initiative"><iconify-icon icon="lucide:arrow-up-down"></iconify-icon></button>
     </div>
 
     <!-- Main navbar — liquid-glass dock with the start/end toggle centred -->
@@ -126,10 +121,10 @@ import StatBlockEditor from '../components/StatBlockEditor.astro';
       </div>
       <div class="ctb-dock">
         <div class="ctb-group ctb-left">
-          <!-- List-management buttons relocated from the initiative panel header (desktop) -->
+          <!-- List-management buttons relocated from the initiative panel header.
+               Enemies is desktop-only (ctb-mgmt); Add stays on every viewport. -->
           <button class="ctb-btn ctb-mgmt" data-act="enemies" title="Enemy Templates"><iconify-icon icon="game-icons:death-skull"></iconify-icon></button>
-          <button class="ctb-btn ctb-mgmt" data-act="add" title="Add Combatant"><iconify-icon icon="lucide:plus"></iconify-icon></button>
-          <button class="ctb-btn ctb-mgmt" data-act="sort" title="Sort by Initiative"><iconify-icon icon="lucide:arrow-up-down"></iconify-icon></button>
+          <button class="ctb-btn" data-act="add" title="Add Combatant"><iconify-icon icon="lucide:plus"></iconify-icon></button>
           <button class="ctb-btn" data-act="initiative" title="Initiative"><iconify-icon icon="game-icons:rank-3"></iconify-icon></button>
         </div>
         <!-- Turn controls flank the start/end toggle so prev/next sit right beside it -->
@@ -151,6 +146,7 @@ import StatBlockEditor from '../components/StatBlockEditor.astro';
   <!-- Add / Edit Combatant Modal -->
   <div id="combatant-modal" class="modal-overlay">
     <div class="modal-box">
+      <button id="cm-close" class="cm-close" type="button" aria-label="Close" title="Close">&times;</button>
       <h2 id="cm-title">Add Combatant</h2>
       <div class="modal-body">
         <div class="form-row" id="cm-name-row">
@@ -181,6 +177,12 @@ import StatBlockEditor from '../components/StatBlockEditor.astro';
           <label>Count <span class="field-hint">adds 1, 2, 3…</span>
             <input type="number" id="cm-enemy-count" value="1" min="1" max="26" />
           </label>
+        </div>
+        <!-- Mobile multi-add: tapping templates above queues them here; the Add
+             button drops the whole list into combat at once. -->
+        <div class="form-row" id="cm-enemy-queue-row" style="display:none">
+          <span class="field-label">Queued enemies <span class="field-hint">tap a template above to add</span></span>
+          <div id="cm-enemy-queue" class="cm-enemy-queue"></div>
         </div>
         <div class="form-row" id="cm-preset-row">
           <span class="field-label">Monster Preset <span class="field-hint">optional — auto-fills stats</span></span>
@@ -257,7 +259,11 @@ import StatBlockEditor from '../components/StatBlockEditor.astro';
       </div>
       <div class="modal-actions">
         <button id="cm-cancel" class="dm-btn dm-btn-secondary">Cancel</button>
-        <button id="cm-save"   class="dm-btn">Add</button>
+        <button id="cm-save"   class="dm-btn">
+          <iconify-icon icon="lucide:check" class="cm-save-icon"></iconify-icon>
+          <span id="cm-save-count" class="cm-save-count"></span>
+          <span id="cm-save-label">Add</span>
+        </button>
       </div>
     </div>
   </div>
@@ -341,6 +347,16 @@ import StatBlockEditor from '../components/StatBlockEditor.astro';
           </div>
         </div>
 
+      </div>
+
+      <!-- Multi-add footer: queue counts on several templates (via the +/− on each
+           row) then drop them all into the encounter at once. -->
+      <div id="enemy-multiadd-bar" class="enemy-multiadd-bar">
+        <span class="enemy-multiadd-hint">Tap <b>+</b> on templates to queue them</span>
+        <button id="enemy-multiadd-clear" class="ctrl-btn ctrl-btn-secondary" type="button" title="Clear queue" style="display:none">Clear</button>
+        <button id="enemy-multiadd-btn" class="ctrl-btn ctrl-btn-spawn" type="button" disabled>
+          <iconify-icon icon="game-icons:crossed-swords"></iconify-icon> Add <span id="enemy-multiadd-count">0</span> to Combat
+        </button>
       </div>
     </div>
   </div>

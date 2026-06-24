@@ -114,11 +114,11 @@ body {
 .combat-bottom .combat-toolbar { width: 100%; max-width: 560px; }
 .combat-bottom .combat-action-row { display: none; }
 
-/* Top row: standalone Add (left) + action toolbar (centre) + Order (right) */
+/* Top row: contextual action toolbar for the tapped combatant, centred. */
 .combat-action-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 8px;
   pointer-events: none;     /* re-enabled per interactive child below */
 }
@@ -294,8 +294,10 @@ body {
 .cat-controls {
   display: flex;
   align-items: center;
-  gap: 7px;
-  flex-shrink: 0;
+  justify-content: space-between;   /* spread buttons into the leftover width */
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
 }
 .cat-amt {
   width: 52px;
@@ -779,6 +781,13 @@ body {
 .combatant-list::-webkit-scrollbar-thumb { background: #3a3530; border-radius: 3px; }
 
 /* ── Empty state ──────────────────────────────────────────────────────────── */
+/* Drop the multi-column flow when the list is empty so the placeholder can
+   center in the panel instead of being squeezed into the first column. */
+.combatant-list:has(.empty-state) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -1349,6 +1358,129 @@ body {
   justify-content: flex-end;
 }
 
+/* ── Add-combatant enemy queue (mobile multi-add) ───────────────────────────── */
+.cm-enemy-queue { display: flex; flex-direction: column; gap: 6px; }
+.cm-queue-empty {
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+  padding: 12px;
+  text-align: center;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+.cm-queue-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(229, 115, 115, 0.08);
+  border: 1px solid rgba(229, 115, 115, 0.22);
+  border-radius: 9px;
+}
+.cm-queue-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cm-queue-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.cm-queue-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cm-queue-init {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.cm-queue-init-input {
+  width: 72px;
+  height: 34px;
+  box-sizing: border-box;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 7px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 0 6px;
+  outline: none;
+}
+.cm-queue-init-input:focus { border-color: rgba(200, 164, 92, 0.55); }
+.cm-queue-roll {
+  height: 34px;
+  flex: none;
+  padding: 0 12px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--accent);
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cm-queue-roll:active { transform: scale(0.92); }
+.cm-queue-roll.active {
+  border-color: rgba(200, 164, 92, 0.55);
+  background: rgba(200, 164, 92, 0.16);
+  color: var(--accent);
+}
+.cm-queue-stepper { display: flex; align-items: center; gap: 2px; }
+.cm-queue-step {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--accent);
+  font-size: 19px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s;
+}
+.cm-queue-step:active { transform: scale(0.88); }
+.cm-queue-count {
+  min-width: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text);
+}
+.cm-queue-remove {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 8px;
+  border: 1px solid rgba(229, 115, 115, 0.3);
+  background: rgba(229, 115, 115, 0.12);
+  color: #e57373;
+  font-size: 21px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cm-queue-remove:active { transform: scale(0.88); }
+
 /* DM button styles (.dm-btn, -secondary) centralized in base.css */
 
 /* ── HP Adjust overlay ───────────────────────────────────────────────────── */
@@ -1722,9 +1854,11 @@ body {
 .enemy-template-list::-webkit-scrollbar-thumb { background: #3a3530; border-radius: 2px; }
 
 .enemy-template-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 8px 10px;
   border-radius: 6px;
-  cursor: pointer;
   border: 1px solid transparent;
   transition: background 0.15s, border-color 0.15s;
 }
@@ -1733,6 +1867,73 @@ body {
   background: rgba(229,115,115,0.12);
   border-color: rgba(229,115,115,0.4);
 }
+.enemy-template-item.queued {
+  background: rgba(200,164,92,0.1);
+  border-color: rgba(200,164,92,0.45);
+}
+
+/* Text block opens the editor; stepper queues the template for multi-add. */
+.et-item-text { flex: 1; min-width: 0; cursor: pointer; }
+
+.et-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.et-step-btn {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  color: #d8cba8;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(200,164,92,0.28);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.et-step-btn:hover { background: rgba(200,164,92,0.18); border-color: rgba(200,164,92,0.5); }
+.et-step-btn:disabled { opacity: 0.3; pointer-events: none; }
+.et-step-btn.et-plus {
+  color: #1a1000;
+  background: linear-gradient(135deg, #c8922a 0%, #e0b040 60%, #b07820 100%);
+  border-color: rgba(220,170,60,0.6);
+}
+.et-step-count {
+  min-width: 16px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--accent);
+}
+
+/* Full-width modal footer: spawn every queued template at once. */
+.enemy-multiadd-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(200,164,92,0.18);
+  background: rgba(10,10,10,0.6);
+  flex-shrink: 0;
+}
+.enemy-multiadd-hint {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-style: italic;
+  color: #8a8270;
+}
+.enemy-multiadd-hint b { color: var(--accent); font-style: normal; }
+.enemy-multiadd-bar .ctrl-btn-spawn { flex-shrink: 0; }
+.enemy-multiadd-bar .ctrl-btn-spawn:disabled { opacity: 0.4; pointer-events: none; }
+#enemy-multiadd-count { font-weight: bold; }
 
 .enemy-template-name {
   font-family: 'IM Fell English', 'Garamond', serif;
@@ -2024,9 +2225,9 @@ body {
 
 @media (max-width: 680px) {
   .enemy-modal-overlay { padding: 0; }
-  .enemy-modal-box { max-height: 100vh; border-radius: 0; max-width: 100%; }
+  .enemy-modal-box { max-height: 100vh; max-height: 100dvh; border-radius: 0; max-width: 100%; }
   .enemy-modal-body { flex-direction: column; }
-  .enemy-list-panel { width: 100%; height: 160px; border-right: none; border-bottom: 1px solid rgba(200,164,92,0.1); }
+  .enemy-list-panel { width: 100%; height: 38vh; max-height: 300px; border-right: none; border-bottom: 1px solid rgba(200,164,92,0.1); }
   .editor-field-row.four-col { grid-template-columns: 1fr 1fr; }
 }
 
@@ -2382,6 +2583,10 @@ body {
   /* Redundant — adding combatants is handled by the toolbar's Add button */
   #btn-add { display: none; }
 
+  /* The add-combatant modal (z 140) sits below this fixed dock (z 260); hide the
+     dock while the modal is open so its floating Add button isn't covered. */
+  .page-content:has(#combatant-modal.open) .combat-bottom { display: none; }
+
   /* Combat log, loot and the creature inspector each take over the whole
      initiative window; the toolbar cycles between them. */
   .overlay-right,
@@ -2641,4 +2846,142 @@ body {
   .combatant-card.active { animation: none !important; }
   .combatant-card.is-attack-mode { animation: none !important; }
   .turn-name { animation: none; }
+}
+
+/* Phones: shrink the toolbar dock so all 7 buttons fit inside the navbar
+   instead of the last one spilling off the right edge. */
+@media (max-width: 520px) {
+  .combat-toolbar { padding: 7px 6px; }
+  .ctb-dock { gap: 5px; }
+  .ctb-group,
+  .ctb-center { gap: 5px; }
+  .ctb-btn {
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+  }
+  .ctb-toggle {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Mobile (≤900px): the Add Combatant modal becomes a full-screen page below
+   the top bar — matching the detail-panel overlays. No rounded corners, no
+   dim layer; the top bar stays visible above it.
+   ─────────────────────────────────────────────────────────────────────────── */
+/* The header close button + the save-button icon only appear in the mobile
+   full-screen layout (desktop keeps the plain text "Add"/"Save" button). */
+.cm-close { display: none; }
+.cm-save-icon { display: none; }
+.cm-save-count { display: none; }
+
+@media (max-width: 900px) {
+  #combatant-modal.modal-overlay {
+    inset: 54px 0 0 0;          /* clear the mobile top bar */
+    z-index: 140;               /* above content, below the top bar (150) */
+    padding: 0;
+    background: #161614;        /* solid page, not a dim backdrop */
+    align-items: flex-start;
+    justify-content: stretch;
+  }
+  #combatant-modal.modal-overlay.open .modal-box {
+    animation: cmPageIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  #combatant-modal .modal-box {
+    width: 100%;
+    max-width: none;
+    /* Dynamic viewport height keeps the footer buttons above the mobile
+       browser's bottom chrome instead of being clipped off-screen. */
+    height: calc(100dvh - 54px);
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;           /* the body scrolls instead of the whole box */
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Red, clearly-visible close button (matches the detail-panel overlays) */
+  #combatant-modal .cm-close {
+    display: flex;
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    z-index: 2;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    line-height: 1;
+    color: #fff;
+    background: #d23b32;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    border-radius: 9px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+  }
+  #combatant-modal .cm-close:hover,
+  #combatant-modal .cm-close:active { background: #e24a40; }
+
+  #combatant-modal .modal-box h2 {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 16px 64px;         /* clear the close button on the right */
+    border-bottom: 1px solid rgba(200, 164, 92, 0.14);
+  }
+
+  #combatant-modal .modal-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 16px 16px 96px;    /* clear the floating Add button */
+  }
+
+  /* No footer bar on mobile: the red ✕ closes (cancel), and Add becomes a
+     floating circular button anchored to the bottom-right of the page. */
+  #combatant-modal .modal-actions { display: contents; }
+  #combatant-modal #cm-cancel { display: none; }
+
+  #combatant-modal #cm-save {
+    position: absolute;         /* relative to the dvh-sized modal box, so it
+                                   floats just above the mobile browser chrome */
+    right: 18px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+    z-index: 5;
+    min-width: 46px;
+    height: 46px;
+    padding: 0 15px;            /* pill when the count shows, circle when not */
+    gap: 6px;
+    border-radius: 23px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
+  }
+  #combatant-modal #cm-save #cm-save-label { display: none; }
+  #combatant-modal #cm-save .cm-save-icon {
+    display: inline-flex;
+    font-size: 20px;
+  }
+  #combatant-modal #cm-save .cm-save-count {
+    display: inline-flex;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+  }
+}
+
+@keyframes cmPageIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

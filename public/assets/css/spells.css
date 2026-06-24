@@ -1065,3 +1065,85 @@
 
   .sm-stat-row { grid-template-columns: 1fr 1fr; }
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Mobile (≤900px): the detail panel is a full-screen page below the top bar
+   — not a centered popup card. No rounded corners; top bar stays visible.
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .spells-content.panel-open { padding-right: 0; }
+
+  .spell-detail-panel {
+    position: fixed;
+    top: 54px;                 /* clear the mobile top bar */
+    left: 0; right: 0; bottom: 0;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block;
+    z-index: 140;              /* above content + docks, below top bar (150) */
+    background: #0f1119;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border: none;
+    border-radius: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.24s ease;
+  }
+  .spell-detail-panel.open {
+    width: 100% !important;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .spell-detail-inner {
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    min-height: 0;
+    max-height: none !important;
+    display: flex;
+    flex-direction: column;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    opacity: 1;
+    transform: none;
+  }
+  .spell-detail-panel.open .spell-detail-inner {
+    transform: none;
+    animation: sdpPageIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* Clearly-visible red close button */
+  .sdp-close {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #fff;
+    background: #d23b32;
+    border: 1px solid rgba(0,0,0,0.25);
+    border-radius: 9px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+  }
+  .sdp-close:hover,
+  .sdp-close:active {
+    color: #fff;
+    background: #e24a40;
+    border-color: rgba(0,0,0,0.25);
+  }
+}
+
+@keyframes sdpPageIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

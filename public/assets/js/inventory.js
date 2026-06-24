@@ -105,6 +105,14 @@ onValue(ref(db, `campaigns/${cid}/carryCapacity`), snap => { allCarryCaps = snap
 function applyFeatureToggles() {
   const attSection = document.getElementById("inv-attune-section");
   if (attSection) attSection.style.display = campaignSettings.useAttunement ? "" : "none";
+
+  // Weight sorting is only meaningful when the campaign tracks carry weight
+  const weightSortBtn = document.getElementById("inv-sort-weight");
+  if (weightSortBtn) weightSortBtn.style.display = campaignSettings.useWeight ? "" : "none";
+  if (!campaignSettings.useWeight && sortField === "weight") {
+    sortField = null; sortDir = "asc"; _updateSortUI();
+  }
+
   renderCarryBar();
 }
 
@@ -452,6 +460,8 @@ function renderList() {
     visible.sort((a, b) => { const d = (RARITY_ORDER[a.rarity] ?? 5) - (RARITY_ORDER[b.rarity] ?? 5); return sortDir === 'asc' ? d : -d; });
   } else if (sortField === 'type') {
     visible.sort((a, b) => { const c = (a._etype || "misc").localeCompare(b._etype || "misc"); return sortDir === 'asc' ? c : -c; });
+  } else if (sortField === 'weight') {
+    visible.sort((a, b) => { const d = itemWeight(a) - itemWeight(b); return sortDir === 'asc' ? d : -d; });
   } else {
     visible.sort((a, b) => {
       const aA = attKey(a.name) in userAttunes ? 0 : 1;
@@ -608,6 +618,7 @@ function openItemPanel(item, rowEl) {
   document.getElementById("idp-meta").innerHTML = [
     `<span class="inv-type-badge inv-badge-${effectiveType}">${TYPE_LABEL[effectiveType] || "Misc"}</span>`,
     rarity ? `<span class="idp-rarity-badge" style="color:${rarityColor};text-transform:capitalize">${esc(rarity)}</span>` : '',
+    campaignSettings.useWeight ? `<span class="idp-weight-badge"><iconify-icon icon="lucide:weight" style="font-size:11px;vertical-align:-1px;margin-right:3px"></iconify-icon>${itemWeight(item)} lb</span>` : '',
     campaignSettings.useAttunement && isAttuned ? `<span class="inv-attuned-badge"><iconify-icon icon="lucide:sparkles" style="font-size:10px;vertical-align:-1px;margin-right:3px"></iconify-icon>Attuned</span>` : '',
     campaignSettings.useAttunement && needsAtt && !isAttuned ? `<span class="inv-attunement-required-badge"><iconify-icon icon="lucide:link" style="font-size:9px;margin-right:3px"></iconify-icon>Req. Attunement</span>` : '',
     giverName ? `<span class="idp-giver">from ${esc(giverName)}</span>` : '',

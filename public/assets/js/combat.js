@@ -124,6 +124,9 @@ const overlayLootEl  = document.querySelector('.overlay-loot');
 const btnToggleLog   = document.getElementById('btn-toggle-log');
 const btnToggleLoot  = document.getElementById('btn-toggle-loot');
 const isMobileCombat = () => window.matchMedia('(max-width: 520px)').matches;
+// Touch-primary devices (phones/tablets) regardless of viewport width — used to
+// suppress desktop-only mouse gestures like double-click-to-attack.
+const isTouchDevice  = () => window.matchMedia('(pointer: coarse)').matches;
 
 function setSidePanel(panel, btn, show) {
   panel.style.display = show ? 'flex' : 'none';
@@ -211,7 +214,6 @@ document.getElementById("combat-bottom").addEventListener("click", e => {
     initiative: () => { closeSidePanels(); hideCombatantInfo(); hideActionToolbar(); },
     enemies: () => document.getElementById("btn-enemy-list").click(),
     add:    () => document.getElementById("btn-add").click(),
-    sort:   () => document.getElementById("btn-sort").click(),
     prev:   () => btnPrev.click(),
     next:   () => btnNext.click(),
     log:    () => document.getElementById("btn-toggle-log").click(),
@@ -455,7 +457,7 @@ function buildCard(c, idx) {
   // Double click: enter attack mode with this combatant as the attacker.
   // Desktop only — phones use the action toolbar instead.
   div.addEventListener("dblclick", e => {
-    if (isMobileCombat()) return;
+    if (isMobileCombat() || isTouchDevice()) return;
     if (e.target.closest(".card-actions")) return;
     onCardDblClick(c.id);
   });
@@ -537,8 +539,8 @@ function tickConditions(idx) {
 }
 
 // ── Sort ──────────────────────────────────────────────────────────────────────
-document.getElementById("btn-sort").addEventListener("click", () => { sortCombatants(); render(); });
-
+// The list auto-sorts by initiative whenever a combatant is added, so there is
+// no manual sort control — sortCombatants() is called from the add paths.
 function sortCombatants() {
   const activeId = state.currentTurn >= 0 ? (state.combatants[state.currentTurn] || {}).id : null;
   state.combatants.sort((a, b) => (b.initiative ?? 0) - (a.initiative ?? 0));
@@ -592,6 +594,8 @@ const cmCountInput    = document.getElementById("cm-count");
 const cmNotes         = document.getElementById("cm-notes");
 const cmError         = document.getElementById("cm-error");
 const cmSave          = document.getElementById("cm-save");
+const cmSaveLabel     = document.getElementById("cm-save-label");
+const cmSaveCount     = document.getElementById("cm-save-count");
 const cmCancel        = document.getElementById("cm-cancel");
 const cmTypeBtns      = document.querySelectorAll(".type-btn");
 const cmRollBtn       = document.getElementById("cm-roll-init");
@@ -654,15 +658,23 @@ function updatePlayerFields() {
   const isAddEnemy  = isEnemy && editingIdx === null;
   const isAddPlayer = isPlayer && editingIdx === null;
 
+  // Phones queue multiple templates (per-item count steppers); desktop keeps the
+  // single-template select with one shared count + an initiative field.
+  const useQueue = isAddEnemy && cmIsMobile();
+
   cmNameRow.style.display        = (isAddEnemy || isAddPlayer) ? "none" : "";
   cmPlayerPickRow.style.display  = isAddPlayer ? "" : "none";
   cmEnemyTmplRow.style.display   = isAddEnemy ? ""     : "none";
-  cmEnemyCountRow.style.display  = isAddEnemy ? ""     : "none";
+  cmEnemyCountRow.style.display  = isAddEnemy && !useQueue ? "" : "none";
+  cmEnemyQueueRow.style.display  = useQueue ? "" : "none";
+  cmInitLabel.parentElement.style.display = useQueue ? "none" : "";
   cmNonPlayerRows.style.display  = isAddEnemy || isPlayer ? "none" : "";
   document.getElementById("cm-preset-row").style.display = isAddEnemy || isPlayer ? "none" : "";
   cmLootRows.style.display       = isEnemy && !isAddEnemy ? "" : "none";
   cmInitLabel.firstChild.textContent = isPlayer ? "Initiative rolled" : "Initiative";
 
+  if (useQueue) renderCmEnemyQueue();
+  updateCmSaveLabel();
   if (isAddPlayer) _renderPlayerPicker();
 }
 
@@ -759,7 +771,114 @@ cmEnemyTmplSearch.addEventListener("input", () => {
 cmEnemyTmplSearch.addEventListener("focus",  () => cmEnemyTmplSearch.dispatchEvent(new Event("input")));
 cmEnemyTmplSearch.addEventListener("blur",   () => setTimeout(() => { cmEnemyTmplList.style.display = "none"; }, 150));
 
+// Mobile-only: the add-enemy flow becomes a multi-template queue. Phones tap
+// several templates into a list and drop them all into combat at once; desktop
+// keeps the single-template select + count.
+const cmMobileMQ = window.matchMedia("(max-width: 900px)");
+const cmIsMobile = () => cmMobileMQ.matches;
+
+const cmEnemyQueueRow = document.getElementById("cm-enemy-queue-row");
+const cmEnemyQueueEl  = document.getElementById("cm-enemy-queue");
+let cmEnemyQueue = [];   // [{ tmpl, count }]
+
+function cmQueueTotal() {
+  return cmEnemyQueue.reduce((s, e) => s + e.count, 0);
+}
+
+// The floating Add button shows a checkmark plus the queued total (mobile only).
+function updateCmSaveLabel() {
+  if (!cmSaveCount) return;
+  const inQueueMode = cmIsMobile() && selectedType === "enemy" && editingIdx === null;
+  if (inQueueMode) {
+    cmSaveCount.textContent = String(cmQueueTotal());
+    cmSaveCount.style.display = "";
+  } else {
+    cmSaveCount.textContent = "";
+    cmSaveCount.style.display = "none";
+  }
+}
+
+function renderCmEnemyQueue() {
+  if (!cmEnemyQueueEl) return;
+  cmEnemyQueueEl.innerHTML = "";
+  if (!cmEnemyQueue.length) {
+    cmEnemyQueueEl.innerHTML = `<div class="cm-queue-empty">No enemies queued yet.</div>`;
+    return;
+  }
+  cmEnemyQueue.forEach((entry, idx) => {
+    const row = document.createElement("div");
+    row.className = "cm-queue-item";
+    row.innerHTML = `
+      <div class="cm-queue-top">
+        <span class="cm-queue-name">${escHtml(entry.tmpl.name)}</span>
+        <button type="button" class="cm-queue-remove" title="Remove">&times;</button>
+      </div>
+      <div class="cm-queue-bottom">
+        <div class="cm-queue-init">
+          <input type="number" class="cm-queue-init-input" min="-5" max="50" inputmode="numeric"
+                 placeholder="${entry.rollEach ? "🎲 random each" : "Same for all"}"
+                 value="${entry.init != null ? entry.init : ""}" />
+          <button type="button" class="cm-queue-roll${entry.rollEach ? " active" : ""}" title="Roll a random initiative (one per enemy)">d20</button>
+        </div>
+        <div class="cm-queue-stepper">
+          <button type="button" class="cm-queue-step cm-queue-minus" title="Remove one">&minus;</button>
+          <span class="cm-queue-count">${entry.count}</span>
+          <button type="button" class="cm-queue-step cm-queue-plus" title="Add one">+</button>
+        </div>
+      </div>`;
+
+    const initInput = row.querySelector(".cm-queue-init-input");
+    initInput.addEventListener("input", () => {
+      const v = parseInt(initInput.value, 10);
+      entry.init = isNaN(v) ? null : v;
+      entry.rollEach = false;   // a typed value is a fixed, shared initiative
+    });
+    row.querySelector(".cm-queue-roll").addEventListener("click", () => {
+      if (entry.count > 1) {
+        // Multiple enemies → each rolls its own initiative at spawn time
+        entry.rollEach = true;
+        entry.init = null;
+        renderCmEnemyQueue();
+      } else {
+        entry.rollEach = false;
+        entry.init = roll(20) + (entry.tmpl.initMod ?? 0);
+        initInput.value = entry.init;
+      }
+    });
+    row.querySelector(".cm-queue-minus").addEventListener("click", () => {
+      entry.count = Math.max(1, entry.count - 1);
+      renderCmEnemyQueue();
+      updateCmSaveLabel();
+    });
+    row.querySelector(".cm-queue-plus").addEventListener("click", () => {
+      entry.count = Math.min(26, entry.count + 1);
+      renderCmEnemyQueue();
+      updateCmSaveLabel();
+    });
+    row.querySelector(".cm-queue-remove").addEventListener("click", () => {
+      cmEnemyQueue.splice(idx, 1);
+      renderCmEnemyQueue();
+      updateCmSaveLabel();
+    });
+    cmEnemyQueueEl.appendChild(row);
+  });
+}
+
 function applyEnemyTemplate(tmpl) {
+  // Mobile: accumulate into the queue instead of single-selecting
+  if (cmIsMobile() && editingIdx === null) {
+    const existing = cmEnemyQueue.find(e => e.tmpl.id === tmpl.id);
+    if (existing) existing.count = Math.min(26, existing.count + 1);
+    else cmEnemyQueue.push({ tmpl, count: 1, init: null, rollEach: false });
+    cmEnemyTmplSearch.value = "";
+    cmEnemyTmplList.style.display = "none";
+    cmError.textContent = "";
+    renderCmEnemyQueue();
+    updateCmSaveLabel();
+    cmEnemyTmplSearch.focus();
+    return;
+  }
+
   selectedEnemyTmpl = tmpl;
   cmEnemyTmplSearch.value = tmpl.name;
   cmEnemyTmplList.style.display = "none";
@@ -804,6 +923,8 @@ function openModal(idx) {
   cmEnemyTmplList.style.display = "none";
   cmEnemyTmplBadge.style.display = "none";
   cmEnemyCountInput.value = 1;
+  cmEnemyQueue = [];
+  renderCmEnemyQueue();
 
   if (idx !== null && idx !== undefined) {
     const c = state.combatants[idx];
@@ -816,7 +937,7 @@ function openModal(idx) {
     cmNotes.value = c.notes || "";
     cmCountInput.value = 1;
     selectedType  = c.type;
-    cmSave.textContent = "Save";
+    cmSaveLabel.textContent = "Save";
     // Populate loot fields
     cmLootGpMin.value    = c.loot?.gpMin    ?? 0;
     cmLootGpMax.value    = c.loot?.gpMax    ?? 0;
@@ -828,7 +949,7 @@ function openModal(idx) {
     cmName.value = cmAc.value = cmHp.value = cmMaxHp.value = cmInit.value = cmNotes.value = "";
     cmCountInput.value = 1;
     selectedType = "enemy";   // default to enemy since that's the common case
-    cmSave.textContent = "Add";
+    cmSaveLabel.textContent = "Add";
     _selectedPlayerUid = null;
     // Reset loot fields
     cmLootGpMin.value = cmLootGpMax.value = cmLootItemsMin.value = cmLootItemsMax.value = "0";
@@ -843,6 +964,7 @@ function openModal(idx) {
 
 function closeModal() { combatantModal.classList.remove("open"); editingIdx = null; window._onCampaignPlayersLoaded = null; window._onUsersLoaded = null; }
 cmCancel.addEventListener("click", closeModal);
+document.getElementById("cm-close")?.addEventListener("click", closeModal);
 combatantModal.addEventListener("click", e => { if (e.target === combatantModal) closeModal(); });
 cmName.addEventListener("keydown", e => { if (e.key === "Enter") cmSave.click(); });
 
@@ -854,6 +976,21 @@ cmSave.addEventListener("click", () => {
 
   // Simplified add-enemy path
   if (isAddEnemy) {
+    // Mobile: spawn the whole queued list at once
+    if (cmIsMobile()) {
+      if (!cmEnemyQueue.length) { cmError.textContent = "Tap a template above to queue at least one enemy."; return; }
+      const parts = [];
+      cmEnemyQueue.forEach(({ tmpl, count, init }) => {
+        spawnCombatantsFromTemplate(tmpl, count, init);
+        parts.push(`${tmpl.name}${count > 1 ? " ×" + count : ""}`);
+      });
+      addLog(`+  ${parts.join(", ")} added.`, "info");
+      cmEnemyQueue = [];
+      sortCombatants();
+      closeModal();
+      render();
+      return;
+    }
     if (!selectedEnemyTmpl) { cmError.textContent = "Select an enemy template."; return; }
     const initVal = parseInt(cmInit.value, 10);
     if (isNaN(initVal)) { cmError.textContent = "Enter an initiative value."; return; }
@@ -886,6 +1023,7 @@ cmSave.addEventListener("click", () => {
     }
     const label = count > 1 ? `${t.name} ×${count}` : t.name;
     addLog(`+  ${label} added.`, "info");
+    sortCombatants();
     closeModal();
     render();
     return;
@@ -913,6 +1051,7 @@ cmSave.addEventListener("click", () => {
       uid:        _selectedPlayerUid,
     });
     addLog(`+  ${playerName} added.`, "info");
+    sortCombatants();
     closeModal();
     render();
     return;
@@ -985,6 +1124,7 @@ cmSave.addEventListener("click", () => {
     }
     const label = count > 1 ? `${name} ×${count}` : name;
     addLog(`+  ${label} added.`, "info");
+    sortCombatants();
   }
 
   closeModal();
@@ -1512,6 +1652,8 @@ attackDmgInput.addEventListener("keydown", e => {
 // ── Enemy Templates ───────────────────────────────────────────────────────────
 let enemyTemplates     = [];
 let selectedTemplateId = null;
+// Per-template quantities queued for a multi-template "add in one go" spawn.
+const templateQueue    = new Map();   // templateId -> count
 
 // ── Seed Items ────────────────────────────────────────────────────────────────
 // Stable-ID items written to Firebase on first run (idempotent by ID).
@@ -1804,11 +1946,14 @@ const etError        = document.getElementById("et-error");
 btnEnemyList.addEventListener("click", () => {
   enemyTemplatesModal.classList.add("open");
   renderTemplateList();
+  updateMultiaddBar();
 });
 
 function closeEnemyModal() {
   enemyTemplatesModal.classList.remove("open");
   selectedTemplateId = null;
+  templateQueue.clear();
+  updateMultiaddBar();
 }
 
 enemyModalClose.addEventListener("click", closeEnemyModal);
@@ -1838,15 +1983,36 @@ function renderTemplateList() {
   }
 
   filtered.forEach(tmpl => {
+    const queued = templateQueue.get(tmpl.id) || 0;
     const item = document.createElement("div");
-    item.className = "enemy-template-item" + (tmpl.id === selectedTemplateId ? " selected" : "");
+    item.className = "enemy-template-item"
+      + (tmpl.id === selectedTemplateId ? " selected" : "")
+      + (queued > 0 ? " queued" : "");
     const builtinBadge = tmpl.builtin
       ? `<span style="font-size:9px;color:#666;letter-spacing:0.06em;text-transform:uppercase;margin-left:4px">preset</span>`
       : `<span style="font-size:9px;color:#5a8a5a;letter-spacing:0.06em;text-transform:uppercase;margin-left:4px">custom</span>`;
-    item.innerHTML = `
+
+    const text = document.createElement("div");
+    text.className = "et-item-text";
+    text.innerHTML = `
       <div class="enemy-template-name">${escHtml(tmpl.name)}${builtinBadge}</div>
       <div class="enemy-template-meta">HP ${tmpl.hp ?? "?"} · AC ${tmpl.ac ?? "?"} · CR ${tmpl.cr || "—"}</div>`;
-    item.addEventListener("click", () => openTemplateEditor(tmpl.id));
+    text.addEventListener("click", () => openTemplateEditor(tmpl.id));
+
+    // Quantity stepper — queues this template for the multi-add button without
+    // opening the editor. Clicks here must not bubble to the row's edit handler.
+    const stepper = document.createElement("div");
+    stepper.className = "et-stepper";
+    stepper.innerHTML = `
+      <button type="button" class="et-step-btn et-minus" title="Remove one"${queued === 0 ? " disabled" : ""}>&minus;</button>
+      <span class="et-step-count">${queued}</span>
+      <button type="button" class="et-step-btn et-plus" title="Add one">+</button>`;
+    stepper.addEventListener("click", e => e.stopPropagation());
+    stepper.querySelector(".et-minus").addEventListener("click", () => setTemplateQueue(tmpl.id, queued - 1));
+    stepper.querySelector(".et-plus").addEventListener("click", () => setTemplateQueue(tmpl.id, queued + 1));
+
+    item.appendChild(text);
+    item.appendChild(stepper);
     enemyTemplateListEl.appendChild(item);
   });
 }
@@ -1916,16 +2082,14 @@ etDeleteBtn.addEventListener("click", () => {
 });
 
 // ── Add to Combat ─────────────────────────────────────────────────────────────
-etSpawnBtn.addEventListener("click", () => {
-  if (!selectedTemplateId) return;
-  const tmpl = enemyTemplates.find(t => t.id === selectedTemplateId);
-  if (!tmpl) return;
-
-  const count = Math.max(1, Math.min(20, parseInt(etSpawnCount.value, 10) || 1));
-
+// Push `count` combatants built from a template onto the encounter (no re-render
+// — callers render once after queuing everything they need).
+function spawnCombatantsFromTemplate(tmpl, count, initOverride = null) {
   for (let i = 0; i < count; i++) {
     const suffix  = count > 1 ? " " + (i + 1) : "";
-    const initRoll = roll(20) + (tmpl.initMod || 0);
+    // A fixed initiative (from the mobile queue) applies to the whole group;
+    // otherwise each spawn rolls its own.
+    const initRoll = initOverride != null ? initOverride : roll(20) + (tmpl.initMod || 0);
     // Build loot config from the template's lootItems for the generate function
     const lootCfg = {
       gpMin:      tmpl.loot?.gpMin    ?? 0,
@@ -1956,8 +2120,72 @@ etSpawnBtn.addEventListener("click", () => {
       lootDropped: false,
     });
   }
+}
+
+etSpawnBtn.addEventListener("click", () => {
+  if (!selectedTemplateId) return;
+  const tmpl = enemyTemplates.find(t => t.id === selectedTemplateId);
+  if (!tmpl) return;
+
+  const count = Math.max(1, Math.min(20, parseInt(etSpawnCount.value, 10) || 1));
+  spawnCombatantsFromTemplate(tmpl, count);
 
   addLog(`+  ${tmpl.name}${count > 1 ? " ×" + count : ""} added from template.`, "info");
+  sortCombatants();
+  render();
+  closeEnemyModal();
+});
+
+// ── Multi-template add: queue counts on several templates, spawn all at once ───
+const enemyMultiaddBar   = document.getElementById("enemy-multiadd-bar");
+const enemyMultiaddBtn   = document.getElementById("enemy-multiadd-btn");
+const enemyMultiaddClear = document.getElementById("enemy-multiadd-clear");
+const enemyMultiaddCount = document.getElementById("enemy-multiadd-count");
+
+function queueTotal() {
+  let n = 0;
+  templateQueue.forEach(c => { n += c; });
+  return n;
+}
+
+function setTemplateQueue(id, count) {
+  const c = Math.max(0, Math.min(20, count));
+  if (c === 0) templateQueue.delete(id);
+  else templateQueue.set(id, c);
+  updateMultiaddBar();
+  renderTemplateList();
+}
+
+const enemyMultiaddHint = document.querySelector(".enemy-multiadd-hint");
+
+function updateMultiaddBar() {
+  const total = queueTotal();
+  enemyMultiaddCount.textContent = total;
+  enemyMultiaddBtn.disabled = total === 0;
+  enemyMultiaddClear.style.display = total > 0 ? "" : "none";
+  if (enemyMultiaddHint) enemyMultiaddHint.style.display = total > 0 ? "none" : "";
+}
+
+enemyMultiaddClear.addEventListener("click", () => {
+  templateQueue.clear();
+  updateMultiaddBar();
+  renderTemplateList();
+});
+
+enemyMultiaddBtn.addEventListener("click", () => {
+  if (queueTotal() === 0) return;
+  const parts = [];
+  templateQueue.forEach((count, id) => {
+    const tmpl = enemyTemplates.find(t => t.id === id);
+    if (!tmpl) return;
+    spawnCombatantsFromTemplate(tmpl, count);
+    parts.push(`${tmpl.name}${count > 1 ? " ×" + count : ""}`);
+  });
+  if (parts.length === 0) return;
+
+  addLog(`+  ${parts.join(", ")} added from templates.`, "info");
+  templateQueue.clear();
+  sortCombatants();
   render();
   closeEnemyModal();
 });
