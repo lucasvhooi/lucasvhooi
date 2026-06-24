@@ -193,6 +193,102 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
     }
     .login-error.show { display: block; }
 
+    .forgot-link {
+      display: block;
+      text-align: right;
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--accent);
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      text-decoration: none;
+      font-family: var(--font);
+    }
+    .forgot-link:hover { text-decoration: underline; }
+
+    .reset-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(10,8,6,0.75);
+      backdrop-filter: blur(4px);
+      padding: 24px 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .reset-modal.open { opacity: 1; pointer-events: auto; }
+
+    .reset-card {
+      position: relative;
+      background: linear-gradient(135deg, rgba(28,28,26,0.97) 0%, rgba(20,20,19,0.97) 100%);
+      border: 1px solid rgba(200,164,92,0.22);
+      border-radius: var(--rounded-xl);
+      padding: 32px 28px 28px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: var(--shadow-modal), 0 0 40px rgba(255,204,102,0.08);
+      animation: cardIn 0.35s var(--ease-out-expo) both;
+    }
+
+    .reset-title {
+      font-family: var(--title);
+      font-size: 1.3rem;
+      color: var(--accent);
+      margin: 0 0 8px;
+      letter-spacing: 0.05em;
+    }
+    .reset-sub {
+      font-size: 13px;
+      color: var(--smoke);
+      margin: 0 0 20px;
+      line-height: 1.5;
+    }
+    .reset-close {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      background: none;
+      border: none;
+      color: var(--deep-smoke);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px 6px;
+      border-radius: var(--rounded-sm);
+      transition: color 0.2s, background 0.2s;
+    }
+    .reset-close:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+
+    .reset-success {
+      background: rgba(80,180,80,0.12);
+      border: 1px solid rgba(80,180,80,0.3);
+      border-radius: var(--rounded-sm);
+      color: #7ecf7e;
+      font-size: 13px;
+      padding: 9px 12px;
+      margin-top: 14px;
+      display: none;
+    }
+    .reset-success.show { display: block; }
+
+    .reset-error {
+      background: rgba(224,80,80,0.12);
+      border: 1px solid rgba(224,80,80,0.3);
+      border-radius: var(--rounded-sm);
+      color: var(--hazard-red);
+      font-size: 13px;
+      padding: 9px 12px;
+      margin-top: 14px;
+      display: none;
+    }
+    .reset-error.show { display: block; }
+
     .login-footer {
       text-align: center;
       margin-top: 22px;
@@ -216,6 +312,7 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
       <div class="login-field">
         <label class="login-label" for="login-pass">Password</label>
         <input class="login-input" id="login-pass" type="password" placeholder="Secret passphrase…" autocomplete="current-password" />
+        <button class="forgot-link" id="forgot-btn" type="button">Forgot password?</button>
       </div>
 
       <button class="login-btn" id="login-btn">
@@ -240,10 +337,26 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
     </div>
   </div>
 
+  <!-- Forgot password modal -->
+  <div class="reset-modal" id="reset-modal">
+    <div class="reset-card">
+      <button class="reset-close" id="reset-close" aria-label="Close">&times;</button>
+      <h2 class="reset-title">Reset Password</h2>
+      <p class="reset-sub">Enter your email and we'll send you a link to reset your password.</p>
+      <div class="login-field">
+        <label class="login-label" for="reset-email">Email</label>
+        <input class="login-input" id="reset-email" type="email" placeholder="your@email.com" autocomplete="email" />
+      </div>
+      <button class="login-btn" id="reset-send-btn" type="button">Send Reset Email</button>
+      <div class="reset-error" id="reset-error"></div>
+      <div class="reset-success" id="reset-success">Reset email sent! Check your inbox.</div>
+    </div>
+  </div>
+
   <script is:inline type="module">
     import { auth, db }                                          from "/assets/js/firebase.js";
     import { signInWithEmailAndPassword, GoogleAuthProvider,
-             signInWithPopup }                                   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+             signInWithPopup, sendPasswordResetEmail }           from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { ref, get, set }                                     from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
     import { saveSession, getSession }                           from "/assets/js/auth.js";
 
@@ -334,5 +447,50 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
 
     btn.addEventListener("click", doLogin);
     [eInp, pInp].forEach(el => el.addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); }));
+
+    // Forgot password
+    const forgotBtn    = document.getElementById("forgot-btn");
+    const resetModal   = document.getElementById("reset-modal");
+    const resetClose   = document.getElementById("reset-close");
+    const resetEmailEl = document.getElementById("reset-email");
+    const resetSendBtn = document.getElementById("reset-send-btn");
+    const resetErr     = document.getElementById("reset-error");
+    const resetOk      = document.getElementById("reset-success");
+
+    forgotBtn.addEventListener("click", () => {
+      resetModal.classList.add("open");
+      resetEmailEl.value = eInp.value.trim();
+      resetErr.classList.remove("show");
+      resetOk.classList.remove("show");
+    });
+
+    resetClose.addEventListener("click", () => resetModal.classList.remove("open"));
+    resetModal.addEventListener("click", e => { if (e.target === resetModal) resetModal.classList.remove("open"); });
+
+    resetSendBtn.addEventListener("click", async () => {
+      const email = resetEmailEl.value.trim();
+      resetErr.classList.remove("show");
+      resetOk.classList.remove("show");
+      if (!email) { resetErr.textContent = "Please enter your email."; resetErr.classList.add("show"); return; }
+      resetSendBtn.disabled = true;
+      resetSendBtn.textContent = "Sending…";
+      try {
+        await sendPasswordResetEmail(auth, email);
+        resetOk.classList.add("show");
+        resetEmailEl.value = "";
+      } catch (e) {
+        if (["auth/user-not-found","auth/invalid-email"].includes(e.code)) {
+          resetErr.textContent = "No account found with that email.";
+        } else {
+          resetErr.textContent = "Could not send email. Please try again.";
+        }
+        resetErr.classList.add("show");
+      } finally {
+        resetSendBtn.disabled = false;
+        resetSendBtn.textContent = "Send Reset Email";
+      }
+    });
+
+    resetEmailEl.addEventListener("keydown", e => { if (e.key === "Enter") resetSendBtn.click(); });
   </script>
 </Layout>
