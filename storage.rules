@@ -1,0 +1,31 @@
+rules_version = '2';
+
+// Tier A storage guardrails. Hard backstops that the client cannot bypass:
+//  - only authenticated users may write
+//  - every uploaded object must be an image under the per-file size cap
+//  - deletes are allowed for authenticated users (request.resource is null)
+// Total per-account quota is tracked separately (soft, client-maintained) in
+// the Realtime DB at users/{uid}/storage/bytes — see storage-quota.js. A truly
+// enforced billable quota would require Cloud Functions (Tier B).
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Campaign-scoped uploads: maps, cover art, location & character images.
+    match /campaigns/{cid}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+        && (
+          request.resource == null                                  // delete
+          || (
+            request.resource.size < 20 * 1024 * 1024                // 20 MB hard cap
+            && request.resource.contentType.matches('image/.*')     // images only
+          )
+        );
+    }
+
+    // Everything else is denied.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

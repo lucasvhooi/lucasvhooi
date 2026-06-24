@@ -5,6 +5,7 @@ import { ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject }
                                                   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
 import { getSession }                             from "./auth.js";
 import { buildDefaultClimates, CLIMATE_FIELDS }   from "./default-climates.js";
+import { STORAGE_LIMITS, assertCanStore, QuotaError } from "./storage-quota.js";
 
 // ── Remember last location — redirect if user came back from a location ───────
 const _savedLoc = sessionStorage.getItem("lastLocationId");
@@ -1324,6 +1325,14 @@ async function _handleFileChange(e) {
   }
   if (!session) { mapsErrorEl.textContent = "Not logged in."; return; }
 
+  // Account-storage quota check before we upload.
+  try {
+    await assertCanStore(session.id, file.size, STORAGE_LIMITS.map);
+  } catch (err) {
+    mapsErrorEl.textContent = err instanceof QuotaError ? err.message : "Could not verify storage quota.";
+    return;
+  }
+
   mapsErrorEl.textContent = "";
   _setUploadBusy(true);
 
@@ -1331,7 +1340,7 @@ async function _handleFileChange(e) {
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const path     = `campaigns/${_cid}/maps/${session.id}/${mapId}_${safeName}`;
   const fileRef  = storageRef(storage, path);
-  const task     = uploadBytesResumable(fileRef, file, { customMetadata: { uploadedBy: session.id } });
+  const task     = uploadBytesResumable(fileRef, file, { customMetadata: { uploadedBy: session.id, ownerId: session.id } });
 
   task.on("state_changed",
     snap => {

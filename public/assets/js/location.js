@@ -1,8 +1,9 @@
 import { db }                          from "./firebase.js";
-import { ref, set, remove, onValue }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+import { ref, set, remove, onValue, update }  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 import { NPC_NAMES, AGE_RANGES, DEFAULT_PROFESSIONS, RACE_PROFESSIONS, RACE_BASE_WEIGHTS, ELF_SUBTYPE_WEIGHTS, NPC_TRAITS } from "./npc-data.js";
 import { parseTags, formatGold, getDisplayTags, RARITY_KW } from "./item-utils.js";
 import { openGivePanel } from "./give-to-player.js";
+import { STORAGE_LIMITS, assertCanStore, uploadImageToStorage, deleteStorageObject, QuotaError } from "./storage-quota.js";
 
 // ── Setup ─────────────────────────────────────────────────────────────────────
 const params     = new URLSearchParams(window.location.search);
@@ -1143,7 +1144,7 @@ ldSave.addEventListener("click", () => {
 ldCancel.addEventListener("click", () => locDescModal.classList.remove("open"));
 locDescModal.addEventListener("click", e => { if (e.target === locDescModal) locDescModal.classList.remove("open"); });
 
-// ── Map Image Upload (compressed base64 → Realtime Database) ─────────────────
+// ── Image upload (compressed JPEG → Firebase Storage; URL in the database) ───
 const locMapUpload = document.getElementById("loc-map-upload");
 
 function compressImage(file, maxSize = 900, quality = 0.82) {
@@ -1162,11 +1163,30 @@ function compressImage(file, maxSize = 900, quality = 0.82) {
       canvas.width  = width;
       canvas.height = height;
       canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL("image/jpeg", quality));
+      canvas.toBlob(b => resolve(b), "image/jpeg", quality);
     };
     img.onerror = reject;
     img.src = url;
   });
+}
+
+// Shared: compress → quota-check → upload to Storage → store {url, path} in the
+// location info, and delete the previously stored object. `kind` is the info
+// field stem ("mapImage" / "featureImage"). The metering trigger counts bytes.
+async function uploadLocationImage(file, kind, maxSize, quality) {
+  const blob = await compressImage(file, maxSize, quality);
+  await assertCanStore(_session.id, blob.size, STORAGE_LIMITS.image);
+  const oldPath = locationInfo[`${kind}StoragePath`] || "";
+  const up = await uploadImageToStorage({
+    blob,
+    path:    `campaigns/${cid}/locations/${locationId}/${kind}_${Date.now()}.jpg`,
+    ownerId: _session.id,
+  });
+  await update(ref(db, `campaigns/${cid}/locations/${locationId}/info`), {
+    [`${kind}Url`]:         up.url,
+    [`${kind}StoragePath`]: up.path,
+  });
+  if (oldPath && oldPath !== up.path) deleteStorageObject(oldPath);
 }
 
 if (locMapUpload) {
@@ -1174,15 +1194,15 @@ if (locMapUpload) {
     const file = locMapUpload.files[0];
     if (!file) return;
 
-    locMapPlaceholder.innerHTML = `<span style="color:#aaa">Compressing&hellip;</span>`;
+    locMapPlaceholder.innerHTML = `<span style="color:#aaa">Uploading&hellip;</span>`;
     locMapPlaceholder.style.display = "flex";
     locMapImg.style.display = "none";
 
     try {
-      const base64 = await compressImage(file);
-      await set(ref(db, `campaigns/${cid}/locations/${locationId}/info/mapImageUrl`), base64);
+      await uploadLocationImage(file, "mapImage", 900, 0.82);
     } catch (err) {
-      locMapPlaceholder.innerHTML = `<span style="color:#E57373">Upload failed. Try a smaller image.</span>`;
+      const msg = err instanceof QuotaError ? err.message : "Upload failed. Try a smaller image.";
+      locMapPlaceholder.innerHTML = `<span style="color:#E57373">${msg}</span>`;
     }
 
     locMapUpload.value = "";
@@ -1197,10 +1217,10 @@ if (locFeatureUpload) {
     if (!file) return;
     locHero.classList.add("hero-uploading");
     try {
-      const base64 = await compressImage(file, 1200, 0.85);
-      await set(ref(db, `campaigns/${cid}/locations/${locationId}/info/featureImageUrl`), base64);
-    } catch {
-      // upload failed — image unchanged
+      await uploadLocationImage(file, "featureImage", 1200, 0.85);
+    } catch (err) {
+      if (err instanceof QuotaError) alert(err.message);
+      // otherwise: upload failed — image unchanged
     }
     locHero.classList.remove("hero-uploading");
     locFeatureUpload.value = "";

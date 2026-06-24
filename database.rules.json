@@ -26,6 +26,12 @@
         "username": { ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 30" },
         "color":    { ".validate": "newData.isString() && newData.val().length <= 9" },
         "tag":      { ".validate": "newData.isString() && newData.val().length <= 8" },
+        "storage": {
+          "$field": { ".validate": false }
+        },
+        "plan": {
+          "$field": { ".validate": false }
+        },
         "invites": {
           ".read":  "auth != null && auth.uid === $uid",
           ".write": "auth != null",
@@ -75,6 +81,20 @@
       ".indexOn": ["inviteCode"],
       "$campaignId": {
         ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || !data.exists() || data.child('createdBy').val() === auth.uid || data.child('members').child(auth.uid).val() === 'dm')",
+        "imageUrl": { ".validate": "newData.isString() && newData.val().length <= 2000000" },
+        "locations": {
+          "$locationId": {
+            "info": {
+              "mapImageUrl":     { ".validate": "newData.isString() && newData.val().length <= 2000000" },
+              "featureImageUrl": { ".validate": "newData.isString() && newData.val().length <= 2000000" }
+            }
+          }
+        },
+        "characters": {
+          "$charId": {
+            "picture": { ".validate": "newData.isString() && newData.val().length <= 2000000" }
+          }
+        },
         "members": {
           "$uid": {
             ".write": "auth != null && ((auth.uid === $uid && (!newData.exists() || newData.val() === 'player')) || root.child('campaigns').child($campaignId).child('createdBy').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",

@@ -80,7 +80,11 @@
       "Bash(Select-String *)",
       "PowerShell(npm run *)",
       "PowerShell(node --check \"public/assets/js/missions.js\"; if \\($?\\) { \"JS syntax OK\" })",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "Bash(firebase deploy *)",
+      "Bash(firebase functions:artifacts:setpolicy --force)",
+      "Bash(firebase functions:artifacts:setpolicy --location europe-west1 --force)",
+      "Bash(firebase functions:list)"
     ]
   }
 }

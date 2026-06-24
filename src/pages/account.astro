@@ -216,6 +216,33 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
       margin-bottom: 18px;
     }
 
+    /* ── Storage meter ─────────────────────────────────────────── */
+    .storage-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .storage-used { font-size: 15px; color: var(--text); }
+    .storage-used strong { color: var(--accent); font-family: var(--title); letter-spacing: 0.02em; }
+    .storage-free { font-size: 12px; color: #888880; white-space: nowrap; }
+    .storage-track {
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(200,164,92,0.1);
+      overflow: hidden;
+    }
+    .storage-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #8a6010, #e0b040);
+      /* slow, smooth fill so the bar visibly animates to its new level */
+      transition: width 0.7s cubic-bezier(0.16,1,0.3,1), background 0.4s;
+    }
+
     /* ── Danger description ────────────────────────────────────── */
     .danger-desc {
       font-size: 13px;
@@ -342,6 +369,20 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
             <div class="acct-msg" id="msg-username"></div>
           </div>
 
+          <!-- Storage -->
+          <div class="acct-sub">
+            <h2 class="acct-section-title">
+              <iconify-icon icon="lucide:hard-drive" style="font-size:20px;opacity:0.7"></iconify-icon>
+              Storage
+            </h2>
+            <div class="storage-head">
+              <span class="storage-used" id="storage-used"><strong>—</strong> used</span>
+              <span class="storage-free" id="storage-free"></span>
+            </div>
+            <div class="storage-track"><div class="storage-fill" id="storage-fill"></div></div>
+            <span class="acct-hint" id="storage-hint">Cover art, maps and images you upload count toward your account storage.</span>
+          </div>
+
           <!-- Change / Set Password -->
           <div class="acct-sub" id="section-password">
             <h2 class="acct-section-title">
@@ -412,9 +453,31 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
     import { ref, get, set, remove }                                       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
     import { saveSession, getSession, clearSession }                       from "/assets/js/auth.js";
     import { isBannedUsername }                                            from "/assets/js/username-filter.js";
+    import { formatBytes, watchStorage }                                   from "/assets/js/storage-quota.js";
 
     const session = getSession();
     if (!session) { window.location.href = "login"; }
+
+    // ── Live storage meter ───────────────────────────────────────
+    // The counter (users/{uid}/storage/bytes) is written only by the metering
+    // Cloud Functions, so this reflects real Storage usage and updates live as
+    // the user uploads or removes images.
+    (function initStorageMeter() {
+      const fill = document.getElementById('storage-fill');
+      const used = document.getElementById('storage-used');
+      const free = document.getElementById('storage-free');
+      watchStorage(session.id, ({ used: bytes, limit }) => {
+        const pct = Math.max(0, Math.min(100, (bytes / limit) * 100));
+        fill.style.width = pct + '%';
+        fill.style.background = pct >= 90
+          ? 'linear-gradient(90deg,#a02020,#e07070)'
+          : pct >= 75
+            ? 'linear-gradient(90deg,#8a6010,#d6a44c)'
+            : 'linear-gradient(90deg,#8a6010,#e0b040)';
+        used.innerHTML = `<strong>${formatBytes(bytes)}</strong> of ${formatBytes(limit)} used`;
+        free.textContent = `${formatBytes(Math.max(0, limit - bytes))} free`;
+      });
+    })();
 
     function showMsg(el, text, type) { el.textContent = text; el.className = 'acct-msg show ' + type; }
     function clearMsg(el) { el.className = 'acct-msg'; }
