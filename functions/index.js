@@ -7,7 +7,7 @@
 // this can never delete a user's files.
 import { setGlobalOptions } from "firebase-functions/v2";
 import { onObjectFinalized, onObjectDeleted } from "firebase-functions/v2/storage";
-import { onValueDeleted } from "firebase-functions/v2/database";
+import { onValueDeleted, onValueWritten } from "firebase-functions/v2/database";
 import { initializeApp } from "firebase-admin/app";
 import { getDatabase } from "firebase-admin/database";
 import { getStorage } from "firebase-admin/storage";
@@ -79,8 +79,18 @@ export const onStorageDelete = onObjectDeleted(async (event) => {
 // Storage objects (maps, cover, location & character images). Each removed
 // object fires onStorageDelete above, which releases its bytes from the
 // owner's counter — so no orphaned files and the meter stays accurate.
+// Mirror campaign membership into the lightweight campaignCards/{cid} node so the
+// campaigns list can render without downloading each campaign's full content.
+// Fires on any membership change (create, join, leave, admin edit) — small data.
+export const onMembersChanged = onValueWritten("/campaigns/{cid}/members", async (event) => {
+  const cid   = event.params.cid;
+  const after = event.data.after.exists() ? event.data.after.val() : null;
+  await db.ref(`campaignCards/${cid}/members`).set(after);
+});
+
 export const onCampaignDeleted = onValueDeleted("/campaigns/{cid}", async (event) => {
   const cid = event.params.cid;
+  await db.ref(`campaignCards/${cid}`).remove().catch(() => {});
   try {
     await getStorage().bucket(BUCKET).deleteFiles({ prefix: `campaigns/${cid}/` });
   } catch (e) {

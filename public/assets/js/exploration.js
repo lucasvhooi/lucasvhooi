@@ -1,6 +1,7 @@
 'use strict';
 import { db } from "./firebase.js";
 import { ref, set, remove, onValue, push } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+import { STORAGE_LIMITS, assertCanStore, uploadImageToStorage, deleteStorageObject, QuotaError } from "./storage-quota.js";
 
 const _session = (() => { try { return JSON.parse(localStorage.getItem('playerSession')); } catch { return null; } })();
 const isAdmin = _session?.campaignRole === 'dm';
@@ -314,6 +315,7 @@ function renderChars() {
         e.stopPropagation();
         if (confirm(`Delete "${c.name}"?`)) {
           remove(ref(db, `campaigns/${cid}/characters/${c.id}`));
+          if (c.pictureStoragePath) deleteStorageObject(c.pictureStoragePath);
           if (_activeCharRow === row) closeCharPanel();
         }
       });
@@ -373,6 +375,7 @@ function attachSwipeToDelete(swipe, row, c) {
       row._swiped = true;
       setTimeout(() => {
         remove(ref(db, `campaigns/${cid}/characters/${c.id}`));
+        if (c.pictureStoragePath) deleteStorageObject(c.pictureStoragePath);
         if (_activeCharRow === row) closeCharPanel();
       }, 180);
     } else {
@@ -493,6 +496,9 @@ charDetailPanel.addEventListener("click", e => { if (e.target === charDetailPane
 // ── Edit modal ────────────────────────────────────────────────────────────────
 function openEditModal(c = null) {
   editingId             = c ? c.id : null;
+  pendingCharBlob       = null;
+  originalPicture       = c ? (c.picture || "") : "";
+  originalPicPath       = c ? (c.pictureStoragePath || "") : "";
   charModalTitle.textContent = c ? "Edit Character" : "New Character";
   charPicture.value     = c ? (c.picture     || "") : "";
   charName.value        = c ? (c.name        || "") : "";
@@ -520,17 +526,25 @@ function closeEditModal() {
   editingId = null;
 }
 
-function updatePicPreview() {
-  const url = charPicture.value.trim();
-  charPicPreview.innerHTML = url
-    ? `<img src="${esc(url)}" alt="Preview" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
+function renderPicPreview(src) {
+  charPicPreview.innerHTML = src
+    ? `<img src="${esc(src)}" alt="Preview" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
     : '<iconify-icon icon="lucide:user"></iconify-icon>';
 }
+function updatePicPreview() { renderPicPreview(charPicture.value.trim()); }
 
-charPicture.addEventListener("input", updatePicPreview);
+// Typing a URL overrides any staged upload.
+charPicture.addEventListener("input", () => { pendingCharBlob = null; updatePicPreview(); });
 
 // ── Image upload ──────────────────────────────────────────────────────────────
-function resizeToBase64(file, maxPx = 400, quality = 0.85) {
+// Portraits live in Firebase Storage (metered), not as base64 in the database.
+// The compressed Blob is STAGED here and only uploaded on Save, so cancelling
+// never leaves an orphaned file.
+let pendingCharBlob   = null; // staged upload awaiting Save
+let originalPicture   = "";   // the picture value the modal opened with
+let originalPicPath   = "";   // its Storage path (if any)
+
+function resizeToBlob(file, maxPx = 400, quality = 0.85) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -542,7 +556,7 @@ function resizeToBase64(file, maxPx = 400, quality = 0.85) {
       const canvas = document.createElement("canvas");
       canvas.width = w; canvas.height = h;
       canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL("image/jpeg", quality));
+      canvas.toBlob(b => resolve(b), "image/jpeg", quality);
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Could not read image")); };
     img.src = url;
@@ -555,9 +569,10 @@ async function uploadImage(file) {
   charPicPreview.classList.add("uploading");
   charUploadBtn.disabled = true;
   try {
-    const dataUrl = await resizeToBase64(file);
-    charPicture.value = dataUrl;
-    updatePicPreview();
+    const blob = await resizeToBlob(file);
+    pendingCharBlob = blob;          // staged; uploaded on Save
+    charPicture.value = "";          // an uploaded file overrides any typed URL
+    renderPicPreview(URL.createObjectURL(blob));
     charUploadStatus.innerHTML = 'Ready <iconify-icon icon="lucide:check"></iconify-icon>';
     charUploadStatus.className = "char-upload-status done";
     setTimeout(() => { charUploadStatus.textContent = ""; }, 3000);
@@ -607,6 +622,28 @@ charSave.addEventListener("click", async () => {
   }
 
   const id = editingId || push(charactersRef).key;
+
+  // Resolve the portrait: a freshly staged upload → Storage; otherwise keep the
+  // existing one (unchanged) or whatever URL was typed in.
+  let picture = charPicture.value.trim() || null;
+  let picturePath = null;
+  if (pendingCharBlob) {
+    try {
+      await assertCanStore(_session.id, pendingCharBlob.size, STORAGE_LIMITS.image);
+      const up = await uploadImageToStorage({
+        blob:    pendingCharBlob,
+        path:    `campaigns/${cid}/characters/${id}/portrait_${Date.now()}.jpg`,
+        ownerId: _session.id,
+      });
+      picture = up.url; picturePath = up.path;
+    } catch (err) {
+      charError.textContent = err instanceof QuotaError ? err.message : "Image upload failed.";
+      return;
+    }
+  } else if (charPicture.value.trim() === originalPicture) {
+    picturePath = originalPicPath || null;   // unchanged — keep the existing object
+  }
+
   const payload = {
     id,
     name,
@@ -615,13 +652,16 @@ charSave.addEventListener("click", async () => {
     age:         charAge.value.trim()        || null,
     description: charDescription.value.trim() || null,
     notes:       charNotes.value.trim()      || null,
-    picture:     charPicture.value.trim()    || null,
+    picture:     picture,
+    pictureStoragePath: picturePath,
     encountered: charEncountered.checked,
     role:        selectedRole                || null,
     statBlock:   statBlock,
   };
 
   await set(ref(db, `campaigns/${cid}/characters/${id}`), payload);
+  // Free the old portrait object if it was replaced/removed.
+  if (originalPicPath && originalPicPath !== picturePath) deleteStorageObject(originalPicPath);
   closeEditModal();
 });
 

@@ -1059,7 +1059,9 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
 
     async function loadCampaigns() {
       try {
-        const snap = await get(ref(db, 'campaigns'));
+        // Read the lightweight card mirror (name/cover/members only) instead of
+        // the full campaigns tree — keeps this page's download tiny.
+        const snap = await get(ref(db, 'campaignCards'));
         const all  = snap.val() || {};
 
         const dayMs = 24 * 60 * 60 * 1000;
@@ -1072,7 +1074,7 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
         });
 
         const mine = Object.entries(all).filter(([, c]) =>
-          c.members && c.members[session.id]
+          (c.members && c.members[session.id]) || c.createdBy === session.id
         );
 
         stateLoading.style.display = 'none';
@@ -1255,6 +1257,13 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
         data.climatesSeeded = true;
 
         await set(newRef, data);
+        // Lightweight card mirror for the campaigns list (members are filled in
+        // by the onMembersChanged Cloud Function).
+        const card = { name, createdBy: session.id, createdAt: data.createdAt };
+        if (world)         card.world       = world;
+        if (desc)          card.description = desc;
+        if (data.imageUrl) card.imageUrl    = data.imageUrl;
+        await set(ref(db, `campaignCards/${id}`), card);
         closeAddModal();
         stateEmpty.style.display     = 'none';
         stateCampaigns.style.display = 'block';
@@ -1309,7 +1318,7 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
       try {
         await set(ref(db, `campaigns/${inv.campaignId}/members/${session.id}`), 'player');
         await remove(ref(db, `users/${session.id}/invites/${invId}`));
-        const snap = await get(ref(db, `campaigns/${inv.campaignId}`));
+        const snap = await get(ref(db, `campaignCards/${inv.campaignId}`));
         const c = snap.val();
         if (c) {
           stateEmpty.style.display     = 'none';
@@ -1558,6 +1567,10 @@ import headerImg from '../../Images/Headers/CampaignsPageHeader.png';
           useWeight:     document.getElementById('e-set-weight').checked,
         };
         await update(ref(db, `campaigns/${editTargetId}`), updates);
+        // Keep the card mirror's metadata in sync.
+        const cardUpdates = { name, world: world || null, description: desc || null };
+        if (newImg) cardUpdates.imageUrl = newImg.url;
+        await update(ref(db, `campaignCards/${editTargetId}`), cardUpdates);
         if (editTargetCard) editTargetCard.dataset.campaignSettings = JSON.stringify(updates.settings);
         if (editTargetCard) {
           editTargetCard.querySelector('.campaign-name').textContent = name;

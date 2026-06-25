@@ -76,6 +76,14 @@
       }
     },
 
+    "campaignCards": {
+      ".read": "auth != null",
+      "$cid": {
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('campaigns').child($cid).child('createdBy').val() === auth.uid || root.child('campaigns').child($cid).child('members').child(auth.uid).val() === 'dm')",
+        "members": { "$uid": { ".validate": false } }
+      }
+    },
+
     "campaigns": {
       ".read": "auth != null",
       ".indexOn": ["inviteCode"],
