@@ -43,17 +43,21 @@
 /* ── Hero ── */
 .loc-hero {
   background: linear-gradient(180deg, #1e1e1c 0%, #181816 50%, #131312 100%);
-  padding: 36px 20px 28px;
+  padding: 60px 20px 44px;
+  min-height: 200px;
   text-align: center;
   border-bottom: 1px solid rgba(200,164,92,0.12);
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   transition: padding 0.3s ease, min-height 0.3s ease;
 }
 
 .loc-hero.has-bg-image {
-  min-height: 280px;
-  padding: 64px 20px 52px;
+  min-height: 300px;
+  padding: 72px 20px 56px;
 }
 
 /* Absolutely-positioned background fill — sits behind all content */
@@ -72,11 +76,18 @@
   opacity: 1;
 }
 
-/* Dark gradient overlay so text stays readable */
+/* Grey gradient rising from the bottom of the header so titles/tags stay readable */
 .loc-hero-bg::after {
   content: '';
   position: absolute;
   inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(19,19,18,0.96) 0%,
+    rgba(22,22,20,0.78) 35%,
+    rgba(24,24,22,0.40) 70%,
+    rgba(24,24,22,0.12) 100%
+  );
 }
 
 /* Lift text content above the z-index:0 bg layer */
@@ -86,45 +97,47 @@
   z-index: 1;
 }
 
-.back-link {
+/* ── Hero icon buttons (back / edit / upload) — shared dock style ── */
+.back-link,
+.loc-edit-location-btn,
+.loc-hero-upload-btn {
   position: absolute;
-  top: 16px;
-  left: 20px;
-  font-size: 13px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
   color: var(--accent);
   text-decoration: none;
-  background: rgba(0,0,0,0.45);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 6px;
-  padding: 6px 12px;
-  transition: color 0.15s, border-color 0.15s;
-  z-index: 1;
-}
-.back-link:hover { color: var(--accent); border-color: var(--accent); }
-
-.loc-edit-location-btn {
-  position: absolute;
-  top: 16px;
-  right: 56px;
-  font-size: 12px;
-  font-family: var(--font);
-  color: var(--accent);
-  background: rgba(0,0,0,0.65);
-  border: 1px solid rgba(200,164,92,0.35);
-  border-radius: 6px;
-  padding: 6px 14px;
+  background: rgba(22,22,20,0.92);
+  border: 1px solid rgba(200,164,92,0.45);
+  border-radius: 50%;
   cursor: pointer;
-  display: none;
-  align-items: center;
-  gap: 5px;
-  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
-  z-index: 2;
-  font-weight: bold;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.55);
+  transition: background 0.18s var(--ease-out-expo),
+              border-color 0.18s var(--ease-out-expo),
+              box-shadow 0.18s var(--ease-out-expo),
+              transform 0.18s var(--ease-out-expo);
+  z-index: 3;
 }
-.loc-edit-location-btn:hover {
-  background: rgba(200,164,92,0.15);
+.back-link:hover,
+.loc-edit-location-btn:hover,
+.loc-hero-upload-btn:hover {
+  background: rgba(58,47,20,0.96);
   border-color: var(--accent);
-  box-shadow: 0 0 12px rgba(200,164,92,0.2);
+  box-shadow: 0 6px 22px rgba(200,164,92,0.25), 0 2px 8px rgba(0,0,0,0.5);
+  transform: translateY(-2px);
+}
+.back-link:active,
+.loc-edit-location-btn:active,
+.loc-hero-upload-btn:active { transform: translateY(0) scale(0.94); }
+
+.back-link             { top: 16px; left: 16px; }
+.loc-edit-location-btn {
+  top: 16px;
+  right: 16px;
+  display: none;       /* JS flips to flex for DMs */
 }
 
 .loc-title {
@@ -147,18 +160,39 @@
 .stat-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.11);
+  gap: 5px;
+  background: rgba(200,164,92,0.18);
+  border: 1px solid rgba(200,164,92,0.55);
   border-radius: 20px;
-  padding: 3px 11px;
+  padding: 4px 12px;
   font-size: 11px;
-  color: #bbb;
+  font-weight: 600;
+  color: #f0e2bd;
   font-family: var(--font);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.35);
 }
+.stat-badge iconify-icon { color: var(--accent); }
 
-.explored-badge   { border-color: #FFD700; color: #FFD700; }
-.unexplored-badge { border-color: #FF8A80; color: #FF8A80; }
+/* Quick-info count tags (Taverns / Shops / Buildings / NPCs) — tinted to the marker colour */
+.stat-count {
+  background: color-mix(in srgb, var(--sc, #C8A45C) 20%, transparent);
+  border-color: color-mix(in srgb, var(--sc, #C8A45C) 60%, transparent);
+  color: var(--sc, #C8A45C);
+}
+.stat-count iconify-icon { color: var(--sc, #C8A45C); }
+
+.explored-badge {
+  background: rgba(255,215,0,0.18);
+  border-color: rgba(255,215,0,0.6);
+  color: #FFE680;
+}
+.explored-badge iconify-icon { color: #FFD700; }
+.unexplored-badge {
+  background: rgba(255,138,128,0.18);
+  border-color: rgba(255,138,128,0.6);
+  color: #FFB3AC;
+}
+.unexplored-badge iconify-icon { color: #FF8A80; }
 
 /* ── About card + Quick Info card (in the right sidebar column) ── */
 .loc-hero-about-hdr {
@@ -210,28 +244,11 @@
 .loc-col-npcs      { grid-area: npcs; }
 
 
-/* DM camera upload button in the hero */
+/* DM camera upload button in the hero — sits next to Edit, top-right */
 .loc-hero-upload-btn {
-  position: absolute;
-  bottom: 14px;
-  right: 16px;
-  background: rgba(0,0,0,0.70);
-  border: 1px solid rgba(255,204,102,0.4);
-  color: var(--accent);
-  font-size: 13px;
-  font-family: var(--font);
-  border-radius: 6px;
-  padding: 5px 12px;
-  cursor: pointer;
-  display: none;
-  align-items: center;
-  gap: 5px;
-  transition: background 0.15s, border-color 0.15s;
-  z-index: 2;
-}
-.loc-hero-upload-btn:hover {
-  background: rgba(255,204,102,0.15);
-  border-color: var(--accent);
+  top: 16px;
+  right: 64px;
+  display: none;       /* JS flips to flex for DMs */
 }
 
 .loc-hero.hero-uploading .loc-hero-upload-btn {
@@ -2260,7 +2277,7 @@
 @media (max-width: 600px) {
   .loc-hero { padding: 56px 16px 24px; }
 
-  .back-link { font-size: 12px; }
+  .back-link { font-size: 17px; }
 
   .loc-section { padding: 16px; }
 

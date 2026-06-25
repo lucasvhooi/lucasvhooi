@@ -6,8 +6,8 @@ import Layout from '../layouts/Layout.astro';
   <!-- Hero -->
   <header class="loc-hero">
     <div class="loc-hero-bg" id="loc-hero-bg"></div>
-    <a href="/map" class="back-link" id="back-to-map"><iconify-icon icon="lucide:arrow-left"></iconify-icon> Back to Map</a>
-    <button id="loc-edit-location-btn" class="loc-edit-location-btn" style="display:none"><iconify-icon icon="lucide:pencil"></iconify-icon> Edit Location</button>
+    <a href="/map" class="back-link" id="back-to-map" title="Back to Map" aria-label="Back to Map"><iconify-icon icon="lucide:arrow-left"></iconify-icon></a>
+    <button id="loc-edit-location-btn" class="loc-edit-location-btn" style="display:none" title="Edit Location" aria-label="Edit Location"><iconify-icon icon="lucide:pencil"></iconify-icon></button>
     <h1 class="loc-title" id="loc-title">Loading&hellip;</h1>
     <div class="loc-stats" id="loc-stats"></div>
     <label for="loc-feature-upload" id="loc-feature-upload-btn" class="loc-hero-upload-btn" style="display:none" title="Upload location image"><iconify-icon icon="lucide:camera"></iconify-icon></label>
@@ -57,13 +57,6 @@ import Layout from '../layouts/Layout.astro';
         </div>
         <p id="loc-desc-text" class="loc-description" style="display:none"></p>
         <p id="loc-desc-empty" class="loc-desc-empty" style="display:none">No description added yet.</p>
-      </div>
-      <!-- Quick Info card -->
-      <div class="loc-section loc-qi-card anim-1" id="sec-quick-info" style="display:none">
-        <div class="loc-qi-hdr">
-          <span class="loc-hero-about-label">Quick Info</span>
-        </div>
-        <div class="qi-table" id="qi-table"></div>
       </div>
       <!-- Buildings section -->
       <section class="loc-section anim-1" id="sec-buildings" style="display:none">

@@ -75,7 +75,7 @@ onValue(ref(db, 'npcNames'), snapshot => {
 
 onValue(markerDbRef, snapshot => {
   markerData = snapshot.val();
-  if (markerData) { renderHero(); renderQuickInfo(); }
+  if (markerData) renderHero();
   else locTitle.textContent = "Unknown Location";
 });
 
@@ -91,7 +91,7 @@ onValue(subMarkersRef, snapshot => {
   subMarkers = data ? Object.values(data) : [];
   renderSubMarkers();
   if (isAdmin && !isDraggingBuilding) renderBuildings();
-  renderQuickInfo();
+  renderHero();
 });
 
 onValue(npcsRef, snapshot => {
@@ -99,7 +99,7 @@ onValue(npcsRef, snapshot => {
   npcs = data ? Object.values(data) : [];
   _updateNpcChip();
   if (npcExpanded) renderNpcs();
-  renderQuickInfo();
+  renderHero();
 });
 
 // Global items (for shop modal)
@@ -118,6 +118,7 @@ onValue(ref(db, `campaigns/${cid}/lore`), snapshot => {
 
 // ── Render Hero ───────────────────────────────────────────────────────────────
 function renderHero() {
+  if (!markerData) return;
   document.title = `${markerData.name} — DnD Campaign`;
   locTitle.textContent = markerData.name;
 
@@ -127,6 +128,19 @@ function renderHero() {
   if (markerData.wealth)     parts.push(`<span class="stat-badge"><iconify-icon icon="game-icons:coins"></iconify-icon> ${markerData.wealth}</span>`);
   if (markerData.mainRace)   parts.push(`<span class="stat-badge"><iconify-icon icon="lucide:building-2"></iconify-icon> ${markerData.mainRace}</span>`);
   if (markerData.religion)   parts.push(`<span class="stat-badge"><iconify-icon icon="lucide:sun"></iconify-icon> ${markerData.religion}</span>`);
+
+  // Quick-info counts as coloured tags (Taverns/Shops tinted to their marker colour)
+  const tavernCount   = subMarkers.filter(m => m.type === "Tavern").length;
+  const shopCount     = subMarkers.filter(m => m.type === "Shop").length;
+  const buildingCount = subMarkers.length;
+  const npcCount      = npcs.length;
+  const countBadge = (label, n, color, icon) =>
+    `<span class="stat-badge stat-count" style="--sc:${color}"><iconify-icon icon="${icon}"></iconify-icon> ${n} ${label}</span>`;
+  if (tavernCount)   parts.push(countBadge("Taverns",   tavernCount,   TYPE_COLORS.Tavern, TYPE_ICONS.Tavern));
+  if (shopCount)     parts.push(countBadge("Shops",     shopCount,     TYPE_COLORS.Shop,   TYPE_ICONS.Shop));
+  if (buildingCount) parts.push(countBadge("Buildings", buildingCount, "#C8A45C",          "lucide:building-2"));
+  if (npcCount)      parts.push(countBadge("NPCs",      npcCount,      "#C8A45C",          "lucide:users"));
+
   if (isAdmin) {
     const explored = markerData.explored === true;
     parts.push(`<span class="stat-badge ${explored ? "explored-badge" : "unexplored-badge"}">${explored ? "Explored" : "Unexplored"}</span>`);
@@ -135,34 +149,6 @@ function renderHero() {
 
   const editBtn = document.getElementById("loc-edit-location-btn");
   if (editBtn && isAdmin) editBtn.style.display = "inline-flex";
-}
-
-// ── Render Quick Info ─────────────────────────────────────────────────────────
-function renderQuickInfo() {
-  const sec = document.getElementById("sec-quick-info");
-  const tbl = document.getElementById("qi-table");
-  if (!sec || !tbl || !markerData) return;
-
-  const tavernCount = subMarkers.filter(m => m.type === "Tavern").length;
-  const buildingCount = subMarkers.length;
-  const npcCount = npcs.length;
-
-  const rows = [
-    markerData.type       ? ["Type",       markerData.type]       : null,
-    markerData.population ? ["Population", markerData.population] : null,
-    markerData.wealth     ? ["Wealth",     markerData.wealth]     : null,
-    markerData.mainRace   ? ["Main Race",  markerData.mainRace]   : null,
-    markerData.religion   ? ["Religion",   markerData.religion]   : null,
-    tavernCount > 0       ? ["Taverns",    tavernCount]           : null,
-    buildingCount > 0     ? ["Buildings",  buildingCount]         : null,
-    npcCount > 0          ? ["NPCs",       npcCount]              : null,
-  ].filter(Boolean);
-
-  if (rows.length === 0) { sec.style.display = "none"; return; }
-  sec.style.display = "block";
-  tbl.innerHTML = rows.map(([k, v]) =>
-    `<div class="qi-row"><span class="qi-label">${k}</span><span class="qi-value">${v}</span></div>`
-  ).join("");
 }
 
 // ── Render Description ────────────────────────────────────────────────────────

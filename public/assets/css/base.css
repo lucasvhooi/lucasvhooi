@@ -1033,3 +1033,17 @@ html.app-layout body {
   /* Drawer is open via JS, so no need for the desktop logo block to feel cramped */
   .sidebar-logo { padding: 22px 18px 18px; }
 }
+
+/* ── Prevent iOS auto-zoom on input focus ──────────────────────────────────
+   Mobile Safari zooms the page in whenever a focused field renders below 16px.
+   Forcing every form control to 16px on small screens stops that focus-zoom
+   while leaving the user free to pinch-zoom (the viewport meta stays scalable). */
+@media (max-width: 900px) {
+  input,
+  select,
+  textarea {
+    /* !important so the many compact component fields (13–14px) can't fall back
+       below the threshold and re-trigger the zoom. */
+    font-size: 16px !important;
+  }
+}

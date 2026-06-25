@@ -955,14 +955,19 @@ body.map-page {
      there's no dead gap above it. Scrollable so the keyboard doesn't block. */
   .modal-overlay {
     align-items: flex-start;
-    padding-top: 54px; /* mobile topbar height */
+    /* Clear the fixed 54px mobile topbar (plus any notch inset) so the modal
+       sits flush beneath it — no dead gap above. */
+    padding-top: calc(54px + env(safe-area-inset-top, 0px));
   }
 
   .modal-box {
     width: 100%;
     max-width: 100%;
-    max-height: 95vh;
-    height: 95vh;
+    /* Cap to the space between the topbar and the *visible* bottom edge. dvh
+       tracks the shrinking viewport when the URL bar or keyboard is up, so the
+       action buttons stay reachable. Height is content-driven up to the cap. */
+    height: auto;
+    max-height: calc(100dvh - 54px - env(safe-area-inset-top, 0px));
     overflow-y: auto;
     border-radius: 0 0 14px 14px;
     padding: 20px 18px 32px;
@@ -1808,17 +1813,26 @@ body.map-page {
 
 /* Area editor stacks into a single scrolling column on small screens. */
 @media (max-width: 760px) {
+  /* The area editor is a full-screen sheet: pin it under the mobile topbar and
+     fill the visible viewport so its fixed header and action row never scroll
+     off — the middle column scrolls instead, keeping Save/Cancel/Delete reachable. */
+  #area-modal.modal-overlay {
+    align-items: flex-start;
+    padding-top: calc(54px + env(safe-area-inset-top, 0px));
+  }
   .area-modal-box {
     width: 100%;
     max-width: 100%;
-    height: 95vh;
-    max-height: 95vh;
+    height: calc(100dvh - 54px - env(safe-area-inset-top, 0px));
+    max-height: calc(100dvh - 54px - env(safe-area-inset-top, 0px));
     padding: 0;
+    overflow: hidden;
   }
   .am-layout {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    min-height: 0; /* allow the scroll area to shrink so the footer stays pinned */
   }
   .am-col { overflow: visible; }
   .am-col-creatures {
@@ -1826,6 +1840,43 @@ body.map-page {
     border-bottom: 1px solid rgba(255,255,255,0.1);
   }
   .am-creature-list { flex: none; overflow: visible; }
+
+  /* Compact pass — shrink the area editor's text, buttons and spacing ~25%+ so
+     more fits on a phone. Focusable fields KEEP their 16px font (anything
+     smaller makes iOS auto-zoom on focus again); only their padding shrinks. */
+  .area-modal-box .am-hdr { padding: 10px 16px 8px; }
+  .area-modal-box .am-hdr h2 { font-size: 16px; }       /* was 22px */
+  .area-modal-box .maps-close { font-size: 19px; }       /* was 26px */
+
+  .area-modal-box .am-col { padding: 12px 16px; }
+  .area-modal-box .am-col-details { padding-top: 14px; }
+  .area-modal-box .am-col-title { font-size: 9px; margin-bottom: 8px; } /* was 12px */
+
+  .area-modal-box .form-row { margin-bottom: 9px; }
+  .area-modal-box .form-row label { font-size: 10px; gap: 3px; }        /* was 13px */
+  .area-modal-box .form-row input,
+  .area-modal-box .form-row select,
+  .area-modal-box .form-row textarea,
+  .area-modal-box .am-creature-add input,
+  .area-modal-box .am-creature-add select { padding: 5px 8px; }         /* font stays 16px */
+  .area-modal-box .form-row textarea { min-height: 52px; }              /* was 70px */
+
+  .area-modal-box .country-color-row { gap: 6px; margin-top: 4px; }
+  .area-modal-box .country-color-swatch { width: 20px; height: 20px; }  /* was 26px */
+
+  .area-modal-box .am-creature-list { gap: 4px; margin-top: 9px; }
+  .area-modal-box .am-creature-row { padding: 4px 6px; gap: 6px; }
+  .area-modal-box .am-creature-cname { font-size: 10px; }               /* was 13px */
+  .area-modal-box .am-creature-rar-select { font-size: 8px; padding: 2px 5px; } /* was 10px */
+  .area-modal-box .am-creature-del { font-size: 10px; }                 /* was 14px */
+  .area-modal-box .am-creature-empty { font-size: 9px; }                /* was 12px */
+  .area-modal-box .am-creature-result .acr-name { font-size: 10px; }    /* was 13px */
+  .area-modal-box .am-creature-result .acr-meta { font-size: 8px; }     /* was 11px */
+  .area-modal-box .am-creature-result-empty { font-size: 9px; }         /* was 12px */
+
+  .area-modal-box > .modal-error { font-size: 10px; padding: 6px 16px 0; min-height: 14px; }
+  .area-modal-box > .modal-actions { padding: 10px 16px 12px; gap: 8px; }
+  .area-modal-box .dm-btn { padding: 5px 11px; font-size: 11px; }       /* was 7px 16px */
 }
 
 /* ════════════════════════════════════════════════════════════════════════
