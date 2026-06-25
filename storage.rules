@@ -17,7 +17,7 @@ service firebase.storage {
         && (
           request.resource == null                                  // delete
           || (
-            request.resource.size < 20 * 1024 * 1024                // 20 MB hard cap
+            request.resource.size < 5 * 1024 * 1024                 // 5 MB hard cap
             && request.resource.contentType.matches('image/.*')     // images only
           )
         );

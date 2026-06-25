@@ -14,9 +14,9 @@ import { ref as sRef, uploadBytes, getDownloadURL, deleteObject }
 
 // Limits (bytes). Tune these to your plan — this is the "base purchase" cap.
 export const STORAGE_LIMITS = {
-  account: 200 * 1024 * 1024, // total per account/owner — 200 MB
+  account:  25 * 1024 * 1024, // total per account/owner — 25 MB (test-phase cap)
   image:     5 * 1024 * 1024, // max single image    — 5 MB
-  map:      20 * 1024 * 1024, // max single map file  — 20 MB (matches storage.rules)
+  map:       5 * 1024 * 1024, // max single map file  — 5 MB (matches storage.rules)
 };
 
 export function formatBytes(n) {

@@ -15,7 +15,7 @@ import { getStorage } from "firebase-admin/storage";
 const BUCKET = "essolis-4ecf2.firebasestorage.app";
 // Default per-account cap; keep in sync with STORAGE_LIMITS.account in
 // public/assets/js/storage-quota.js. A user's plan/limitBytes overrides it.
-const DEFAULT_LIMIT = 200 * 1024 * 1024;
+const DEFAULT_LIMIT = 25 * 1024 * 1024; // 25 MB (test-phase cap)
 
 // Run close to the europe-west1 Realtime Database. NOTE: a Storage-triggered
 // function must be in the SAME region as the bucket. If `firebase deploy`

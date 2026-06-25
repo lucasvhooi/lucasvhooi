@@ -1320,9 +1320,6 @@ async function _handleFileChange(e) {
   if (!file.type.startsWith("image/")) {
     mapsErrorEl.textContent = "Please select an image file."; return;
   }
-  if (file.size > 20 * 1024 * 1024) {
-    mapsErrorEl.textContent = "File must be under 20 MB."; return;
-  }
   if (!session) { mapsErrorEl.textContent = "Not logged in."; return; }
 
   // Account-storage quota check before we upload.
