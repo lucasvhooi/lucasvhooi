@@ -443,6 +443,18 @@ import StatBlockEditor from '../components/StatBlockEditor.astro';
       window._deleteEnemyTemplate = id =>
         remove(ref(db, `campaigns/${_etCid}/enemyTemplates/` + id));
 
+      // ── Shared combat state (initiative order, HP, turns, log, loot) ──────────
+      // Persisted as a JSON string so nested arrays (conditions, attacks, loot…)
+      // round-trip intact instead of being objectified by RTDB. The DM has write
+      // access to the campaign and authors it; players have read-only campaign
+      // access, so they mirror the live initiative order on their own devices.
+      window._saveCombatState = payload =>
+        set(ref(db, `campaigns/${_etCid}/combatState`), payload);
+      onValue(ref(db, `campaigns/${_etCid}/combatState`), snap => {
+        window._remoteCombatState = snap.val();
+        window._onCombatStateUpdate?.();
+      });
+
       onValue(ref(db, `campaigns/${_etCid}/enemyTemplates`), snap => {
         const data = snap.val();
         window._enemyTemplates = data ? Object.values(data) : [];

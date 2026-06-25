@@ -1691,6 +1691,17 @@ function restackFlowBlocks(blocks, movingIds, afterId, beforeId) {
 
 // Commit a reorder: place the dragged block at the drop anchor, update which
 // group/phase it belongs to, and restack so reading order matches the drop exactly.
+// Mobile flow edits relinearise block coordinates (restack into / append at the
+// bottom of a single column). Those coords no longer match a hand-placed desktop
+// canvas, so we drop the `desktopArranged` flag: the next desktop open re-tidies
+// into a clean, non-overlapping column instead of rendering the mobile coords
+// (which pile up / overlap at the taller desktop block heights). Without this the
+// flag stayed true and the desktop layout came back "messed up".
+function clearDesktopArranged(q) {
+  if (q) q.desktopArranged = false;
+  return false;
+}
+
 function commitReorderBlock(blockId, drop) {
   const q = quests.find(x => x.id === _viewQuestId);
   if (!q) return;
@@ -1703,7 +1714,7 @@ function commitReorderBlock(blockId, drop) {
   const groupChanged = groupOfBlock(q.groups, blockId) !== (groupId || null);
   if (b.type !== "phase") b.phaseId = targetPhase;
   restackFlowBlocks(blocks, [blockId], afterId, beforeId);
-  const updates = { blocks };   // keys are relative to the quest ref
+  const updates = { blocks, desktopArranged: clearDesktopArranged(q) };   // keys are relative to the quest ref
   if (groupChanged) {
     const groups = membershipGroups(q.groups, blockId, groupId);
     updates.groups = groups.length ? groups : null;
@@ -1814,7 +1825,7 @@ function commitGroupReorder(groupId, drop) {
   const members = orderBlocksForReading(blocks.filter(b => memberIds.has(b.id))).map(b => b.id);
   if (!members.length) return;
   restackFlowBlocks(blocks, members, drop.afterId, drop.beforeId);
-  set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+  update(ref(db, `campaigns/${cid}/quests/${q.id}`), { blocks, desktopArranged: clearDesktopArranged(q) });
 }
 
 // Drag a whole group section up/down by its grip to reorder it among the blocks.
@@ -2574,7 +2585,7 @@ function addBlockToCurrentQuest(type) {
     block.phaseId = "";
     blocks.push(block);
     _scrollFlowToBottom = true;
-    set(ref(db, `campaigns/${cid}/quests/${q.id}/blocks`), blocks);
+    update(ref(db, `campaigns/${cid}/quests/${q.id}`), { blocks, desktopArranged: clearDesktopArranged(q) });
   });
 }
 
@@ -2590,7 +2601,7 @@ function insertBlockInFlowAt(type, drop) {
     const blocks = (q.blocks || []).map(b => ({ ...b }));
     blocks.push(block);
     restackFlowBlocks(blocks, [block.id], afterId, beforeId);
-    const updates = { blocks };   // keys are relative to the quest ref
+    const updates = { blocks, desktopArranged: clearDesktopArranged(q) };   // keys are relative to the quest ref
     if (groupId) {
       const groups = membershipGroups(q.groups, block.id, groupId);
       updates.groups = groups.length ? groups : null;

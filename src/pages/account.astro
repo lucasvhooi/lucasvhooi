@@ -53,7 +53,7 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
     }
 
     .acct-sub {
-      padding: 32px 36px;
+      padding: 22px 30px;
     }
 
     .acct-sub + .acct-sub {
@@ -67,11 +67,11 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
 
     .acct-section-title {
       font-family: var(--title);
-      font-size: 1.2rem;
+      font-size: 1.02rem;
       color: var(--accent);
       letter-spacing: 0.04em;
-      margin: 0 0 24px;
-      padding-bottom: 16px;
+      margin: 0 0 16px;
+      padding-bottom: 12px;
       border-bottom: 1px solid rgba(200,164,92,0.1);
       display: flex;
       align-items: center;
@@ -86,25 +86,25 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
     .acct-cols {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 32px;
+      gap: 24px;
     }
 
     .acct-cols-3 {
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 36px;
+      gap: 24px;
     }
 
     /* ── Fields ────────────────────────────────────────────────── */
-    .acct-field { margin-bottom: 18px; }
+    .acct-field { margin-bottom: 14px; }
     .acct-field:last-child { margin-bottom: 0; }
 
     .acct-label {
       display: block;
-      font-size: 12px;
+      font-size: 11px;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: #888880;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .acct-input {
@@ -112,9 +112,9 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(200,164,92,0.1);
       border-radius: 9px;
-      padding: 13px 16px;
+      padding: 10px 14px;
       color: var(--text);
-      font-size: 15px;
+      font-size: 14px;
       font-family: var(--font);
       outline: none;
       transition: border-color 0.2s;
@@ -132,7 +132,7 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
 
     .color-row { display: flex; align-items: center; gap: 10px; }
     .color-row input[type="color"] {
-      width: 46px; height: 44px;
+      width: 42px; height: 40px;
       padding: 2px 4px;
       border-radius: 7px;
       border: 1px solid rgba(200,164,92,0.15);
@@ -147,15 +147,15 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
       display: inline-flex;
       align-items: center;
       gap: 9px;
-      margin-top: 22px;
+      margin-top: 16px;
       background: linear-gradient(135deg, #8a6010 0%, #c8922a 40%, #e0b040 60%, #b07820 100%);
       border: 1px solid rgba(220,170,60,0.6);
       border-radius: 9px;
       color: #1a1000;
       font-family: var(--title);
-      font-size: 16px;
+      font-size: 14px;
       letter-spacing: 0.06em;
-      padding: 13px 26px;
+      padding: 10px 22px;
       cursor: pointer;
       transition: filter 0.22s, box-shadow 0.25s, transform 0.2s;
     }
@@ -176,9 +176,9 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
       border-radius: 9px;
       color: #e07070;
       font-family: var(--title);
-      font-size: 16px;
+      font-size: 14px;
       letter-spacing: 0.06em;
-      padding: 13px 26px;
+      padding: 10px 22px;
       cursor: pointer;
       transition: background 0.2s, border-color 0.2s, transform 0.2s;
     }
@@ -213,7 +213,7 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
       padding: 4px 12px;
       font-size: 12px;
       color: #888880;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
 
     /* ── Storage meter ─────────────────────────────────────────── */
@@ -245,10 +245,10 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
 
     /* ── Danger description ────────────────────────────────────── */
     .danger-desc {
-      font-size: 13px;
+      font-size: 12.5px;
       color: #666660;
-      line-height: 1.65;
-      margin: 0 0 18px;
+      line-height: 1.55;
+      margin: 0 0 14px;
     }
 
     /* ── Confirm overlay ───────────────────────────────────────── */
@@ -334,7 +334,7 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
           <!-- Profile -->
           <div class="acct-sub">
             <h2 class="acct-section-title">
-              <iconify-icon icon="lucide:user-circle" style="font-size:20px;opacity:0.7"></iconify-icon>
+              <iconify-icon icon="lucide:user-circle" style="font-size:17px;opacity:0.7"></iconify-icon>
               Profile
             </h2>
 
@@ -372,7 +372,7 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
           <!-- Storage -->
           <div class="acct-sub">
             <h2 class="acct-section-title">
-              <iconify-icon icon="lucide:hard-drive" style="font-size:20px;opacity:0.7"></iconify-icon>
+              <iconify-icon icon="lucide:hard-drive" style="font-size:17px;opacity:0.7"></iconify-icon>
               Storage
             </h2>
             <div class="storage-head">
@@ -386,7 +386,7 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
           <!-- Change / Set Password -->
           <div class="acct-sub" id="section-password">
             <h2 class="acct-section-title">
-              <iconify-icon icon="lucide:lock" style="font-size:20px;opacity:0.7"></iconify-icon>
+              <iconify-icon icon="lucide:lock" style="font-size:17px;opacity:0.7"></iconify-icon>
               <span id="password-section-title">Change Password</span>
             </h2>
             <div class="acct-cols acct-cols-3">
@@ -415,7 +415,7 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
           <!-- Danger Zone -->
           <div class="acct-sub danger-sub">
             <h2 class="acct-section-title danger-title">
-              <iconify-icon icon="lucide:triangle-alert" style="font-size:20px;opacity:0.8"></iconify-icon>
+              <iconify-icon icon="lucide:triangle-alert" style="font-size:17px;opacity:0.8"></iconify-icon>
               Danger Zone
             </h2>
             <p class="danger-desc">Permanently deletes your account and all associated data. This cannot be undone.</p>

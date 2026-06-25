@@ -75,8 +75,50 @@ try {
   }
 } catch (e) { /* ignore corrupt state */ }
 
+// Local + cross-device persistence. Every save also pushes the whole state to
+// Firebase (debounced) so other devices mirror the initiative order, HP, turn,
+// log and loot live. The write is tagged with a one-shot token so a device
+// ignores the echo of its own write, and is gated until the first remote
+// snapshot arrives so a freshly-loaded device can't clobber existing state.
+let _syncTimer      = null;
+let _lastWriteToken = null;
+let _applyingRemote = false;
+let _remoteReady    = false;
+
 function save() {
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
+  syncStateToFirebase();
+}
+
+function syncStateToFirebase() {
+  if (_applyingRemote || !_remoteReady) return;                // don't echo / don't pre-empt remote
+  if (typeof window._saveCombatState !== "function") return;   // no campaign bridge
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(() => {
+    _lastWriteToken = genId();
+    try {
+      window._saveCombatState({ token: _lastWriteToken, json: JSON.stringify(state) });
+    } catch (e) { /* write denied (e.g. a player device) — stays a read-only mirror */ }
+  }, 200);
+}
+
+// Normalise a state object parsed from Firebase, applying the same migrations as
+// the localStorage boot path so old/foreign payloads stay safe to render.
+function normalizeState(raw) {
+  const s = (raw && typeof raw === "object") ? raw : {};
+  const out = {
+    round:       s.round || 1,
+    currentTurn: (s.currentTurn != null) ? s.currentTurn : -1,
+    combatants:  Array.isArray(s.combatants) ? s.combatants : [],
+    logEntries:  Array.isArray(s.logEntries) ? s.logEntries : [],
+    lootLog:     Array.isArray(s.lootLog)    ? s.lootLog    : [],
+  };
+  out.combatants.forEach(c => {
+    c.conditions = Array.isArray(c.conditions)
+      ? c.conditions.map(x => (typeof x === "string" ? { id: x, rounds: null } : x))
+      : [];
+  });
+  return out;
 }
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function escHtml(s) {
@@ -557,8 +599,10 @@ function sortCombatants() {
 document.getElementById("btn-clear").addEventListener("click", () => {
   if (!confirm("Remove all combatants and reset the tracker?")) return;
   state = { round: 1, currentTurn: -1, combatants: [], logEntries: [], lootLog: [] };
+  lootLog = state.lootLog;
   addLog("Tracker cleared.", "info");
   render();
+  renderLootPanel();
 });
 
 // ── Remove one combatant ──────────────────────────────────────────────────────
@@ -2544,6 +2588,55 @@ if (state.logEntries.length > 0) {
 
 // Restore loot panel from saved loot log
 renderLootPanel();
+
+// ── Cross-device sync ─────────────────────────────────────────────────────────
+// Re-render every surface from the current `state` (used when a remote update
+// replaces the whole state).
+function renderAll() {
+  render();                         // hero + combatants + dropdowns (save guarded by _applyingRemote)
+  logEl.innerHTML = "";
+  if (state.logEntries.length) state.logEntries.forEach(e => _renderLogEntry(e));
+  else logEl.innerHTML = '<p class="log-empty">Combat log will appear here.</p>';
+  renderLootPanel();
+}
+
+// Apply a combat state pushed from another device (or seed Firebase from this
+// device the first time, when nothing has been shared yet).
+window._onCombatStateUpdate = function () {
+  const remote    = window._remoteCombatState;
+  const firstTime = !_remoteReady;
+  _remoteReady = true;
+
+  if (!remote || !remote.json) {
+    // No shared state yet → seed it from this device's local state on first load
+    // (a player's write is denied and silently ignored, leaving the DM as author).
+    if (firstTime) syncStateToFirebase();
+    return;
+  }
+  if (remote.token && remote.token === _lastWriteToken) return;   // echo of our own write
+
+  let parsed;
+  try { parsed = JSON.parse(remote.json); } catch (e) { return; }
+
+  _applyingRemote = true;
+  try {
+    state   = normalizeState(parsed);
+    lootLog = state.lootLog;
+    const active = state.currentTurn >= 0 ? state.combatants[state.currentTurn] : null;
+    attackState  = active ? { attackerId: active.id, targetId: null } : { attackerId: null, targetId: null };
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
+    renderAll();
+  } finally {
+    _applyingRemote = false;
+  }
+  clearTimeout(_syncTimer);   // drop any local push queued before this update landed
+};
+
+// The bridge's initial onValue may have fired before this handler was assigned;
+// run it once now so we pick up already-loaded remote state (or seed it).
+if (window._remoteCombatState !== undefined || typeof window._saveCombatState === "function") {
+  window._onCombatStateUpdate();
+}
 
 // (battlefield removed — attack flow now uses initiative list cards)
 

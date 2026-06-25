@@ -23,6 +23,12 @@
   0%, 100% { opacity: 0.14; }
   50%       { opacity: 0.42; }
 }
+/* Detail-drawer aura: same rarity glow as the cards, but a slow, gentle breath
+   so the open panel shimmers softly rather than pulsing fast. */
+@keyframes idp-aura-breath {
+  0%, 100% { opacity: 0.10; }
+  50%       { opacity: 0.26; }
+}
 
 /* ── Seed status ── */
 .seed-status {
@@ -1053,6 +1059,25 @@
   opacity: 1;
   transform: translateX(0);
 }
+
+/* Rarity aura bleeding from the left border, mirroring the item cards. It sits
+   above the panel's dark fill but behind the header/body content (which show it
+   through their transparent backgrounds). */
+.item-detail-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse 55% 120% at -2% 35%, var(--rc, rgba(180,196,224,0.35)) 0%, transparent 72%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.item-detail-panel.open .item-detail-inner::before {
+  animation: idp-aura-breath 8s ease-in-out infinite;
+}
+.idp-header,
+.idp-body { position: relative; z-index: 1; }
 
 .idp-header {
   padding: 14px 16px;

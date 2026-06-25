@@ -308,10 +308,14 @@ mapContainer.addEventListener("pointercancel", function() {
 // ── Touch Support ─────────────────────────────────────────────────────────────
 const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 if (isTouchDevice) {
-  let _touchStartX = 0, _touchStartY = 0;
+  let _touchStartX = 0, _touchStartY = 0;   // incremental pan anchor (updated each move)
+  let _touchOriginX = 0, _touchOriginY = 0; // where the gesture first touched down (fixed)
+  let _touchMoved   = false;                // finger travelled past the tap threshold
+  let _gestureWasPinch = false;             // a 2-finger pinch happened during this gesture
   let _isPinching  = false;
   let _initDist    = 0;
   let _initScale   = scale;
+  const TAP_SLOP   = 12;                     // px of movement still treated as a tap
 
   function _dist(t1, t2) {
     const dx = t1.clientX - t2.clientX;
@@ -325,13 +329,19 @@ if (isTouchDevice) {
     _updateCachedRect();
     markerLayer.classList.add("gesturing");
     if (e.touches.length === 2) {
-      _isPinching = true;
-      _initDist   = _dist(e.touches[0], e.touches[1]);
-      _initScale  = scale;
+      _isPinching      = true;
+      _gestureWasPinch = true;   // disqualifies this gesture from placing a point
+      _initDist        = _dist(e.touches[0], e.touches[1]);
+      _initScale       = scale;
       _setFastRendering();
     } else if (e.touches.length === 1) {
-      _touchStartX = e.touches[0].clientX;
-      _touchStartY = e.touches[0].clientY;
+      // First finger down → start of a fresh gesture; reset tap tracking.
+      _touchStartX  = e.touches[0].clientX;
+      _touchStartY  = e.touches[0].clientY;
+      _touchOriginX = _touchStartX;
+      _touchOriginY = _touchStartY;
+      _touchMoved   = false;
+      _gestureWasPinch = false;
     }
   }, { passive: true });
 
@@ -352,6 +362,10 @@ if (isTouchDevice) {
     } else if (e.touches.length === 1 && !_isPinching) {
       const cx = e.touches[0].clientX;
       const cy = e.touches[0].clientY;
+      // Measure travel against the fixed origin so a drag never looks like a tap.
+      if (Math.abs(cx - _touchOriginX) > TAP_SLOP || Math.abs(cy - _touchOriginY) > TAP_SLOP) {
+        _touchMoved = true;
+      }
       originX += cx - _touchStartX;
       originY += cy - _touchStartY;
       _touchStartX = cx;
@@ -378,10 +392,15 @@ if (isTouchDevice) {
       }
     }
 
-    if ((placingMode || penMode) && isAdmin && !_isPinching && e.changedTouches.length === 1) {
+    // Only a clean single-finger tap places a point: the last finger has just
+    // lifted (touches.length === 0), the gesture never panned (_touchMoved) and
+    // never became a pinch (_gestureWasPinch). This lets users drag and zoom the
+    // map freely in draw/place mode without dropping stray markers.
+    if ((placingMode || penMode) && isAdmin && e.touches.length === 0 &&
+        !_touchMoved && !_gestureWasPinch && e.changedTouches.length === 1) {
       const touch = e.changedTouches[0];
-      if (Math.abs(touch.clientX - _touchStartX) < 12 &&
-          Math.abs(touch.clientY - _touchStartY) < 12) {
+      if (Math.abs(touch.clientX - _touchOriginX) < TAP_SLOP &&
+          Math.abs(touch.clientY - _touchOriginY) < TAP_SLOP) {
         const rect = mapContainer.getBoundingClientRect();
         if (penMode) {
           penClickAt(touch.clientX - rect.left, touch.clientY - rect.top);
