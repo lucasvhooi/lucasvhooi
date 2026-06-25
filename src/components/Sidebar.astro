@@ -107,3 +107,34 @@ const campaignLinks = [
   }
 })();
 </script>
+
+<!-- Live profile sync — the avatar colour/username are cached per origin in
+     localStorage at login, so a colour changed on another origin/device (e.g.
+     the live site vs localhost) wouldn't show until the next login. Re-read the
+     authoritative value from Firebase and refresh the avatar + cached session so
+     every device/origin stays in step. -->
+<script is:inline type="module">
+  import { db, auth }                 from "/assets/js/firebase.js";
+  import { onAuthStateChanged }       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+  import { ref, onValue }             from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+  import { getSession, saveSession }  from "/assets/js/auth.js";
+
+  const session = getSession();
+  if (session && session.id) {
+    onAuthStateChanged(auth, user => {
+      if (!user) return;
+      onValue(ref(db, `users/${user.uid}`), snap => {
+        const u = snap.val();
+        if (!u) return;
+        const avatarEl = document.getElementById('sidebar-avatar');
+        const nameEl   = document.getElementById('sidebar-username');
+        if (u.color && avatarEl)    avatarEl.style.background = u.color;
+        if (u.username && nameEl)   nameEl.textContent = u.username;
+        let changed = false;
+        if (u.color && u.color !== session.color)          { session.color = u.color;       changed = true; }
+        if (u.username && u.username !== session.username) { session.username = u.username; changed = true; }
+        if (changed) saveSession(session);
+      });
+    });
+  }
+</script>

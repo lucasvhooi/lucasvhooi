@@ -527,6 +527,22 @@ import bgImg from '../../Images/Headers/AccountPageBackground.png';
     }
     tagDisplay.textContent = '#' + currentTag;
 
+    // The fields above seed from the cached localStorage session, which is
+    // per-origin — so a colour/name changed on another origin or device (e.g.
+    // the live site vs localhost) could look stale here. Pull the authoritative
+    // values straight from Firebase on load and re-sync the cached session.
+    get(ref(db, `users/${session.id}`)).then(snap => {
+      const u = snap.val();
+      if (!u) return;
+      if (u.username) usernameInput.value = u.username;
+      if (u.color) {
+        colorText.value = u.color;
+        if (/^#[0-9a-fA-F]{6}$/.test(u.color)) colorPick.value = u.color;
+      }
+      if (u.tag) { currentTag = u.tag; tagDisplay.textContent = '#' + u.tag; }
+      saveSession({ ...session, username: u.username || session.username, color: u.color || session.color, tag: u.tag || currentTag });
+    }).catch(() => {});
+
     colorPick.addEventListener('input', () => { colorText.value = colorPick.value; });
     colorText.addEventListener('input', () => {
       if (/^#[0-9a-fA-F]{6}$/.test(colorText.value)) colorPick.value = colorText.value;
