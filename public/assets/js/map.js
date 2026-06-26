@@ -680,12 +680,16 @@ function _buildMarkerEl(marker) {
 
     const editBtn = document.createElement("button");
     editBtn.className   = "marker-edit-btn";
-    editBtn.textContent = "Edit";
+    editBtn.title       = "Edit";
+    editBtn.setAttribute("aria-label", "Edit marker");
+    editBtn.innerHTML   = `<iconify-icon icon="lucide:pencil"></iconify-icon>`;
     editBtn.addEventListener("click", e => { e.stopPropagation(); openEditModal(marker.id); });
 
     const deleteBtn = document.createElement("button");
     deleteBtn.className   = "marker-delete-btn";
-    deleteBtn.textContent = "Delete";
+    deleteBtn.title       = "Delete";
+    deleteBtn.setAttribute("aria-label", "Delete marker");
+    deleteBtn.innerHTML   = `<iconify-icon icon="lucide:trash-2"></iconify-icon>`;
     deleteBtn.addEventListener("click", e => {
       e.stopPropagation();
       if (!confirm(`Delete "${marker.name}"? This cannot be undone.`)) return;
@@ -972,12 +976,12 @@ lpCloseBtn.addEventListener("click", () => {
 });
 
 // ── Toolbar layout ────────────────────────────────────────────────────────────
-// Mobile: the Locations button joins the DM's bottom toolbar dock.
-// Desktop (and players on mobile): it floats in the corner, toolbar stays DM-only.
+// DMs: the Locations button joins the DM toolbar dock (bottom-left), grouped with
+// the other tools. Players (no toolbar): it floats bottom-left on its own.
 const _mqMobile = window.matchMedia("(max-width: 600px)");
 function syncToolbarLayout() {
   if (!dmToolbar) return;
-  if (isAdmin && _mqMobile.matches) {
+  if (isAdmin) {
     if (lpOpenBtn.parentElement !== dmToolbar) dmToolbar.appendChild(lpOpenBtn);
   } else if (lpOpenBtn.parentElement !== mapContainer) {
     mapContainer.appendChild(lpOpenBtn);

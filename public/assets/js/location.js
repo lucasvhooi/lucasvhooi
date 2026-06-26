@@ -212,7 +212,7 @@ const TYPE_ICONS = {
   Shop:    "lucide:shopping-bag",
   Tavern:  "game-icons:beer-stein",
   House:   "lucide:home",
-  Temple:  "game-icons:cathedral",
+  Temple:  "game-icons:greek-temple",
   Guard:   "lucide:shield",
   Market:  "lucide:store",
   Library: "game-icons:bookshelf",
@@ -833,7 +833,7 @@ function renderBuildings() {
 
     const TYPE_ICONS = {
       Forge: "game-icons:anvil", Shop: "lucide:shopping-bag", Tavern: "game-icons:beer-stein",
-      House: "lucide:home", Temple: "game-icons:cathedral", Guard: "lucide:shield",
+      House: "lucide:home", Temple: "game-icons:greek-temple", Guard: "lucide:shield",
       Market: "lucide:store", Library: "game-icons:bookshelf", Other: "lucide:map-pin"
     };
     const thumbIcon = TYPE_ICONS[marker.type] || "lucide:map-pin";
@@ -2666,6 +2666,96 @@ libReader.addEventListener("click", e => { if (e.target === libReader) libReader
 
 shopClose.addEventListener("click", closeShopModal);
 shopModal.addEventListener("click", e => { if (e.target === shopModal) closeShopModal(); });
+
+// ── Resizable columns (Map | Buildings | NPCs) ────────────────────────────────
+// Each column's width is an fr value held in CSS custom properties on .loc-main.
+// Dragging a divider redistributes fr between its two neighbours only, so each
+// column scales independently. Widths persist per browser via localStorage.
+(function initColumnResizers() {
+  if (!isAdmin) return;                       // players only see the Map column
+  const main = document.querySelector(".loc-main");
+  if (!main) return;
+
+  const DEFAULTS = { map: 1.4, build: 1, npc: 1 };
+  const MIN_PX   = 150;                        // smallest a column may shrink to
+  const STORE    = "loc-col-fr";
+
+  const cols = {
+    map:   document.getElementById("sec-map"),
+    build: document.getElementById("sec-buildings"),
+    npc:   document.getElementById("sec-npcs"),
+  };
+
+  let fr = { ...DEFAULTS };
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE) || "null");
+    if (saved && ["map", "build", "npc"].every(k => Number.isFinite(saved[k]) && saved[k] > 0)) {
+      fr = saved;
+    }
+  } catch { /* ignore corrupt value */ }
+
+  function apply() {
+    main.style.setProperty("--cw-map",   fr.map   + "fr");
+    main.style.setProperty("--cw-build", fr.build + "fr");
+    main.style.setProperty("--cw-npc",   fr.npc   + "fr");
+  }
+  function save() {
+    try { localStorage.setItem(STORE, JSON.stringify(fr)); } catch { /* quota */ }
+  }
+  apply();
+
+  // pair of [leftKey, rightKey] for each resizer
+  const PAIRS = { "map-build": ["map", "build"], "build-npc": ["build", "npc"] };
+
+  document.querySelectorAll(".loc-col-resizer").forEach(handle => {
+    const [leftKey, rightKey] = PAIRS[handle.dataset.resize] || [];
+    if (!leftKey) return;
+
+    handle.addEventListener("pointerdown", e => {
+      e.preventDefault();
+      const startX  = e.clientX;
+      const leftW   = cols[leftKey].offsetWidth;
+      const rightW  = cols[rightKey].offsetWidth;
+      const sumW    = leftW + rightW;
+      const sumFr   = fr[leftKey] + fr[rightKey];
+      if (sumW <= 0 || sumFr <= 0) return;
+
+      handle.classList.add("dragging");
+      handle.setPointerCapture(e.pointerId);
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+
+      const onMove = ev => {
+        const dx       = ev.clientX - startX;
+        const maxLeft  = sumW - MIN_PX;
+        const newLeftW = Math.max(MIN_PX, Math.min(maxLeft, leftW + dx));
+        fr[leftKey]  = (newLeftW / sumW) * sumFr;
+        fr[rightKey] = sumFr - fr[leftKey];
+        apply();
+      };
+      const onUp = () => {
+        handle.classList.remove("dragging");
+        try { handle.releasePointerCapture(e.pointerId); } catch {}
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        handle.removeEventListener("pointermove", onMove);
+        handle.removeEventListener("pointerup", onUp);
+        handle.removeEventListener("pointercancel", onUp);
+        save();
+      };
+      handle.addEventListener("pointermove", onMove);
+      handle.addEventListener("pointerup", onUp);
+      handle.addEventListener("pointercancel", onUp);
+    });
+
+    // double-click a divider to reset all three columns to their defaults
+    handle.addEventListener("dblclick", () => {
+      fr = { ...DEFAULTS };
+      apply();
+      save();
+    });
+  });
+})();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function generateId() {

@@ -227,21 +227,118 @@
   margin-bottom: 8px;
 }
 
-/* ── Main layout ── */
+/* ── Main layout — three independently-resizable columns ──
+   About spans full width on top. Beneath it, MAP | BUILDINGS | NPCS sit side by
+   side, each its own column, separated by DRAGGABLE gutter tracks. The column
+   widths are driven by CSS custom properties (fr units) that location.js
+   rewrites as you drag a divider, so every column can be scaled individually.
+   Everything is pinned to the TOP of the grid (align-*: start). */
 .loc-main {
-  padding: 16px 20px 60px;
   display: grid;
-  grid-template-columns: 7fr 3fr;
-  grid-template-areas:
-    "map      buildings"
-    "npcs     npcs";
-  gap: 20px;
-  align-items: center;
+  /* minmax(0, …) is critical: bare fr units have an `auto` (min-content) floor,
+     which would let the building/NPC cards dictate the column width and ignore
+     the divider. minmax(0, …) lets each track shrink freely so its cards reflow
+     to whatever width you drag the column to. */
+  grid-template-columns:
+    minmax(0, var(--cw-map,   1.4fr)) var(--gutter, 9px)
+    minmax(0, var(--cw-build, 1fr))   var(--gutter, 9px)
+    minmax(0, var(--cw-npc,   1fr));
+  width: 100%;              /* definite width so fr tracks divide the shell, not max-content */
+  align-items: start;       /* pin every column to the TOP — never vertically centred */
+  align-content: start;
+
 }
 
-#sec-map           { grid-area: map; }
-.loc-col-buildings { grid-area: buildings; }
-.loc-col-npcs      { grid-area: npcs; }
+.loc-row {
+  box-sizing: border-box;
+  padding: 22px 20px;
+  margin: 0;          /* base.css has a global `section { margin: auto }`; on a grid
+                         item auto margins OVERRIDE align-self and center it in its
+                         cell — reset to 0 so align-self:start actually pins it top */
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  min-width: 0;
+  text-align: left;   /* base.css has a global `section { text-align: center }` —
+                         undo it so column content reads left-aligned, not centred */
+}
+.loc-row:last-child { border-bottom: none; }
+.loc-row-map { padding-top: 18px; }
+.loc-about-card.loc-row { padding-block: 18px; }
+
+/* About: full-width band on the first row */
+.loc-about-card.loc-row { grid-column: 1 / -1; grid-row: 1; }
+
+/* Row 2 — the three resizable columns and the two gutters between them.
+   - align-self: start  → a tall NPC column never drags Map/Buildings to a vertical centre.
+   - width: 100%        → fills the grid track. (justify-items/justify-self: stretch does
+     NOT size these items in Chromium when their content is narrower or has nowrap text;
+     an explicit width:100% resolves against the grid area and reliably fills it.) */
+.loc-row-map   { grid-column: 1; grid-row: 1; border-bottom: none; align-self: start; width: 100%; }
+.loc-resizer-1 { grid-column: 2; grid-row: 1; align-self: stretch; }
+#sec-buildings { grid-column: 3; grid-row: 1; border-bottom: none; align-self: start; width: 100%; }
+.loc-resizer-2 { grid-column: 4; grid-row: 1; align-self: stretch; }
+#sec-npcs      { grid-column: 5; grid-row: 1; border-bottom: none; align-self: start; width: 100%; }
+
+/* ── Draggable column divider ── */
+.loc-col-resizer {
+  align-self: stretch;        /* run the full height of the tallest column */
+  position: relative;
+  cursor: col-resize;
+  touch-action: none;         /* let pointer drag own the gesture */
+  z-index: 6;
+}
+/* the visible hairline, centred in the wider hit-area */
+.loc-col-resizer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  transition: width 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+.loc-col-resizer:hover::before,
+.loc-col-resizer.dragging::before {
+  width: 3px;
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(255,204,102,0.45);
+}
+/* grip dots so it reads as a handle */
+.loc-col-resizer::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 26px;
+  transform: translate(-50%, -50%);
+  border-radius: 3px;
+  background:
+    radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1.4px) center / 4px 6px repeat-y;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.loc-col-resizer:hover::after,
+.loc-col-resizer.dragging::after { opacity: 0.6; }
+
+/* Players never see Buildings/NPCs — collapse to a single Map band, no gutters */
+body.player-view .loc-main { display: block; }
+body.player-view .loc-col-resizer { display: none; }
+
+/* Stack back into full-width bands on small/phone screens */
+@media (max-width: 640px) {
+  .loc-main { display: block; }
+  .loc-col-resizer { display: none; }
+  .loc-row-map,
+  #sec-buildings,
+  #sec-npcs {
+    border-left: none;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  #sec-npcs { border-bottom: none; }
+}
 
 
 /* DM camera upload button in the hero — sits next to Edit, top-right */
@@ -254,13 +351,6 @@
 .loc-hero.hero-uploading .loc-hero-upload-btn {
   opacity: 0.5;
   pointer-events: none;
-}
-
-.loc-col {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  min-width: 0; /* prevent grid blowout */
 }
 
 
@@ -349,9 +439,8 @@
 .loc-map-container {
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1;
-  min-height: 260px;
-  border: 2px solid rgba(255,255,255,0.12);
+  height: clamp(340px, 52vh, 560px);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 8px;
   overflow: hidden;
   background: #111;
@@ -607,8 +696,10 @@
 
 /* ── NPC List ── */
 .npc-list {
-  display: flex;
-  flex-direction: column;
+  /* grid with minmax(0,1fr) for the same reason as .buildings-list — keeps a long
+     NPC name from blowing the column past the viewport. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
 }
 
@@ -943,8 +1034,11 @@
 
 /* ── Buildings List ── */
 .buildings-list {
-  display: flex;
-  flex-direction: column;
+  /* grid (not flex) with a minmax(0,1fr) column: this gives each card a definite
+     max width = the column, so the cards' nowrap name/notes ellipsize instead of
+     forcing #sec-buildings to grow to max-content and overlap the NPC column. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
 }
 
@@ -963,6 +1057,9 @@
     box-shadow 0.28s var(--ease-out-expo),
     background 0.18s ease,
     transform 0.24s var(--ease-out-expo);
+  width: auto;       /* grid column (minmax(0,1fr)) stretches the card to fill */
+  min-width: 0;      /* allow the card (and its nowrap name) to shrink/ellipsize */
+  box-sizing: border-box;
 }
 
 .building-card:hover {
@@ -2247,30 +2344,10 @@
   margin-top: 6px;
 }
 
-/* ── Player view (no DM panels — single column with feature at top) ── */
-.player-view .loc-main {
-  grid-template-columns: 1fr;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* ── Responsive layout ── */
-@media (max-width: 1000px) {
-  .loc-main { gap: 14px; padding: 16px 16px 48px; }
-}
-
+/* ── Responsive layout (rows already stack — just tighten spacing) ── */
 @media (max-width: 720px) {
-  .loc-main {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "map"
-      "buildings"
-      "npcs";
-    padding: 12px 12px 48px;
-    gap: 12px;
-  }
-  .loc-map-container { aspect-ratio: 4 / 3; min-height: 260px; }
+  .loc-row { padding: 16px 16px; }
+  .loc-map-container { height: clamp(280px, 46vh, 460px); }
 }
 
 

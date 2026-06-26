@@ -223,11 +223,13 @@ body.map-page {
 /* ── DM Edit/Delete Buttons ── */
 .marker-dm-controls {
   position: absolute;
-  top: calc(100% + 4px);
+  /* Offset well below the (scaled) pin + tail so the controls don't sit under
+     the cursor's path to the marker — fewer accidental clicks. */
+  top: calc(100% + 16px);
   left: 50%;
   transform: translateX(-50%);
   display: none;
-  gap: 4px;
+  gap: 8px;
   z-index: 30;
   white-space: nowrap;
 }
@@ -237,34 +239,44 @@ body.map-page {
   display: flex;
 }
 
+/* Round icon buttons — match the app's circular control style */
 .marker-dm-controls button {
-  font-size: 10px;
-  padding: 2px 6px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
   border: 1px solid #555;
-  border-radius: 3px;
+  border-radius: 50%;
   cursor: pointer;
-  font-family: var(--font);
-  line-height: 1.4;
+  /* Solid dark base so the controls stay legible over any map imagery */
+  background: rgba(22,22,20,0.94);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
 }
+.marker-dm-controls button:hover { transform: translateY(-1px); }
+.marker-dm-controls button:active { transform: translateY(0) scale(0.94); }
 
 .marker-edit-btn {
-  background: rgba(255,204,102,0.12);
-  border-color: rgba(255,204,102,0.35);
+  border-color: rgba(255,204,102,0.55);
   color: var(--accent);
 }
 
 .marker-edit-btn:hover {
-  background: rgba(255,204,102,0.22);
+  background: rgba(58,47,20,0.96);
+  border-color: var(--accent);
 }
 
 .marker-delete-btn {
-  background: rgba(229,115,115,0.12);
-  border-color: rgba(229,115,115,0.35);
+  border-color: rgba(229,115,115,0.55);
   color: #E57373;
 }
 
 .marker-delete-btn:hover {
-  background: rgba(229,115,115,0.22);
+  background: rgba(74,28,28,0.96);
+  border-color: #ef9a9a;
+  color: #ef9a9a;
 }
 
 /* ── Place Mode Cursor & Banner ── */
@@ -580,7 +592,7 @@ body.map-page {
 .lp-open-btn {
   position: absolute;
   bottom: 16px;
-  right: 16px;
+  left: 16px;
   z-index: 50;
   width: 44px;
   height: 44px;
@@ -607,6 +619,13 @@ body.map-page {
   transform: translateY(-2px);
 }
 .lp-open-btn:active { transform: translateY(0) scale(0.94); }
+
+/* When docked inside the DM toolbar (bottom-left), flow inline with the other
+   tool buttons instead of floating in the corner. */
+#dm-toolbar .lp-open-btn {
+  position: static;
+  box-shadow: none;
+}
 
 /* ── Location panel ── */
 .location-panel {
@@ -1037,13 +1056,16 @@ body.map-page {
   /* Marker edit/delete: flip above marker on mobile (tooltip is below) */
   .marker-dm-controls {
     top: auto;
-    bottom: calc(100% + 6px);
+    bottom: calc(100% + 16px);
     flex-direction: row;
+    gap: 10px;
   }
 
+  /* Larger round tap targets on touch */
   .marker-dm-controls button {
-    font-size: 13px;
-    padding: 8px 14px;
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
   }
 
   /* Banner text */
@@ -1069,7 +1091,7 @@ body.map-page {
   }
   .location-panel.open { transform: translateY(0); }
   .lp-resize-handle { display: none; }
-  .lp-open-btn { top: auto; bottom: calc(10vh + 12px); right: 12px; }
+  .lp-open-btn { top: auto; bottom: calc(10vh + 12px); left: 12px; right: auto; }
   .maps-open-btn { bottom: calc(10vh + 12px); }
 }
 
@@ -1635,6 +1657,8 @@ body.map-page {
   max-height: 100%;
   border-radius: 0;
   border: none;
+  /* Full-bleed editor — no floating-card drop shadow */
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   padding: 0;

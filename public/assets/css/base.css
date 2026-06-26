@@ -729,6 +729,9 @@ html.app-layout body {
   flex-direction: column;
   overflow-y: auto;
   min-height: 0;
+  min-width: 0;   /* flex items default to min-width:auto (min-content); without
+                     this, a wide grid/content child blows the column out past
+                     the viewport instead of shrinking to fit the shell */
   background: #141414;
 }
 
