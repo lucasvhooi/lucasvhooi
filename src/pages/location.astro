@@ -17,13 +17,13 @@ import Layout from '../layouts/Layout.astro';
   <main class="loc-main">
 
     <!-- Row 1: Map -->
-    <section class="loc-row loc-row-map" id="sec-map">
+    <section class="loc-row loc-row-map" id="sec-map" data-lenis-prevent>
       <div class="sec-header-row">
         <h2 class="sec-heading">Location Map</h2>
         <div id="loc-dm-toolbar" class="loc-dm-toolbar" style="display:none">
-          <label for="loc-map-upload" class="dm-btn dm-btn-sm">Upload Map</label>
+          <label for="loc-map-upload" class="loc-map-icon-btn" title="Upload Map" aria-label="Upload Map"><iconify-icon icon="lucide:image-plus"></iconify-icon></label>
           <input type="file" id="loc-map-upload" accept="image/*" style="display:none" />
-          <button id="loc-btn-place" class="dm-btn dm-btn-sm">Place Marker</button>
+          <button id="loc-btn-place" class="loc-map-icon-btn" title="Place Marker" aria-label="Place Marker"><iconify-icon icon="lucide:map-pin-plus"></iconify-icon></button>
         </div>
       </div>
       <div class="loc-map-outer">
@@ -63,9 +63,16 @@ import Layout from '../layouts/Layout.astro';
     <!-- Row 2: Buildings -->
     <section class="loc-row" id="sec-buildings" style="display:none">
       <div class="sec-header-row">
-        <h2 class="sec-heading">Buildings <span class="dm-badge">DM Only</span></h2>
+        <h2 class="sec-heading">
+          Buildings
+          <span class="npc-count-chip" id="bld-count-chip"></span>
+        </h2>
+      </div>
+      <div class="bld-search-row">
+        <input type="text" id="bld-search" class="npc-search-input" placeholder="Search buildings…" />
       </div>
       <div id="loc-buildings-list" class="buildings-list"></div>
+      <div id="bld-pager" class="list-pager"></div>
     </section>
 
     <!-- Resizer: Buildings | NPCs -->
@@ -73,18 +80,17 @@ import Layout from '../layouts/Layout.astro';
 
     <!-- Row 3: NPCs -->
     <section class="loc-row" id="sec-npcs" style="display:none">
-      <div class="sec-header-row npc-toggle-row" id="npc-toggle-row">
+      <div class="sec-header-row">
         <h2 class="sec-heading">
-          NPCs <span class="dm-badge">DM Only</span>
+          NPCs
           <span class="npc-count-chip" id="npc-count-chip"></span>
         </h2>
         <div style="display:flex;gap:6px;align-items:center;">
-          <button id="loc-toggle-gen-btn" class="dm-btn dm-btn-sm dm-btn-secondary">Generator <iconify-icon icon="lucide:chevron-right"></iconify-icon></button>
-          <button id="loc-add-npc-btn" class="dm-btn dm-btn-sm">+ Add NPC</button>
-          <button class="npc-expand-toggle" id="npc-expand-toggle" title="Show NPCs"><iconify-icon icon="lucide:chevron-down"></iconify-icon></button>
+          <button id="loc-toggle-gen-btn" class="npc-icon-btn npc-icon-btn-secondary" title="NPC generator" aria-label="NPC generator"><iconify-icon icon="lucide:wand-sparkles"></iconify-icon></button>
+          <button id="loc-add-npc-btn" class="npc-icon-btn npc-icon-btn-gold" title="Add NPC" aria-label="Add NPC"><iconify-icon icon="lucide:user-plus"></iconify-icon></button>
         </div>
       </div>
-      <div id="npc-section-body" style="display:none">
+      <div id="npc-section-body">
         <div class="npc-generator-panel" id="npc-generator-panel" style="display:none">
           <div class="generator-controls">
             <span class="generator-label">Generate</span>
@@ -100,6 +106,7 @@ import Layout from '../layouts/Layout.astro';
           <input type="text" id="npc-search" class="npc-search-input" placeholder="Search NPCs…" />
         </div>
         <div id="loc-npc-list" class="npc-list"></div>
+        <div id="npc-pager" class="list-pager"></div>
       </div>
     </section>
 

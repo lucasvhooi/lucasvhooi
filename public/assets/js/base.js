@@ -25,9 +25,11 @@
         smoothWheel: true,
         touchMultiplier: 1.6,
         wheelMultiplier: 1.0,
-        // Don't intercept wheel events inside modals/overlays — let them scroll natively
+        // Don't intercept wheel events inside modals/overlays, or over any element
+        // flagged with [data-lenis-prevent] (e.g. the zoomable location map) — those
+        // handle the wheel themselves, so Lenis must not smooth-scroll the page.
         prevent: function (node) {
-          return !!node.closest(MODAL_SEL);
+          return !!node.closest(MODAL_SEL) || !!node.closest('[data-lenis-prevent]');
         },
       });
       function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }

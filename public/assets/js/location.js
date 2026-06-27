@@ -52,7 +52,7 @@ let isDraggingBuilding  = false;
 let dragSrcId           = null;
 let isDayTime           = true;
 let currentTavernMarker = null;
-let npcExpanded         = false;
+let npcExpanded         = true;   // NPC list is always expanded now
 
 // ── DOM Refs ──────────────────────────────────────────────────────────────────
 const locTitle        = document.getElementById("loc-title");
@@ -89,6 +89,7 @@ onValue(infoRef, snapshot => {
 onValue(subMarkersRef, snapshot => {
   const data = snapshot.val();
   subMarkers = data ? Object.values(data) : [];
+  _updateBuildingChip();
   renderSubMarkers();
   if (isAdmin && !isDraggingBuilding) renderBuildings();
   renderHero();
@@ -284,12 +285,19 @@ function _zoomLocAt(cx, cy, newScale) {
   _flushLocMarkerScale();
 }
 
-// Wheel zoom
-locMapContainer.addEventListener("wheel", e => {
+// Wheel over the map → zoom the map (same as the world map). #sec-map is
+// [data-lenis-prevent] so Lenis won't smooth-scroll the page underneath while the
+// cursor is over the map. Off the map, the event is left alone for normal scroll.
+(document.getElementById("sec-map") || locMapContainer).addEventListener("wheel", e => {
+  const rect    = locMapContainer.getBoundingClientRect();
+  const overMap =
+    e.clientX >= rect.left && e.clientX <= rect.right &&
+    e.clientY >= rect.top  && e.clientY <= rect.bottom;
+  if (!overMap) return;            // off the map → let the page scroll normally
+
   e.preventDefault();
-  const rect = locMapContainer.getBoundingClientRect();
-  _zoomLocAt(e.clientX - rect.left, e.clientY - rect.top,
-             _locScale * (1 - e.deltaY * 0.001));
+  const tgt = _locScale * (1 - e.deltaY * 0.01);
+  _zoomLocAt(e.clientX - rect.left, e.clientY - rect.top, tgt);
 }, { passive: false });
 
 // Pointer drag (desktop pan)
@@ -425,12 +433,7 @@ function renderSubMarkers() {
       <div class="tooltip-name">${marker.name}</div>
       <div class="tooltip-type">${markerDisplayType(marker)}${marker.shopSubtype ? ` · ${marker.shopSubtype}` : ""}</div>
       ${ownerNpc ? `<div class="tooltip-owner"><iconify-icon icon="lucide:user"></iconify-icon> ${ownerNpc.name}</div>` : ""}
-      <button class="tooltip-view-btn">View</button>
     `;
-    tooltip.querySelector(".tooltip-view-btn").addEventListener("click", e => {
-      e.stopPropagation();
-      openShopModal(marker);
-    });
 
     el.appendChild(pin);
     el.appendChild(tooltip);
@@ -440,13 +443,17 @@ function renderSubMarkers() {
       controls.className = "loc-marker-controls";
 
       const editBtn = document.createElement("button");
-      editBtn.className   = "marker-edit-btn";
-      editBtn.textContent = "Edit";
+      editBtn.className = "marker-edit-btn";
+      editBtn.title     = "Edit";
+      editBtn.setAttribute("aria-label", "Edit marker");
+      editBtn.innerHTML = `<iconify-icon icon="lucide:pencil"></iconify-icon>`;
       editBtn.addEventListener("click", e => { e.stopPropagation(); openSubMarkerModal(marker.id); });
 
       const delBtn = document.createElement("button");
-      delBtn.className   = "marker-delete-btn";
-      delBtn.textContent = "Delete";
+      delBtn.className = "marker-delete-btn";
+      delBtn.title     = "Delete";
+      delBtn.setAttribute("aria-label", "Delete marker");
+      delBtn.innerHTML = `<iconify-icon icon="lucide:trash-2"></iconify-icon>`;
       delBtn.addEventListener("click", e => {
         e.stopPropagation();
         if (!confirm(`Delete "${marker.name}"? This cannot be undone.`)) return;
@@ -458,12 +465,14 @@ function renderSubMarkers() {
       el.appendChild(controls);
     }
 
-    // Tap to toggle tooltip on mobile; also sync building card highlight
-    el.addEventListener("click", () => {
-      const isActive = el.classList.contains("active");
+    // Single click opens the building/shop modal directly (hover still previews
+    // the tooltip on desktop; DM edit/delete controls show on hover/tap).
+    el.addEventListener("click", e => {
+      e.stopPropagation();
       locMarkerLayer.querySelectorAll(".loc-marker.active").forEach(m => m.classList.remove("active"));
-      highlightBuildingCard(isActive ? null : marker.id);
-      if (!isActive) el.classList.add("active");
+      el.classList.add("active");
+      highlightBuildingCard(marker.id);
+      openShopModal(marker);
     });
 
     locMarkerLayer.appendChild(el);
@@ -485,8 +494,10 @@ if (locBtnPlace) {
   locBtnPlace.addEventListener("pointerdown", e => e.stopPropagation());
   locBtnPlace.addEventListener("click", () => {
     placingMode = !placingMode;
-    locBtnPlace.textContent = placingMode ? "Cancel Placing" : "Place Marker";
     locBtnPlace.classList.toggle("active", placingMode);
+    locBtnPlace.title = placingMode ? "Cancel Placing" : "Place Marker";
+    locBtnPlace.setAttribute("aria-label", locBtnPlace.title);
+    locBtnPlace.querySelector("iconify-icon")?.setAttribute("icon", placingMode ? "lucide:x" : "lucide:map-pin-plus");
     locMapContainer.classList.toggle("placing-mode", placingMode);
     locPlacingBanner.classList.toggle("visible", placingMode);
   });
@@ -686,8 +697,10 @@ function closeSubMarkerModal() {
   if (placingMode) {
     placingMode = false;
     if (locBtnPlace) {
-      locBtnPlace.textContent = "Place Marker";
       locBtnPlace.classList.remove("active");
+      locBtnPlace.title = "Place Marker";
+      locBtnPlace.setAttribute("aria-label", "Place Marker");
+      locBtnPlace.querySelector("iconify-icon")?.setAttribute("icon", "lucide:map-pin-plus");
     }
     locMapContainer.classList.remove("placing-mode");
     locPlacingBanner.classList.remove("visible");
@@ -805,38 +818,94 @@ if (lmUploadBtn && lmPicFile) {
 
 // ── Buildings List (DM only — mirrors sub-markers) ───────────────────────────
 const locBuildingsList = document.getElementById("loc-buildings-list");
+const LIST_PAGE_SIZE   = 12;        // cards rendered per page (buildings + NPCs)
+let bldSearchQuery     = "";
+let bldPage            = 0;
+let npcPage            = 0;
 
-function renderBuildings() {
-  locBuildingsList.innerHTML = "";
+const BUILDING_ICONS = {
+  Forge: "game-icons:anvil", Shop: "lucide:shopping-bag", Tavern: "game-icons:beer-stein",
+  House: "lucide:home", Temple: "game-icons:greek-temple", Guard: "lucide:shield",
+  Market: "lucide:store", Library: "game-icons:bookshelf", Other: "lucide:map-pin"
+};
 
-  if (subMarkers.length === 0) {
-    locBuildingsList.innerHTML = `<p class="empty-hint">No markers placed on the map yet.</p>`;
-    return;
-  }
+// Shared Prev / "x / y" / Next pager. Renders into `container`; calls onGo(page).
+function renderListPager(container, page, totalPages, onGo) {
+  if (!container) return;
+  container.innerHTML = "";
+  if (totalPages <= 1) return;
+  const btn = (icon, target, disabled) => {
+    const b = document.createElement("button");
+    b.className = "list-pager-btn";
+    b.innerHTML = `<iconify-icon icon="${icon}"></iconify-icon>`;
+    b.disabled = disabled;
+    if (!disabled) b.addEventListener("click", () => onGo(target));
+    return b;
+  };
+  container.appendChild(btn("lucide:chevron-left", page - 1, page <= 0));
+  const info = document.createElement("span");
+  info.className   = "list-pager-info";
+  info.textContent = `${page + 1} / ${totalPages}`;
+  container.appendChild(info);
+  container.appendChild(btn("lucide:chevron-right", page + 1, page >= totalPages - 1));
+}
 
-  // Sort by saved order, falling back to stable array position
-  const sorted = [...subMarkers].sort((a, b) => {
+function getSortedBuildings() {
+  return [...subMarkers].sort((a, b) => {
     const ao = a.order !== undefined ? a.order : Infinity;
     const bo = b.order !== undefined ? b.order : Infinity;
     return ao - bo;
   });
+}
 
-  sorted.forEach(marker => {
+function renderBuildings() {
+  locBuildingsList.innerHTML = "";
+  const pager = document.getElementById("bld-pager");
+
+  if (subMarkers.length === 0) {
+    locBuildingsList.innerHTML = `<p class="empty-hint">No markers placed on the map yet.</p>`;
+    if (pager) pager.innerHTML = "";
+    return;
+  }
+
+  const searching = !!bldSearchQuery;
+  locBuildingsList.classList.toggle("searching", searching);
+
+  let list = getSortedBuildings();
+  if (searching) {
+    const q = bldSearchQuery.toLowerCase();
+    list = list.filter(m => {
+      const owner = m.ownerId ? (npcs.find(n => n.id === m.ownerId)?.name || "") : "";
+      return (m.name        || "").toLowerCase().includes(q)
+          || markerDisplayType(m).toLowerCase().includes(q)
+          || (m.shopSubtype  || "").toLowerCase().includes(q)
+          || (m.notes        || "").toLowerCase().includes(q)
+          || owner.toLowerCase().includes(q);
+    });
+  }
+
+  if (list.length === 0) {
+    locBuildingsList.innerHTML = `<p class="empty-hint">No buildings match your search.</p>`;
+    if (pager) pager.innerHTML = "";
+    return;
+  }
+
+  const totalPages = Math.ceil(list.length / LIST_PAGE_SIZE);
+  bldPage = Math.max(0, Math.min(bldPage, totalPages - 1));
+  const start     = bldPage * LIST_PAGE_SIZE;
+  const pageItems = list.slice(start, start + LIST_PAGE_SIZE);
+
+  pageItems.forEach(marker => {
     const card = document.createElement("div");
     card.className  = "building-card" + (marker.discovered ? " building-discovered" : "");
     card.dataset.id = marker.id;
-    card.draggable  = true;
+    card.draggable  = !searching;     // reordering only makes sense in the full, unsearched list
 
     const color  = TYPE_COLORS[marker.type] || "#BDBDBD";
     const bOwner = marker.ownerId ? npcs.find(n => n.id === marker.ownerId) : null;
     card.style.setProperty("--bc", color);
 
-    const TYPE_ICONS = {
-      Forge: "game-icons:anvil", Shop: "lucide:shopping-bag", Tavern: "game-icons:beer-stein",
-      House: "lucide:home", Temple: "game-icons:greek-temple", Guard: "lucide:shield",
-      Market: "lucide:store", Library: "game-icons:bookshelf", Other: "lucide:map-pin"
-    };
-    const thumbIcon = TYPE_ICONS[marker.type] || "lucide:map-pin";
+    const thumbIcon = BUILDING_ICONS[marker.type] || "lucide:map-pin";
     const thumbHtml = marker.picture
       ? `<img src="${marker.picture}" alt="${marker.name}" />`
       : `<iconify-icon icon="${thumbIcon}" style="color:${color}"></iconify-icon>`;
@@ -852,78 +921,77 @@ function renderBuildings() {
         ${marker.notes ? `<div class="building-notes">${marker.notes}</div>` : ""}
       </div>
       <div class="building-card-actions">
-        <button class="building-open-btn dm-btn dm-btn-sm" title="View">Open</button>
         <button class="building-vis-btn${marker.discovered ? " active" : ""}" title="${marker.discovered ? "Hide from players" : "Reveal to players"}"><iconify-icon icon="lucide:eye"></iconify-icon></button>
       </div>
     `;
 
-    // ── Open shop modal ─────────────────────────────────────────────────────
-    card.querySelector(".building-open-btn").addEventListener("click", e => {
-      e.stopPropagation();
+    // Click the card → open the building/shop modal (drag handle + reveal toggle excluded).
+    card.addEventListener("click", e => {
+      if (isDraggingBuilding) return;
+      if (e.target.closest("button") || e.target.closest(".building-drag-handle")) return;
       openShopModal(marker);
     });
 
-    // ── Reveal/hide toggle ──────────────────────────────────────────────────
+    // Reveal/hide toggle
     card.querySelector(".building-vis-btn").addEventListener("click", e => {
       e.stopPropagation();
       set(ref(db, `campaigns/${cid}/locations/${locationId}/subMarkers/${marker.id}/discovered`), !marker.discovered);
     });
 
-    // ── Highlight on click ──────────────────────────────────────────────────
-    card.addEventListener("click", () => {
-      if (isDraggingBuilding) return;
-      const alreadyHighlighted = card.classList.contains("highlighted");
-      locMarkerLayer.querySelectorAll(".loc-marker.active").forEach(m => m.classList.remove("active"));
-      highlightBuildingCard(null);
-      if (!alreadyHighlighted) {
-        highlightBuildingCard(marker.id);
-        const mapMarker = locMarkerLayer.querySelector(`[data-id="${marker.id}"]`);
-        if (mapMarker) {
-          mapMarker.classList.add("active");
-          document.getElementById("sec-map").scrollIntoView({ behavior: "smooth", block: "nearest" });
-        }
-      }
-    });
-
-    // ── Drag-and-drop reordering ────────────────────────────────────────────
-    card.addEventListener("dragstart", e => {
-      isDraggingBuilding = true;
-      dragSrcId = marker.id;
-      card.classList.add("dragging");
-      e.dataTransfer.effectAllowed = "move";
-    });
-
-    card.addEventListener("dragover", e => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-      const dragging = locBuildingsList.querySelector(".building-card.dragging");
-      if (!dragging || dragging === card) return;
-      const rect = card.getBoundingClientRect();
-      if (e.clientY < rect.top + rect.height / 2) {
-        locBuildingsList.insertBefore(dragging, card);
-      } else {
-        locBuildingsList.insertBefore(dragging, card.nextSibling);
-      }
-    });
-
-    card.addEventListener("drop", e => {
-      e.preventDefault();
-      // Write new order from current DOM position to Firebase
-      const cards = [...locBuildingsList.querySelectorAll(".building-card")];
-      cards.forEach((c, idx) => {
-        set(ref(db, `campaigns/${cid}/locations/${locationId}/subMarkers/${c.dataset.id}/order`), idx);
+    // Drag-and-drop reordering (only in the full, unsearched list)
+    if (!searching) {
+      card.addEventListener("dragstart", e => {
+        isDraggingBuilding = true;
+        dragSrcId = marker.id;
+        card.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
       });
-    });
 
-    card.addEventListener("dragend", () => {
-      card.classList.remove("dragging");
-      locBuildingsList.querySelectorAll(".building-card.drag-over").forEach(c => c.classList.remove("drag-over"));
-      isDraggingBuilding = false;
-      dragSrcId = null;
-      renderBuildings();
-    });
+      card.addEventListener("dragover", e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        const dragging = locBuildingsList.querySelector(".building-card.dragging");
+        if (!dragging || dragging === card) return;
+        const rect = card.getBoundingClientRect();
+        if (e.clientY < rect.top + rect.height / 2) {
+          locBuildingsList.insertBefore(dragging, card);
+        } else {
+          locBuildingsList.insertBefore(dragging, card.nextSibling);
+        }
+      });
+
+      card.addEventListener("drop", e => {
+        e.preventDefault();
+        // Renumber just this page's cards. The slice maps to order ranks
+        // [start, start+len), so offsetting by `start` leaves the other pages intact.
+        const cards = [...locBuildingsList.querySelectorAll(".building-card")];
+        cards.forEach((c, idx) => {
+          set(ref(db, `campaigns/${cid}/locations/${locationId}/subMarkers/${c.dataset.id}/order`), start + idx);
+        });
+      });
+
+      card.addEventListener("dragend", () => {
+        card.classList.remove("dragging");
+        locBuildingsList.querySelectorAll(".building-card.drag-over").forEach(c => c.classList.remove("drag-over"));
+        isDraggingBuilding = false;
+        dragSrcId = null;
+        renderBuildings();
+      });
+    }
 
     locBuildingsList.appendChild(card);
+  });
+
+  renderListPager(pager, bldPage, totalPages, p => { bldPage = p; renderBuildings(); });
+}
+
+// Buildings search
+const bldSearchInput = document.getElementById("bld-search");
+if (bldSearchInput) {
+  bldSearchInput.addEventListener("input", e => {
+    bldSearchQuery = e.target.value;
+    bldPage = 0;
+    renderBuildings();
   });
 }
 
@@ -937,9 +1005,11 @@ function highlightBuildingCard(id) {
 // ── NPC Rendering ─────────────────────────────────────────────────────────────
 function renderNpcs() {
   locNpcList.innerHTML = "";
+  const pager = document.getElementById("npc-pager");
 
   if (npcs.length === 0) {
     locNpcList.innerHTML = `<p class="empty-hint">No NPCs added yet.</p>`;
+    if (pager) pager.innerHTML = "";
     return;
   }
 
@@ -955,12 +1025,18 @@ function renderNpcs() {
     );
   }
 
-  if (sorted.length === 0 && npcs.length > 0) {
+  if (sorted.length === 0) {
     locNpcList.innerHTML = `<p class="empty-hint">No NPCs match your search.</p>`;
+    if (pager) pager.innerHTML = "";
     return;
   }
 
-  sorted.forEach((npc) => {
+  const totalPages = Math.ceil(sorted.length / LIST_PAGE_SIZE);
+  npcPage = Math.max(0, Math.min(npcPage, totalPages - 1));
+  const start     = npcPage * LIST_PAGE_SIZE;
+  const pageItems = sorted.slice(start, start + LIST_PAGE_SIZE);
+
+  pageItems.forEach((npc) => {
     const card = document.createElement("div");
     card.className = "npc-card" + (npc.talkedTo ? " npc-talked" : "");
 
@@ -975,8 +1051,7 @@ function renderNpcs() {
           <div class="npc-name">${npc.name}</div>
           <div class="npc-actions">
             <button class="npc-talk-btn${npc.talkedTo ? " active" : ""}" title="${npc.talkedTo ? "Mark as not talked to" : "Mark as talked to"}"><iconify-icon icon="lucide:check"></iconify-icon></button>
-            <button class="marker-edit-btn dm-btn dm-btn-sm npc-edit-btn">Edit</button>
-            <button class="marker-delete-btn dm-btn dm-btn-sm npc-del-btn">Del</button>
+            <button class="npc-del-btn" title="Delete NPC" aria-label="Delete NPC"><iconify-icon icon="lucide:trash-2"></iconify-icon></button>
           </div>
         </div>
         ${subtitle ? `<div class="npc-subtitle">${subtitle}</div>` : ""}
@@ -985,14 +1060,25 @@ function renderNpcs() {
       </div>
     `;
 
-    card.querySelector(".npc-talk-btn").addEventListener("click", () => {
+    // Click anywhere on the card (except the action buttons) opens the editor.
+    card.addEventListener("click", e => {
+      if (e.target.closest("button")) return;
+      openNpcModal(npc.id);
+    });
+
+    card.querySelector(".npc-talk-btn").addEventListener("click", e => {
+      e.stopPropagation();
       set(ref(db, `campaigns/${cid}/locations/${locationId}/npcs/${npc.id}/talkedTo`), !npc.talkedTo);
     });
-    card.querySelector(".npc-edit-btn").addEventListener("click", () => openNpcModal(npc.id));
-    card.querySelector(".npc-del-btn").addEventListener("click",  () => remove(ref(db, `campaigns/${cid}/locations/${locationId}/npcs/${npc.id}`)));
+    card.querySelector(".npc-del-btn").addEventListener("click",  e => {
+      e.stopPropagation();
+      remove(ref(db, `campaigns/${cid}/locations/${locationId}/npcs/${npc.id}`));
+    });
 
     locNpcList.appendChild(card);
   });
+
+  renderListPager(pager, npcPage, totalPages, p => { npcPage = p; renderNpcs(); });
 }
 
 // ── NPC Modal ─────────────────────────────────────────────────────────────────
@@ -1063,28 +1149,16 @@ locNpcModal.addEventListener("click", e => { if (e.target === locNpcModal) close
 
 document.getElementById("loc-add-npc-btn").addEventListener("click", () => openNpcModal(null));
 
-// ── NPC expand / collapse ─────────────────────────────────────────────────────
-const npcSectionBody    = document.getElementById("npc-section-body");
-const npcExpandToggle   = document.getElementById("npc-expand-toggle");
-const npcToggleRow      = document.getElementById("npc-toggle-row");
-
+// ── NPC list (always expanded) ────────────────────────────────────────────────
 function _updateNpcChip() {
   const chip = document.getElementById("npc-count-chip");
   if (chip) chip.textContent = npcs.length > 0 ? `(${npcs.length})` : "";
 }
 
-function _toggleNpcs() {
-  npcExpanded = !npcExpanded;
-  if (npcSectionBody) npcSectionBody.style.display = npcExpanded ? "" : "none";
-  if (npcExpandToggle) {
-    const icon = npcExpandToggle.querySelector("iconify-icon");
-    if (icon) icon.setAttribute("icon", npcExpanded ? "lucide:chevron-up" : "lucide:chevron-down");
-  }
-  if (npcExpanded) renderNpcs();
+function _updateBuildingChip() {
+  const chip = document.getElementById("bld-count-chip");
+  if (chip) chip.textContent = subMarkers.length > 0 ? `(${subMarkers.length})` : "";
 }
-
-npcExpandToggle?.addEventListener("click", e => { e.stopPropagation(); _toggleNpcs(); });
-npcToggleRow?.addEventListener("click", e => { if (!e.target.closest(".dm-btn")) _toggleNpcs(); });
 
 // ── NPC Generator Toggle ──────────────────────────────────────────────────────
 const npcGeneratorPanel = document.getElementById("npc-generator-panel");
@@ -1096,7 +1170,7 @@ if (toggleGenBtn && npcGeneratorPanel) {
     e.stopPropagation();
     generatorOpen = !generatorOpen;
     npcGeneratorPanel.style.display = generatorOpen ? "" : "none";
-    toggleGenBtn.innerHTML = generatorOpen ? 'Generator <iconify-icon icon="lucide:chevron-down"></iconify-icon>' : 'Generator <iconify-icon icon="lucide:chevron-right"></iconify-icon>';
+    toggleGenBtn.classList.toggle("active", generatorOpen);
   });
 }
 
@@ -1106,7 +1180,8 @@ const npcSearchInput = document.getElementById("npc-search");
 if (npcSearchInput) {
   npcSearchInput.addEventListener("input", e => {
     npcSearchQuery = e.target.value;
-    if (npcExpanded) renderNpcs();
+    npcPage = 0;
+    renderNpcs();
   });
 }
 
@@ -2677,7 +2752,8 @@ shopModal.addEventListener("click", e => { if (e.target === shopModal) closeShop
   if (!main) return;
 
   const DEFAULTS = { map: 1.4, build: 1, npc: 1 };
-  const MIN_PX   = 150;                        // smallest a column may shrink to
+  const MIN_PX   = 190;                        // smallest a column may shrink to (cap);
+                                               // card content degrades via @container above this
   const STORE    = "loc-col-fr";
 
   const cols = {
